@@ -1,0 +1,130 @@
+Changes for version 1.0-beta3
+-------------------------------
+
+2004-10-05 20:05  mandrav
+	* Main app: Added exchndl.dll to catch and report fatal exceptions (a file
+	named codeblocks.rpt is created containing exception info) - Win32 only
+
+2004-09-30 21:24  mandrav
+
+	* Code-completion plugin: Fixed bug that would skip "extern "C" {}" blocks
+	* Compiler GCC plugin: If compilation errors occur, jump to first/next error,
+	not	warning (if there are any)
+	* Core: Introduced "Project/Import/Visual C++ project" option
+
+2004-09-11 12:15  mandrav
+
+	* Compiler GCC plugin: Generated Makefile doesn't complain anymore when
+	the same project file is included in multiple targets
+	* ClassWizard plugin: Change current directory to project's base path (if
+	a project is open) before generating the new class
+	* Debugger GDB plugin: Switch to output directory before start of
+	debugging session
+	* Code-completion plugin: Make sure preprocessor definitions are not
+	stored under namespaces or classes
+	* Code-completion plugin: Many updates and bug-fixes regarding
+	code-completion using namespaces
+	* Project manager: Added "Project/Activate Prior" and "Project/Activate Next"
+	for easy navigation between open projects
+	* Project manager: Added "File/Properties" for active editor
+	* Project manager: Changed "Project/Properties" to display the project
+	properties (it would display the selected file's properties in the project
+	tree, if one was selected)
+	* Project manager: Fixed "Build Options" tree context menu entry, to
+	display the build options for the "clicked" project
+	* Tools manager: Bug-fix (didn't substitute macros)
+
+2004-07-20 21:03  mandrav
+
+	* Code-completion plugin: Fix crash if namespace was used in class inheritance
+	* Code-completion plugin: Fix superfluous namespaces in class browser
+
+Changes for version 1.0-beta2
+-----------------------------
+
+2004-06-11 07:17  mhaggag
+
+	* Minor bug fixes
+	* Reduced the number of memory leaks a little :)
+	* No longer using relative include paths for plugins
+	* Plugin classes no longer exported
+	* Minor code cleanup
+	* Created VC6 projects for all plugins
+
+2004-06-05 00:08  mhaggag
+
+	* Added VC++6 workspaces/project files for cb. Plugins not done yet, though.
+	* Added "Comment/Uncomment Selection"
+	* Fixed XRC Resource Loading Issue (under wx2.4.2)
+	* Fixed "Checking Uncheckable Item" assertions
+	* Changed absolute include paths to relative include paths (no need to set the SDK path
+	in the include paths when relative addressing does the job)
+
+2004-05-14 09:11  mandrav
+
+	* setup/CodeBlocks_Core.iss: Updated setup file for 1.0-beta2
+
+2004-05-14 08:43  mandrav
+
+	* A couple of small bug-fixes in compiler plugin
+	* Disabled use of "Settings/Plugins" menu item (plugins enable/disable)
+	* Increased version to 1.0-beta2
+
+2004-05-14 07:08  mandrav
+
+	* Added "File/Save workspace" to select workspace filename instead
+	  of always using the default workspace
+	* Added file association for workspaces
+
+2004-05-14 06:27  mandrav
+
+	* Added a tips dialog to show on start-up and under Help/Tips
+	* Added tips.txt file (one tip per-line; to disable a tip put a #
+	  at the start of the line)
+	* Commented out a #pragma directive in sdk/tinyxml/tinystr.h to
+	  stop a gcc warning
+
+2004-05-14 05:24  mandrav
+
+	* Fixed a nasty UI glitch where the MessageManager logs would  not
+	  be correctly laid out until *manually* resizing MessageManager
+
+2004-05-14 03:43  mandrav
+
+	* Bug-fix: Tools menu messed-up after "configure tools"
+	* Added new class MenuItemsManager to manage menu items for classes
+	  that need to add menu items and then remove them (ToolsManager,
+	  plugins etc)
+
+2004-05-11 09:48  mandrav
+
+	* [Compiler]: generated Makefile contains code to automatically create
+	  the target dirs (if they do not exist)
+
+2004-05-11 08:37  mandrav
+
+	* Fixed some UI-related behaviour in project options dialog
+
+2004-05-11 07:33  mandrav
+
+	* Bug-fix: crash on global compiler options add/edit dirs
+
+2004-05-11 03:51  mandrav
+
+	* Bug-fix: global compiler settings, add compiler dir crash
+
+2004-05-10 07:18  mandrav
+
+	* Changed ToDo plugin interface: it now adds a tab in the bottom view
+
+2004-05-10 04:25  mandrav
+
+	* Update symbols browser images
+
+2004-05-10 03:35  mandrav
+
+	* Changed namespaces display in symbols browser
+
+2004-05-09 16:07  mandrav
+
+	* Bug fix: Generated Makefile: wrong relative filename for private resources
