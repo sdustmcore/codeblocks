@@ -16,7 +16,6 @@ class NewFromTemplateDlg : public wxDialog
 		virtual ~NewFromTemplateDlg();
 		
 		ProjectTemplateLoader* GetTemplate(){ return m_Template; }
-        bool DoNotCreateFiles();
 		bool SelectedUserTemplate();
 		wxString GetSelectedUserTemplate();
 		int GetOptionIndex();

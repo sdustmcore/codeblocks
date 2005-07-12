@@ -14,11 +14,14 @@
 // #include "cbproject.h"
 #include "printing_types.h"
 
-DLLIMPORT extern int ID_EditorManager;
-DLLIMPORT extern int idEditorManagerCheckFiles;
+extern int ID_EditorManager;
+extern int idEditorManagerCheckFiles;
+class EditorBase;
+
+WX_DECLARE_LIST(EditorBase, EditorsList);
+WX_DECLARE_STRING_HASH_MAP(wxString, AutoCompleteMap);
 
 // forward decls
-class EditorBase;
 class wxNotebook;
 class wxNotebookEvent;
 class wxMenuBar;
@@ -28,9 +31,6 @@ class ProjectFile;
 class cbEditor;
 class wxStyledTextCtrl;
 class SimpleListLog;
-
-WX_DECLARE_LIST(EditorBase, EditorsList);
-WX_DECLARE_STRING_HASH_MAP(wxString, AutoCompleteMap);
 
 struct cbFindReplaceData
 {
@@ -126,8 +126,6 @@ class DLLIMPORT EditorManager : public wxEvtHandler
         bool OpenFilesTreeSupported();
         /// Show/hide the opened files tree
         void ShowOpenFilesTree(bool show);
-        /// Refresh the open files tree
-        void RefreshOpenFilesTree();
         /// Return true if opened files tree is visible, false if not
         bool IsOpenFilesTreeVisible();
         /** Builds Opened Files tree in the Projects tab
@@ -191,10 +189,8 @@ class DLLIMPORT EditorManager : public wxEvtHandler
         bool m_LastModifiedflag;
         SimpleListLog* m_pSearchLog;
         int m_SearchLogIndex;
-        int m_SashPosition;
-
-        DECLARE_EVENT_TABLE()
-        DECLARE_SANITY_CHECK
+    DECLARE_EVENT_TABLE()
+    DECLARE_SANITY_CHECK
 
 };
 

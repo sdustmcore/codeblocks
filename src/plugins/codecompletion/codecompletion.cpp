@@ -177,10 +177,9 @@ void CodeCompletion::BuildModuleMenu(const ModuleType type, wxMenu* menu, const 
 	}
 }
 
-bool CodeCompletion::BuildToolBar(wxToolBar* toolBar)
+void CodeCompletion::BuildToolBar(wxToolBar* toolBar)
 {
 	// no need for toolbar items
-	return false;
 }
 
 void CodeCompletion::OnAttach()

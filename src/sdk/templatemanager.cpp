@@ -207,39 +207,36 @@ void TemplateManager::NewProjectFromTemplate(NewFromTemplateDlg& dlg)
             target->SetCompilerIndex(CompilerFactory::GetDefaultCompilerIndex());
         }
         
-        if (!dlg.DoNotCreateFiles())
+        for (unsigned int i = 0; i < fileset.files.GetCount(); ++i)
         {
-            for (unsigned int i = 0; i < fileset.files.GetCount(); ++i)
+            FileSetFile& fsf = fileset.files[i];
+            wxString dst = path + sep + fsf.destination;
+            bool skipped = false;
+            while (wxFileExists(dst))
             {
-                FileSetFile& fsf = fileset.files[i];
-                wxString dst = path + sep + fsf.destination;
-                bool skipped = false;
-                while (wxFileExists(dst))
+                wxString msg;
+                msg.Printf(_("File %s already exists.\nDo you really want to overwrite this file?"), dst.c_str());
+                if (wxMessageBox(msg, _("Overwrite existing file?"), wxYES_NO | wxICON_WARNING) == wxYES)
+                    break;
+                wxFileDialog fdlg(0L,
+                                    _("Save file as..."),
+                                    wxEmptyString,
+                                    dst,
+                                    SOURCE_FILES_FILTER,
+                                    wxSAVE);
+                if (fdlg.ShowModal() == wxID_CANCEL)
                 {
-                    wxString msg;
-                    msg.Printf(_("File %s already exists.\nDo you really want to overwrite this file?"), dst.c_str());
-                    if (wxMessageBox(msg, _("Overwrite existing file?"), wxYES_NO | wxICON_WARNING) == wxYES)
-                        break;
-                    wxFileDialog fdlg(0L,
-                                        _("Save file as..."),
-                                        wxEmptyString,
-                                        dst,
-                                        SOURCE_FILES_FILTER,
-                                        wxSAVE);
-                    if (fdlg.ShowModal() == wxID_CANCEL)
-                    {
-                        msg.Printf(_("File %s is skipped..."), dst.c_str());
-                        wxMessageBox(msg, _("File skipped"), wxICON_ERROR);
-                        skipped = true;
-                        break;
-                    }
-                    dst = fdlg.GetPath();
+                    msg.Printf(_("File %s is skipped..."), dst.c_str());
+                    wxMessageBox(msg, _("File skipped"), wxICON_ERROR);
+                    skipped = true;
+                    break;
                 }
-                if (skipped)
-                    continue;
-                wxCopyFile(baseDir + sep + fsf.source, dst);
-                prj->AddFile(0, dst);
+                dst = fdlg.GetPath();
             }
+            if (skipped)
+                continue;
+            wxCopyFile(baseDir + sep + fsf.source, dst);
+            prj->AddFile(0, dst);
         }
     
         for (unsigned int i = 0; i < option.extraCFlags.GetCount(); ++i)

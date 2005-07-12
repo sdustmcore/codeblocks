@@ -157,7 +157,6 @@ CompilerGCC::CompilerGCC()
 	m_ErrorsMenu(0L),
     m_Project(0L),
     m_Process(0L),
-    m_pTbar(0L),
     m_Pid(0),
     m_Log(0L),
 	m_pListLog(0L),
@@ -436,11 +435,10 @@ void CompilerGCC::BuildModuleMenu(const ModuleType type, wxMenu* menu, const wxS
     }
 }
 
-bool CompilerGCC::BuildToolBar(wxToolBar* toolBar)
+void CompilerGCC::BuildToolBar(wxToolBar* toolBar)
 {
 	if (!m_IsAttached || !toolBar)
-		return false;
-    m_pTbar = toolBar;
+		return;
     wxString my_16x16=Manager::isToolBar16x16(toolBar) ? "_16x16" : "";
     Manager::Get()->AddonToolBar(toolBar,"compiler_toolbar"+my_16x16);
     
@@ -450,7 +448,6 @@ bool CompilerGCC::BuildToolBar(wxToolBar* toolBar)
     #endif
     toolBar->Realize();
     DoRecreateTargetMenu(); // make sure the tool target combo is up-to-date
-    return true;
 }
 
 void CompilerGCC::SetupEnvironment()
@@ -1721,6 +1718,9 @@ void CompilerGCC::OnCreateDist(wxCommandEvent& event)
 
 void CompilerGCC::OnUpdateUI(wxUpdateUIEvent& event)
 {
+    static bool flag_init=false;
+    static bool toolflag,toolflag2;
+    bool tmpflag,tmpflag2;
 	cbProject* prj = Manager::Get()->GetProjectManager()->GetActiveProject();
     cbEditor* ed = Manager::Get()->GetEditorManager()->GetBuiltinActiveEditor();
     wxMenuBar* mbar = Manager::Get()->GetAppWindow()->GetMenuBar();
@@ -1759,18 +1759,26 @@ void CompilerGCC::OnUpdateUI(wxUpdateUIEvent& event)
     }
 
 	// enable/disable compiler toolbar buttons
-	wxToolBar* tbar = m_pTbar;//Manager::Get()->GetAppWindow()->GetToolBar();
+	wxToolBar* tbar = Manager::Get()->GetAppWindow()->GetToolBar();
 	if (tbar)
 	{
-        tbar->EnableTool(idMenuCompile, !m_Process && prj);
-        tbar->EnableTool(idMenuRun, !m_Process && prj);
-        tbar->EnableTool(idMenuCompileAndRun, !m_Process && prj);
-        tbar->EnableTool(idMenuRebuild, !m_Process && prj);
-        tbar->EnableTool(idMenuKillProcess, m_Process && prj);
+		tmpflag=(!m_Process && prj);
+		tmpflag2=(m_Process && prj);
+		if(tmpflag!=toolflag || tmpflag2!=toolflag2 || !flag_init)
+		{
+            if(!flag_init) flag_init=true;
+            toolflag=tmpflag;
+            toolflag2=tmpflag2;
+            tbar->EnableTool(idMenuCompile,toolflag);
+            tbar->EnableTool(idMenuRun,toolflag);
+            tbar->EnableTool(idMenuCompileAndRun,toolflag);
+            tbar->EnableTool(idMenuRebuild,toolflag);
+            tbar->EnableTool(idMenuKillProcess,toolflag2);
 
-        m_ToolTarget = XRCCTRL(*tbar, "idToolTarget", wxComboBox);
-        if (m_ToolTarget)
-            m_ToolTarget->Enable(!m_Process && prj);
+            m_ToolTarget = XRCCTRL(*tbar, "idToolTarget", wxComboBox);
+            if (m_ToolTarget)
+                m_ToolTarget->Enable(toolflag);
+        }
     }
 	
     // allow other UpdateUI handlers to process this event

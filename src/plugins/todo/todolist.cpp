@@ -116,10 +116,9 @@ void ToDoList::BuildModuleMenu(const ModuleType type, wxMenu* menu, const wxStri
 	}
 }
 
-bool ToDoList::BuildToolBar(wxToolBar* toolBar)
+void ToDoList::BuildToolBar(wxToolBar* toolBar)
 {
 	//NotImplemented("ToDoList::BuildToolBar()");
-	return false;
 }
 
 int ToDoList::Configure()

@@ -139,9 +139,8 @@ class cbPlugin : public wxEvtHandler
 		  * plugins. If the plugin does not need to add items on the toolbar,
 		  * just do nothing ;)
 		  * @param toolBar the wxToolBar to create items on
-		  * @return The plugin should return true if it needed the toolbar, false if not
 		  */
-        virtual bool BuildToolBar(wxToolBar* toolBar) = 0;
+        virtual void BuildToolBar(wxToolBar* toolBar) = 0;
         /** See whether this plugin is attached or not. A plugin should not perform
 		  * any of its tasks, if not attached...
 		  */
@@ -314,7 +313,7 @@ class cbToolPlugin : public cbPlugin
         void BuildMenu(wxMenuBar* menuBar){}
         void RemoveMenu(wxMenuBar* menuBar){}
         void BuildModuleMenu(const ModuleType type, wxMenu* menu, const wxString& arg){}
-        bool BuildToolBar(wxToolBar* toolBar){ return false; }
+        void BuildToolBar(wxToolBar* toolBar){}
         void RemoveToolBar(wxToolBar* toolBar){}
 };
 
@@ -356,7 +355,7 @@ class cbMimePlugin : public cbPlugin
         void BuildMenu(wxMenuBar* menuBar){}
         void RemoveMenu(wxMenuBar* menuBar){}
         void BuildModuleMenu(const ModuleType type, wxMenu* menu, const wxString& arg){}
-        bool BuildToolBar(wxToolBar* toolBar){ return false; }
+        void BuildToolBar(wxToolBar* toolBar){}
         void RemoveToolBar(wxToolBar* toolBar){}
 };
 
