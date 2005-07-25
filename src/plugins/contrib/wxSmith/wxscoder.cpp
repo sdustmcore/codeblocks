@@ -2,8 +2,8 @@
 
 #include <manager.h>
 #include <editormanager.h>
+
 #include <messagemanager.h>
-#include <wx/ffile.h>
 
 #define DebLog Manager::Get()->GetMessageManager()->DebugLog
 
@@ -115,7 +115,7 @@ bool wxsCoder::ApplyChanges(wxsCoder::CodeEntry* Entry,cbEditor* Editor)
 	Ctrl->SetSearchFlags(wxSTC_FIND_MATCHCASE);
 	
 	Ctrl->SetTargetStart(0);
-	Ctrl->SetTargetEnd(Ctrl->GetLength());
+	Ctrl->SetTargetEnd(Ctrl->GetLength());	// TODO: Find if this works
 	
 	int Position = Ctrl->SearchInTarget(Entry->BlockHeader);
 	
@@ -127,95 +127,47 @@ bool wxsCoder::ApplyChanges(wxsCoder::CodeEntry* Entry,cbEditor* Editor)
 			Editor->GetFilename().c_str()));
 		return false;
 	}
-
-    // Beginning of this code block is in Position, now searching for end
-    Ctrl->SetTargetStart(Position);
-    Ctrl->SetTargetEnd(Ctrl->GetLength());
-    int End = Ctrl->SearchInTarget(wxT("//*)"));
-    if ( End == -1 )
-    {
-        wxMessageBox(wxString::Format(
-            wxT("Unfinished block of auto-generated code with header:\n\t\"%s\"\nin file '%s'"),
-            Entry->BlockHeader.c_str(),
-            Editor->GetFilename().c_str()));
-        return false;
-    }
-    else
-    {
-        Ctrl->SetTargetStart(Position);
-        Ctrl->SetTargetEnd(End);
-        Ctrl->ReplaceTarget(Entry->Code);
-        Editor->SetModified();
-    }
+	else
+	{
+		// Beginning of this code block is in Position, now searching for end
+		Ctrl->SetTargetStart(Position);
+		Ctrl->SetTargetEnd(Ctrl->GetLength());
+		int End = Ctrl->SearchInTarget(wxT("//*)"));
+		if ( End == -1 )
+		{
+			wxMessageBox(wxString::Format(
+				wxT("Unfinished block of auto-generated code with header:\n\t\"%s\"\nin file '%s'"),
+				Entry->BlockHeader.c_str(),
+				Editor->GetFilename().c_str()));
+			return false;
+		}
+		else
+		{
+			Ctrl->SetTargetStart(Position);
+			Ctrl->SetTargetEnd(End);
+			Ctrl->ReplaceTarget(Entry->Code);
+			Editor->SetModified();
+		}
+	}
 		
 	return true;
 }
 
 bool wxsCoder::ApplyChanges(wxsCoder::CodeEntry* Entry,const wxString& FileName)
 {
-    wxFFile File(FileName.c_str(),"r");
-    if ( !File.IsOpened() )
-    {
-		wxMessageBox(wxString::Format(
-			wxT("Couldn't open file '%s' for reading"),
-			FileName.c_str()));
-    	return false;
-    }
-    
-    wxString Content;
-    if ( !File.ReadAll(&Content) )
-    {
-		wxMessageBox(wxString::Format(
-			wxT("Couldn't read from file '%s'"),
-			FileName.c_str()));
-    	return false;
-    }
-
-    int Position = Content.First(Entry->BlockHeader);
-    
-    if ( Position == -1 )   
-    {
-		wxMessageBox(wxString::Format(
-			wxT("Couldn't find code with header:\n\t\"%s\"\nin file '%s'"),
-			Entry->BlockHeader.c_str(),
-			FileName.c_str()));
+// TODO (SpOoN#1#): Operate on files, not cbEditor
+	DebLog("Applying code changes to: %s",FileName.c_str());
+	cbEditor* Editor = Manager::Get()->GetEditorManager()->Open(FileName);
+	
+	if ( !Editor )
+	{
+		wxMessageBox(wxString::Format(wxT("Couldn't open file : '%s'"),FileName.c_str()));
 		return false;
-    }
-    
-    wxString Result = Content.Left(Position);
-    Content.Remove(0,Position);
-    Position = Content.First(wxT("//*)"));
-    if ( Position == -1 )
-    {
-        wxMessageBox(wxString::Format(
-            wxT("Unfinished block of auto-generated code with header:\n\t\"%s\"\nin file '%s'"),
-            Entry->BlockHeader.c_str(),
-            FileName.c_str()));
-        return false;
-    }
-    
-// FIXME (SpOoN#1#): Rebuild new code to support valid eol mode
-    Result += Entry->Code;
-    Result += Content.Remove(0,Position);
-    
-    File.Close();
-    
-    if ( !File.Open(FileName.c_str(),"w") )
-    {
-		wxMessageBox(wxString::Format(
-			wxT("Couldn't open file '%s' for writing"),
-			FileName.c_str()));
-    	return false;
-    }
-    
-    if ( !File.Write(Result) )
-    {
-		wxMessageBox(wxString::Format(
-			wxT("Couldn't write to file '%s'"),
-			FileName.c_str()));
-    	return false;
-    }
-    
+	}
+	
+	ApplyChanges(Entry,Editor);
+	Editor->Save();
+	Editor->Close();
 	return true;
 }
 

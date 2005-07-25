@@ -35,7 +35,6 @@
 
 #include "wxsproject.h"
 #include "wxsevent.h"
-#include "wxssplitterwindow.h"
 
 class wxsProject;
 
@@ -50,7 +49,7 @@ class wxSmith : public cbPlugin
 		int Configure();
 		void BuildMenu(wxMenuBar* menuBar);
 		void BuildModuleMenu(const ModuleType type, wxMenu* menu, const wxString& arg);
-		bool BuildToolBar(wxToolBar* toolBar);
+		void BuildToolBar(wxToolBar* toolBar);
 		void OnAttach(); // fires when the plugin is attached to the application
 		void OnRelease(bool appShutDown); // fires when the plugin is released from the application
 
@@ -66,10 +65,10 @@ class wxSmith : public cbPlugin
 	protected:
 	
 	private:
+        wxSplitterWindow* LeftSplitter;
         wxTreeCtrl* ResourceBrowser;
         wxScrolledWindow* PropertiesPanel;
         wxScrolledWindow* EventsPanel;
-        wxsSplitterWindow* LeftSplitter;
 
         /* Here's bridge between current C::B project and wxSmith projects */
         
@@ -89,8 +88,7 @@ class wxSmith : public cbPlugin
         
         /* Internal event-processing functions */
         void OnSpreadEvent(wxsEvent& event);
-
-        /* Singleton object */
+        
         static wxSmith* Singleton;
                 
 		DECLARE_EVENT_TABLE()

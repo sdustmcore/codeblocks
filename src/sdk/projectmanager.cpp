@@ -238,6 +238,9 @@ void ProjectManager::BuildTree(wxWindow* parent)
     bmp.LoadFile(prefix + "folder_open.png", wxBITMAP_TYPE_PNG); // folder
     m_pImages->Add(bmp);
     m_pTree->SetImageList(m_pImages);
+    
+    // make sure tree is not "frozen"
+    UnfreezeTree(true);
 }
 // class destructor
 ProjectManager::~ProjectManager()
@@ -826,6 +829,7 @@ bool ProjectManager::LoadWorkspace(const wxString& filename)
     if(m_pTopEditor)
         m_pTopEditor->Activate();
     Manager::Get()->GetEditorManager()->RefreshOpenedFilesTree(true);
+    UnfreezeTree(true);
     return m_pWorkspace->IsOK();
 }
 

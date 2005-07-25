@@ -3,21 +3,21 @@
 
 [Setup]
 AppName=Code::Blocks
-AppVerName=Code::Blocks 1.0-RC1 (HEAD)
+AppVerName=Code::Blocks 1.0-RC1
 AppPublisher=Code::Blocks
 DefaultDirName={pf}\CodeBlocks
 DefaultGroupName=CodeBlocks
 LicenseFile=..\COPYING
-OutputBaseFilename=CodeBlocks-1.0-RC1_HEAD
+OutputBaseFilename=CodeBlocks-1.0-RC1
 AppPublisherURL=www.codeblocks.org
-AppVersion=1.0-RC1_HEAD
+AppVersion=1.0-RC1
 UninstallDisplayIcon={app}\codeblocks.exe
 UninstallDisplayName=Code::Blocks
 ShowLanguageDialog=no
 AppSupportURL=www.codeblocks.org
 AppUpdatesURL=www.codeblocks.org
 VersionInfoVersion=1.0
-VersionInfoDescription=Code::Blocks IDE (HEAD)
+VersionInfoDescription=Code::Blocks IDE
 WizardImageFile=setup.bmp
 WizardSmallImageFile=setupsmall.bmp
 InfoAfterFile=COMPILERS_win32.rtf
@@ -37,8 +37,7 @@ Source: ..\output\codeblocks.exe; DestDir: {app}; Flags: ignoreversion; Componen
 Source: ..\output\codeblocks.dll; DestDir: {app}; Components: ProgramFiles
 Source: codeblocks.exe.manifest; DestDir: {app}; Components: ProgramFiles
 Source: mingwm10.dll; DestDir: {app}; Components: ProgramFiles
-Source: wxmsw26_gcc_cb.dll; DestDir: {app}; Components: ProgramFiles
-Source: wxmsw26_stc_gcc_cb.dll; DestDir: {app}; Components: ProgramFiles
+Source: wxmsw242.dll; DestDir: {app}; Components: ProgramFiles
 Source: ..\output\exchndl.dll; DestDir: {app}; Components: ProgramFiles
 Source: ..\output\console_runner.exe; DestDir: {app}; Components: ProgramFiles
 Source: ..\AUTHORS; DestDir: {app}; DestName: AUTHORS.txt; Components: ProgramFiles

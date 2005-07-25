@@ -71,7 +71,7 @@ void CompilerMINGW::Reset()
 
     m_Options.ClearOptions();
 	m_Options.AddOption(_("Produce debugging symbols"),
-				"-ggdb",
+				"-g",
 				_("Debugging"), 
 				"",
 				true, 

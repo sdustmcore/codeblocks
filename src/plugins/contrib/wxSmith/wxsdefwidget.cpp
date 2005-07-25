@@ -3,12 +3,10 @@
 wxsDefWidget::wxsDefWidget(wxsWidgetManager* Man,BasePropertiesType pType):
     wxsWidget(Man,pType)
 {
-    // evInit();
 }
 
 wxsDefWidget::~wxsDefWidget()
 {
-	// evDestroy();
 }
 
 bool wxsDefWidget::MyXmlLoad()
@@ -78,15 +76,16 @@ void wxsDefWidget::evProps()
     evUse = Props;
     BuildExtVars();
 }
-
+// Added by cyberkoa
 void wxsDefWidget::evDestroy()
 {
     evUse = Destroy;
     BuildExtVars();
 }
-
+// End Added
 void wxsDefWidget::CodeReplace(const wxString& Old,const wxString& New)
 {
+// TODO (SpOoN#1#): Create something more intelligent
     CodeResult.Replace(Old,New,true);
 }
 
@@ -94,7 +93,7 @@ const char* wxsDefWidget::GetDeclarationCode(wxsCodeParams& Params)
 {
     static wxString Tmp;
     Tmp = wxT(GetWidgetNameStr());
-    Tmp.Append(wxT("* "));
+    Tmp.Append(' ');
     Tmp += BaseParams.VarName;
     Tmp.Append(';');
     return Tmp.c_str();
@@ -128,6 +127,8 @@ void wxsDefWidget::evBool(bool& Val,char* Name,char* XrcName,char* PropName,bool
 
         case Destroy:
         {
+          // Add destructor codes here
+			
             break;
         }
                 
@@ -279,72 +280,57 @@ void wxsDefWidget::evStr(wxString& Val,char* Name,char* XrcName,char* PropName,w
     }
 }
 
-void wxsDefWidget::evStrArray(wxArrayString& Val,char* Name,char* XrcParentName,char* XrcChildName,char* PropName, int& DefValue)
+void wxsDefWidget::evStrArray(wxArrayString& Val,char* Name,char* XrcParentName,char* XrcChildName,char* PropName, int DefValue)
 {
     switch ( evUse )
     {
         case Init:
         {
-            Val.Clear();
+           // Val = {};
             break;
         }
         
         case XmlL:
         {
-			if( !XmlGetStringArray(XrcParentName,XrcChildName,Val) )
+			if(XmlGetStringArray(XrcParentName,XrcChildName,Val))
 			{
-				Val.Clear();
+				// Put something useful after loading
 			}             
             break;
         }
         
         case XmlS:
         {
-			if( !XmlSetStringArray(XrcParentName,XrcChildName,Val) )
+			if(XmlSetStringArray(XrcParentName,XrcChildName,Val))
 			{
-				Val.Clear();
+				// Put something useful after saving
 			}           
             break;
         }
 
         case Destroy:
         {
+            // Release the memory usage of wxArrayString
 			Val.Clear();
+			
             break;
         }
 
         case Code:
         {
-            // Replacing wxsDWAddStrings function calls
-            
-            wxString CodeToSearch = wxString::Format(wxT("wxsDWAddStrings(%s,%s);"),Name,GetBaseParams().VarName.c_str());
-            wxString ReplaceWith;
-            for ( size_t i = 0; i<Val.GetCount(); i++ )
-            {
-            	ReplaceWith.Append(GetBaseParams().VarName);
-            	ReplaceWith.Append(wxT("->Append(wxT("));
-            	ReplaceWith.Append(GetCString(Val[i].c_str()));
-            	ReplaceWith.Append(wxT("));\n"));
-            }
-            CodeReplace(CodeToSearch,ReplaceWith);
-            
-            // Replacing wxsDWSelectString function calls
-            
-            CodeToSearch.Printf(wxT("wxsDWSelectString(%s,%d,%s)"),Name,DefValue,GetBaseParams().VarName.c_str());
-            ReplaceWith.Printf(wxT("%s->SetSelection(%d)"),GetBaseParams().VarName.c_str(),DefValue);
-            CodeReplace(CodeToSearch,ReplaceWith);
-            
+			// cyberkoa : Not ready yet.
+			// CodeReplace(Name,wxString::Format("wxT(%s)",GetCString(Val).c_str()));
             break;
         }
         
         case Props:
         {
-           PropertiesObject.AddProperty(PropName,Val,DefValue,-1);
+           PropertiesObject.AddProperty(wxT("Items"),Val);
         }
     }
 }
 
-void wxsStopMouseEvents::SkipEvent(wxMouseEvent& event)
+void wxsStopMouseEvents::SkipEvent(wxEvent& event)
 {}
 
 wxsStopMouseEvents wxsStopMouseEvents::Object;
