@@ -57,18 +57,18 @@
 				<Option deps_output=".deps"/>
 				<Option external_deps=""/>
 				<Option additional_depfiles=""/>
-				<Option type="3"/>
+				<Option type="0"/>
 				<Option compiler="0"/>
 				<Option parameters="--debug-log --no-check-associations -ns"/>
 				<Option projectLinkerOptionsRelation="2"/>
 				<Option projectIncludeDirsRelation="2"/>
+				<Option projectResourceIncludeDirsRelation="0"/>
 				<Option projectLibDirsRelation="2"/>
 				<Compiler>
 					<Add directory="sdk"/>
-					<Add directory="src\wxDockit\include"/>
 				</Compiler>
 				<ResourceCompiler>
-					<Add directory="src\wxDockit\include"/>
+					<Add directory="..\..\..\MinGW\include"/>
 				</ResourceCompiler>
 				<Linker>
 					<Add library="libcodeblocks.a"/>
@@ -90,7 +90,6 @@
 					<Add library="libadvapi32.a"/>
 					<Add library="libwsock32.a"/>
 					<Add directory="devel"/>
-					<Add directory="src\wxDockit\lib"/>
 				</Linker>
 			</Target>
 			<Target title="plugin_Astyle">
@@ -353,6 +352,7 @@
 				<Option projectResourceIncludeDirsRelation="1"/>
 				<Compiler>
 					<Add option="-Os"/>
+					<Add option="-D__WXMSW__"/>
 				</Compiler>
 			</Target>
 			<Target title="doc">
@@ -2112,6 +2112,12 @@
 			<Option target="sdk"/>
 		</Unit>
 		<Unit filename="sdk\resources\editor_configuration.xrc">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="sdk"/>
+		</Unit>
+		<Unit filename="sdk\resources\editor_manager.xrc">
 			<Option compilerVar=""/>
 			<Option compile="0"/>
 			<Option link="0"/>

@@ -1208,6 +1208,10 @@ wxString DebuggerGDB::GetEditorWordAtCaret()
 
 void DebuggerGDB::OnUpdateUI(wxUpdateUIEvent& event)
 {
+    static bool init_flag=false;
+    static bool toolflags[5];
+    bool tmpflags[5];
+
 	cbProject* prj = Manager::Get()->GetProjectManager()->GetActiveProject();
     cbEditor* ed = Manager::Get()->GetEditorManager()->GetBuiltinActiveEditor();
     wxMenuBar* mbar = Manager::Get()->GetAppWindow()->GetMenuBar();
@@ -1227,15 +1231,52 @@ void DebuggerGDB::OnUpdateUI(wxUpdateUIEvent& event)
  		mbar->Enable(idMenuEditWatches, prj && m_ProgramIsStopped);
         mbar->Enable(idMenuStop, m_pProcess && prj);
 	}
+/*  NOTE (Rick#1#): The disappearing combobox bug happens due to interference 
+    between the different UpdateUI handlers in plugins. Apparently after 
+    every ToolBar->Enable() call, the combobox disappears and needs to be drawn 
+    again.
 
+    This could be solved by calling ToolBar->Refresh(), 
+    but surprise! This triggers another UpdateUI event.
+    
+    To solve this, we simply check whether the status of the tools has been
+    changed. If it hasn't, then there's no need to refresh.
+    
+*/    
     #ifdef implement_debugger_toolbar
-	wxToolBar* tbar = m_pTbar;//Manager::Get()->GetAppWindow()->GetToolBar();
-    tbar->EnableTool(idMenuDebug, (!m_pProcess || m_ProgramIsStopped) && prj);
-    tbar->EnableTool(idMenuRunToCursor, prj && ed && m_ProgramIsStopped);
-    tbar->EnableTool(idMenuNext, m_pProcess && prj && m_ProgramIsStopped);
-    tbar->EnableTool(idMenuStep, prj && m_ProgramIsStopped);
-    tbar->EnableTool(idMenuStepOut, m_pProcess && prj && m_ProgramIsStopped);
-    tbar->EnableTool(idMenuStop, m_pProcess && prj);
+	wxToolBar* tbar = Manager::Get()->GetAppWindow()->GetToolBar();
+	if (tbar)
+	{
+        tmpflags[0]=((!m_pProcess || m_ProgramIsStopped) && prj);
+        tmpflags[1]=(prj && ed && m_ProgramIsStopped);
+        tmpflags[2]=(m_pProcess && prj && m_ProgramIsStopped);
+        tmpflags[3]=(prj && m_ProgramIsStopped);
+        tmpflags[4]=(m_pProcess && prj);
+        if(!init_flag ||
+           toolflags[0]!=tmpflags[0] ||
+           toolflags[1]!=tmpflags[1] ||
+           toolflags[2]!=tmpflags[2] ||
+           toolflags[3]!=tmpflags[3] ||
+           toolflags[4]!=tmpflags[4] )
+        {
+            if(!init_flag) init_flag=true;
+            toolflags[0]=tmpflags[0];
+            toolflags[1]=tmpflags[1];
+            toolflags[2]=tmpflags[2];
+            toolflags[3]=tmpflags[3];
+            toolflags[4]=tmpflags[4];
+
+            tbar->EnableTool(idMenuDebug,toolflags[0]);
+            tbar->EnableTool(idMenuRunToCursor,toolflags[1]);
+            tbar->EnableTool(idMenuNext,toolflags[2]);
+            tbar->EnableTool(idMenuStep,toolflags[3]);
+            tbar->EnableTool(idMenuStepOut,toolflags[2]);
+            tbar->EnableTool(idMenuStop,toolflags[4]);
+            // This creates a recursive call but since we're checking the flags
+            // it only happens once.
+            tbar->Refresh(); 
+        }
+	}
 	#endif
 
     // allow other UpdateUI handlers to process this event
@@ -1552,7 +1593,7 @@ void DebuggerGDB::OnValueTooltip(CodeBlocksEvent& event)
 	
 	if (!token.IsEmpty())
 	{
-		Manager::Get()->GetMessageManager()->AppendLog(m_PageIndex, _("Value of %s:"), token.c_str());
+		Manager::Get()->GetMessageManager()->AppendLog(m_PageIndex, _("Value of %s: "), token.c_str());
 		pt = ed->GetControl()->PointFromPosition(start);
 		pt = ed->GetControl()->ClientToScreen(pt);
 		m_EvalRect.x = pt.x;

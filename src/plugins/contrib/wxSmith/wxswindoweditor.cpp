@@ -7,7 +7,6 @@
 #include "wxspalette.h"
 #include "wxsmith.h"
 #include "wxsresource.h"
-#include "wxsdragwindow.h"
 
 wxsWindowEditor::wxsWindowEditor(wxWindow* parent, const wxString& title,wxsResource* Resource):
     wxsEditor(parent,title,Resource),
@@ -26,11 +25,10 @@ wxsWindowEditor::wxsWindowEditor(wxWindow* parent, const wxString& title,wxsReso
     
     SetSizer(Sizer);
     SetAutoLayout(true);
-
-    DragWnd = NULL;
     
     wxsEvent SelectEvent(wxEVT_SELECT_RES,0,Resource);
     wxPostEvent(wxSmith::Get(),SelectEvent);
+
 }
 
 wxsWindowEditor::~wxsWindowEditor()
@@ -57,35 +55,26 @@ void wxsWindowEditor::BuildPreview(wxsWidget* TopWidget)
     Freeze();
     
     KillCurrentPreview();
-    if ( DragWnd )
-    {
-    	delete DragWnd;
-    	DragWnd = NULL;
-    }
-    
+
     // Creating new sizer
 
     wxWindow* TopPreviewWindow = TopWidget ? TopWidget->CreatePreview(Scroll,this) : NULL;
     CurrentWidget = TopWidget;
     
+    SetVirtualSizeHints(1,1);
     if ( TopPreviewWindow )
     {
         wxSizer* NewSizer = new wxGridSizer(1);
-        NewSizer->Add(TopPreviewWindow,0,/*wxALIGN_CENTRE_VERTICAL|wxALIGN_CENTRE_HORIZONTAL|*/wxALL,10);
+        NewSizer->Add(TopPreviewWindow,0,wxALIGN_CENTRE_VERTICAL|wxALIGN_CENTRE_HORIZONTAL|wxALL,10);
         Scroll->SetVirtualSizeHints(1,1);
         Scroll->SetSizer(NewSizer);
         NewSizer->SetVirtualSizeHints(Scroll);
-        Layout();
-        DragWnd = new wxsDragWindow(Scroll,TopWidget,Scroll->GetVirtualSize());
-        DragWnd->Raise();
-        Refresh();
+        TopPreviewWindow->Refresh();
     }
     
     Thaw();
-
-    #if !wxCHECK_VERSION(2,6,0)
-        WidgetRefreshReq(this);
-    #endif
+    Layout();
+    WidgetRefreshReq(this);
 }
 
 void wxsWindowEditor::KillCurrentPreview()
@@ -135,6 +124,11 @@ void wxsWindowEditor::MyUnbind()
 
 bool wxsWindowEditor::Close()
 {
+	if ( GetResource() )
+	{
+		GetResource()->NotifyChange();
+	}
+	
 	return wxsEditor::Close();
 }
 

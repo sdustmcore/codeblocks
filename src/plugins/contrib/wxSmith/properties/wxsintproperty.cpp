@@ -1,7 +1,6 @@
 #include "wxsintproperty.h"
 
 #include <wx/textctrl.h>
-#include <wx/msgdlg.h>
 
 class wxsIntPropertyWindow: public wxTextCtrl
 {

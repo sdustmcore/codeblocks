@@ -47,7 +47,7 @@ namespace {
 				if ( Selection )
 				{
 					Sizer->Add(new wxStaticText(this,-1,wxT("Selection")),0,wxLEFT|wxRIGHT,5);
-					Sizer->Add(Selected = new wxChoice(this,-1),0,wxLEFT|wxRIGHT|wxGROW,5);
+					Sizer->Add(Selected = new wxChoice(this,-1),0,wxLEFT|wxRIGHT,5);
 				}
 				
 				wxBoxSizer* Internal = new wxBoxSizer(wxHORIZONTAL);
@@ -56,6 +56,9 @@ namespace {
 
 				Sizer->Add(Internal,0,wxGROW|wxLEFT|wxRIGHT|wxBOTTOM,5);
 				
+				SetSizer(Sizer);
+				Sizer->SetSizeHints(this);
+			
 				CenterOnScreen();
 				
 				for ( int i=0; i<(int)Array.Count(); i++ )
@@ -63,22 +66,6 @@ namespace {
 					List->AppendText(Array[i]);
 					List->AppendText(wxT("\n"));
 				}
-				
-				BuildSelection();
-				if ( Selection )
-				{
-                    if ( *Selection < 0 || *Selection >= (int)Array.Count() )
-                    {
-                        Selected->SetSelection(0);
-                    }
-                    else
-                    {
-                        Selected->SetSelection(*Selection+1);
-       				}
-                }
-                
-				SetSizer(Sizer);
-				Sizer->SetSizeHints(this);
 			}
 			
 		private:
@@ -87,11 +74,7 @@ namespace {
 			{
 				if ( Selection != NULL )
 				{
-                    wxString Item = Selected->GetStringSelection();
-					BuildSelection();
-					int Sel = Selected->FindString(Item);
-					if ( Sel == wxNOT_FOUND ) Sel = 0;
-					Selected->Select(Sel);
+					// TODO (SpOoN#1#): Update content of Selection
 				}
 			}
 			
@@ -103,23 +86,8 @@ namespace {
 				{
 					Array.Add(Tokenizer.GetNextToken());
 				}
-				if ( Selection )
-				{
-                    *Selection = Selected->GetSelection() - 1;
-				}
 				event.Skip();
 			}
-			
-			void BuildSelection()
-			{
-                Selected->Clear();
-                Selected->Append("--- NONE ---");
-                wxStringTokenizer Tokenizer(List->GetValue(),wxT("\n"));
-				while ( Tokenizer.HasMoreTokens() )
-				{
-					Selected->Append(Tokenizer.GetNextToken());
-				}
-            }
 			
 			wxArrayString& Array;
 			int* Selection;
@@ -170,12 +138,6 @@ void wxsStringListProperty::UpdateEditWindow()
 void wxsStringListProperty::EditList()
 {
 	ListEditor Editor(NULL,Array,Selected);
-	if ( Editor.ShowModal() == wxID_OK )
-	{
-        ValueChanged();
-        if ( Selected )
-        {
-            GetProperties()->UpdateProperties();
-        }
-    }
+	Editor.ShowModal();
+	ValueChanged();
 }

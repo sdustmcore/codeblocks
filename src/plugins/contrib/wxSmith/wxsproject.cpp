@@ -33,7 +33,7 @@ wxsProject::IntegrationState wxsProject::BindProject(cbProject* Proj)
     /* creating new node in resource tree */
     
     wxTreeCtrl* ResTree = wxSmith::Get()->GetResourceTree();
-    ResTree->Expand(ResTree->GetRootItem());
+    
     TreeItem = ResTree->AppendItem(ResTree->GetRootItem(),Proj->GetTitle());
     
     /* Binding project object */
@@ -405,7 +405,7 @@ void wxsProject::AddDialog(wxsDialogRes* Dialog)
     if ( !Dialog ) return;
     Dialogs.push_back(Dialog);
     wxTreeCtrl* Tree = wxSmith::Get()->GetResourceTree();
-    Dialog->GetDialog().BuildTree(Tree, Tree->AppendItem( DialogId, Dialog->GetClassName(), -1, -1, new wxsResourceTreeData(Dialog) ) );
+    BuildTree(Tree, Tree->AppendItem( DialogId, Dialog->GetClassName(), -1, -1, new wxsResourceTreeData(Dialog) ) );
 }
 
 wxsResource* wxsProject::FindResource(const wxString& Name)

@@ -90,8 +90,8 @@ int wxsPalette::GetInsertionType()
     if ( !IT )
     {
         if ( InsTypeMask & itBefore ) IT = itBefore;
-        else if ( InsTypeMask & itAfter ) IT = itAfter;
-        else if ( InsTypeMask & itInto ) IT = itInto;
+        else if ( InsType & itAfter ) IT = itAfter;
+        else if ( InsType & itInto ) IT = itInto;
     }    
     
     return IT;

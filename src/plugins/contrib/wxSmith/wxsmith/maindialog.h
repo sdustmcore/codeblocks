@@ -1,4 +1,4 @@
-#ifndef WXSWNDDIALOG_H
+21#ifndef WXSWNDDIALOG_H
 #define WXSWNDDIALOG_H
 
 #include "defwidgets/wxsdialog.h"
@@ -13,12 +13,13 @@ class wxsWndDialog
 	protected:
 	
 		//(*Declarations(wxsWndDialog)
-        wxGridSizer* MainSizer
-        wxCheckBox* CheckBox1;
-        wxButton* Button1;
-        wxCheckBox* CheckBox2;
+        wxCheckBox CheckBox1;
+        wxButton Button2;
+        wxCheckBox CheckBox3;
+        wxCheckBox CheckBox4;
         wxGridSizer* GridSizer1
-        wxStaticText* StaticText1;
+        wxStaticText StaticText1;
+        wxComboBox ComboBox1;
         //*)
 
     private:

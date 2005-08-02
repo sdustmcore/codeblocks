@@ -66,20 +66,9 @@ void wxsPropertiesMan::OnUnselectWidget(wxsEvent& event)
     }
 }
 
-void wxsPropertiesMan::OnSelectRes(wxsEvent& event)
-{
-}
-
-void wxsPropertiesMan::OnUnselectRes(wxsEvent& event)
-{
-
-}
-
 BEGIN_EVENT_TABLE(wxsPropertiesMan,wxEvtHandler)
     EVT_SELECT_WIDGET(wxsPropertiesMan::OnSelectWidget)
     EVT_UNSELECT_WIDGET(wxsPropertiesMan::OnUnselectWidget)
-    EVT_SELECT_RES(wxsPropertiesMan::OnSelectRes)
-    EVT_UNSELECT_RES(wxsPropertiesMan::OnUnselectRes)
 END_EVENT_TABLE()
 
 
