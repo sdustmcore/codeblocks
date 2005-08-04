@@ -5,14 +5,13 @@
 #include "properties/wxsstyleproperty.h"
 #include "wxswidgetfactory.h"
 #include "wxsresource.h"
-#include "wxsdefevthandler.h"
 #include <wx/tokenzr.h>
 #include <wx/list.h>
 
 wxsWidget::~wxsWidget()
 {
-	assert ( Preview == NULL );
-	assert ( Properties == NULL );
+    if ( Preview    ) KillPreview();
+    if ( Properties ) KillProperties();
 
     while ( GetChildCount() )
     {

@@ -46,11 +46,11 @@
 
 static bool appShutingDown = false;
 
-Manager* Manager::Get(wxFrame* appWindow, wxNotebook* notebook, wxWindow* clientWin)
+Manager* Manager::Get(wxFrame* appWindow, wxNotebook* notebook)
 {
     if (!ManagerProxy::Get() && appWindow)
 	{
-        ManagerProxy::Set( new Manager(appWindow, notebook, clientWin) );
+        ManagerProxy::Set( new Manager(appWindow, notebook) );
 		ManagerProxy::Get()->GetMessageManager()->Log(_("Manager initialized"));
 	}
     return ManagerProxy::Get();
@@ -119,18 +119,14 @@ bool Manager::isappShuttingDown()
 }
 
 // class constructor
-Manager::Manager(wxFrame* appWindow, wxNotebook* prjNB, wxWindow* clientWin)
+Manager::Manager(wxFrame* appWindow, wxNotebook* notebook)
 	: m_pAppWindow(appWindow),
-	m_pNotebook(prjNB),
-	m_pClientWin(clientWin)
+	m_pNotebook(notebook)
 {
     // Basically, this is the very first place that will be called in the lib
     // (through Manager::Get()), so it's a very good place to load and initialize
     // any resources we 'll be using...
     
-    if (!m_pClientWin)
-        m_pClientWin = m_pAppWindow;
-
     Initxrc(true);
     Loadxrc("/manager_resources.zip#zip:*.xrc");
 }
@@ -222,12 +218,6 @@ wxNotebook* Manager::GetNotebook()
 	return m_pNotebook;
 }
 
-wxWindow* Manager::GetClientWindow()
-{
-	if(!this) return 0; // Fixes early-shutdown segfault
-	return m_pClientWin;
-}
-
 ProjectManager* Manager::GetProjectManager()
 {
 	return appShutingDown ? 0 : ProjectManager::Get(m_pNotebook);
@@ -235,7 +225,7 @@ ProjectManager* Manager::GetProjectManager()
 
 EditorManager* Manager::GetEditorManager()
 {
-	return appShutingDown ? 0 : EditorManager::Get(m_pClientWin);
+	return appShutingDown ? 0 : EditorManager::Get(m_pAppWindow);
 }
 
 MessageManager* Manager::GetMessageManager()

@@ -14,7 +14,7 @@ wxsEditor::~wxsEditor()
 {
 }
 
-bool wxsEditor::QueryClose()
+bool wxsEditor::Close()
 {
     Unbind();
     Destroy();
@@ -31,14 +31,3 @@ void wxsEditor::Unbind()
         ResStore->EditorSaysHeIsClosing();
     }
 }
-
-void wxsEditor::OnSmithEvent(wxsEvent& event)
-{
-}
-
-BEGIN_EVENT_TABLE(wxsEditor,EditorBase)
-    EVT_SELECT_RES(wxsEditor::OnSmithEvent)
-    EVT_UNSELECT_RES(wxsEditor::OnSmithEvent)
-    EVT_SELECT_WIDGET(wxsEditor::OnSmithEvent)
-    EVT_UNSELECT_WIDGET(wxsEditor::OnSmithEvent)
-END_EVENT_TABLE()

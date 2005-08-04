@@ -1,27 +1,27 @@
 /***************************************************************
  * Name:      wxsmith.cpp
  * Purpose:   Code::Blocks plugin
- * Author:    BYO<byo.spoon@gmail.com>
+ * Author:    BYO<byo@o2.pl>
  * Created:   04/10/05 01:05:08
  * Copyright: (c) BYO
  * License:   GPL
  **************************************************************/
 
-#if defined(__GNUG__) && !defined(__APPLE__) && !defined(FASTCOMPILE)
+#if defined(__GNUG__) && !defined(__APPLE__)
 	#pragma implementation "wxsmith.h"
 #endif
 
-#include <licenses.h>
+#include "wxsmith.h"
+#include "wxswindoweditor.h"
+#include <licenses.h> // defines some common licenses (like the GPL)
 #include <manager.h>
+#include <wx/notebook.h>
 #include <tinyxml/tinyxml.h>
 #include <messagemanager.h>
 #include <cbeditor.h>
 #include <projectmanager.h>
-#include <wx/notebook.h>
 #include <wx/sashwin.h>
 
-#include "wxsmith.h"
-#include "wxswindoweditor.h"
 #include "resources/wxsdialogres.h"
 #include "defwidgets/wxsstdmanager.h"
 #include "wxscodegen.h"
@@ -51,13 +51,15 @@ class wxsResourceTree: public wxTreeCtrl
                 {
                     case wxsResourceTreeData::tWidget:
                         {
-                        	wxsSelectWidget(Data->Widget);
+                            wxsEvent SelectEvent(wxEVT_SELECT_WIDGET,0,NULL,Data->Widget);
+                            wxPostEvent(wxSmith::Get(),SelectEvent);
                         }
                         break;
                         
                     case wxsResourceTreeData::tResource:
                         {
-                        	wxsSelectRes(Data->Resource);
+                            wxsEvent SelectEvent(wxEVT_SELECT_RES,0,Data->Resource);
+                            wxPostEvent(wxSmith::Get(),SelectEvent);
                         }
                         break;
                         
@@ -129,22 +131,20 @@ void wxSmith::OnAttach()
 	if ( Notebook )
 	{
         // Creating main splitting objects 
+        LeftSplitter = new wxSplitterWindow(Notebook,-1,wxDefaultPosition,wxDefaultSize,0);
+        wxPanel* ResourcesContainer = new wxPanel(LeftSplitter,-1,wxDefaultPosition,wxDefaultSize,0);
+        wxPanel* PropertiesContainer = new wxPanel(LeftSplitter,-1,wxDefaultPosition,wxDefaultSize,wxSTATIC_BORDER);
         
-        LeftSplitter = new wxsSplitterWindow(Notebook);
-        Notebook->AddPage(LeftSplitter,wxT("Resources"));
-        
-        wxPanel* ResourcesContainer = new wxPanel(LeftSplitter->GetSplitter(),-1,wxDefaultPosition,wxDefaultSize,0);
-        wxPanel* PropertiesContainer = new wxPanel(LeftSplitter->GetSplitter(),-1,wxDefaultPosition,wxDefaultSize,0);
-
+        // TODO (SpOoN#1#): Find in configuration where to split
+        LeftSplitter->SplitHorizontally(ResourcesContainer,PropertiesContainer,400);
         // Adding resource browser
 
         wxSizer* Sizer = new wxGridSizer(1);
         ResourceBrowser = new wxsResourceTree(ResourcesContainer);
-        ResourceBrowser->Expand(ResourceBrowser->AddRoot(wxT("Resources")));
-        Sizer->Add(ResourceBrowser,1,wxGROW|wxALL);
+        ResourceBrowser->AddRoot(wxT("Resources"));
+        Sizer->Add(ResourceBrowser,0,wxGROW);
         ResourcesContainer->SetSizer(Sizer);
-
-        // Adding new page into Manager
+        // Adding notebook and two pages at the left-bottom part
         Sizer = new wxGridSizer(1);
         wxNotebook* LDNotebook = new wxNotebook(PropertiesContainer,-1,wxDefaultPosition,wxDefaultSize,wxSUNKEN_BORDER);
         PropertiesPanel = new wxScrolledWindow(LDNotebook);
@@ -153,14 +153,16 @@ void wxSmith::OnAttach()
         EventsPanel->SetScrollRate(5,5);
         LDNotebook->AddPage(PropertiesPanel,wxT("Properties"));
         LDNotebook->AddPage(EventsPanel,wxT("Events"));
-        Sizer->Add(LDNotebook,1,wxGROW);
+        Sizer->Add(LDNotebook,0,wxGROW);
         PropertiesContainer->SetSizer(Sizer);
+        Notebook->AddPage(LeftSplitter,wxT("Resources"));
         
         wxsPropertiesMan::Get()->PropertiesPanel = PropertiesPanel;
-
-        LeftSplitter->Split(ResourcesContainer,PropertiesContainer);
         
+        // Adding palette at the bottom
+
         MessageManager* Messages = Manager::Get()->GetMessageManager();
+        
         Manager::Get()->Loadxrc("/wxsmith.zip#zip:*");
         
         // Initializing standard manager
@@ -175,7 +177,6 @@ void wxSmith::OnAttach()
         
         if ( Messages )
         {
-            // Creating widgets palette ad the messages Notebook
             wxWindow* Palette = new wxsPalette((wxWindow*)Messages,this,Messages->GetPageCount());
             Messages->AddPage(Palette,wxT("Widgets"));
         }
@@ -200,21 +201,23 @@ void wxSmith::OnRelease(bool appShutDown)
             (*i).second = NULL;
         }
     }
-
+  
     ProjectMap.clear();
 }
 
 int wxSmith::Configure()
 {
+	//create and display the configuration dialog for your plugin
+	NotImplemented("wxSmith::Configure()");
 	return -1;
 }
 
 void wxSmith::BuildMenu(wxMenuBar* menuBar)
 {
 	wxMenu* Menu = new wxMenu;
-	Menu->Append(NewDialogId,wxT("Add Dialog"));
+	Menu->Append(NewDialogId,"Add Dialog");
 	
-	int ToolsPos = menuBar->FindMenu(wxT("&Tools"));
+	int ToolsPos = menuBar->FindMenu("&Tools");
 	
 	if  ( ToolsPos == wxNOT_FOUND )
 	{
@@ -228,11 +231,16 @@ void wxSmith::BuildMenu(wxMenuBar* menuBar)
 
 void wxSmith::BuildModuleMenu(const ModuleType type, wxMenu* menu, const wxString& arg)
 {
+	NotImplemented("wxSmith::OfferModuleMenuSpace()");
 }
 
-bool wxSmith::BuildToolBar(wxToolBar* toolBar)
+void wxSmith::BuildToolBar(wxToolBar* toolBar)
 {
-	return false;
+	//The application is offering its toolbar for your plugin,
+	//to add any toolbar items you want...
+	//Append any items you need on the toolbar...
+	NotImplemented("wxSmith::BuildToolBar()");
+	return;
 }
 
 void wxSmith::OnProjectClose(CodeBlocksEvent& event)
@@ -241,12 +249,11 @@ void wxSmith::OnProjectClose(CodeBlocksEvent& event)
     ProjectMapI i = ProjectMap.find(Proj);
     if ( i == ProjectMap.end() ) return;
     
-    wxsProject* SmithProj = (*i).second;
-    ProjectMap.erase(i);
-    if ( SmithProj )
+    if ( (*i).second )
     {
-        SmithProj->SaveProject();
-        delete SmithProj;
+        (*i).second->SaveProject();
+        delete (*i).second;
+        (*i).second = NULL;
     }
     
     event.Skip();
@@ -267,12 +274,8 @@ void wxSmith::OnProjectActivated(CodeBlocksEvent& event)
 
 void wxSmith::OnSpreadEvent(wxsEvent& event)
 {
-    wxsPropertiesMan::Get()->ProcessEvent(event);
-    wxsPalette::Get()->ProcessEvent(event);
-    for ( ProjectMapI i = ProjectMap.begin(); i != ProjectMap.end(); ++i )
-    {
-    	(*i).second->SendEventToEditors(event);
-    }
+    wxPostEvent(wxsPropertiesMan::Get(),event);
+    wxPostEvent(wxsPalette::Get(),event);
 }
 
 cbProject* wxSmith::GetCBProject(wxsProject* Proj)

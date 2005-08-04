@@ -2,7 +2,6 @@
 #define WXSEDITOR_H
 
 #include <editorbase.h>
-#include "wxsevent.h"
 
 class wxsResource;
 
@@ -20,7 +19,7 @@ class wxsEditor : public EditorBase
 		inline wxsResource* GetResource() { return Resource; }
 		
 		/** Default closing action */
-		virtual bool QueryClose();
+		virtual bool Close();
 		
     protected:
     
@@ -36,16 +35,6 @@ class wxsEditor : public EditorBase
         
         /** Currently associated resource */
         wxsResource* Resource;
-        
-        /** Handler for all wxSmith events
-         *
-         * All events must be processed here or inside derived editor's class.
-         * Skipping these events will cause stack overflow (events are thrown back
-         * into wxSmith plugin)
-         */
-        void OnSmithEvent(wxsEvent& event);
-        
-        DECLARE_EVENT_TABLE()
 };
 
 #endif // WXSEDITOR_H

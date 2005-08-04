@@ -22,14 +22,17 @@ WXS_ST_END(wxsListBoxStyles)
 //wxListBox(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, const wxArrayString& choices, long style = 0, const wxValidator& validator = wxDefaultValidator, const wxString& name = "listBox")
 
 
-wxsDWDefineBeginExt(wxsListBox,wxListBox,
-        ThisWidget = new wxListBox(parent,id,pos,size,0,0,style);
-        wxsDWAddStrings(arrayChoices,ThisWidget);
-        wxsDWSelectString(arrayChoices,defaultChoice,ThisWidget);
-    , true
-    )
+wxsDWDefineBegin(wxsListBox,wxListBox,
+        ThisWidget = new wxListBox(parent,id,pos,size,0,NULL,style);
+         
+       // Add list to ListBox  
+         ThisWidget->InsertItems(arrayChoices,0);
+         
+       // Set default selection  
+         ThisWidget->SetSelection(defaultChoice);
+   )
    
     wxsDWDefIntX(defaultChoice,"selection","Default",-1)
-    wxsDWDefStrArrayX(arrayChoices,"content","item","Choices",defaultChoice)
+    wxsDWDefStrArrayX(arrayChoices,"content","item","choices",defaultChoice)
 
 wxsDWDefineEnd()

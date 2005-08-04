@@ -80,9 +80,6 @@ class wxsProject
         
         /** Adding previously created dialog resource */
         void AddDialog(wxsDialogRes* Dialog);
-        
-        /** Spreading eventg to all resource editors opened inside this project */
-        void SendEventToEditors(wxEvent& event);
 		
     protected:
         

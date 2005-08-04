@@ -121,6 +121,27 @@ void wxsNewDialogDlg::OnCreate(wxCommandEvent& event)
     
     // Selecting target
     
+    /*
+    int TargetIndex = 0;
+    if ( cbProj->GetBuildTargetsCount() > 1 )
+    {
+        wxArrayString Arr;
+        for ( int i=0; i<cbProj->GetBuildTargetsCount(); i++ )
+            Arr.Add(cbProj->GetBuildTarget(i)->GetTitle());
+        
+        TargetIndex = ::wxGetSingleChoiceIndex(
+            wxT("Please select target"),
+            wxT("Target selection"),
+            Arr);
+    }
+    
+    if ( TargetIndex != -1 )
+    {
+        cbProj->AddFile(TargetIndex,Proj->GetProjectFileName(Proj->GetProjectFileName(Header->GetValue())));
+        cbProj->AddFile(TargetIndex,Proj->GetProjectFileName(Proj->GetProjectFileName(Source->GetValue())));
+    }
+    */
+    
     wxArrayInt targets;
     Manager::Get()->GetProjectManager()->AddFileToProject(Header->GetValue(), cbProj, targets);
     if (targets.GetCount() != 0)
@@ -131,9 +152,8 @@ void wxsNewDialogDlg::OnCreate(wxCommandEvent& event)
     // Adding dialog to project and opening editor for it
     
     Proj->AddDialog(NewDialog);    
-    wxsSelectRes(NewDialog);
-   
-    Close();
+    wxsEvent SelectEvent(wxEVT_SELECT_RES,0,NewDialog,NULL);
+    wxPostEvent(wxSmith::Get(),SelectEvent);
 }
 
 void wxsNewDialogDlg::OnClassChanged(wxCommandEvent& event)

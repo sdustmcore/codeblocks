@@ -2,6 +2,7 @@
 
 wxsCodeGen::wxsCodeGen(wxsWidget* Widget,int InitialSpaces,int TabSize,bool DontCreateRoot)
 {
+
 	if ( DontCreateRoot )
 	{
 		int Cnt = Widget->GetChildCount();
@@ -25,7 +26,7 @@ wxsCodeGen::wxsCodeGen(wxsWidget* Widget,int InitialSpaces,int TabSize,bool Dont
 		Params.UniqueNumber = 1;
 		AppendCodeReq(Widget,Params);
 	}
-
+	
     BeautyCode(Code,InitialSpaces,TabSize);
 }
 
@@ -89,15 +90,8 @@ void wxsCodeGen::BeautyCode(wxString& Code,int Spaces,int TabSize)
         
         // Adding characters till the end of line or till some other circumstances
         
-        int BracketsCnt = 0;
-        while ( *Ptr && *Ptr!='{' && *Ptr!='}' && *Ptr != '\n' && *Ptr != '\r' )
-        {
-            // Additional brackets counting will avoid line splitting inside for statement
-            if ( *Ptr == '(' ) BracketsCnt++;
-            else if ( *Ptr == ')' ) BracketsCnt--;
-            else if ( *Ptr == ';' && !BracketsCnt ) break;    
+        while ( *Ptr && *Ptr!='{' && *Ptr!='}' && *Ptr != '\n' && *Ptr != '\r' && *Ptr != ';' )
             NewCode.Append(*Ptr++);
-        }
             
         if ( !*Ptr )
         {
@@ -105,9 +99,10 @@ void wxsCodeGen::BeautyCode(wxString& Code,int Spaces,int TabSize)
             break;
         }
         
-        switch ( *Ptr++ )
+        switch ( *Ptr )
         {
 			case ';':
+				Ptr++;
 				NewCode.Append(';');
 				NewCode.Append('\n');
 				break;

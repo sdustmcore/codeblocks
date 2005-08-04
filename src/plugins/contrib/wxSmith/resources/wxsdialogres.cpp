@@ -7,6 +7,7 @@
 #include <wx/xrc/xmlres.h>
 #include <editormanager.h>
 
+
 const char* EmptySource =
 "\
 #include \"$(Include)\"\n\
@@ -30,8 +31,8 @@ $(ClassName)::~$(ClassName)()\n\
 
 const char* EmptyHeader =
 "\
-#ifndef $(Guard)\n\
-#define $(Guard)\n\
+#ifndef __$(Guard)\n\
+#define __$(Guard)\n\
 \n\
 //(*Headers($(ClassName))\n\
 //*)\n\
@@ -43,14 +44,10 @@ class $(ClassName): public wxDialog\n\
         $(ClassName)(wxWidnow* parent,wxWindowID id = -1);\n\
         virtual ~$(ClassName);\n\
 \n\
-        //(*Identifiers($(ClassName))\n\
-        //*)\n\
-\n\
     protected:\n\
 \n\
-        //(*Handlers($(ClassName))\n\
+        //(*Handlers\n\
         //*)\n\
-\n\
         //(*Declarations($(ClassName))\n\
         //*)\n\
 \n\
@@ -137,20 +134,19 @@ bool wxsDialogRes::GenerateEmptySources()
 {
     // Generating file variables
     
-    wxString FName = wxFileName(HFile).GetFullName();
+    wxString FName = wxFileName(HFile).GetName();
     FName.MakeUpper();
     wxString Guard(wxT("__"));
     
     for ( int i=0; i<(int)FName.Length(); i++ )
     {
         char ch = FName.GetChar(i);
-        if ( ( ch < 'A' || ch > 'Z' ) && ( ch < '0' || ch > '9' ) ) Guard.Append('_');
+        if ( ch < 'A' || ch > 'Z' ) Guard.Append('_');
         else Guard.Append(ch);
     }
     
     wxFileName IncludeFN(GetProject()->GetProjectFileName(HFile));
-    IncludeFN.MakeRelativeTo(
-        wxFileName(GetProject()->GetProjectFileName(SrcFile)).GetPath() );
+    IncludeFN.MakeRelativeTo(GetProject()->GetProjectFileName(SrcFile));
     wxString Include = IncludeFN.GetFullPath();
     
 
@@ -176,8 +172,6 @@ void wxsDialogRes::NotifyChange()
 {
 	assert ( GetProject() != NULL );
 	
-	#if 1
-	
 	int TabSize = 4;
 	int GlobalTabSize = 2 * TabSize;
 	
@@ -185,7 +179,7 @@ void wxsDialogRes::NotifyChange()
 	wxsCodeGen Gen(Dialog,TabSize,TabSize);
 	
 	// Creating code header
-
+	
 	wxString CodeHeader = wxString::Format(wxT("//(*Initialize(%s)"),GetClassName().c_str());
 	wxString Code = CodeHeader + wxT("\n");
 	
@@ -212,8 +206,6 @@ void wxsDialogRes::NotifyChange()
 	Code = CodeHeader + wxT("\n") + GlobalCode;
 	Code.Append(' ',GlobalTabSize);
 	wxsCoder::Get()->AddCode(GetProject()->GetProjectFileName(HFile),CodeHeader,Code);
-	
-	#endif
 }
 
 void wxsDialogRes::AddDeclarationsReq(wxsWidget* Widget,wxString& LocalCode,wxString& GlobalCode,int LocalTabSize,int GlobalTabSize,bool& WasLocal)

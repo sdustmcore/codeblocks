@@ -2,17 +2,12 @@
 #define MAIN_H
 
 #include <wx/toolbar.h>
+#include <wx/laywin.h>
 #include <wx/docview.h> // for wxFileHistory
 #include <wx/stc/stc.h>
 #include "../sdk/manager.h"
 #include "../sdk/cbplugin.h"
 #include "../sdk/sdk_events.h"
-
-#include "wx/layoutmanager.h"
-#include "wx/dockwindow.h"
-#include "wx/dockhost.h"
-#include "wx/pane.h"
-#include "wx/slidebar.h"
 
 WX_DECLARE_HASH_MAP(int, wxString, wxIntegerHash, wxIntegerEqual, WindowIDsMap);
 WX_DECLARE_HASH_MAP(int, wxString, wxIntegerHash, wxIntegerEqual, PluginIDsMap);
@@ -20,11 +15,6 @@ WX_DECLARE_HASH_MAP(cbPlugin*, wxToolBar*, wxPointerHash, wxPointerEqual, Plugin
 
 class MainFrame : public wxFrame
 {
-        wxLayoutManager* pLayoutManager;
-        wxSlideBar* pSlideBar;
-        wxPane * pPane;
-        wxDockWindow * pDockWindow1;
-        wxDockWindow * pDockWindow2;
     public:
         wxAcceleratorTable* m_pAccel;
         MainFrame(wxWindow* parent = (wxWindow*)NULL);
@@ -115,11 +105,13 @@ class MainFrame : public wxFrame
         void OnHelpTips(wxCommandEvent& event);
         void OnHelpPluginMenu(wxCommandEvent& event);
 
+        void OnSize(wxSizeEvent& event);
         void OnToggleBar(wxCommandEvent& event);
         void OnToggleOpenFilesTree(wxCommandEvent& event);
         void OnToggleStatusBar(wxCommandEvent& event);
         void OnFocusEditor(wxCommandEvent& event);
         void OnToggleFullScreen(wxCommandEvent& event);
+        void OnPositionManagerTree(wxCommandEvent& event);
         
         // plugin events
         void OnPluginLoaded(CodeBlocksEvent& event);
@@ -133,7 +125,8 @@ class MainFrame : public wxFrame
 		void OnSearchMenuUpdateUI(wxUpdateUIEvent& event);
 		void OnProjectMenuUpdateUI(wxUpdateUIEvent& event);
 		
-		void OnLayoutChanged(wxEvent& event);
+		// sash events
+		void OnDragSash(wxSashEvent& event);
 		
 		// project events
 		void OnProjectActivated(CodeBlocksEvent& event);
@@ -149,7 +142,6 @@ class MainFrame : public wxFrame
         wxMenu* RecreateMenu(wxMenuBar* mbar, const wxString& name);
 
         void DoAddPlugin(cbPlugin* plugin);
-        void DoAddPluginToolbar(cbPlugin* plugin);
         void AddPluginInPluginsMenu(cbPlugin* plugin);
         void AddPluginInSettingsMenu(cbPlugin* plugin);
         void AddPluginInHelpPluginsMenu(cbPlugin* plugin);
@@ -167,7 +159,9 @@ class MainFrame : public wxFrame
         void DoCreateStatusBar();
         void DoUpdateStatusBar();
 		void DoUpdateAppTitle();
+		void DoUpdateLayout();
 
+        void RePositionManagerTree(bool left);
         void ShowHideStartPage(bool forceHasProject = false);
 		
         void LoadWindowState();
@@ -182,6 +176,8 @@ class MainFrame : public wxFrame
         wxButton* m_pCloseFullScreenBtn;
         
         wxNotebook* m_pNotebook;
+		wxSashLayoutWindow* m_pLeftSash;
+		wxSashLayoutWindow* m_pBottomSash;
 		EditorManager* m_pEdMan;
 		ProjectManager* m_pPrjMan;
 		MessageManager* m_pMsgMan;

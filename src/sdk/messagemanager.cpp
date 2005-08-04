@@ -65,12 +65,11 @@ END_EVENT_TABLE()
 
 // class constructor
 MessageManager::MessageManager(wxWindow* parent)
-    : wxNotebook(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxCLIP_CHILDREN | wxNB_BOTTOM),// | wxNB_MULTILINE),
+    : wxNotebook(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxCLIP_CHILDREN | wxNB_BOTTOM | wxNB_MULTILINE),
     m_LockCounter(0),
     m_OpenSize(150),
     m_AutoHide(false),
-    m_Open(false),
-    m_pContainerWin(0)
+    m_Open(false)
 {
     SC_CONSTRUCTOR_BEGIN
     
@@ -101,6 +100,7 @@ MessageManager::MessageManager(wxWindow* parent)
     
     m_OpenSize = ConfigManager::Get()->Read("/main_frame/layout/bottom_block_height", 150);
     m_AutoHide = ConfigManager::Get()->Read("/message_manager/auto_hide", 0L);
+    Open();
     LogPage(mltDebug); // default logging page for stream operator
 }
 
@@ -158,9 +158,8 @@ void MessageManager::DebugLog(const wxChar* msg, ...)
     tmp = wxString::FormatV(msg, arg_list);
     va_end(arg_list);
 
-//	wxDateTime timestamp = wxDateTime::UNow();
-//    m_Logs[mltDebug]->AddLog("[" + timestamp.Format("%X.%l") + "]: " + tmp);
-    m_Logs[mltDebug]->AddLog(tmp);
+	wxDateTime timestamp = wxDateTime::UNow();
+    m_Logs[mltDebug]->AddLog("[" + timestamp.Format("%X.%l") + "]: " + tmp);
 	wxYield(); //wxSafeYield(this,true);
 }
 
@@ -339,17 +338,34 @@ bool MessageManager::IsAutoHiding()
 
 int MessageManager::GetOpenSize()
 {
-    return m_OpenSize;
+    int y = m_OpenSize;
+    if(m_Open || !m_AutoHide)
+    {
+        wxSashLayoutWindow* sash = (wxSashLayoutWindow*)GetParent();
+        if(sash)
+            y = sash->GetSize().y;
+        else
+            y = GetSize().y + 3; // Shouldn't happen. Added for safety.
+            // 3 is the difference between both sizes (found empirically).
+    }
+    return y; 
+    // return (m_Open || !m_AutoHide) ? (GetSize().y + 3) : m_OpenSize;
 }
 
 void MessageManager::Open()
 {
     if (!m_AutoHide || m_Open)
         return;
-
-    if (m_pContainerWin)
-        m_pContainerWin->Show(true);
     m_Open = true;
+    wxSashLayoutWindow* sash = (wxSashLayoutWindow*)GetParent();
+    if (!sash)
+        return;
+    if (!sash->IsShown())
+        sash->Show(true);
+    sash->SetDefaultSize(wxSize(1, m_OpenSize));
+
+	wxLayoutAlgorithm layout;
+    layout.LayoutFrame(Manager::Get()->GetAppWindow(), Manager::Get()->GetEditorManager()->GetPanel());
 }
 
 void MessageManager::Close(bool force)
@@ -360,9 +376,17 @@ void MessageManager::Close(bool force)
         return;
 
     m_LockCounter = 0;
-    if (m_pContainerWin)
-        m_pContainerWin->Show(false);
+    wxSashLayoutWindow* sash = (wxSashLayoutWindow*)GetParent();
+    if (!sash)
+        return;
+//    DebugLog("before m_OpenSize=%d", m_OpenSize);
+    m_OpenSize = sash->GetSize().y;
+    sash->SetDefaultSize(wxSize(1, m_OpenSize - m_Logs[mltLog]->GetSize().y));
+//    DebugLog("after m_OpenSize=%d, actual=%d", m_OpenSize, m_OpenSize - m_Logs[mltLog]->GetSize().y);
     m_Open = false;
+
+	wxLayoutAlgorithm layout;
+    layout.LayoutFrame(Manager::Get()->GetAppWindow(), Manager::Get()->GetEditorManager()->GetPanel());
 }
 
 void MessageManager::LockOpen()

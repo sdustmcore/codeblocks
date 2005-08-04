@@ -33,7 +33,7 @@ wxsProject::IntegrationState wxsProject::BindProject(cbProject* Proj)
     /* creating new node in resource tree */
     
     wxTreeCtrl* ResTree = wxSmith::Get()->GetResourceTree();
-    ResTree->Expand(ResTree->GetRootItem());
+    
     TreeItem = ResTree->AppendItem(ResTree->GetRootItem(),Proj->GetTitle());
     
     /* Binding project object */
@@ -405,7 +405,7 @@ void wxsProject::AddDialog(wxsDialogRes* Dialog)
     if ( !Dialog ) return;
     Dialogs.push_back(Dialog);
     wxTreeCtrl* Tree = wxSmith::Get()->GetResourceTree();
-    Dialog->GetDialog().BuildTree(Tree, Tree->AppendItem( DialogId, Dialog->GetClassName(), -1, -1, new wxsResourceTreeData(Dialog) ) );
+    BuildTree(Tree, Tree->AppendItem( DialogId, Dialog->GetClassName(), -1, -1, new wxsResourceTreeData(Dialog) ) );
 }
 
 wxsResource* wxsProject::FindResource(const wxString& Name)
@@ -429,25 +429,4 @@ wxsResource* wxsProject::FindResource(const wxString& Name)
     
     return NULL;
     
-}
-
-void wxsProject::SendEventToEditors(wxEvent& event)
-{
-    for ( DialogListI i = Dialogs.begin(); i!=Dialogs.end(); ++i )
-    {
-        if ( (*i)->GetEditor() )
-        {
-        	(*i)->GetEditor()->ProcessEvent(event);
-        }
-    }
-
-    for ( FrameListI i = Frames.begin(); i!=Frames.end(); ++i )
-    {
-        // TODO (SpOoN#1#): Implement when frames done
-    }
-
-    for ( PanelListI i = Panels.begin(); i!=Panels.end(); ++i )
-    {
-        // TODO (SpOoN#1#): Implement when panels done
-    }
 }

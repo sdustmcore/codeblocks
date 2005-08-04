@@ -14,13 +14,13 @@
 #include "wxsproperties.h"
 #include "wxswindoweditor.h"
 #include "wxsstyle.h"
+#include "wxsdefevthandler.h"
 
 #define DebLog Manager::Get()->GetMessageManager()->DebugLog
 
 class wxsWidgetManager;
 class wxsEventDesc;
 class wxsWidget;
-class wxsDefEvtHandler;
 
 /** Class representing one event */
 class wxsEventDesc
@@ -78,7 +78,7 @@ struct wxsWidgetBaseParams
     
     /* Used by sizers */
     
-    int Proportion;                 ///< Proportion param (see wxW documentation for details)
+    int Proportion;                 ///< Proportion param (see wxW documentastion for details)
     
     enum BorderFlagsValues          ///< Values which can be used in BorderFlags (ored values)
     {
@@ -221,9 +221,6 @@ class wxsWidget
         
         /** Taking resource tree of this widget */
         wxTreeItemId GetTreeId() { return TreeId; }
-        
-        /** Taking BasePropertiesType for this widget */
-        BasePropertiesType GetBPType() { return BPType; }
 
 /******************************************************************************/
 /* Preview                                                                    */
@@ -272,7 +269,7 @@ class wxsWidget
     public:
     
         /** Function returning base configuration params for this widget */
-        inline wxsWidgetBaseParams& GetBaseParams() { return BaseParams; }
+        inline const wxsWidgetBaseParams& GetBaseParams() { return BaseParams; }
 
         /** Getting properties window for this widget */
         inline wxWindow* GetProperties(wxWindow* Parent)
