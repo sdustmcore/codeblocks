@@ -6,6 +6,11 @@
 
 #include "../widget.h"
 
+/*
+static const int Text1Id = wxNewId();
+static const int Text2Id = wxNewId();
+*/
+
 class wxs2IntPropertyWindow: public wxPanel
 {
     public:
@@ -37,8 +42,8 @@ wxs2IntPropertyWindow::wxs2IntPropertyWindow(wxWindow* Parent,wxs2IntProperty* P
     wxPanel(Parent,-1),
     Prop(Property)
 {
-    Text1 = new wxTextCtrl(this,-1,_T(""),wxDefaultPosition,wxDefaultSize,wxTE_PROCESS_ENTER);
-    Text2 = new wxTextCtrl(this,-1,_T(""),wxDefaultPosition,wxDefaultSize,wxTE_PROCESS_ENTER);
+    Text1 = new wxTextCtrl(this,-1,wxT("")/*wxString::Format("%d",Property->Value1)*/,wxDefaultPosition,wxDefaultSize,wxTE_PROCESS_ENTER);
+    Text2 = new wxTextCtrl(this,-1,wxT("")/*wxString::Format("%d",Property->Value2)*/,wxDefaultPosition,wxDefaultSize,wxTE_PROCESS_ENTER);
     
     wxSize Size = Text1->GetSize();
     Size.SetWidth(Size.GetHeight()*2);  // TODO: This seem to be useless
@@ -49,7 +54,7 @@ wxs2IntPropertyWindow::wxs2IntPropertyWindow(wxWindow* Parent,wxs2IntProperty* P
     Sizer->AddGrowableCol(0);
     Sizer->AddGrowableCol(2);
     Sizer->Add(Text1,0,wxGROW);
-    Sizer->Add(new wxStaticText(this,-1,_T("x")),0,wxLEFT|wxRIGHT|wxALIGN_CENTRE_VERTICAL,5);
+    Sizer->Add(new wxStaticText(this,-1,wxT("x")),0,wxLEFT|wxRIGHT|wxALIGN_CENTRE_VERTICAL,5);
     Sizer->Add(Text2,0,wxGROW);
     SetSizer(Sizer);
     Sizer->SetSizeHints(this);
@@ -61,18 +66,16 @@ wxs2IntPropertyWindow::~wxs2IntPropertyWindow()
 
 void wxs2IntPropertyWindow::SetValues(int V1,int V2)
 {
-    Text1->SetValue(wxString::Format(_T("%d"),V1));
-    Text2->SetValue(wxString::Format(_T("%d"),V2));
+    Text1->SetValue(wxString::Format("%d",V1));
+    Text2->SetValue(wxString::Format("%d",V2));
 }
 
 void wxs2IntPropertyWindow::OnTextChange(wxCommandEvent& event)
 {
     if ( Prop->AlwUpd )
     {
-    	long Val = 0;
-        Text1->GetValue().ToLong(&Val); Prop->Value1 = (int)Val;
-        Val = 0;
-        Text2->GetValue().ToLong(&Val); Prop->Value2 = (int)Val;
+        Prop->Value1 = atoi(Text1->GetValue().c_str());
+        Prop->Value2 = atoi(Text2->GetValue().c_str());
         Prop->CorrectValues(Prop->Value1,Prop->Value2);
         Prop->ValueChanged();
     }
@@ -80,27 +83,29 @@ void wxs2IntPropertyWindow::OnTextChange(wxCommandEvent& event)
 
 void wxs2IntPropertyWindow::OnTextEnter(wxCommandEvent& event)
 {
-    long Val = 0;
-    Text1->GetValue().ToLong(&Val); Prop->Value1 = (int)Val;
-    Val = 0;
-    Text2->GetValue().ToLong(&Val); Prop->Value2 = (int)Val;
+    Prop->Value1 = atoi(Text1->GetValue().c_str());
+    Prop->Value2 = atoi(Text2->GetValue().c_str());
     Prop->CorrectValues(Prop->Value1,Prop->Value2);
-    Text1->SetValue(wxString::Format(_T("%d"),Prop->Value1));
-    Text2->SetValue(wxString::Format(_T("%d"),Prop->Value2));
+    Text1->SetValue(wxString::Format("%d",Prop->Value1));
+    Text2->SetValue(wxString::Format("%d",Prop->Value2));
     Prop->ValueChanged();
 }
 
 void wxs2IntPropertyWindow::OnKillFocus(wxFocusEvent& event)
 {
-    long Val = 0;
-    Text1->GetValue().ToLong(&Val); Prop->Value1 = (int)Val;
-    Val = 0;
-    Text2->GetValue().ToLong(&Val); Prop->Value2 = (int)Val;
+    Prop->Value1 = atoi(Text1->GetValue().c_str());
+    Prop->Value2 = atoi(Text2->GetValue().c_str());
     Prop->CorrectValues(Prop->Value1,Prop->Value2);
-    Text1->SetValue(wxString::Format(_T("%d"),Prop->Value1));
-    Text2->SetValue(wxString::Format(_T("%d"),Prop->Value2));
+    Text1->SetValue(wxString::Format("%d",Prop->Value1));
+    Text2->SetValue(wxString::Format("%d",Prop->Value2));
     Prop->ValueChanged();
 }
+
+
+
+
+
+
 
 wxs2IntProperty::wxs2IntProperty(wxsProperties* Properties,int& Int1,int& Int2, bool AlwaysUpdate):
     wxsProperty(Properties), Value1(Int1), Value2(Int2), AlwUpd(AlwaysUpdate), Window(NULL)
@@ -115,7 +120,7 @@ wxs2IntProperty::~wxs2IntProperty()
 
 const wxString& wxs2IntProperty::GetTypeName()
 {
-    static wxString Name(_T("2 x int"));
+    static wxString Name(wxT("2 x int"));
     return Name;
 }
 

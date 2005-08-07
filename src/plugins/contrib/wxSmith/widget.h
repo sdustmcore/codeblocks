@@ -14,13 +14,13 @@
 #include "wxsproperties.h"
 #include "wxswindoweditor.h"
 #include "wxsstyle.h"
+#include "wxsdefevthandler.h"
 
 #define DebLog Manager::Get()->GetMessageManager()->DebugLog
 
 class wxsWidgetManager;
 class wxsEventDesc;
 class wxsWidget;
-class wxsDefEvtHandler;
 
 /** Class representing one event */
 class wxsEventDesc
@@ -30,29 +30,29 @@ class wxsEventDesc
         virtual ~wxsEventDesc() {};
         
         /** Function which should giveevent's name */
-        virtual wxString EventName() = 0;
+        virtual const char* EventName() = 0;
         
         /** Function which should produce content of ( ) in event handler 
          *  including braces.
          */
-        virtual wxString GetFunctionParams() = 0;
+        virtual const char* GetFunctionParams() = 0;
         
         /** Function which should produce entry in event array for
          * specified function
          */
-        virtual wxString GetETEntry(const wxString& FunctionName) = 0;
+        virtual const char* GetETEntry(const wxString& FunctionName) = 0;
 };
 
 /** Structure containing info aboul widget */
 struct wxsWidgetInfo
 {
-    wxString Name;               ///< Widget's name
-    wxString License;            ///< Widget's license
-    wxString Author;             ///< Widget's author
-    wxString AuthorEmail;        ///< Widget's authos's email
-    wxString AuthorSite;         ///< Widget's author's site
-    wxString WidgetsSite;        ///< Site about this widget
-    wxString Category;           ///< Widget's category
+    const char* Name;               ///< Widget's name
+    const char* License;            ///< Widget's license
+    const char* Author;             ///< Widget's author
+    const char* AuthorEmail;        ///< Widget's authos's email
+    const char* AuthorSite;         ///< Widget's author's site
+    const char* WidgetsSite;        ///< Site about this widget
+    const char* Category;           ///< Widget's category
     bool Container;                 ///< True if this widget can have other widgets inside
     bool Sizer;                     ///< True if this widget is a sizer (Container must also be true)
     unsigned short VerHi;           ///< Lower number of version
@@ -78,7 +78,7 @@ struct wxsWidgetBaseParams
     
     /* Used by sizers */
     
-    int Proportion;                 ///< Proportion param (see wxW documentation for details)
+    int Proportion;                 ///< Proportion param (see wxW documentastion for details)
     
     enum BorderFlagsValues          ///< Values which can be used in BorderFlags (ored values)
     {
@@ -113,8 +113,8 @@ struct wxsWidgetBaseParams
     int Style;                      ///< Current style
     
     wxsWidgetBaseParams():
-        IdName(_T("")),
-        VarName(_T("")),
+        IdName("ID_COMMON"),
+        VarName("Unknown"),
         IsMember(true),
         PosX(-1), PosY(-1),
         DefaultPosition(true),
@@ -135,7 +135,7 @@ struct wxsWidgetBaseParams
 /** Structure containing all data needed while generating code */
 struct wxsCodeParams
 {
-    wxString ParentName;
+    const char* ParentName;
     bool IsDirectParent;
     int UniqueNumber;
 };
@@ -221,9 +221,6 @@ class wxsWidget
         
         /** Taking resource tree of this widget */
         wxTreeItemId GetTreeId() { return TreeId; }
-        
-        /** Taking BasePropertiesType for this widget */
-        BasePropertiesType GetBPType() { return BPType; }
 
 /******************************************************************************/
 /* Preview                                                                    */
@@ -272,7 +269,7 @@ class wxsWidget
     public:
     
         /** Function returning base configuration params for this widget */
-        inline wxsWidgetBaseParams& GetBaseParams() { return BaseParams; }
+        inline const wxsWidgetBaseParams& GetBaseParams() { return BaseParams; }
 
         /** Getting properties window for this widget */
         inline wxWindow* GetProperties(wxWindow* Parent)
@@ -367,7 +364,7 @@ class wxsWidget
          *  It's called BEFORE widget's children are created and
          *  must set up BaseParams.VarName variable inside code.
          */
-        virtual wxString GetProducingCode(wxsCodeParams& Params) { return _T(""); }
+        virtual const char* GetProducingCode(wxsCodeParams& Params) { return ""; }
             
         /** Function generating code which finishes production process of this
          *  widget, it will be called AFTER child widgets are created
@@ -375,13 +372,13 @@ class wxsWidget
          * It can be used f.ex. by sizers to bind to parent item.
          * UniqueNumber is same as in GetProducingCode
          */
-        virtual wxString GetFinalizingCode(wxsCodeParams& Params) { return _T(""); }
+        virtual const char* GetFinalizingCode(wxsCodeParams& Params) { return ""; }
         
         /** Function generating code which generates variable containing this 
          *  widget. If there's no variable (f.ex. space inside sizers), it should
          *  return empty string
          */
-        virtual wxString GetDeclarationCode(wxsCodeParams& Params) { return _T(""); }
+        virtual const char* GetDeclarationCode(wxsCodeParams& Params) { return ""; }
 
         /** Structure deeclaring some code-defines which could be usefull while
          *  creating widget's code
@@ -579,7 +576,7 @@ class wxsWidget
 /**********************************************************************/
         
         /** Getting value from given name */
-        virtual wxString XmlGetVariable(const wxString& Name);
+        virtual const char* XmlGetVariable(const char* name);
         
         /** Getting integer from given name
          *
@@ -590,31 +587,37 @@ class wxsWidget
          *                        (IsInvalid=true)
          *  \returns value of variable
          */
-        virtual int XmlGetInteger(const wxString &Name,bool& IsInvalid,int DefaultValue=0);
+        virtual int XmlGetInteger(const char* Name,bool& IsInvalid,int DefaultValue=0);
         
         /** Getting integer from given name without returning error */
-        inline int XmlGetInteger(const wxString &Name,int DefaultValue=0)
+        inline int XmlGetInteger(const char* Name,int DefaultValue=0)
         {
             bool Temp;
             return XmlGetInteger(Name,Temp,DefaultValue);
         }
         
         /** Getting size/position from given name */
-        virtual bool XmlGetIntPair(const wxString& Name,int& P1,int& P2,int DefP1=-1,int DefP2=-1);
+        virtual bool XmlGetIntPair(const char* Name,int& P1,int& P2,int DefP1=-1,int DefP2=-1);
         
         // Added by cyberkoa
         /** Getting a series of string with given parent element and child element name */
-        virtual bool wxsWidget::XmlGetStringArray(const wxString &ParentName,const wxString& ChildName, wxArrayString& stringArray);
+        virtual bool wxsWidget::XmlGetStringArray(const char* ParentName,const char* ChildName, wxArrayString& stringArray);
         //End Add
         
         /** Setting string value */
-        virtual bool XmlSetVariable(const wxString &Name,const wxString& Value);
+        virtual bool XmlSetVariable(const char* Name,const char* Value);
+        
+        /** Setting wxStrting value */
+        inline bool XmlSetVariable(const char* Name,const wxString& Value)
+        {
+            return XmlSetVariable(Name,Value.c_str());
+        }
         
         /** Setting integer value */
-        virtual bool XmlSetInteger(const wxString &Name,int Value);
+        virtual bool XmlSetInteger(const char* Name,int Value);
         
         /** Setting 2 integers */
-        virtual bool XmlSetIntPair(const wxString &Name,int Val1,int Val2);
+        virtual bool XmlSetIntPair(const char* Name,int Val1,int Val2);
         
         /** Function assigning element which will be used while processing
          *  xml resources. Usually this function is calleed automatically
@@ -627,7 +630,7 @@ class wxsWidget
         
         // Added by cyberkoa
         /** Set a series of string with the same given element name */
-        virtual bool wxsWidget::XmlSetStringArray(const wxString &ParentName,const wxString& ChildName, wxArrayString& stringArray);
+        virtual bool wxsWidget::XmlSetStringArray(const char* ParentName,const char* ChildName, wxArrayString& stringArray);
         //End Add
         
         /** Reading all default values for widget */

@@ -21,9 +21,9 @@ class wxsStylePropertyWindow: public wxPanel
             
             if ( Styles )
             {
-                for ( ; Styles->Name != _T(""); Styles++ )
+                for ( ; Styles->Name; Styles++ )
                 {
-                    if ( Styles->Value == ((unsigned int)-1) )
+                    if ( !Styles->Value )
                     {
                         // Adding dividing text
                         wxStaticText* ST = new wxStaticText(this,-1,Styles->Name);
@@ -33,22 +33,20 @@ class wxsStylePropertyWindow: public wxPanel
                         ST->SetFont(Font);
                         Sizer->Add(ST);
                     }
-                    else if ( Styles->Value )
+                    else
                     {
                         IdToStyleMaps.push_back(Styles->Value);
-                        wxString Name = Styles->Name;
-                        bool IsToolTip = false;
-                        if ( Name.Length() > WXS_MAX_STYLE_LEN )
+                        char* Name = strdup(Styles->Name);
+                        if ( strlen(Name) > WXS_MAX_STYLE_LEN )
                         {
-                        	Name = Name.Mid(0,WXS_MAX_STYLE_LEN-3) + _T("...");
-                            IsToolTip = true;
+                            Name[WXS_MAX_STYLE_LEN-3] =
+                            Name[WXS_MAX_STYLE_LEN-2] =
+                            Name[WXS_MAX_STYLE_LEN-1] = '.';
+                            Name[WXS_MAX_STYLE_LEN-0] = 0;
                         }
                         wxCheckBox* CB = new wxCheckBox(this,CurrentId++,Name);
-                        if ( IsToolTip )
-                        {
-                            CB->SetToolTip(Styles->Name);
-                        }
                         Sizer->Add(CB);
+                        free(Name);
                     }
                 }
             }
@@ -118,7 +116,7 @@ wxsStyleProperty::~wxsStyleProperty()
 
 const wxString& wxsStyleProperty::GetTypeName()
 {
-    static wxString Name(_T("widget style"));
+    static wxString Name(wxT("widget style"));
     return Name;
 }
 

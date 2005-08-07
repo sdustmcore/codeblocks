@@ -23,12 +23,16 @@ WXS_ST_END(wxsListBoxStyles)
 
 
 wxsDWDefineBegin(wxsListBox,wxListBox,
-        ThisWidget = new wxListBox(parent,id,pos,size,0,0,style);
-        wxsDWAddStrings(arrayChoices,ThisWidget);
-        wxsDWSelectString(arrayChoices,defaultChoice,ThisWidget);
-    )
+        ThisWidget = new wxListBox(parent,id,pos,size,0,NULL,style);
+         
+       // Add list to ListBox  
+         ThisWidget->InsertItems(arrayChoices,0);
+         
+       // Set default selection  
+         ThisWidget->SetSelection(defaultChoice);
+   )
    
     wxsDWDefIntX(defaultChoice,"selection","Default",-1)
-    wxsDWDefStrArrayX(arrayChoices,"content","item","Choices",defaultChoice)
+    wxsDWDefStrArrayX(arrayChoices,"content","item","choices",defaultChoice)
 
 wxsDWDefineEnd()

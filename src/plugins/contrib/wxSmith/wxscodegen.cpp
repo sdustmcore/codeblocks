@@ -2,13 +2,14 @@
 
 wxsCodeGen::wxsCodeGen(wxsWidget* Widget,int InitialSpaces,int TabSize,bool DontCreateRoot)
 {
+
 	if ( DontCreateRoot )
 	{
 		int Cnt = Widget->GetChildCount();
 
 		wxsCodeParams Params;
 		Params.UniqueNumber = 1;
-        Params.ParentName = _T("this");
+        Params.ParentName = "this";
         Params.IsDirectParent = true;
 
 		for ( int i=0; i<Cnt; i++ )
@@ -20,12 +21,12 @@ wxsCodeGen::wxsCodeGen(wxsWidget* Widget,int InitialSpaces,int TabSize,bool Dont
 	else
 	{
 		wxsCodeParams Params;
-		Params.ParentName = _T("Parent");
+		Params.ParentName = "Parent";
 		Params.IsDirectParent = true;
 		Params.UniqueNumber = 1;
 		AppendCodeReq(Widget,Params);
 	}
-
+	
     BeautyCode(Code,InitialSpaces,TabSize);
 }
 
@@ -40,7 +41,7 @@ void wxsCodeGen::AppendCodeReq(wxsWidget* Widget,wxsCodeParams& ThisParams)
         return;
 
     Code.Append( Widget->GetProducingCode(ThisParams) );
-    Code.Append(_T('\n'));
+    Code.Append('\n');
 
     int Cnt = Widget->GetChildCount();
 
@@ -66,7 +67,7 @@ void wxsCodeGen::AppendCodeReq(wxsWidget* Widget,wxsCodeParams& ThisParams)
     }
 
     Code.Append( Widget->GetFinalizingCode(ThisParams) );
-    Code.Append(_T('\n'));
+    Code.Append('\n');
 
     ThisParams.UniqueNumber = ChildParams.UniqueNumber - 1;
 }
@@ -75,61 +76,55 @@ void wxsCodeGen::BeautyCode(wxString& Code,int Spaces,int TabSize)
 {
     wxString NewCode;
 
-    const wxChar* Ptr = Code.c_str();
+    const char* Ptr = Code.c_str();
 
     for (;;)
     {
         // Cutting off initial part
-        while ( *Ptr == _T(' ') || *Ptr==_T('\t') || *Ptr==_T('\n') || *Ptr==_T('\r') ) Ptr++;
+        while ( *Ptr == ' ' || *Ptr=='\t' || *Ptr=='\n' || *Ptr=='\r' ) Ptr++;
 
         if ( !*Ptr ) break;
 
         // Adding spaces at the beginning of line
-        NewCode.Append(_T(' '),Spaces);
+        NewCode.Append(' ',Spaces);
         
         // Adding characters till the end of line or till some other circumstances
         
-        int BracketsCnt = 0;
-        while ( *Ptr && *Ptr!=_T('{') && *Ptr!=_T('}') && *Ptr!=_T('\n') && *Ptr!=_T('\r') )
-        {
-            // Additional brackets counting will avoid line splitting inside for statement
-            if ( *Ptr == _T('(') ) BracketsCnt++;
-            else if ( *Ptr == _T(')') ) BracketsCnt--;
-            else if ( *Ptr == _T(';') && !BracketsCnt ) break;    
+        while ( *Ptr && *Ptr!='{' && *Ptr!='}' && *Ptr != '\n' && *Ptr != '\r' && *Ptr != ';' )
             NewCode.Append(*Ptr++);
-        }
             
         if ( !*Ptr )
         {
-            NewCode.Append(_T('\n'));
+            NewCode.Append('\n');
             break;
         }
         
-        switch ( *Ptr++ )
+        switch ( *Ptr )
         {
-			case _T(';'):
-				NewCode.Append(_T(';'));
-				NewCode.Append(_T('\n'));
+			case ';':
+				Ptr++;
+				NewCode.Append(';');
+				NewCode.Append('\n');
 				break;
 				
-            case _T('\n'):
-            case _T('\r'):
-                NewCode.Append(_T('\n'));
+            case '\n':
+            case '\r':
+                NewCode.Append('\n');
                 break;
                 
-            case _T('{'):
-                NewCode.Append(_T('\n'));
-                NewCode.Append(_T(' '),Spaces);
-                NewCode.Append(_T("{\n"));
+            case '{':
+                NewCode.Append('\n');
+                NewCode.Append(' ',Spaces);
+                NewCode.Append("{\n");
                 Spaces += TabSize;
                 break;
                 
-            case _T('}'):
-                NewCode.Append(_T('\n'));
+            case '}':
+                NewCode.Append('\n');
                 Spaces -= TabSize;
                 if ( Spaces < 0 ) Spaces = 0;
-                NewCode.Append(_T(' '),Spaces);
-                NewCode.Append(_T("}\n"));
+                NewCode.Append(' ',Spaces);
+                NewCode.Append("}\n");
                 break;
         }
     }

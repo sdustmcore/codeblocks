@@ -18,13 +18,13 @@ class wxsGridSizer : public wxsContainer
         virtual const wxsWidgetInfo& GetInfo();
         
         /** Function generating code which should produce widget */
-        virtual wxString GetProducingCode(wxsCodeParams& Params);
+        virtual const char* GetProducingCode(wxsCodeParams& Params);
 
         /** Function generating code finalizing widget's creation process */
-        virtual wxString GetFinalizingCode(wxsCodeParams& Params);
+        virtual const char* GetFinalizingCode(wxsCodeParams& Params);
         
         /** Generating sizer's declaration */
-		virtual wxString GetDeclarationCode(wxsCodeParams& Params);
+		virtual const char * GetDeclarationCode(wxsCodeParams& Params);
         
     protected:
     

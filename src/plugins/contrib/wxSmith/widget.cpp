@@ -5,14 +5,13 @@
 #include "properties/wxsstyleproperty.h"
 #include "wxswidgetfactory.h"
 #include "wxsresource.h"
-#include "wxsdefevthandler.h"
 #include <wx/tokenzr.h>
 #include <wx/list.h>
 
 wxsWidget::~wxsWidget()
 {
-	assert ( Preview == NULL );
-	assert ( Properties == NULL );
+    if ( Preview    ) KillPreview();
+    if ( Properties ) KillProperties();
 
     while ( GetChildCount() )
     {
@@ -26,33 +25,33 @@ void wxsWidget::AddDefaultProperties(BasePropertiesType pType)
 
     if ( pType & bptVariable )
     {
-        PropertiesObject.AddProperty(_("Var Name:"),BaseParams.VarName);
-        PropertiesObject.AddProperty(_("Is Member:"),BaseParams.IsMember);
+        PropertiesObject.AddProperty(wxT("Var Name:"),BaseParams.VarName);
+        PropertiesObject.AddProperty(wxT("Is Member:"),BaseParams.IsMember);
     }
     
     if ( pType & bptId )
     {
-        PropertiesObject.AddProperty(_("Id:"),BaseParams.IdName);
+        PropertiesObject.AddProperty(wxT("Id:"),BaseParams.IdName);
     }
     
     if ( pType & bptPosition )
     {
-        PropertiesObject.Add2IProperty(_("Position:"),BaseParams.PosX,BaseParams.PosY);
-        PropertiesObject.AddProperty(_(" Default:"),BaseParams.DefaultPosition);
+        PropertiesObject.Add2IProperty(wxT("Position:"),BaseParams.PosX,BaseParams.PosY);
+        PropertiesObject.AddProperty(wxT(" Default:"),BaseParams.DefaultPosition);
     }
     
     if ( pType & bptSize )
     {
-        PropertiesObject.Add2IProperty(_("Size:"),BaseParams.SizeX,BaseParams.SizeY);
-        PropertiesObject.AddProperty(_(" Default:"),BaseParams.DefaultSize);
+        PropertiesObject.Add2IProperty(wxT("Size:"),BaseParams.SizeX,BaseParams.SizeY);
+        PropertiesObject.AddProperty(wxT(" Default:"),BaseParams.DefaultSize);
     }
     
     // Adding sizer configuration
 
-    PropertiesObject.AddProperty(_("Proportion:"),BaseParams.Proportion);
-    PropertiesObject.AddProperty(_("Border:"),new wxsBorderProperty(&PropertiesObject,BaseParams.BorderFlags));
-    PropertiesObject.AddProperty(_("Border size:"),BaseParams.Border);
-    PropertiesObject.AddProperty(_("Placement:"),new wxsPlacementProperty(&PropertiesObject,BaseParams.Placement,BaseParams.Expand,BaseParams.Shaped));
+    PropertiesObject.AddProperty(wxT("Proportion:"),BaseParams.Proportion);
+    PropertiesObject.AddProperty(wxT("Border:"),new wxsBorderProperty(&PropertiesObject,BaseParams.BorderFlags));
+    PropertiesObject.AddProperty(wxT("Border size:"),BaseParams.Border);
+    PropertiesObject.AddProperty(wxT("Placement:"),new wxsPlacementProperty(&PropertiesObject,BaseParams.Placement,BaseParams.Expand,BaseParams.Shaped));
 
     // Adding style property
 
@@ -61,7 +60,7 @@ void wxsWidget::AddDefaultProperties(BasePropertiesType pType)
         if ( GetInfo().Styles != NULL )
         {
             PropertiesObject.AddProperty(
-                _T("Style:"),
+                wxT("Style:"),
                 new wxsStyleProperty(
                     &PropertiesObject,
                     BaseParams.Style,
@@ -174,27 +173,27 @@ bool wxsWidget::XmlLoadDefaultsT(BasePropertiesType pType)
     /* Processing position */
     if ( pType & bptPosition )
     {
-        BaseParams.DefaultPosition = !XmlGetIntPair(_T("pos"),BaseParams.PosX,BaseParams.PosY);
+        BaseParams.DefaultPosition = !XmlGetIntPair("pos",BaseParams.PosX,BaseParams.PosY);
     }
         
     /* Processing size */
     if ( pType & bptSize )
     {
-        BaseParams.DefaultSize = !XmlGetIntPair(_T("size"),BaseParams.SizeX,BaseParams.SizeY);
+        BaseParams.DefaultSize = !XmlGetIntPair("size",BaseParams.SizeX,BaseParams.SizeY);
     }
     
     /* Processing id */
     if ( pType & bptId )
     {
         const char* IdName = XmlElem()->Attribute("name");
-        BaseParams.IdName = IdName ? wxString ( IdName, wxConvLocal ) : _T("");
+        BaseParams.IdName = IdName ? IdName : wxT("");
     }
     
     /* Processing variable name and locality */
     if ( pType & bptVariable )
     {
         const char* VarName = XmlElem()->Attribute("variable");
-        BaseParams.VarName = VarName ? wxString ( VarName, wxConvUTF8 ) : _T("");
+        BaseParams.VarName = VarName ? VarName : wxT("");
         const char* IsMember = XmlElem()->Attribute("member");
         BaseParams.IsMember = IsMember ? ( strcasecmp(IsMember,"no") != 0 ) : true;
     }
@@ -202,22 +201,22 @@ bool wxsWidget::XmlLoadDefaultsT(BasePropertiesType pType)
     /* Processing style */
     if ( pType & bptStyle )
     {
-        wxString StyleStr = XmlGetVariable(_T("style"));
+        wxString StyleStr = XmlGetVariable("style");
         wxsStyle* Styles = GetInfo().Styles;
         BaseParams.Style = 0;
         if ( Styles )
         {
-            for ( ; Styles->Name != _T(""); Styles++ )
+            for ( ; Styles->Name != NULL; Styles++ )
             {
                 int Pos = StyleStr.Find(Styles->Name);
-                int Len = (int)Styles->Name.Length();
+                int Len = (int)strlen(Styles->Name);
                 if ( Pos < 0 ) continue;
                 
                 // One character after style in StyleStr should be checked - it
                 // must be '|'. Same for character before.
                 
-                if ( ( Pos + Len >= (int)StyleStr.Len() || StyleStr.GetChar(Pos+Len) == _T('|') ) &&
-                     ( Pos == 0 || StyleStr.GetChar(Pos-1) == _T('|') ) )
+                if ( ( Pos + Len >= (int)StyleStr.Len() || StyleStr.GetChar(Pos+Len) == '|' ) &&
+                     ( Pos == 0 || StyleStr.GetChar(Pos-1) == '|' ) )
                 {
                     BaseParams.Style |= Styles->Value;
                 }
@@ -242,7 +241,7 @@ bool wxsWidget::XmlSaveDefaultsT(BasePropertiesType pType)
     {
         if ( !BaseParams.DefaultPosition )
         {
-            XmlSetIntPair(_T("pos"),BaseParams.PosX,BaseParams.PosY);
+            XmlSetIntPair("pos",BaseParams.PosX,BaseParams.PosY);
         }
     }
     
@@ -250,18 +249,18 @@ bool wxsWidget::XmlSaveDefaultsT(BasePropertiesType pType)
     {
         if ( !BaseParams.DefaultSize )
         {
-            XmlSetIntPair(_T("size"),BaseParams.SizeX,BaseParams.SizeY);
+            XmlSetIntPair("size",BaseParams.SizeX,BaseParams.SizeY);
         }
     }
 
     if ( pType & bptId )
     {
-        XmlElem()->SetAttribute("name",BaseParams.IdName.mb_str());
+        XmlElem()->SetAttribute("name",BaseParams.IdName.c_str());
     }
     
     if ( pType & bptVariable )
     {
-        XmlElem()->SetAttribute("variable",BaseParams.VarName.mb_str());
+        XmlElem()->SetAttribute("variable",BaseParams.VarName.c_str());
         XmlElem()->SetAttribute("member",BaseParams.IsMember?"yes":"no");
     }
 
@@ -290,7 +289,7 @@ bool wxsWidget::XmlSaveDefaultsT(BasePropertiesType pType)
         
         if ( StyleString.Len() != 0 )
         {
-            XmlSetVariable(_T("style"),StyleString.c_str()+1);
+            XmlSetVariable("style",StyleString.c_str()+1);
         }
     }
     
@@ -302,13 +301,13 @@ bool wxsWidget::XmlSaveDefaultsT(BasePropertiesType pType)
     return true;
 }
 
-wxString wxsWidget::XmlGetVariable(const wxString& name)
+const char* wxsWidget::XmlGetVariable(const char* name)
 {
     assert ( XmlElem() != NULL );
     
-    if ( !name || !*name ) return _T("");
-    TiXmlElement* Elem = XmlElem()->FirstChildElement(name.mb_str());
-    if ( !Elem ) return _T("");
+    if ( !name || !*name ) return NULL;
+    TiXmlElement* Elem = XmlElem()->FirstChildElement(name);
+    if ( !Elem ) return NULL;
 
     TiXmlNode* Node = Elem->FirstChild();
     while ( Node )
@@ -316,15 +315,15 @@ wxString wxsWidget::XmlGetVariable(const wxString& name)
         TiXmlText* Text = Node->ToText();
         if ( Text )
         {
-            return wxString(Text->Value(), wxConvUTF8);
+            return Text->Value();
         }
         Node = Node->NextSibling();
     }
     
-    return _T("");
+    return NULL;
 }
 
-int wxsWidget::XmlGetInteger(const wxString& name,bool& IsInvalid,int DefaultValue)
+int wxsWidget::XmlGetInteger(const char* name,bool& IsInvalid,int DefaultValue)
 {
     wxString Tmp = XmlGetVariable(name);
     long value;
@@ -337,13 +336,13 @@ int wxsWidget::XmlGetInteger(const wxString& name,bool& IsInvalid,int DefaultVal
     return (int)value;
 }
 
-bool wxsWidget::XmlGetIntPair(const wxString& Name,int& P1,int& P2,int DefP1,int DefP2)
+bool wxsWidget::XmlGetIntPair(const char* Name,int& P1,int& P2,int DefP1,int DefP2)
 {
     long _P1, _P2;
     wxString Tmp = XmlGetVariable(Name);
     if ( Tmp.Length() &&
-         Tmp.BeforeFirst(_T(',')).ToLong(&_P1) && 
-         Tmp.AfterLast(_T(',')).ToLong(&_P2) )
+         Tmp.BeforeFirst(',').ToLong(&_P1) && 
+         Tmp.AfterLast(',').ToLong(&_P2) )
     {
         P1 = (int)_P1;
         P2 = (int)_P2;
@@ -355,26 +354,26 @@ bool wxsWidget::XmlGetIntPair(const wxString& Name,int& P1,int& P2,int DefP1,int
     return false;
 }
  
-bool wxsWidget::XmlSetVariable(const wxString& Name,const wxString& Value)
+bool wxsWidget::XmlSetVariable(const char* Name,const char* Value)
 {
     assert ( XmlElem() != NULL );
-    TiXmlNode * NewNode = XmlElem()->InsertEndChild(TiXmlElement(Name.mb_str()));
+    TiXmlNode * NewNode = XmlElem()->InsertEndChild(TiXmlElement(Name));
     if ( NewNode )
     {
-        NewNode->InsertEndChild(TiXmlText(Value.mb_str()));
+        NewNode->InsertEndChild(TiXmlText(Value));
         return true;
     }
     return false;
 }
 
-bool wxsWidget::XmlSetInteger(const wxString& Name,int Value)
+bool wxsWidget::XmlSetInteger(const char* Name,int Value)
 {
-    return XmlSetVariable(Name,wxString::Format(_T("%d"),Value));
+    return XmlSetVariable(Name,wxString::Format("%d",Value).c_str());
 }
 
-bool wxsWidget::XmlSetIntPair(const wxString& Name,int Val1,int Val2)
+bool wxsWidget::XmlSetIntPair(const char* Name,int Val1,int Val2)
 {
-    return XmlSetVariable(Name,wxString::Format(_T("%d,%d"),Val1,Val2));
+    return XmlSetVariable(Name,wxString::Format("%d,%d",Val1,Val2).c_str());
 }
 
 bool wxsWidget::XmlLoadChildren()
@@ -401,10 +400,11 @@ bool wxsWidget::XmlLoadChildren()
                 if ( !Name || !*Name ) continue;
             }
                 
-            wxsWidget* Child = wxsWidgetFactory::Get()->Generate(wxString(Name,wxConvUTF8));
+            wxsWidget* Child = wxsWidgetFactory::Get()->Generate(Name);
             if ( !Child )
             {
                 Ret = false;
+                DebLog("Unknown object : '%s'",Name);
             }
             else
             {
@@ -431,9 +431,9 @@ bool wxsWidget::XmlSaveChildren()
         if ( W && W->GetInfo().Name )
         {
             TiXmlNode* AddChildToThis = XmlElem();
-            const wxString& ClassName = W->GetInfo().Name;
+            const char* ClassName = W->GetInfo().Name;
             
-            if ( IsSizer && ClassName != _T("spacer") )
+            if ( IsSizer && strcmp(ClassName,"spacer") )
             {
                // Adding sizeritem object
                AddChildToThis = XmlElem()->InsertEndChild(TiXmlElement("object"));
@@ -444,7 +444,7 @@ bool wxsWidget::XmlSaveChildren()
             
             if ( SaveTo )
             {
-                SaveTo->SetAttribute("class",ClassName.mb_str());
+                SaveTo->SetAttribute("class",ClassName);
                 if ( !W->XmlSave(SaveTo) ) Return = false;
             }
             else
@@ -469,10 +469,10 @@ void wxsWidget::XmlLoadSizerStuff(TiXmlElement* Elem)
     
     bool Temp;
     
-    BaseParams.Proportion = XmlGetInteger(_T("option"),Temp,0);
-    BaseParams.Border = XmlGetInteger(_T("border"),Temp,0);
+    BaseParams.Proportion = XmlGetInteger("option",Temp,0);
+    BaseParams.Border = XmlGetInteger("border",Temp,0);
     
-    wxStringTokenizer tokens(XmlGetVariable(_T("flag")),_T("|"));
+    wxStringTokenizer tokens(XmlGetVariable("flag"),wxT("|"));
     
     int HorizPos = 0;
     int VertPos = 0;
@@ -481,9 +481,9 @@ void wxsWidget::XmlLoadSizerStuff(TiXmlElement* Elem)
     {
         wxString Token = tokens.GetNextToken().Trim(true).Trim(false);
 
-        #define BFItem(a,b)  else if ( Token == _T(#a) ) BaseParams.BorderFlags |= wxsWidgetBaseParams::b
+        #define BFItem(a,b)  else if ( Token == wxT(#a) ) BaseParams.BorderFlags |= wxsWidgetBaseParams::b
         #define Begin() if (false)
-        #define Match(a) else if ( Token == _T(#a) )
+        #define Match(a) else if ( Token == wxT(#a) )
         #define PlaceH(a) Match(a) HorizPos = a;
         #define PlaceV(a) Match(a) VertPos = a;
         
@@ -549,10 +549,10 @@ void wxsWidget::XmlSaveSizerStuff(TiXmlElement* Elem)
     TiXmlElement* Store = XmlElem();
     XmlElement = Elem;
     
-    if ( BaseParams.Proportion ) XmlSetInteger(_T("option"),BaseParams.Proportion);
-    if ( BaseParams.Border ) XmlSetInteger(_T("border"),BaseParams.Border);
+    if ( BaseParams.Proportion ) XmlSetInteger("option",BaseParams.Proportion);
+    if ( BaseParams.Border ) XmlSetInteger("border",BaseParams.Border);
     
-    wxString Flags = _T("");
+    wxString Flags = wxT("");
     
     int BF = BaseParams.BorderFlags;
 
@@ -561,35 +561,35 @@ void wxsWidget::XmlSaveSizerStuff(TiXmlElement* Elem)
          ( BF & wxsWidgetBaseParams::Top ) &&
          ( BF & wxsWidgetBaseParams::Bottom ) )
     {
-        Flags.Append(_T("|wxALL"));
+        Flags.Append("|wxALL");
     }
     else
     {
-        if ( ( BF & wxsWidgetBaseParams::Left   ) ) Flags.Append(_T("|wxLEFT"));
-        if ( ( BF & wxsWidgetBaseParams::Right  ) ) Flags.Append(_T("|wxRIGHT"));
-        if ( ( BF & wxsWidgetBaseParams::Top    ) ) Flags.Append(_T("|wxTOP"));
-        if ( ( BF & wxsWidgetBaseParams::Bottom ) ) Flags.Append(_T("|wxBOTTOM"));
+        if ( ( BF & wxsWidgetBaseParams::Left   ) ) Flags.Append("|wxLEFT");
+        if ( ( BF & wxsWidgetBaseParams::Right  ) ) Flags.Append("|wxRIGHT");
+        if ( ( BF & wxsWidgetBaseParams::Top    ) ) Flags.Append("|wxTOP");
+        if ( ( BF & wxsWidgetBaseParams::Bottom ) ) Flags.Append("|wxBOTTOM");
     }
     
     switch ( BaseParams.Placement )
     {
-        case wxsWidgetBaseParams::LeftTop:      Flags.Append(_T("|wxALIGN_LEFT|wxALIGN_TOP")); break;
-        case wxsWidgetBaseParams::CenterTop:    Flags.Append(_T("|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP")); break;
-        case wxsWidgetBaseParams::RightTop:     Flags.Append(_T("|wxALIGN_RIGHT|wxALIGN_TOP")); break;
-        case wxsWidgetBaseParams::LeftCenter:   Flags.Append(_T("|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL")); break;
-        case wxsWidgetBaseParams::Center:       Flags.Append(_T("|wxALIGN_CENTER")); break;
-        case wxsWidgetBaseParams::RightCenter:  Flags.Append(_T("|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL")); break;
-        case wxsWidgetBaseParams::LeftBottom:   Flags.Append(_T("|wxALIGN_LEFT|wxALIGN_BOTTOM")); break;
-        case wxsWidgetBaseParams::CenterBottom: Flags.Append(_T("|wxALIGN_CENTER_HORIZONTAL|wxALIGN_BOTTOM")); break;
-        case wxsWidgetBaseParams::RightBottom:  Flags.Append(_T("|wxALIGN_RIGHT|wxALIGN_BOTTOM")); break;
+        case wxsWidgetBaseParams::LeftTop:      Flags.Append("|wxALIGN_LEFT|wxALIGN_TOP"); break;
+        case wxsWidgetBaseParams::CenterTop:    Flags.Append("|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP"); break;
+        case wxsWidgetBaseParams::RightTop:     Flags.Append("|wxALIGN_RIGHT|wxALIGN_TOP"); break;
+        case wxsWidgetBaseParams::LeftCenter:   Flags.Append("|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL"); break;
+        case wxsWidgetBaseParams::Center:       Flags.Append("|wxALIGN_CENTER"); break;
+        case wxsWidgetBaseParams::RightCenter:  Flags.Append("|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL"); break;
+        case wxsWidgetBaseParams::LeftBottom:   Flags.Append("|wxALIGN_LEFT|wxALIGN_BOTTOM"); break;
+        case wxsWidgetBaseParams::CenterBottom: Flags.Append("|wxALIGN_CENTER_HORIZONTAL|wxALIGN_BOTTOM"); break;
+        case wxsWidgetBaseParams::RightBottom:  Flags.Append("|wxALIGN_RIGHT|wxALIGN_BOTTOM"); break;
     }
     
-    if ( BaseParams.Expand ) Flags.Append(_T("|wxEXPAND"));
-    if ( BaseParams.Shaped ) Flags.Append(_T("|wxSHAPED"));
+    if ( BaseParams.Expand ) Flags.Append("|wxEXPAND");
+    if ( BaseParams.Shaped ) Flags.Append("|wxSHAPED");
     
     if ( Flags.Len() )
     {
-        XmlSetVariable(_T("flag"),Flags.Mid(1));
+        XmlSetVariable("flag",Flags.c_str()+1);
     }
     
     XmlElement = Store;
@@ -598,10 +598,10 @@ void wxsWidget::XmlSaveSizerStuff(TiXmlElement* Elem)
 const wxsWidget::CodeDefines& wxsWidget::GetCodeDefines()
 {
 // TODO (SpOoN#1#): Support for font and colours
-    CDefines.FColour = _T("");
-    CDefines.BColour = _T("");
-    CDefines.Font = _T("");
-    CDefines.Style = _T("");
+    CDefines.FColour = "";
+    CDefines.BColour = "";
+    CDefines.Font = "";
+    CDefines.Style = "";
     
     // Filling up styles
     
@@ -621,17 +621,17 @@ const wxsWidget::CodeDefines& wxsWidget::GetCodeDefines()
         }
     }
     
-    if ( CDefines.Style.Len() == 0 ) CDefines.Style = _T("0");
+    if ( CDefines.Style.Len() == 0 ) CDefines.Style = wxT("0");
     
     // Creating position
     
-    if ( BaseParams.DefaultPosition ) CDefines.Pos = _T("wxDefaultPosition");
-    else CDefines.Pos = wxString::Format(_T("wxPoint(%d,%d)"),BaseParams.PosX,BaseParams.PosY);
+    if ( BaseParams.DefaultPosition ) CDefines.Pos = wxT("wxDefaultPosition");
+    else CDefines.Pos = wxString::Format(wxT("wxPoint(%d,%d)"),BaseParams.PosX,BaseParams.PosY);
     
     // Creating size
     
-    if ( BaseParams.DefaultSize ) CDefines.Size = _T("wxDefaultSize");
-    else CDefines.Size = wxString::Format(_T("wxSize(%d,%d)"),BaseParams.SizeX,BaseParams.SizeY);
+    if ( BaseParams.DefaultSize ) CDefines.Size = wxT("wxDefaultSize");
+    else CDefines.Size = wxString::Format(wxT("wxSize(%d,%d)"),BaseParams.SizeX,BaseParams.SizeY);
     
     return CDefines;
 }
@@ -646,28 +646,28 @@ bool wxsWidgetManager::RegisterInFactory()
 const wxString& wxsWidget::GetCString(const wxString& Source)
 {
     static wxString Result;
-    Result = _T("\"");
+    Result = wxT("\"");
     
     int Len = Source.Length();
     
     for ( int i=0; i<Len; i++ )
     {
-        wxChar ch = Source.GetChar(i);
+        char ch = Source.GetChar(i);
 
-        if ( ch < _T(' ') )
+        if ( ch < 0x20 )
         {
             switch ( ch )
             {
-                case _T('\n') : Result.Append(_T("\\n")); break;
-                case _T('\t') : Result.Append(_T("\\t")); break;
-                case _T('\v') : Result.Append(_T("\\v")); break;
-                case _T('\b') : Result.Append(_T("\\b")); break;
-                case _T('\r') : Result.Append(_T("\\r")); break;
-                case _T('\f') : Result.Append(_T("\\f")); break;
-                case _T('\a') : Result.Append(_T("\\a")); break;
+                case '\n' : Result.Append("\\n"); break;
+                case '\t' : Result.Append("\\t"); break;
+                case '\v' : Result.Append("\\v"); break;
+                case '\b' : Result.Append("\\b"); break;
+                case '\r' : Result.Append("\\r"); break;
+                case '\f' : Result.Append("\\f"); break;
+                case '\a' : Result.Append("\\a"); break;
                 default   :
                     {
-                        wxString Formater = wxString::Format(_T("\\%d%d%d"),
+                        wxString Formater = wxString::Format("\\%d%d%d",
                             ( ch >> 6 ) & 7,
                             ( ch >> 3 ) & 7,
                             ( ch >> 0 ) & 7 );
@@ -679,16 +679,16 @@ const wxString& wxsWidget::GetCString(const wxString& Source)
         {
             switch ( ch )
             {
-                case _T('\\'): Result.Append(_T("\\\\")); break;
-                case _T('\?'): Result.Append(_T("\\\?")); break;
-                case _T('\''): Result.Append(_T("\\\'")); break;
-                case _T('\"'): Result.Append(_T("\\\"")); break;
+                case '\\': Result.Append("\\\\"); break;
+                case '\?': Result.Append("\\\?"); break;
+                case '\'': Result.Append("\\\'"); break;
+                case '\"': Result.Append("\\\""); break;
                 default  : Result.Append(ch);
             }
         }
     }
 
-    Result.Append(_T('\"'));
+    Result.Append('\"');
     return Result;
 }
 
@@ -731,7 +731,7 @@ void wxsWidget::BuildTree(wxTreeCtrl* Tree,wxTreeItemId Id,int Index)
               
 */              
 
-bool wxsWidget::XmlSetStringArray(const wxString& ParentName,const wxString& ChildName,wxArrayString& stringArray)
+bool wxsWidget::XmlSetStringArray(const char* ParentName,const char* ChildName,wxArrayString& stringArray)
 {
     assert ( XmlElem() != NULL );
  
@@ -742,14 +742,14 @@ bool wxsWidget::XmlSetStringArray(const wxString& ParentName,const wxString& Chi
     // Adding <ParentName>  element
     TiXmlElement* ParentElement;
     TiXmlElement* ChildElement;
-    ParentElement = XmlElem()->InsertEndChild(TiXmlElement(ParentName.mb_str()))->ToElement();
+    ParentElement = XmlElem()->InsertEndChild(TiXmlElement(ParentName))->ToElement();
     
     for ( int i=0; i<Count; i++ )
     {
-      ChildElement = ParentElement->InsertEndChild(TiXmlElement(ChildName.mb_str()))->ToElement();
+      ChildElement = ParentElement->InsertEndChild(TiXmlElement(ChildName))->ToElement();
       
       if (ChildElement)
-        ChildElement->InsertEndChild(TiXmlText(stringArray[i].mb_str()));
+        ChildElement->InsertEndChild(TiXmlText(stringArray[i].c_str()));
     }   
     return true;      
 }
@@ -770,19 +770,19 @@ bool wxsWidget::XmlSetStringArray(const wxString& ParentName,const wxString& Chi
               </content>
               
 */              
-bool wxsWidget::XmlGetStringArray(const wxString& ParentName,const wxString& ChildName,wxArrayString& stringArray)
+bool wxsWidget::XmlGetStringArray(const char* ParentName,const char* ChildName,wxArrayString& stringArray)
 {
     assert ( XmlElem() != NULL );
     
      // Empty it to make sure element added in an empty wxArrayString
       stringArray.Empty(); 
      
-    TiXmlElement* ParentElement = XmlElem()->FirstChildElement(ParentName.mb_str());
+    TiXmlElement* ParentElement = XmlElem()->FirstChildElement(ParentName);
     if(!ParentElement) return false;
     
-    for (TiXmlElement* ChildElement= ParentElement->FirstChildElement(ChildName.mb_str());
+    for (TiXmlElement* ChildElement= ParentElement->FirstChildElement(ChildName);
           ChildElement != NULL;
-          ChildElement = ChildElement->NextSiblingElement(ChildName.mb_str()))
+          ChildElement = ChildElement->NextSiblingElement(ChildName))
           {
        
            TiXmlNode* Node = ChildElement->FirstChild();
@@ -790,7 +790,7 @@ bool wxsWidget::XmlGetStringArray(const wxString& ParentName,const wxString& Chi
 			while(Node)
 			{
 			 if(Node->ToText())
-              stringArray.Add(wxString(Node->ToText()->Value(),wxConvUTF8));
+              stringArray.Add(wxString::Format("%s",(Node->ToText()->Value())));
 
               Node=Node->NextSibling();
             } 
