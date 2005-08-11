@@ -69,7 +69,6 @@ class wxsGridSizerPreview: public wxPanel
             SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
         }
         
-//        virtual bool HasTransparentBackground() const { return true; }
     private:
     
         void OnPaint(wxPaintEvent& event)
@@ -87,21 +86,17 @@ class wxsGridSizerPreview: public wxPanel
             wxsPropertiesMan::Get()->SetActiveWidget(sSizer);
         }
         
-        void OnEraseBack(wxEraseEvent& event)
-        { }
-        
         DECLARE_EVENT_TABLE()
 };
 
 BEGIN_EVENT_TABLE(wxsGridSizerPreview,wxPanel)
     EVT_PAINT(wxsGridSizerPreview::OnPaint)
-//    EVT_ERASE_BACKGROUND(wxsGridSizerPreview::OnEraseBack)
     EVT_LEFT_DOWN(wxsGridSizerPreview::OnClick)
 END_EVENT_TABLE()
 
 
-wxsGridSizer::wxsGridSizer(wxsWidgetManager* Man,wxsWindowRes* Res):
-    wxsContainer(Man,Res,false,-1,propSizer),
+wxsGridSizer::wxsGridSizer(wxsWidgetManager* Man):
+    wxsContainer(Man,false,-1,propSizer),
     Cols(0),
     Rows(0),
     VGap(0),
@@ -118,29 +113,29 @@ const wxsWidgetInfo& wxsGridSizer::GetInfo()
     return *wxsStdManager.GetWidgetInfo(wxsGridSizerId);
 }
 
-wxString wxsGridSizer::GetProducingCode(wxsCodeParams& Params)
+const char* wxsGridSizer::GetProducingCode(wxsCodeParams& Params)
 {
     static wxString Str;
     
-    Str = wxString::Format(_T("%s = new wxGridSizer(1);"),
+    Str = wxString::Format("%s = new wxGridSizer(1);",
         BaseParams.VarName.c_str());
         
-    return Str;
+    return Str.c_str();
 }
 
-wxString wxsGridSizer::GetFinalizingCode(wxsCodeParams& Params)
+const char* wxsGridSizer::GetFinalizingCode(wxsCodeParams& Params)
 {
     static wxString Str;
 
     if ( Params.IsDirectParent )
     {
-        Str = wxString::Format(_T("%s->SetSizer(%s);"),
-            Params.ParentName.c_str(),
+        Str = wxString::Format("%s->SetSizer(%s);",
+            Params.ParentName,
             BaseParams.VarName.c_str());
-        return Str;
+        return Str.c_str();
     }
     
-    return _T("");
+    return "";
 }
 
 /** This function should create preview window for widget */
@@ -149,26 +144,29 @@ wxWindow* wxsGridSizer::MyCreatePreview(wxWindow* Parent)
     return new wxsGridSizerPreview(Parent,this);
 }
 
-void wxsGridSizer::MyFinalUpdatePreview(wxWindow* Window)
+void wxsGridSizer::MyUpdatePreview()
 {
-    dynamic_cast<wxsGridSizerPreview*> (Window) -> UpdatePreview();
+    if ( GetPreview() )
+    {
+        dynamic_cast<wxsGridSizerPreview*> (GetPreview()) -> UpdatePreview();
+    }
 }
 
 bool wxsGridSizer::MyXmlLoad()
 {
-    Rows = XmlGetInteger(_T("rows"));
-    Cols = XmlGetInteger(_T("cols"));
-    VGap = XmlGetInteger(_T("vgap"));
-    HGap = XmlGetInteger(_T("hgap"));
+    Rows = XmlGetInteger("rows");
+    Cols = XmlGetInteger("cols");
+    VGap = XmlGetInteger("vgap");
+    HGap = XmlGetInteger("hgap");
     return true;
 }
 
 bool wxsGridSizer::MyXmlSave()
 {
-    XmlSetInteger(_T("rows"),Rows);
-    XmlSetInteger(_T("cols"),Cols);
-    XmlSetInteger(_T("vgap"),VGap);
-    XmlSetInteger(_T("hgap"),HGap);
+    XmlSetInteger("rows",Rows);
+    XmlSetInteger("cols",Cols);
+    XmlSetInteger("vgap",VGap);
+    XmlSetInteger("hgap",HGap);
     return true;
 }
 
@@ -176,14 +174,14 @@ bool wxsGridSizer::MyXmlSave()
 void wxsGridSizer::CreateObjectProperties()
 {
     wxsWidget::CreateObjectProperties();
-    PropertiesObject.Add2IProperty(_("Cols x rows:"),Cols,Rows,0);
-    PropertiesObject.Add2IProperty(_("VGap x HGap:"),VGap,HGap,1);
+    PropertiesObject.Add2IProperty(wxT("Cols x rows:"),Cols,Rows,0);
+    PropertiesObject.Add2IProperty(wxT("VGap x HGap:"),VGap,HGap,1);
 }
 
-wxString wxsGridSizer::GetDeclarationCode(wxsCodeParams& Params)
+const char * wxsGridSizer::GetDeclarationCode(wxsCodeParams& Params)
 {
 	static wxString Temp;
-	Temp.Printf(_T("wxGridSizer* %s"),GetBaseParams().VarName.c_str());
-	return Temp;
+	Temp.Printf(wxT("wxGridSizer* %s"),GetBaseParams().VarName.c_str());
+	return Temp.c_str();
 }
 

@@ -2,77 +2,68 @@
 
 #include <wx/textctrl.h>
 
-#ifdef __NO_PROPGRGID
-
-    class wxsStringPropertyWindow: public wxTextCtrl
-    {
-        public:
+class wxsStringPropertyWindow: public wxTextCtrl
+{
+    public:
+    
+        wxsStringPropertyWindow(wxWindow* Parent,wxsStringProperty* Property);
+        virtual ~wxsStringPropertyWindow();
         
-            wxsStringPropertyWindow(wxWindow* Parent,wxsStringProperty* Property);
-            virtual ~wxsStringPropertyWindow();
-            
-        private:
+    private:
+    
+        void OnTextChange(wxCommandEvent& event);
+        void OnTextEnter(wxCommandEvent& event);
+        void OnKillFocus(wxFocusEvent& event);
+        wxsStringProperty* Prop;
         
-            void OnTextChange(wxCommandEvent& event);
-            void OnTextEnter(wxCommandEvent& event);
-            void OnKillFocus(wxFocusEvent& event);
-            wxsStringProperty* Prop;
-            
-            DECLARE_EVENT_TABLE()
-    };
-    
-    BEGIN_EVENT_TABLE(wxsStringPropertyWindow,wxTextCtrl)
-        EVT_TEXT(-1,wxsStringPropertyWindow::OnTextChange)
-        EVT_TEXT_ENTER(-1,wxsStringPropertyWindow::OnTextEnter)
-        EVT_KILL_FOCUS(wxsStringPropertyWindow::OnKillFocus)
-    END_EVENT_TABLE()
-    
-    wxsStringPropertyWindow::wxsStringPropertyWindow(wxWindow* Parent,wxsStringProperty* Property):
-        wxTextCtrl(Parent,-1,Property->Value,wxDefaultPosition,wxDefaultSize,wxTE_PROCESS_ENTER),
-        Prop(Property)
-    {
-    }
-    
-    wxsStringPropertyWindow::~wxsStringPropertyWindow()
-    {
-    }
-    
-    void wxsStringPropertyWindow::OnTextChange(wxCommandEvent& event)
-    {
-        if ( Prop->AlwUpd )
-        {
-            Prop->Value = GetValue();
-            Prop->ValueChanged(false);
-        }
-    }
-    
-    void wxsStringPropertyWindow::OnTextEnter(wxCommandEvent& event)
-    {
-        if ( !Prop->AlwUpd )
-        {
-            Prop->Value = GetValue();
-            Prop->ValueChanged(true);
-        }
-    }
-    
-    void wxsStringPropertyWindow::OnKillFocus(wxFocusEvent& event)
-    {
-        if ( !Prop->AlwUpd )
-        {
-            Prop->Value = GetValue();
-            Prop->ValueChanged(true);
-        }
-    }
+        DECLARE_EVENT_TABLE()
+};
 
-#endif
-    
+BEGIN_EVENT_TABLE(wxsStringPropertyWindow,wxTextCtrl)
+    EVT_TEXT(-1,wxsStringPropertyWindow::OnTextChange)
+    EVT_TEXT_ENTER(-1,wxsStringPropertyWindow::OnTextEnter)
+    EVT_KILL_FOCUS(wxsStringPropertyWindow::OnKillFocus)
+END_EVENT_TABLE()
+
+wxsStringPropertyWindow::wxsStringPropertyWindow(wxWindow* Parent,wxsStringProperty* Property):
+    wxTextCtrl(Parent,-1,Property->Value,wxDefaultPosition,wxDefaultSize,wxTE_PROCESS_ENTER),
+    Prop(Property)
+{
+}
+
+wxsStringPropertyWindow::~wxsStringPropertyWindow()
+{
+}
+
+void wxsStringPropertyWindow::OnTextChange(wxCommandEvent& event)
+{
+    if ( Prop->AlwUpd )
+    {
+        Prop->Value = GetValue();
+        Prop->ValueChanged();
+    }
+}
+
+void wxsStringPropertyWindow::OnTextEnter(wxCommandEvent& event)
+{
+    if ( !Prop->AlwUpd )
+    {
+        Prop->Value = GetValue();
+        Prop->ValueChanged();
+    }
+}
+
+void wxsStringPropertyWindow::OnKillFocus(wxFocusEvent& event)
+{
+    if ( !Prop->AlwUpd )
+    {
+        Prop->Value = GetValue();
+        Prop->ValueChanged();
+    }
+}
+
 wxsStringProperty::wxsStringProperty(wxsProperties* Properties,wxString& String, bool AlwaysUpdate):
-    wxsProperty(Properties), Value(String), AlwUpd(AlwaysUpdate), 
-    #ifdef __NO_PROPGRGID
-        Window(NULL)
-    #else
-        PGId(0)
-    #endif
+    wxsProperty(Properties), Value(String), AlwUpd(AlwaysUpdate), Window(NULL)
 {
 	//ctor
 }
@@ -84,42 +75,17 @@ wxsStringProperty::~wxsStringProperty()
 
 const wxString& wxsStringProperty::GetTypeName()
 {
-    static wxString Name(_T("wxString"));
+    static wxString Name(wxT("wxString"));
     return Name;
 }
 
-#ifdef __NO_PROPGRGID
+wxWindow* wxsStringProperty::BuildEditWindow(wxWindow* Parent)
+{
+    return Window = new wxsStringPropertyWindow(Parent,this);
+}
 
-    wxWindow* wxsStringProperty::BuildEditWindow(wxWindow* Parent)
-    {
-        return Window = new wxsStringPropertyWindow(Parent,this);
-    }
-    
-    void wxsStringProperty::UpdateEditWindow()
-    {
-        if ( Window ) Window->SetValue(Value);
-    
-    }
-    
-#else
+void wxsStringProperty::UpdateEditWindow()
+{
+    if ( Window ) Window->SetValue(Value);
 
-    void wxsStringProperty::AddToPropGrid(wxPropertyGrid* Grid,const wxString& Name)
-    {
-    	PGId = Grid->Append(Name,wxPG_LABEL,Value);
-    }
-    
-    void wxsStringProperty::PropGridChanged(wxPropertyGrid* Grid,wxPGId Id)
-    {
-    	if ( Id == PGId )
-    	{
-    		Value = Grid->GetPropertyValue(Id).GetString();
-    		ValueChanged(true);
-    	}
-    }
-    
-    void wxsStringProperty::UpdatePropGrid(wxPropertyGrid* Grid)
-    {
-        Grid->SetPropertyValue(PGId,Value);
-    }
-    
-#endif
+}

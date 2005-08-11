@@ -1,34 +1,30 @@
 #ifndef WXSFRAME_H
 #define WXSFRAME_H
 
-#include "wxswindow.h"
+#include "../wxscontainer.h"
 
-WXS_ST_DECLARE(wxsFrameStyles)
-
-class wxsFrame : public wxsWindow
+class wxsFrame : public wxsContainer
 {
 	public:
-		wxsFrame(wxsWidgetManager* Man,wxsWindowRes* Res);
+		wxsFrame(wxsWidgetManager* Parent);
 		
 		virtual ~wxsFrame();
 		
         /** Gettign widget's info */
         virtual const wxsWidgetInfo& GetInfo();
         
-        /** Getting title */
-        inline const wxString& GetTitle() { return Title; }
-        
-        /** Checking if it's centered */
-        inline bool GetCentered() { return Centered; }
+        /** Function generating code which should produce widget */
+        virtual const char* GetProducingCode(wxsCodeParams& Params);
 
    protected:
+        /** This function should create preview window for widget */
+        virtual wxWindow* MyCreatePreview(wxWindow* Parent);
+        
+        /** Function shich should update content of current widget */
+        virtual void MyUpdatePreview();
   
-        void CreateObjectProperties();
-
-  private:
   
-        wxString Title;
-        bool Centered;
+        wxString ClassName;
 };
 
-#endif
+#endif // WXSFRAME_H

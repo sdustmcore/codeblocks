@@ -1,21 +1,10 @@
 #include "wxspanel.h"
 
-#include <wx/frame.h>
-#include <wx/sizer.h>
-
 #include "wxsstdmanager.h"
-#include "../wxspropertiesman.h"
+#include <wx/panel.h>
 
-WXS_ST_BEGIN(wxsPanelStyles)
 
-    WXS_ST(wxNO_3D)
-    WXS_ST(wxTAB_TRAVERSAL)
-    WXS_ST(wxWS_EX_VALIDATE_RECURSIVELY)
-
-WXS_ST_END(wxsPanelStyles)
-
-wxsPanel::wxsPanel(wxsWidgetManager* Man,wxsWindowRes* Res):
-    wxsWindow(Man,Res,propWidget)
+wxsPanel::wxsPanel(wxsWidgetManager* Manager): wxsContainer(Manager)
 {
 }
 
@@ -25,42 +14,17 @@ wxsPanel::~wxsPanel()
 
 const wxsWidgetInfo& wxsPanel::GetInfo()
 {
-    return *wxsStdManager.GetWidgetInfo(wxsPanelId);
+    return *wxsStdManager.GetWidgetInfo(wxsPanelId); 
 }
-
-
-wxString wxsPanel::GetProducingCode(wxsCodeParams& Params)
+        
+const char* wxsPanel::GetProducingCode(wxsCodeParams& Params)
 {
     static wxString Result;
-    Result.Format(_T("%s = new wxPanel(wxT(%s),%s,%s,%s,%s);"),
-        BaseParams.VarName.c_str(),
-        Params.ParentName.c_str(),
-        BaseParams.IdName.c_str(),
-        GetCodeDefines().Pos.c_str(),
-        GetCodeDefines().Size.c_str(),
-        GetCodeDefines().Style.c_str());
-    return Result;
+    Result.Format("%s = new wxPanel(%s,-1);",BaseParams.VarName.c_str(),Params.ParentName);
+    return Result.c_str();
 }
-
-WXS_ST_BEGIN(wxsPanelrStyles)
-
-    WXS_ST(wxNO_3D)
-    WXS_ST(wxTAB_TRAVERSAL)
-    WXS_ST(wxWS_EX_VALIDATE_RECURSIVELY)
-
-WXS_ST_END(wxsPanelrStyles)
-
-wxsPanelr::wxsPanelr(wxsWidgetManager* Man,wxsWindowRes* Res):
-    wxsWindow(Man,Res,propWindow)
+        
+wxWindow* wxsPanel::MyCreatePreview(wxWindow* Parent)
 {
+    return new wxPanel(Parent,-1);
 }
-
-wxsPanelr::~wxsPanelr()
-{
-}
-
-const wxsWidgetInfo& wxsPanelr::GetInfo()
-{
-    return *wxsStdManager.GetWidgetInfo(wxsPanelrId);
-}
-

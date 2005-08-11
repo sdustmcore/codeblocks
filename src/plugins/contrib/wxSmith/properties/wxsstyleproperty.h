@@ -19,27 +19,22 @@ class wxsStyleProperty : public wxsProperty
         virtual const wxString& GetTypeName();
         
     protected:
-    
-        #ifdef __NO_PROPGRGID
-            virtual wxWindow* BuildEditWindow(wxWindow* Parent);
-            virtual void UpdateEditWindow();
-        #else
-            virtual void AddToPropGrid(wxPropertyGrid* Grid,const wxString& Name);
-            virtual void PropGridChanged(wxPropertyGrid* Grid,wxPGId Id);
-            virtual void UpdatePropGrid(wxPropertyGrid* Grid);
-        #endif
+        
+        /** This function must create window which will be responsible for
+         *  editing property's value */
+        virtual wxWindow* BuildEditWindow(wxWindow* Parent);
+        
+        /** This funcytion must update content of currently created editor window
+         *  taking it's value prop current property
+         */
+        virtual void UpdateEditWindow();
         
 	private:
 	
         int& Style;
         wxsStyle* Styles;
-        
-        #ifdef __NO_PROPGRGID
-            wxsStylePropertyWindow* Window;
-            friend class wxsStylePropertyWindow;
-        #else
-            wxPGId PGId;
-        #endif
+        wxsStylePropertyWindow* Window;
+        friend class wxsStylePropertyWindow;
 };
 
 #endif // WXSSTYLEPROPERTY_H

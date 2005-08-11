@@ -9,7 +9,7 @@ class wxsGridSizer : public wxsContainer
 {
 	public:
 	
-		wxsGridSizer(wxsWidgetManager* Man,wxsWindowRes* Res);
+		wxsGridSizer(wxsWidgetManager* Man);
 		
 		virtual ~wxsGridSizer();
 		
@@ -18,13 +18,13 @@ class wxsGridSizer : public wxsContainer
         virtual const wxsWidgetInfo& GetInfo();
         
         /** Function generating code which should produce widget */
-        virtual wxString GetProducingCode(wxsCodeParams& Params);
+        virtual const char* GetProducingCode(wxsCodeParams& Params);
 
         /** Function generating code finalizing widget's creation process */
-        virtual wxString GetFinalizingCode(wxsCodeParams& Params);
+        virtual const char* GetFinalizingCode(wxsCodeParams& Params);
         
         /** Generating sizer's declaration */
-		virtual wxString GetDeclarationCode(wxsCodeParams& Params);
+		virtual const char * GetDeclarationCode(wxsCodeParams& Params);
         
     protected:
     
@@ -38,7 +38,7 @@ class wxsGridSizer : public wxsContainer
         virtual wxWindow* MyCreatePreview(wxWindow* Parent);
         
         /** Updating preview */
-        virtual void MyFinalUpdatePreview(wxWindow* Preview);
+        virtual void MyUpdatePreview();
         
         /** Properties loading codee */
         virtual void CreateObjectProperties();

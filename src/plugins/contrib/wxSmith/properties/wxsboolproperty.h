@@ -24,26 +24,21 @@ class wxsBoolProperty : public wxsProperty
         
     protected:
         
-        #ifdef __NO_PROPGRGID
-            virtual wxWindow* BuildEditWindow(wxWindow* Parent);
-            virtual void UpdateEditWindow();
-        #else
-            virtual void AddToPropGrid(wxPropertyGrid* Grid,const wxString& Name);
-            virtual void PropGridChanged(wxPropertyGrid* Grid,wxPGId Id);
-            virtual void UpdatePropGrid(wxPropertyGrid* Grid);
-        #endif
+        /** This function must create window which will be responsible for
+         *  editing property's value */
+        virtual wxWindow* BuildEditWindow(wxWindow* Parent);
+        
+        /** This funcytion must update content of currently created editor window
+         *  taking it's value prop current property
+         */
+        virtual void UpdateEditWindow();
         
 	private:
 	
         bool& Value;
-
-        #ifdef __NO_PROPGRGID
-            wxsBoolPropertyWindow* Window;
-            friend class wxsBoolPropertyWindow;
-        #else
-            wxPGId PGId;
-        #endif
+        wxsBoolPropertyWindow* Window;
         
+        friend class wxsBoolPropertyWindow;
 };
 
 #endif // WXSBOOLPROPERTY_H

@@ -1,5 +1,5 @@
-#ifndef WXSSTRINGLISTPROPERTY_H
-#define WXSSTRINGLISTPROPERTY_H
+#ifndef WXSSTYLEPROPERTY_H
+#define WXSSTYLEPROPERTY_H
 
 #include "../wxsproperties.h"
 #include "../widget.h"
@@ -23,26 +23,23 @@ class wxsStringListProperty : public wxsProperty
         
     protected:
         
-        #ifdef __NO_PROPGRGID
-            virtual wxWindow* BuildEditWindow(wxWindow* Parent);
-            virtual void UpdateEditWindow();
-            void EditList();
-        #else
-            virtual void AddToPropGrid(wxPropertyGrid* Grid,const wxString& Name);
-            virtual void PropGridChanged(wxPropertyGrid* Grid,wxPGId Id);
-            virtual void UpdatePropGrid(wxPropertyGrid* Grid);
-        #endif
+        /** This function must create window which will be responsible for
+         *  editing property's value */
+        virtual wxWindow* BuildEditWindow(wxWindow* Parent);
+
+        /** This funcytion must update content of currently created editor window
+         *  taking it's value prop current property
+         */
+        virtual void UpdateEditWindow();
+        
+        /** Function displaying dialog with list editor */
+        void EditList();
         
 	private:
 
 		wxArrayString& Array;
 		int* Selected;
-		
-		#ifdef __NO_PROPGRGID
-            friend class wxsStringListPropertyWindow;
-        #else
-            wxPGId PGId;
-        #endif
+		friend class wxsStringListPropertyWindow;
 };
 
 #endif

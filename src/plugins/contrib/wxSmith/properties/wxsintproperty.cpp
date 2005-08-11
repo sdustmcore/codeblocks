@@ -1,80 +1,65 @@
 #include "wxsintproperty.h"
 
 #include <wx/textctrl.h>
-#include <wx/msgdlg.h>
 
-#ifdef __NO_PROPGRGID
-    class wxsIntPropertyWindow: public wxTextCtrl
-    {
-        public:
+class wxsIntPropertyWindow: public wxTextCtrl
+{
+    public:
+    
+        wxsIntPropertyWindow(wxWindow* Parent,wxsIntProperty* Property);
+        virtual ~wxsIntPropertyWindow();
         
-            wxsIntPropertyWindow(wxWindow* Parent,wxsIntProperty* Property);
-            virtual ~wxsIntPropertyWindow();
-            
-        private:
+    private:
+    
+        void OnTextChange(wxCommandEvent& event);
+        void OnTextEnter(wxCommandEvent& event);
+        void OnKillFocus(wxFocusEvent& event);
+        wxsIntProperty* Prop;
         
-            void OnTextChange(wxCommandEvent& event);
-            void OnTextEnter(wxCommandEvent& event);
-            void OnKillFocus(wxFocusEvent& event);
-            wxsIntProperty* Prop;
-            
-            DECLARE_EVENT_TABLE()
-    };
-    
-    BEGIN_EVENT_TABLE(wxsIntPropertyWindow,wxTextCtrl)
-        EVT_TEXT(-1,wxsIntPropertyWindow::OnTextChange)
-        EVT_TEXT_ENTER(-1,wxsIntPropertyWindow::OnTextEnter)
-        EVT_KILL_FOCUS(wxsIntPropertyWindow::OnKillFocus)
-    END_EVENT_TABLE()
-    
-    wxsIntPropertyWindow::wxsIntPropertyWindow(wxWindow* Parent,wxsIntProperty* Property):
-        wxTextCtrl(Parent,-1,wxString::Format(_T("%d"),Property->Value),wxDefaultPosition,wxDefaultSize,wxTE_PROCESS_ENTER),
-        Prop(Property)
-    {
-    }
-    
-    wxsIntPropertyWindow::~wxsIntPropertyWindow()
-    {
-    }
-    
-    void wxsIntPropertyWindow::OnTextChange(wxCommandEvent& event)
-    {
-        if ( Prop->AlwUpd )
-        {
-            long Val = 0;
-            GetValue().ToLong(&Val);
-            Prop->Value = Prop->CorrectValue(Val);
-            Prop->ValueChanged(false);
-        }
-    }
-    
-    void wxsIntPropertyWindow::OnTextEnter(wxCommandEvent& event)
-    {
-        long Val = 0;
-        GetValue().ToLong(&Val);
-        Prop->Value = Prop->CorrectValue(Val);
-        SetValue(wxString::Format(_T("%d"),Prop->Value));
-        Prop->ValueChanged(true);
-    }
-    
-    void wxsIntPropertyWindow::OnKillFocus(wxFocusEvent& event)
-    {
-        long Val = 0;
-        GetValue().ToLong(&Val);
-        Prop->Value = Prop->CorrectValue(Val);
-        SetValue(wxString::Format(_T("%d"),Prop->Value));
-        Prop->ValueChanged(true);
-    }
+        DECLARE_EVENT_TABLE()
+};
 
-#endif
-    
+BEGIN_EVENT_TABLE(wxsIntPropertyWindow,wxTextCtrl)
+    EVT_TEXT(-1,wxsIntPropertyWindow::OnTextChange)
+    EVT_TEXT_ENTER(-1,wxsIntPropertyWindow::OnTextEnter)
+    EVT_KILL_FOCUS(wxsIntPropertyWindow::OnKillFocus)
+END_EVENT_TABLE()
+
+wxsIntPropertyWindow::wxsIntPropertyWindow(wxWindow* Parent,wxsIntProperty* Property):
+    wxTextCtrl(Parent,-1,wxString::Format("%d",Property->Value),wxDefaultPosition,wxDefaultSize,wxTE_PROCESS_ENTER),
+    Prop(Property)
+{
+}
+
+wxsIntPropertyWindow::~wxsIntPropertyWindow()
+{
+}
+
+void wxsIntPropertyWindow::OnTextChange(wxCommandEvent& event)
+{
+    if ( Prop->AlwUpd )
+    {
+        Prop->Value = Prop->CorrectValue(atoi(GetValue().c_str()));
+        Prop->ValueChanged();
+    }
+}
+
+void wxsIntPropertyWindow::OnTextEnter(wxCommandEvent& event)
+{
+    Prop->Value = Prop->CorrectValue(atoi(GetValue().c_str()));
+    SetValue(wxString::Format("%d",Prop->Value));
+    Prop->ValueChanged();
+}
+
+void wxsIntPropertyWindow::OnKillFocus(wxFocusEvent& event)
+{
+    Prop->Value = Prop->CorrectValue(atoi(GetValue().c_str()));
+    SetValue(wxString::Format("%d",Prop->Value));
+    Prop->ValueChanged();
+}
+
 wxsIntProperty::wxsIntProperty(wxsProperties* Properties,int& Int, bool AlwaysUpdate):
-    wxsProperty(Properties), Value(Int), AlwUpd(AlwaysUpdate), 
-    #ifdef __NO_PROPGRGID
-        Window(NULL)
-    #else
-        PGId(0)
-    #endif
+    wxsProperty(Properties), Value(Int), AlwUpd(AlwaysUpdate), Window(NULL)
 {
 	//ctor
 }
@@ -86,51 +71,17 @@ wxsIntProperty::~wxsIntProperty()
 
 const wxString& wxsIntProperty::GetTypeName()
 {
-    static wxString Name(_T("int"));
+    static wxString Name(wxT("int"));
     return Name;
 }
 
-#ifdef __NO_PROPGRGID
+wxWindow* wxsIntProperty::BuildEditWindow(wxWindow* Parent)
+{
+    return Window = new wxsIntPropertyWindow(Parent,this);
+}
 
-    wxWindow* wxsIntProperty::BuildEditWindow(wxWindow* Parent)
-    {
-        return Window = new wxsIntPropertyWindow(Parent,this);
-    }
-    
-    void wxsIntProperty::UpdateEditWindow()
-    {
-        if ( Window ) Window->SetValue(wxString::Format(_T("%d"),Value));
-    }
-            
-#else
-
-    void wxsIntProperty::AddToPropGrid(wxPropertyGrid* Grid,const wxString& Name)
-    {
-    	/*
-    	PGId = Grid->Append(Name,wxPG_LABEL,Value);
-    	*/
-    }
-    
-    /** Function notifying about property change */
-    void wxsIntProperty::PropGridChanged(wxPropertyGrid* Grid,wxPGId Id)
-    {
-    	if ( Id == PGId )
-    	{
-    		Value = Grid->GetPropertyValue(Id).GetLong();
-    		int Cor = Value;
-    		Value = CorrectValue(Value);
-    		if ( Value != Cor )
-    		{
-    			Grid->SetPropertyValue(Id,Value);
-    		}
-    		ValueChanged(true);
-    	}
-    }
-    
-    /** Function updating value of this property insided property grid */
-    void wxsIntProperty::UpdatePropGrid(wxPropertyGrid* Grid)
-    {
-    	Grid->SetPropertyValue(PGId,Value);
-    }
-    
-#endif
+void wxsIntProperty::UpdateEditWindow()
+{
+    if ( Window ) Window->SetValue(wxString::Format("%d",Value));
+}
+        

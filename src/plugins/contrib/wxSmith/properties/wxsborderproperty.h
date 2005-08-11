@@ -18,27 +18,24 @@ class wxsBorderProperty : public wxsProperty
         /** Taking name of value type handled by this item */
         virtual const wxString& GetTypeName();
         
-    protected:
+protected:
         
-        #ifdef __NO_PROPGRGID
-            virtual wxWindow* BuildEditWindow(wxWindow* Parent);
-            virtual void UpdateEditWindow();
-        #else
-            virtual void AddToPropGrid(wxPropertyGrid* Grid,const wxString& Name);
-            virtual void PropGridChanged(wxPropertyGrid* Grid,wxPGId Id);
-            virtual void UpdatePropGrid(wxPropertyGrid* Grid);
-        #endif
+        /** This function must create window which will be responsible for
+         *  editing property's value */
+        virtual wxWindow* BuildEditWindow(wxWindow* Parent);
+        
+        /** This funcytion must update content of currently created editor window
+         *  taking it's value prop current property
+         */
+        virtual void UpdateEditWindow();
         
 	private:
 	
+        wxsBorderPropertyWindow* Window;
+        
         int &BorderFlags;
         
-        #ifdef __NO_PROPGRGID
-            wxsBorderPropertyWindow* Window;
-            friend class wxsBorderPropertyWindow;
-        #else
-            wxPGId PGId;
-        #endif
+        friend class wxsBorderPropertyWindow;
 };
 
 #endif // WXSBORDERPROPERTY_H

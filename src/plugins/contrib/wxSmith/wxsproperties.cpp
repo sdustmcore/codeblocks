@@ -9,38 +9,9 @@
 
 #include <wx/stattext.h>
 
-class wxsPropertyGrid: public wxPropertyGrid
+void wxsProperty::ValueChanged()
 {
-	public:
-        wxsPropertyGrid(wxWindow* Parent,wxsProperties* _Props):
-            wxPropertyGrid(Parent,-1),
-            Props(_Props)
-        {}
-        
-	private:
-	
-        void OnChange(wxPropertyGridEvent& event);
-        
-        wxsProperties* Props;
-        
-        DECLARE_EVENT_TABLE()
-};
-
-BEGIN_EVENT_TABLE(wxsPropertyGrid,wxPropertyGrid)
-    EVT_PG_CHANGED(-1,wxsPropertyGrid::OnChange)
-END_EVENT_TABLE()
-
-void wxsPropertyGrid::OnChange(wxPropertyGridEvent& event)
-{
-	for ( wxsProperties::VectorI i = Props->Properties.begin(); i != Props->Properties.end(); ++i )
-	{
-		(*i)->Property->PropGridChanged(this,event.GetProperty());
-	}
-}
-
-void wxsProperty::ValueChanged(bool Change)
-{
-    if ( Props ) Props->NotifyChange(Change);
+    if ( Props ) Props->NotifyChange(this);
 }
 
 wxsProperties::wxsProperties(wxsWidget* _Widget):
@@ -54,37 +25,37 @@ wxsProperties::~wxsProperties()
     ClearArray();
 }
 
-void wxsProperties::AddProperty(const wxString& Name,wxString& Value,int Position)
+void wxsProperties::AddProperty(const wxString& Name,wxString& Value,int Position,bool Rs,bool Rc)
 {
-    AddProperty(Name,new wxsStringProperty(this,Value,true),Position);
+    AddProperty(Name,new wxsStringProperty(this,Value,true),Position,Rs,Rc);
 }
 
-void wxsProperties::AddProperty(const wxString& Name,int& Value,int Position)
+void wxsProperties::AddProperty(const wxString& Name,int& Value,int Position,bool Rs,bool Rc)
 {
-    AddProperty(Name,new wxsIntProperty(this,Value,true),Position);
+    AddProperty(Name,new wxsIntProperty(this,Value,true),Position,Rs,Rc);
 }
 
-void wxsProperties::AddProperty(const wxString& Name,bool& Value,int Position)
+void wxsProperties::AddProperty(const wxString& Name,bool& Value,int Position,bool Rs,bool Rc)
 {
-    AddProperty(Name,new wxsBoolProperty(this,Value),Position);
+    AddProperty(Name,new wxsBoolProperty(this,Value),Position,Rs,Rc);
 }
 		
-void wxsProperties::Add2IProperty(const wxString& Name,int& Value1,int& Value2,int Position)
+void wxsProperties::Add2IProperty(const wxString& Name,int& Value1,int& Value2,int Position,bool Rs,bool Rc)
 {
-    AddProperty(Name,new wxs2IntProperty(this,Value1,Value2),Position);
+    AddProperty(Name,new wxs2IntProperty(this,Value1,Value2),Position,Rs,Rc);
 }
 		
-void wxsProperties::AddProperty(const wxString& Name,wxArrayString& Array,int Position)
+void wxsProperties::AddProperty(const wxString& Name,wxArrayString& Array,int Position,bool Rs,bool Rc)
 {
-	AddProperty(Name,new wxsStringListProperty(this,Array),Position);
+	AddProperty(Name,new wxsStringListProperty(this,Array),Position,Rs,Rc);
 }
 
-void wxsProperties::AddProperty(const wxString& Name,wxArrayString& Array,int& Selected,int Position)
+void wxsProperties::AddProperty(const wxString& Name,wxArrayString& Array,int& Selected,int Position,bool Rs,bool Rc)
 {
-	AddProperty(Name,new wxsStringListProperty(this,Array,Selected),Position);
+	AddProperty(Name,new wxsStringListProperty(this,Array,Selected),Position,Rs,Rc);
 }
 		
-void wxsProperties::AddProperty(const wxString& Name,wxsProperty* Prop,int Position)
+void wxsProperties::AddProperty(const wxString& Name,wxsProperty* Prop,int Position,bool Rs,bool Rc)
 {
     if ( !Prop ) return;
     if ( !Name.Length() ) return;
@@ -92,6 +63,8 @@ void wxsProperties::AddProperty(const wxString& Name,wxsProperty* Prop,int Posit
     VectorElem* NewElem = new VectorElem;;
     NewElem->Name = Name;
     NewElem->Property = Prop;
+    Prop->IsReshaping = Rs;
+    Prop->IsRecreating = Rc;
     
     if ( Position < 0 || Position >= (int)Properties.size() ) 
     {
@@ -109,48 +82,31 @@ void wxsProperties::UpdateProperties()
     BlockUpdates = true;
     for ( VectorI i = Properties.begin(); i!=Properties.end(); ++i )
     {
-        #ifdef __NO_PROPGRGID
-            (*i)->Property->UpdateEditWindow();
-        #else
-            (*i)->Property->UpdatePropGrid(Grid);
-        #endif
+        (*i)->Property->UpdateEditWindow();
     }
     BlockUpdates = false;
 }
 
-wxWindow* wxsProperties::GenerateWindow(wxWindow* Parent)
+wxWindow* wxsProperties::GenerateWindow(wxWindow* Parent,wxSizer** SizerPtr)
 {
-    #ifdef __NO_PROPGRGID
-        wxPanel* Panel = new wxPanel(Parent,-1);
-        wxFlexGridSizer* Sizer = new wxFlexGridSizer(2,5,5);
-        Sizer->AddGrowableCol(1);
-        for ( VectorI i = Properties.begin(); i!=Properties.end(); ++i )
+    wxPanel* Panel = new wxPanel(Parent,-1);
+    wxFlexGridSizer* Sizer = new wxFlexGridSizer(2,5,5);
+    Sizer->AddGrowableCol(1);
+    for ( VectorI i = Properties.begin(); i!=Properties.end(); ++i )
+    {
+        wxWindow* Editor = (*i)->Property->BuildEditWindow(Panel);
+        if ( Editor )
         {
-            wxWindow* Editor = (*i)->Property->BuildEditWindow(Panel);
-            if ( Editor )
-            {
-                Sizer->Add(new wxStaticText(Panel,-1,(*i)->Name),0,wxALIGN_CENTRE_VERTICAL);
-                Sizer->Add(Editor,0,wxGROW);
-            }
+            Sizer->Add(new wxStaticText(Panel,-1,(*i)->Name),0,wxALIGN_CENTRE_VERTICAL);
+            Sizer->Add(Editor,0,wxGROW);
         }
-        Panel->SetSizer(Sizer);
-        Panel->Layout();
-        
-        return Panel;
-        
-    #else
+    }
+    Panel->SetSizer(Sizer);
+    Panel->Layout();
+    Sizer->SetSizeHints(Panel);
     
-        wxsPropertyGrid* PG = new wxsPropertyGrid(Parent,this);
-        
-        for ( VectorI i = Properties.begin(); i!=Properties.end(); ++i )
-        {
-        	(*i)->Property->AddToPropGrid(PG,(*i)->Name);
-        }
-        
-        Grid = PG;
-        return PG;
-        
-    #endif
+    if ( SizerPtr ) *SizerPtr = Sizer;
+    return Panel;
 }
 
 void wxsProperties::ClearArray()
@@ -161,13 +117,15 @@ void wxsProperties::ClearArray()
     Properties.clear();
 }
 
-bool wxsProperties::NotifyChange(bool Check)
+void wxsProperties::NotifyChange(wxsProperty* Prop)
 {
-	if ( BlockUpdates ) return true;
-    assert ( Widget != NULL );
-    BlockUpdates = true;
-    bool Result = Widget->PropertiesUpdated(Check,false);
-    BlockUpdates = false;
-    
-    return Result;
+    if ( !BlockUpdates ) 
+    {
+        assert ( Widget != NULL );
+        assert ( Prop != NULL );
+        BlockUpdates = true;
+        Widget->UpdatePreview(Prop->IsReshaping,Prop->IsRecreating);
+        BlockUpdates = false;
+    }
 }
+        
