@@ -53,7 +53,7 @@ wxsProject::IntegrationState wxsProject::BindProject(cbProject* Proj)
     WorkingPath = ProjectPath;
     WorkingPath.AppendDir(wxSmithSubDirectory);
     WorkingPath.SetName(wxSmithMainConfigFile);
-    WorkingPath.SetExt(_T(""));
+    WorkingPath.SetExt(wxT(""));
     WorkingPath.Assign(WorkingPath.GetFullPath());  // Reparsing path
 
     if ( ! WorkingPath.FileExists() )
@@ -317,15 +317,6 @@ void wxsProject::AddWindowResource(
         return;
     }
     
-    // Validating and correcting resource
-    
-    Res->UpdateWidgetsVarNameId();
-    if ( !Res->CheckBaseProperties(true) )
-    {
-    	wxMessageBox(wxString::Format(_("Some properties for resource '%s' had invalid values and were corrected.\n"),Res->GetResourceName().c_str()));
-    	Res->NotifyChange();
-    }
-    
     switch ( Type )
     {
         case wxsWindowRes::Dialog: Dialogs.push_back((wxsDialogRes*)Res); break;
@@ -390,7 +381,7 @@ void wxsProject::SaveProject()
     if ( Integration != Integrated ) return;
     
     WorkingPath.SetName(wxSmithMainConfigFile);
-    WorkingPath.SetExt(_T(""));
+    WorkingPath.SetExt(wxT(""));
     WorkingPath.Assign(WorkingPath.GetFullPath());  // Reparsing path
 
     TiXmlDocument* Doc = GenerateXml();

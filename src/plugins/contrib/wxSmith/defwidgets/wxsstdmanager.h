@@ -10,12 +10,6 @@ enum std_widgets
     
     /* Sizers */
     wxsGridSizerId,
-    wxsBoxSizerId,
-    wxsStaticBoxSizerId,
-    wxsFlexGridSizerId,
-    
-    /* Spacer */
-    wxsSpacerId,
     
     /* Controls */
     wxsButtonId,
@@ -25,8 +19,6 @@ enum std_widgets
     wxsComboBoxId,
     wxsListBoxId,
     wxsPanelId,
-    wxsTextCtrlId,
-    wxsGaugeId,
     
     /* Windows */
     wxsDialogId,

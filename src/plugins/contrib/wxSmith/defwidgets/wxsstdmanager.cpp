@@ -10,12 +10,6 @@
 #include "wxstogglebutton.h"
 #include "wxscombobox.h"
 #include "wxslistbox.h"
-#include "wxsspacer.h"
-#include "wxsboxsizer.h"
-#include "wxsstaticboxsizer.h"
-#include "wxsflexgridsizer.h"
-#include "wxstextctrl.h"
-#include "wxsgauge.h"
 
 #include <wx/xrc/xmlres.h>
 #include <configmanager.h>
@@ -30,10 +24,9 @@ static const wxString DefAuthor      = _("wxWidgets Team");
 static const wxString DefAuthorEmail = _T("");
 static const wxString DefAuthorSite  = _("www.wxwidgets.org");
 static const wxString DefCategory    = _("Standard");
-static const wxString DefSizerCat    = _("Layout");
 
 
-#define Entry(Name,Link,Header)                         \
+#define Entry(Name,Link)                                \
     {   _T("wx") _T(#Name),                             \
         DefLicence,                                     \
         DefAuthor,                                      \
@@ -44,18 +37,34 @@ static const wxString DefSizerCat    = _("Layout");
         _T(#Name),                                      \
         false,                                          \
         false,                                          \
+        2, 6,                                           \
+        NULL,                                           \
+        &wxsStdManager,                                 \
+        wxs##Name##Id,                                  \
+        0,                                              \
+        wxs##Name##Styles                               \
+    },
+
+#define EntryNoStyles(Name,Link)                        \
+    {   _T("wx") _T(#Name),                             \
+        DefLicence,                                     \
+        DefAuthor,                                      \
+        DefAuthorEmail,                                 \
+        DefAuthorSite,                                  \
+        _T("http://www.wxwidgets.org/manuals/2.6.1/") _T(Link),  \
+        DefCategory,                                    \
+        _T(#Name),                                      \
+        false,                                          \
         false,                                          \
         2, 6,                                           \
         NULL,                                           \
         &wxsStdManager,                                 \
         wxs##Name##Id,                                  \
         0,                                              \
-        wxs##Name##Styles,                              \
-        _T(Header),                                         \
-        wxsWidgetInfo::exNone                           \
+        NULL                                            \
     },
 
-#define WindowEntry(Name,Link,Header)                   \
+#define WindowEntry(Name,Link)                          \
     {   _T("wx") _T(#Name),                             \
         DefLicence,                                     \
         DefAuthor,                                      \
@@ -66,88 +75,48 @@ static const wxString DefSizerCat    = _("Layout");
         _T(""),                                         \
         false,                                          \
         false,                                          \
-        false,                                          \
         2, 6,                                           \
         NULL,                                           \
         &wxsStdManager,                                 \
         wxs##Name##Id,                                  \
         0,                                              \
-        wxs##Name##Styles,                              \
-        _T(Header),                                         \
-        wxsWidgetInfo::exNone                           \
+        wxs##Name##Styles                               \
     },
 
-#define SpacerEntry()                                   \
-    {   _T("Spacer"),                                   \
-        DefLicence,                                     \
-        DefAuthor,                                      \
-        DefAuthorEmail,                                 \
-        DefAuthorSite,                                  \
-        _T("http://www.wxwidgets.org/manuals/2.6.1/wx_wxsizer.html#wxsizeradd"),    \
-        DefSizerCat,                                    \
-        _T(""),                                         \
-        false,                                          \
-        false,                                          \
-        true,                                           \
-        2, 6,                                           \
-        NULL,                                           \
-        &wxsStdManager,                                 \
-        wxsSpacerId,                                    \
-        0,                                              \
-        NULL,                                           \
-        _T("<wx/sizer.h>"),                             \
-        wxsWidgetInfo::exNone                           \
-    },
-        
-
-#define SizerEntry(Name,Link,Header)                            \
-    {   _T("wx") _T(#Name),                                     \
-        DefLicence,                                             \
-        DefAuthor,                                              \
-        DefAuthorEmail,                                         \
-        DefAuthorSite,                                          \
-        _T("http://www.wxwidgets.org/manuals/2.6.1/") _T(Link), \
-        DefSizerCat,                                            \
-        _T(#Name),                                              \
-        true,                                                   \
-        true,                                                   \
-        false,                                                  \
-        2, 6,                                                   \
-        NULL,                                                   \
-        &wxsStdManager,                                         \
-        wxs##Name##Id,                                          \
-        0,                                                      \
-        NULL,                                                   \
-        _T(Header),                                                 \
-        wxsWidgetInfo::exNone                                   \
-    },
-        
 
 static wxsWidgetInfo StdInfos[] =
 {
-    { _T(""), _T(""), _T(""), _T(""), _T(""), _T(""), _T(""), _T(""), false,
-      false, false, 0, 0, NULL, NULL, wxsNoneId, 0, NULL, _T(""), 
-      wxsWidgetInfo::exNone },  // NONE
+    { _T(""), _T(""), _T(""), _T(""), _T(""), _T(""), _T(""), _T(""), false, false, 0, 0, NULL, NULL, wxsNoneId },  // NONE
     
-    SizerEntry(GridSizer,"wx_wxgridsizer.html#wxgridsizer","<wx/sizer.h>")
-    SizerEntry(BoxSizer,"wx_wxboxsizer.html#wxboxsizer","<wx/sizer.h>")
-    SizerEntry(StaticBoxSizer,"wx_wxstaticboxsizer.html#wxstaticboxsizer","<wx/sizer.h>")
-    SizerEntry(FlexGridSizer,"wx_wxflexgridsizer.html#wxflexgridsizer","<wx/sizer.h>")
-    SpacerEntry()
+    {   _T("wxGridSizer"),
+        DefLicence,
+        DefAuthor,
+        DefAuthorEmail,
+        DefAuthorSite,
+        _T("http://www.wxwidgets.org/manuals/2.4.2/wx189.htm#wxgridsizer"),
+        DefCategory,
+        _T("GridSizer"),
+        true,
+        true,
+        2, 42,
+        NULL,
+        &wxsStdManager,
+        wxsGridSizerId,
+        0,
+        NULL
+    },
  
-    Entry(Button,      "wx_wxbutton.htm#wxbutton","<wx/button.h>")
-    Entry(ToggleButton,"wx_wxtogglebutton.html#wxtogglebutton","<wx/tglbtn.h>")
-    Entry(CheckBox,    "wx_wxcheckbox.html#wxcheckbox","<wx/checkbox.h>")
-    Entry(StaticText,  "wx_wxstatictext.html#wxstatictext","<wx/stattext.h>")
-    Entry(ComboBox,    "wx_wxcombobox.html#wxcombobox","<wx/combobox.h>")
-    Entry(ListBox,     "wx_wxlistbox.html#wxlistbox","<wx/listbox.h>")
-    Entry(Panel,       "wx_wxpanel.html#wxpanel","<wx/panel.h>")
-    Entry(TextCtrl,    "wx_wxtextctrl.html#wxtextctrl","<wx/textctrl.h>")
-    Entry(Gauge,       "wx_wxgauge.html#wxgauge","<wx/gauge.h>")
+    Entry(Button,      "wx_wxbutton.htm#wxbutton")
+    Entry(ToggleButton,"wx_wxtogglebutton.html#wxtogglebutton")
+    Entry(CheckBox,    "wx_wxcheckbox.html#wxcheckbox")
+    Entry(StaticText,  "wx_wxstatictext.html#wxstatictext")
+    Entry(ComboBox,    "wx_wxcombobox.html#wxcombobox")
+    Entry(ListBox,     "wx_wxlistbox.html#wxlistbox")    
+    Entry(Panel,       "wx_wxpanel.html#wxpanel")    
     
-    WindowEntry(Dialog,"wx_wxdialog.html#wxdialog","<wx/dialog.h>")
-    WindowEntry(Frame, "wx_wxframe.html#wxframe","<wx/frame.h>")
-    WindowEntry(Panelr,"wx_wxpanel.html#wxpanel","<wx/panel.h>")
+    WindowEntry(Dialog,"wx_wxdialog.html#wxdialog")
+    WindowEntry(Frame, "wx_wxframe.html#wxframe")
+    WindowEntry(Panelr,"wx_wxpanel.html#wxpanel")
     
 };
 
@@ -217,23 +186,17 @@ wxsWidget* wxsStdManagerT::ProduceWidget(int Id,wxsWindowRes* Res)
 {
     switch ( Id )
     {
-        case wxsGridSizerId:        return new wxsGridSizer(this,Res);
-        case wxsBoxSizerId:         return new wxsBoxSizer(this,Res);
-        case wxsStaticBoxSizerId:   return new wxsStaticBoxSizer(this,Res);
-        case wxsFlexGridSizerId:    return new wxsFlexGridSizer(this,Res);
-        case wxsButtonId:           return new wxsButton(this,Res);
-        case wxsCheckBoxId:         return new wxsCheckBox(this,Res);
-        case wxsStaticTextId:       return new wxsStaticText(this,Res);
-        case wxsToggleButtonId:     return new wxsToggleButton(this,Res);
-        case wxsComboBoxId:         return new wxsComboBox(this,Res);
-        case wxsListBoxId:          return new wxsListBox(this,Res);
-        case wxsPanelId:            return new wxsPanel(this,Res);
-        case wxsTextCtrlId:         return new wxsTextCtrl(this,Res);
-        case wxsGaugeId:            return new wxsGauge(this,Res);
-        case wxsSpacerId:           return new wxsSpacer(this,Res);
-        case wxsDialogId:           return new wxsDialog(this,Res);
-        case wxsFrameId:            return new wxsFrame(this,Res);
-        case wxsPanelrId:           return new wxsPanelr(this,Res);
+        case wxsGridSizerId:    return new wxsGridSizer(this,Res);
+        case wxsButtonId:       return new wxsButton(this,Res);
+        case wxsCheckBoxId:     return new wxsCheckBox(this,Res);
+        case wxsStaticTextId:   return new wxsStaticText(this,Res);
+        case wxsToggleButtonId: return new wxsToggleButton(this,Res);
+        case wxsComboBoxId:     return new wxsComboBox(this,Res);
+        case wxsListBoxId:      return new wxsListBox(this,Res);
+        case wxsPanelId:        return new wxsPanel(this,Res);
+        case wxsDialogId:       return new wxsDialog(this,Res);
+        case wxsFrameId:        return new wxsFrame(this,Res);
+        case wxsPanelrId:       return new wxsPanelr(this,Res);
     }
     
     return NULL;

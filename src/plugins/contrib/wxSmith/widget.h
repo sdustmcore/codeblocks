@@ -55,7 +55,6 @@ struct wxsWidgetInfo
     wxString DefaultVarName;        ///< Prefix for default variable name
     bool Container;                 ///< True if this widget can have other widgets inside
     bool Sizer;                     ///< True if this widget is a sizer (Container must also be true)
-    bool Spacer;                    ///< True if this is a spacer
     unsigned short VerHi;           ///< Lower number of version
     unsigned short VerLo;           ///< Higher number of version
     wxBitmap* Icon;                 ///< Icon used in pallette
@@ -63,20 +62,6 @@ struct wxsWidgetInfo
     int Id;                         ///< Identifier used inside manager to handle this widget, must be same as 'Number' in GetWidgetInfo call
     int TreeIconId;
     wxsStyle* Styles;               ///< Set of available styles, ending with NULL-named style
-    wxString HeaderFile;            ///< Header file (including '<' and '>' or '"') for this file
-    
-    /** Types of extended widgets */
-    enum ExTypeT
-    {
-        exNone = 0,                 ///< This is widget from standard set (no new coded nor additional library needed)
-        exCode,                     ///< This widget provides it's source code, currently not supported
-        exLibrary                   ///< This widget is provided in additional library, currently not supported
-    };
-    
-    ExTypeT ExType;                 ///< Type of extended widget
-    wxString WidgetCodeDefinition;  ///< Code with definition of class for this widget
-    wxString WidgetCodeDeclaration; ///< Code with declaration of class for this widget
-    wxString WidgetLibrary;         ///< Library including this widget (empty for no library)
 };
 
 /** Structure describing default widget's options */
@@ -135,7 +120,7 @@ struct wxsWidgetBaseParams
         DefaultPosition(true),
         SizeX(-1), SizeY(-1),
         DefaultSize(true),
-        Proportion(1),
+        Proportion(0),
         BorderFlags(Top|Bottom|Left|Right),
         Expand(false),
         Shaped(false),
@@ -180,9 +165,6 @@ class wxsWidget
         
         /** BasePropertiesType used by common sizers */
         static const BasePropertiesType propSizer    = bptVariable;
-        
-        /** BasePropertiesType used by spacer */
-        static const BasePropertiesType propSpacer   = bptSize;
     
         /** Default constructor */
         wxsWidget(wxsWidgetManager* Man,wxsWindowRes* Res,BasePropertiesType pType = propNone):
@@ -197,8 +179,7 @@ class wxsWidget
             ContainerType(NoContainer),
             Updating(false),
             PropertiesCreated(false),
-            BPType(pType),
-            AssignedToTree(false)
+            BPType(pType)
         {
         }
         
@@ -221,8 +202,7 @@ class wxsWidget
             ContainerType(ISwxWindow ? ContainerWindow : ContainerSizer ),
             Updating(false),
             PropertiesCreated(false),
-            BPType(pType),
-            AssignedToTree(false)
+            BPType(pType)
         {
         }
             
@@ -433,17 +413,42 @@ class wxsWidget
          *
          *  Could be used when need to throw some string to generated code
          */
-        static wxString GetCString(const wxString& Source);
+        static const wxString& GetCString(const wxString& Source);
         
-        /** Util function - changing given string to it's representation in wxWidgets */
-        static wxString GetWxString(const wxString& Source);
+/**********************************************************************/
+/* Used for extended widgets                                          */
+/**********************************************************************/
         
-        /** Util function - generating string used when adding item to sizer as flag
-         *
-         * Not included insidee CodedDefines because it would generally be used inside
-         * sizer's code generating functions.
+        /** Types of extended widgets */
+        enum ExType
+        {
+            exNone = 0,     ///< This is widget from standard set
+            exCode,         ///< This widget provides it's source code
+            exLibrary       ///< This widget is provided in additional library, currently not supported
+        };
+        
+        /** Checking type of extendet widget */
+        virtual ExType GetExtended() { return exNone; }
+        
+        /** Takign declaration of class using widget's implementation,
+         *  this is valid for wxCode widgets only 
          */
-        wxString GetFlagToSizer();
+        virtual const wxString& GetWidgetCodeDefinition() { static wxString Str(wxT("")); return Str; }
+        
+        /** Taking defition of widget's members
+         *  this is valid for wxCode widgets only 
+         */
+        virtual const wxString& GetWidgetCodeDeclaration() { static wxString Str(wxT("")); return Str; }
+
+        /** Taking name of library in which this widget is defined
+         *  this is valid for wxLibrary widgets only, currently not supported
+         */
+        virtual const wxString& GetWidgetLibrary() { static wxString Str(wxT("")); return Str; }
+        
+        /** Taking name of header file which should be included in order to use this widget
+         *  valid for exLibrary or exNone widgets only, currently exNone widgets are only supported
+         */
+        virtual const wxString& GetWidgetHeader() { static wxString Str(wxT("")); return Str; }
         
 /**********************************************************************/
 /* Support for containers                                             */
@@ -495,6 +500,10 @@ class wxsWidget
         
         /** Changing position of widget in child list */
         virtual bool ChangeChildPos(int PrevPos, int NewPos) { return false; }
+        
+        /** Generating code which will bind children to this window */
+        virtual const wxString& GetBindingCode(const wxString* Children, int Count) { static wxString Str(wxT("")); return Str; }
+        
         
 /**********************************************************************/
 /* Support for base widget's parameters                               */
@@ -691,7 +700,6 @@ class wxsWidget
         CodeDefines CDefines;       ///< Will be filled and returned inside GetCodedeDefines
         
         wxTreeItemId TreeId;        ///< Id of item in resource tree
-        bool AssignedToTree;        ///< True if this widget has it's entry inside resource tree
         
         friend class wxBaseParamsPanel;
         friend class wxsWindowEditor;

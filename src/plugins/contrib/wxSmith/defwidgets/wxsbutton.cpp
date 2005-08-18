@@ -18,7 +18,7 @@ wxsDWDefineBegin(wxsButton,wxButton,
     
     )
 
-    wxsDWDefStr(label,"Label:","Label");
+    wxsDWDefStr(label,"Label:","");
     wxsDWDefBoolX(def,"default","Default:",false);
 
 wxsDWDefineEnd()

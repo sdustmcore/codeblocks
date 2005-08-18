@@ -11,7 +11,7 @@ wxsDWDefineBegin(wxsCheckBox,wxCheckBox,
     
     )
 
-    wxsDWDefStr(label,"Label:","Label");
+    wxsDWDefStr(label,"Label:","");
     wxsDWDefBool(checked,"Checked:",false);
 
 wxsDWDefineEnd()

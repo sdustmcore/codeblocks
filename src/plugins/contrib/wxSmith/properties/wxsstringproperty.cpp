@@ -48,24 +48,20 @@
     
     void wxsStringPropertyWindow::OnTextEnter(wxCommandEvent& event)
     {
-        wxStrting Cor = GetValue();
-        Prop->Value = CorrectString(Cor);
-        if ( Cor != Prop->Value )
+        if ( !Prop->AlwUpd )
         {
-            SetValue(Prop->Value);
+            Prop->Value = GetValue();
+            Prop->ValueChanged(true);
         }
-        Prop->ValueChanged(true);
     }
     
     void wxsStringPropertyWindow::OnKillFocus(wxFocusEvent& event)
     {
-        wxStrting Cor = GetValue();
-        Prop->Value = CorrectString(Cor);
-        if ( Cor != Prop->Value )
+        if ( !Prop->AlwUpd )
         {
-            SetValue(Prop->Value);
+            Prop->Value = GetValue();
+            Prop->ValueChanged(true);
         }
-        Prop->ValueChanged(true);
     }
 
 #endif
@@ -112,19 +108,13 @@ const wxString& wxsStringProperty::GetTypeName()
     	PGId = Grid->Append(Name,wxPG_LABEL,Value);
     }
     
-    bool wxsStringProperty::PropGridChanged(wxPropertyGrid* Grid,wxPGId Id)
+    void wxsStringProperty::PropGridChanged(wxPropertyGrid* Grid,wxPGId Id)
     {
     	if ( Id == PGId )
     	{
-    		wxString Cor = Grid->GetPropertyValue(Id).GetString();
-    		Value = CorrectValue(Cor);
-    		if ( Value != Cor )
-    		{
-    			Grid->SetPropertyValue(Id,Value);
-    		}
-    		return ValueChanged(true);
+    		Value = Grid->GetPropertyValue(Id).GetString();
+    		ValueChanged(true);
     	}
-    	return true;
     }
     
     void wxsStringProperty::UpdatePropGrid(wxPropertyGrid* Grid)

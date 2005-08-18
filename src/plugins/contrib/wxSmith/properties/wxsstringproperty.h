@@ -24,15 +24,13 @@ class wxsStringProperty : public wxsProperty
         virtual const wxString& GetTypeName();
         
     protected:
-    
-        virtual wxString CorrectValue(const wxString& Value) { return Value; }
         
         #ifdef __NO_PROPGRGID
             virtual wxWindow* BuildEditWindow(wxWindow* Parent);
             virtual void UpdateEditWindow();
         #else
             virtual void AddToPropGrid(wxPropertyGrid* Grid,const wxString& Name);
-            virtual bool PropGridChanged(wxPropertyGrid* Grid,wxPGId Id);
+            virtual void PropGridChanged(wxPropertyGrid* Grid,wxPGId Id);
             virtual void UpdatePropGrid(wxPropertyGrid* Grid);
         #endif
         

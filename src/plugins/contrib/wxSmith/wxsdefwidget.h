@@ -161,10 +161,9 @@
  * \param Name - name of Variable
  * \param PropName - name of property in properties manager
  * \param Default - default value (currently not used)
- * \param SortFlag - flag which must be set for widget to sort list of items
  */
-#define wxsDWDefStrArray(Name,PropName,Default,SortFlag)                             \
-        evStrArray(Name,_T(#Name),_T(#Name),_T(#Name),_T(PropName),Default,SortFlag);
+#define wxsDWDefStrArray(Name,PropName,Default)                             \
+        evStrArray(Name,_T(#Name),_T(#Name),_T(#Name),_T(PropName),Default);
 
 /** Extended macro assigning given wxArrayString variable with property of widget
  *
@@ -176,10 +175,9 @@
  * \param XrcChildName - name of Xml element handling one item in Xrc file
  * \param PropName - name of property in properties manager
  * \param Default - default value (currently not used)
- * \param SortFlag - flag which must be set for widget to sort list of items
  */
-#define wxsDWDefStrArrayX(Name,XrcParentName,XrcChildName,PropName,Default,SortFlag) \
-        evStrArray(Name,_T(#Name),_T(XrcParentName),_T(XrcChildName),_T(PropName),Default,SortFlag);
+#define wxsDWDefStrArrayX(Name,XrcParentName,XrcChildName,PropName,Default) \
+        evStrArray(Name,_T(#Name),_T(XrcParentName),_T(XrcChildName),_T(PropName),Default);
         
 /** Macro finalizing definition of class handling one of default widgets
  */
@@ -217,7 +215,7 @@ class wxsDefWidget: public wxsWidget
         /** Default costroctor, arguments are passed directly to wxsWidget */
 		wxsDefWidget(wxsWidgetManager* Man,wxsWindowRes* Res,BasePropertiesType pType = propWidget);
             
-        /** Destructor */
+        /** Destructor - it calls evDestroy() alowing all variables to be released */
 		virtual ~wxsDefWidget();
 		
         virtual wxString GetProducingCode(wxsCodeParams& Params);
@@ -234,7 +232,7 @@ class wxsDefWidget: public wxsWidget
         void evInt(int& Val,const wxString& Name,const wxString& XrcName,const wxString& PropName,int DefValue);
         void ev2Int(int& Val1,int& Val2,const wxString& XrcName,const wxString& Name,const wxString& PropName,int DefValue1,int DefValue2);
         void evStr(wxString& Val,const wxString& Name,const wxString& XrcName,const wxString& PropName,wxString DefValue);
-        void evStrArray(wxArrayString& Val,const wxString& Name,const wxString& XrcParentName,const wxString& XrcChildName,const wxString& PropName, int& DefValue,int SortFlag);
+        void evStrArray(wxArrayString& Val,const wxString& Name,const wxString& XrcParentName,const wxString& XrcChildName,const wxString& PropName, int& DefValue);
         
         virtual void BuildExtVars() = 0;
         virtual wxString GetGeneratingCodeStr() = 0;
