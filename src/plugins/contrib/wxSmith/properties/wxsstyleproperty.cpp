@@ -160,14 +160,13 @@ const wxString& wxsStyleProperty::GetTypeName()
         Grid->SetPropertyAttribute(PGId,wxPG_BOOL_USE_CHECKBOX,(long)1,wxRECURSE);
     }
     
-    bool wxsStyleProperty::PropGridChanged(wxPropertyGrid* Grid,wxPGId Id)
+    void wxsStyleProperty::PropGridChanged(wxPropertyGrid* Grid,wxPGId Id)
     {
     	if ( Id == PGId )
     	{
     		Style = Grid->GetPropertyValue(Id).GetLong();
-    		return ValueChanged(true);
+    		ValueChanged(true);
     	}
-    	return true;
     }
     
     void wxsStyleProperty::UpdatePropGrid(wxPropertyGrid* Grid)

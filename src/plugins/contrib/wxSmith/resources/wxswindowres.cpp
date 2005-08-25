@@ -16,7 +16,7 @@ BEGIN_EVENT_TABLE($(ClassName),$(BaseClassName))\n\
 //*)\n\
 END_EVENT_TABLE()\n\
 \n\
-$(ClassName)::$(ClassName)(wxWindow* parent,wxWindowID id):\n\
+$(ClassName)::$(ClassName)(wxWidnow* parent,wxWindowID id):\
     $(BaseClassCtor)\n\
 {\n\
     //(*Initialize($(ClassName))\n\
@@ -35,15 +35,14 @@ _T("\
 #define $(Guard)\n\
 \n\
 //(*Headers($(ClassName))\n\
-#include <wx/wx.h>\n\
 //*)\n\
 \n\
 class $(ClassName): public $(BaseClassName)\n\
 {\n\
     public:\n\
 \n\
-        $(ClassName)(wxWindow* parent,wxWindowID id = -1);\n\
-        virtual ~$(ClassName)();\n\
+        $(ClassName)(wxWidnow* parent,wxWindowID id = -1);\n\
+        virtual ~$(ClassName);\n\
 \n\
         //(*Identifiers($(ClassName))\n\
         //*)\n\
@@ -216,6 +215,22 @@ bool wxsWindowRes::GenerateEmptySources()
     Content.Replace(_T("$(Guard)"),Guard,true);
     Content.Replace(_T("$(ClassName)"),ClassName,true);
     Content.Replace(_T("$(BaseClassName)"),GetWidgetClass(),true);
+    switch ( Type )
+    {
+    	case Dialog:
+            Content.Replace(_T("$(BaseClassCtor)"),_T("wxDialog(parent,id,wxT(\"\"))"),true);
+            break;
+            
+        case Frame:
+            Content.Replace(_T("$(BaseClassCtor)"),_T("wxFrame(parent,id,wxT(\"\"))"),true);
+            break;
+            
+        case Panel:
+            Content.Replace(_T("$(BaseClassCtor)"),_T("wxPanel(parent,id)"),true);
+            break;
+            
+        default:;
+    }
     fprintf(Fl,"%s",(const char*)Content.mb_str());
     fclose(Fl);
     
@@ -225,22 +240,6 @@ bool wxsWindowRes::GenerateEmptySources()
     Content.Replace(_T("$(Include)"),Include,true);
     Content.Replace(_T("$(ClassName)"),ClassName,true);
     Content.Replace(_T("$(BaseClassName)"),GetWidgetClass(),true);
-    switch ( Type )
-    {
-    	case Dialog:
-            Content.Replace(_T("$(BaseClassCtor)"),_T("wxDialog(parent,id,_T(\"\"),wxDefaultPosition,wxDefaultSize)"),true);
-            break;
-            
-        case Frame:
-            Content.Replace(_T("$(BaseClassCtor)"),_T("wxFrame(parent,id,_T(\"\"))"),true);
-            break;
-            
-        case Panel:
-            Content.Replace(_T("$(BaseClassCtor)"),_T("wxPanel(parent,id)"),true);
-            break;
-            
-        default:;
-    }
     fprintf(Fl,"%s",(const char*)Content.mb_str());
     fclose(Fl);
     return true;
@@ -287,67 +286,9 @@ void wxsWindowRes::NotifyChange()
 	
 	// Creating global declarations
 	
-	CodeHeader.Printf(_T("//(*Declarations(%s)"),GetClassName().c_str());
+	CodeHeader = wxString::Format(_T("//(*Declarations(%s)"),GetClassName().c_str());
 	Code = CodeHeader + _T("\n") + GlobalCode;
 	Code.Append(' ',GlobalTabSize);
-	wxsCoder::Get()->AddCode(GetProject()->GetProjectFileName(HFile),CodeHeader,Code);
-	
-	// Creating set of ids
-	wxArrayString IdsArray;
-	BuildIdsArray(RootWidget,IdsArray);
-	CodeHeader.Printf(_T("//(*Identifiers(%s)"),GetClassName().c_str());
-	Code = CodeHeader;
-	Code.Append(_T('\n'));
-	Code.Append(_T(' '),GlobalTabSize);
-	Code.Append(_T("enum Identifiers\n"));
-	Code.Append(_T(' '),GlobalTabSize);
-	Code.Append(_T('{'));
-	IdsArray.Sort();
-	wxString Previous = _T("");
-	bool First = true;
-	for ( size_t i = 0; i<IdsArray.Count(); ++i )
-	{
-		if ( IdsArray[i] != Previous )
-		{
-			Previous = IdsArray[i];
-			Code.Append( _T('\n') );
-			Code.Append( _T(' '), GlobalTabSize + TabSize );
-			Code.Append( Previous );
-			if ( First )
-			{
-				Code.Append( _T(" = 0x1000") );
-				First = false;
-			}
-			if ( i < IdsArray.Count() - 1 )
-			{
-                Code.Append( _T(',') );
-			}
-		}
-	}
-	Code.Append( _T('\n') );
-	Code.Append( _T(' '), GlobalTabSize );
-	Code.Append( _T("};\n") );
-	Code.Append( _T(' '), GlobalTabSize );
-	wxsCoder::Get()->AddCode(GetProject()->GetProjectFileName(HFile),CodeHeader,Code);
-	
-	// Collecting all include files
-	wxArrayString HeadersArray;
-	BuildHeadersArray(RootWidget,HeadersArray);
-	HeadersArray.Add(_T("<wx/intl.h>"));
-	HeadersArray.Sort();
-	CodeHeader.Printf(_T("//(*Headers(%s)"),GetClassName().c_str());
-	Code = CodeHeader;
-	Previous = _T("");
-	for ( size_t i = 0; i<HeadersArray.Count(); i++ )
-	{
-		if ( HeadersArray[i] != Previous )
-        {
-        	Previous = HeadersArray[i];
-            Code.Append(_T("\n#include "));
-            Code.Append(Previous);
-        }
-	}
-	Code.Append(_T('\n'));
 	wxsCoder::Get()->AddCode(GetProject()->GetProjectFileName(HFile),CodeHeader,Code);
 	
 	#endif
@@ -362,16 +303,14 @@ void wxsWindowRes::AddDeclarationsReq(wxsWidget* Widget,wxString& LocalCode,wxSt
 	for ( int i=0; i<Count; i++ )
 	{
 		wxsWidget* Child = Widget->GetChild(i);
-		wxString Decl = Child->GetDeclarationCode(EmptyParams);
-		if ( Decl.Length() )
-		{
-            bool Member = Child->GetBaseParams().IsMember;
-            wxString& Code = Member ? GlobalCode : LocalCode;
-            Code.Append(' ',Member ? GlobalTabSize : LocalTabSize);
-            Code.Append(Decl);
-            Code.Append('\n');
-            WasLocal |= !Member;
-		}
+		bool Member = Child->GetBaseParams().IsMember;
+		wxString& Code = Member ? GlobalCode : LocalCode;
+		
+		Code.Append(' ',Member ? GlobalTabSize : LocalTabSize);
+		Code.Append(Child->GetDeclarationCode(EmptyParams));
+		Code.Append('\n');
+		
+		WasLocal |= !Member;
 		AddDeclarationsReq(Child,LocalCode,GlobalCode,LocalTabSize,GlobalTabSize,WasLocal);
 	}
 }
@@ -390,340 +329,81 @@ inline const wxChar* wxsWindowRes::GetWidgetClass(bool UseRes)
 
 void wxsWindowRes::UpdateWidgetsVarNameId()
 {
-    StrMap NamesMap;
-    StrMap IdsMap;
+    std::map<wxString,wxsWidget*> NamesMap;
+    std::map<wxString,wxsWidget*> IdsMap;
     
-    CreateSetsReq(NamesMap,IdsMap,RootWidget);
-   	UpdateWidgetsVarNameIdReq(NamesMap,IdsMap,RootWidget);
+    int Cnt = RootWidget->GetChildCount();
+    for ( int i=0; i<Cnt; i++ )
+    {
+    	CreateSetsReq(NamesMap,IdsMap,RootWidget->GetChild(i));
+    }
+    
+    for ( int i=0; i<Cnt; i++ )
+    {
+    	UpdateWidgetsVarNameIdReq(NamesMap,IdsMap,RootWidget->GetChild(i));
+    }
 }
 
-void wxsWindowRes::UpdateWidgetsVarNameIdReq(StrMap& NamesMap, StrMap& IdsMap, wxsWidget* Widget)
+void wxsWindowRes::UpdateWidgetsVarNameIdReq(
+    std::map<wxString,wxsWidget*>& NamesMap, 
+    std::map<wxString,wxsWidget*>& IdsMap, 
+    wxsWidget* Widget)
 {
+    wxsWidgetBaseParams& Params = Widget->GetBaseParams();
+    
+    if ( Params.VarName.Length() == 0 || Params.IdName.Length() == 0 )
+    {
+    	wxString NameBase = Widget->GetInfo().DefaultVarName;
+    	wxString Name;
+    	wxString IdBase = Widget->GetInfo().DefaultVarName;
+    	IdBase.MakeUpper();
+    	wxString Id;
+        int Index = 1;
+        do
+        {
+        	Name.Printf(_T("%s%d"),NameBase.c_str(),Index);
+        	Id.Printf(_T("%s%d_ID"),IdBase.c_str(),Index++);
+        }
+        while ( NamesMap.find(Name) != NamesMap.end() ||
+                IdsMap.find(Id)     != IdsMap.end() );
+        
+        Params.VarName = Name;
+        NamesMap[Name] = Widget;
+        Params.IdName = Id;
+        IdsMap[Id] = Widget;
+    }
+
 	int Cnt = Widget->GetChildCount();
 	for ( int i=0; i<Cnt; i++ )
 	{
-		wxsWidget* Child = Widget->GetChild(i);
-		
-        wxsWidgetBaseParams& Params = Child->GetBaseParams();
-        
-        if ( Params.VarName.Length() == 0 || Params.IdName.Length() == 0 )
-        {
-            wxString NameBase = Child->GetInfo().DefaultVarName;
-            wxString Name;
-            wxString IdBase = Child->GetInfo().DefaultVarName;
-            IdBase.MakeUpper();
-            wxString Id;
-            int Index = 1;
-            do
-            {
-                Name.Printf(_T("%s%d"),NameBase.c_str(),Index);
-                Id.Printf(_T("ID_%s%d"),IdBase.c_str(),Index++);
-            }
-            while ( NamesMap.find(Name) != NamesMap.end() ||
-                    IdsMap.find(Id)     != IdsMap.end() );
-            
-            Params.VarName = Name;
-            NamesMap[Name] = Child;
-            Params.IdName = Id;
-            IdsMap[Id] = Child;
-        }
-    
-		UpdateWidgetsVarNameIdReq(NamesMap,IdsMap,Child);
+		UpdateWidgetsVarNameIdReq(NamesMap,IdsMap,Widget->GetChild(i));
 	}
 }
 
-void wxsWindowRes::CreateSetsReq(StrMap& NamesMap, StrMap& IdsMap, wxsWidget* Widget, wxsWidget* Without)
+void wxsWindowRes::CreateSetsReq(
+    std::map<wxString,wxsWidget*>& NamesMap, 
+    std::map<wxString,wxsWidget*>& IdsMap, 
+    wxsWidget* Widget)
 {
+	if ( Widget->GetBaseParams().VarName.Length() )
+	{
+		NamesMap[Widget->GetBaseParams().VarName] = Widget;
+	}
+	
+	if ( Widget->GetBaseParams().VarName.Length() )
+	{
+		IdsMap[Widget->GetBaseParams().VarName] = Widget;
+	}
+	
 	int Cnt = Widget->GetChildCount();
 	for ( int i=0; i<Cnt; i++ )
 	{
-		wxsWidget* Child = Widget->GetChild(i);
-		
-		if ( Child != Without )
-		{
-            if ( Child->GetBaseParams().VarName.Length() )
-            {
-                NamesMap[Child->GetBaseParams().VarName.c_str()] = Child;
-            }
-            
-            if ( Child->GetBaseParams().VarName.Length() )
-            {
-                IdsMap[Child->GetBaseParams().VarName.c_str()] = Child;
-            }
-		}
-		
-		CreateSetsReq(NamesMap,IdsMap,Child,Without);
+		CreateSetsReq(NamesMap,IdsMap,Widget->GetChild(i));
 	}
 }
 
 bool wxsWindowRes::CheckBaseProperties(bool Correct,wxsWidget* Changed)
 {
-    StrMap NamesMap;
-    StrMap IdsMap;
-    
-    if ( Changed == NULL )
-    {
-    	// Will check all widgets
-    	return CheckBasePropertiesReq(RootWidget,Correct,NamesMap,IdsMap);
-    }
-    
-    // Creating sets of names and ids
-   	CreateSetsReq(NamesMap,IdsMap,RootWidget,Changed);
-   	
-   	// Checkign and correcting changed widget
-   	return CorrectOneWidget(NamesMap,IdsMap,Changed,Correct);
-}
-
-bool wxsWindowRes::CheckBasePropertiesReq(wxsWidget* Widget,bool Correct,StrMap& NamesMap,StrMap& IdsMap)
-{
-	bool Result = true;
-	int Cnt = Widget->GetChildCount();
-	for ( int i=0; i<Cnt; ++i )
-	{
-		wxsWidget* Child = Widget->GetChild(i);
-		
-		if ( !CorrectOneWidget(NamesMap,IdsMap,Child,Correct) )
-		{
-			if ( !Correct ) return false;
-			Result = false;
-		}
-		
-		NamesMap[Child->GetBaseParams().VarName] = Child;
-		IdsMap[Child->GetBaseParams().IdName] = Child;
-		
-		if ( ! CheckBasePropertiesReq(Child,Correct,NamesMap,IdsMap) )
-		{
-			if ( !Correct ) return false;
-			Result = false;
-		}
-	}
-	
-	return Result;
-}
-
-bool wxsWindowRes::CorrectOneWidget(StrMap& NamesMap,StrMap& IdsMap,wxsWidget* Changed,bool Correct)
-{
-	bool Valid = true;
-
-    // Validating variable name
-	
-    if ( Changed->GetBPType() & wxsWidget::bptVariable )
-    {
-    	wxString& VarName = Changed->GetBaseParams().VarName;
-    	wxString Corrected;
-    	VarName.Trim(true);
-    	VarName.Trim(false);
-    	
-    	// first validating produced name
-    	
-    	if ( VarName.Length() == 0 )
-    	{
-    		if ( !Correct )
-    		{
-    			wxMessageBox(_("Item must have variable name"));
-    			return false;
-    		}
-
-   			// Creating new unique name
-    			
-   			const wxString& Prefix = Changed->GetInfo().DefaultVarName;
-   			for ( int i=1;; ++i )
-   			{
-   				Corrected.Printf(_T("%s%d"),Prefix.c_str(),i);
-   				if ( NamesMap.find(Corrected) == NamesMap.end() ) break;
-   			}
-
-    		Valid = false;
-    	}
-    	else
-    	{
-    		// Validating name as C++ ideentifier
-            if ( wxString(_T("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-                          _T("abcdefghijklmnopqrstuvwxyz")
-                          _T("_") ).Find(VarName.GetChar(0)) == -1 )
-            {
-            	if ( !Correct )
-            	{
-            		wxMessageBox(wxString::Format(_("Invalid character: '%c' in variable name"),VarName.GetChar(0)));
-            		return false;
-            	}
-                Valid = false;
-            }
-            else
-            {
-            	Corrected.Append(VarName.GetChar(0));
-            }
-            
-            for ( size_t i=1; i<VarName.Length(); ++i )
-            {
-                if ( wxString(_T("0123456789")
-                              _T("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-                              _T("abcdefghijklmnopqrstuvwxyz")
-                              _T("_") ).Find(VarName.GetChar(i)) == -1 )
-                {
-                    if ( !Correct )
-                    {
-                        wxMessageBox(wxString::Format(_("Invalid character: '%c' in variable name"),VarName.GetChar(i)));
-                        return false;
-                    }
-                    Valid = false;
-                }
-                else
-                {
-                    Corrected.Append(VarName.GetChar(i));
-                }
-            }
-
-            // Searching for another widget with same name
-            if ( NamesMap.find(Corrected) != NamesMap.end() )
-            {
-            	if ( !Correct )
-            	{
-            		wxMessageBox(wxString::Format(_("Item with variable name '%s' already exists"),Corrected.c_str()));
-            		return false;
-            	}
-            	
-            	// Generating new unique name
-
-                const wxString& Prefix = Changed->GetInfo().DefaultVarName;
-                for ( int i=1;; ++i )
-                {
-                    Corrected.Printf(_T("%s%d"),Prefix.c_str(),i);
-                    if ( NamesMap.find(Corrected) == NamesMap.end() ) break;
-                }
-
-            	Valid = false;
-            }
-    	}
-    
-        if ( Correct )
-        {
-        	VarName = Corrected;
-        }
-    }
-    
-    if ( Changed->GetBPType() & wxsWidget::bptId )
-    {
-    	wxString& IdName = Changed->GetBaseParams().IdName;
-    	wxString Corrected;
-    	IdName.Trim(true);
-    	IdName.Trim(false);
-    	
-    	// first validating produced name
-    	
-    	if ( IdName.Length() == 0 )
-    	{
-    		if ( !Correct )
-    		{
-    			wxMessageBox(_("Item must have identifier"));
-    			return false;
-    		}
-
-   			// Creating new unique name
-    			
-   			wxString Prefix = Changed->GetInfo().DefaultVarName;
-   			Prefix.UpperCase();
-   			for ( int i=1;; ++i )
-   			{
-   				Corrected.Printf(_T("ID_%s%d"),Prefix.c_str(),i);
-   				if ( IdsMap.find(Corrected) == IdsMap.end() ) break;
-   			}
-
-    		Valid = false;
-    	}
-    	else
-    	{
-    		// Validating name as C++ ideentifier
-            if ( wxString(_T("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-                          _T("abcdefghijklmnopqrstuvwxyz")
-                          _T("_") ).Find(IdName.GetChar(0)) == -1 )
-            {
-            	if ( !Correct )
-            	{
-            		wxMessageBox(wxString::Format(_("Invalid character: '%c' in variable name"),IdName.GetChar(0)));
-            		return false;
-            	}
-                Valid = false;
-            }
-            else
-            {
-            	Corrected.Append(IdName.GetChar(0));
-            }
-            
-            for ( size_t i=1; i<IdName.Length(); ++i )
-            {
-                if ( wxString(_T("0123456789")
-                              _T("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-                              _T("abcdefghijklmnopqrstuvwxyz")
-                              _T("_") ).Find(IdName.GetChar(i)) == -1 )
-                {
-                    if ( !Correct )
-                    {
-                        wxMessageBox(wxString::Format(_("Invalid character: '%c' in variable name"),IdName.GetChar(i)));
-                        return false;
-                    }
-                    Valid = false;
-                }
-                else
-                {
-                    Corrected.Append(IdName.GetChar(i));
-                }
-            }
-
-            // Searching for another widget with same name
-            
-            if ( IdsMap.find(Corrected) != IdsMap.end() && Corrected != _T("ID_COMMON") )
-            {
-            	if ( !Correct )
-            	{
-            		wxMessageBox(wxString::Format(_("Item with identifier '%s' already exists"),Corrected.c_str()));
-            		return false;
-            	}
-            	
-            	// Generating new unique name
-
-                wxString Prefix = Changed->GetInfo().DefaultVarName;
-                Prefix.UpperCase();
-                for ( int i=1;; ++i )
-                {
-                    Corrected.Printf(_T("ID_%s%d"),Prefix.c_str(),i);
-                    if ( IdsMap.find(Corrected) == IdsMap.end() ) break;
-                }
-
-            	Valid = false;
-            }
-    	}
-    	
-    	if ( Correct )
-    	{
-    		IdName = Corrected;
-    	}
-    }
-    
-	return Valid;
-}
-
-void wxsWindowRes::BuildIdsArray(wxsWidget* Widget,wxArrayString& Array)
-{
-	int Cnt = Widget->GetChildCount();
-	for ( int i=0; i<Cnt; i++ )
-	{
-		wxsWidget* Child = Widget->GetChild(i);
-		if ( Child->GetBPType() & wxsWidget::bptId )
-		{
-			Array.Add(Child->GetBaseParams().IdName);
-		}
-		BuildIdsArray(Child,Array);
-	}
-}
-
-void wxsWindowRes::BuildHeadersArray(wxsWidget* Widget,wxArrayString& Array)
-{
-	Array.Add(Widget->GetInfo().HeaderFile);
-	int Cnt = Widget->GetChildCount();
-	for ( int i=0; i<Cnt; i++ )
-	{
-		wxsWidget* Child = Widget->GetChild(i);
-		BuildHeadersArray(Child,Array);
-	}
+// TODO (SpOoN#1#): Check variable names - must be unique
+	return true;
 }

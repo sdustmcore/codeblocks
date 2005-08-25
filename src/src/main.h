@@ -2,17 +2,13 @@
 #define MAIN_H
 
 #include <wx/toolbar.h>
+#include <wx/laywin.h>
 #include <wx/docview.h> // for wxFileHistory
-#include <wx/stc/stc.h>
+#include <wx/notebook.h>
+#include <../sdk/cbeditor.h>
 #include "../sdk/manager.h"
 #include "../sdk/cbplugin.h"
 #include "../sdk/sdk_events.h"
-
-#include "wx/layoutmanager.h"
-#include "wx/dockwindow.h"
-#include "wx/dockhost.h"
-#include "wx/pane.h"
-#include "wx/slidebar.h"
 
 WX_DECLARE_HASH_MAP(int, wxString, wxIntegerHash, wxIntegerEqual, WindowIDsMap);
 WX_DECLARE_HASH_MAP(int, wxString, wxIntegerHash, wxIntegerEqual, PluginIDsMap);
@@ -20,15 +16,12 @@ WX_DECLARE_HASH_MAP(cbPlugin*, wxToolBar*, wxPointerHash, wxPointerEqual, Plugin
 
 class MainFrame : public wxFrame
 {
-        wxLayoutManager* pLayoutManager;
-        wxSlideBar* pSlideBar;
-        wxPane * pPane;
-        wxDockWindow * pDockWindow1;
-        wxDockWindow * pDockWindow2;
     public:
         wxAcceleratorTable* m_pAccel;
-        MainFrame(wxWindow* parent = (wxWindow*)NULL);
+        MainFrame(wxLocale& locale, wxWindow* parent = (wxWindow*)NULL);
         ~MainFrame();
+
+        wxLocale& m_locale;
 
         bool Open(const wxString& filename, bool addToHistory = true);
         bool OnDropFiles(wxCoord x, wxCoord y, const wxArrayString& filenames);
@@ -42,6 +35,7 @@ class MainFrame : public wxFrame
         // event handlers
         void OnApplicationClose(wxCloseEvent& event);
         void OnStartHereLink(wxCommandEvent& event);
+        void OnStartHereVarSubst(wxCommandEvent& event);
 
         void OnFileNewEmpty(wxCommandEvent& event);
         void OnFileOpen(wxCommandEvent& event);
@@ -78,7 +72,7 @@ class MainFrame : public wxFrame
         void OnEditUncommentSelected(wxCommandEvent& event);
         void OnEditToggleCommentSelected(wxCommandEvent & event);
         void OnEditAutoComplete(wxCommandEvent& event);
-		
+
 		void OnEditBookmarksToggle(wxCommandEvent& event);
 		void OnEditBookmarksNext(wxCommandEvent& event);
 		void OnEditBookmarksPrevious(wxCommandEvent& event);
@@ -115,16 +109,18 @@ class MainFrame : public wxFrame
         void OnHelpTips(wxCommandEvent& event);
         void OnHelpPluginMenu(wxCommandEvent& event);
 
+        void OnSize(wxSizeEvent& event);
         void OnToggleBar(wxCommandEvent& event);
         void OnToggleOpenFilesTree(wxCommandEvent& event);
         void OnToggleStatusBar(wxCommandEvent& event);
         void OnFocusEditor(wxCommandEvent& event);
         void OnToggleFullScreen(wxCommandEvent& event);
-        
+        void OnPositionManagerTree(wxCommandEvent& event);
+
         // plugin events
         void OnPluginLoaded(CodeBlocksEvent& event);
         void OnPluginUnloaded(CodeBlocksEvent& event);
-		
+
 		// general UpdateUI events
         void OnEditorUpdateUI(CodeBlocksEvent& event);
 		void OnFileMenuUpdateUI(wxUpdateUIEvent& event);
@@ -132,13 +128,20 @@ class MainFrame : public wxFrame
 		void OnViewMenuUpdateUI(wxUpdateUIEvent& event);
 		void OnSearchMenuUpdateUI(wxUpdateUIEvent& event);
 		void OnProjectMenuUpdateUI(wxUpdateUIEvent& event);
-		
-		void OnLayoutChanged(wxEvent& event);
-		
+
+		// sash events
+		void OnDragSash(wxSashEvent& event);
+
 		// project events
 		void OnProjectActivated(CodeBlocksEvent& event);
 		void OnProjectOpened(CodeBlocksEvent& event);
 		void OnProjectClosed(CodeBlocksEvent& event);
+
+		// editor changed events
+		void OnEditorOpened(CodeBlocksEvent& event);
+		void OnEditorClosed(CodeBlocksEvent& event);
+		void OnEditorSaved(CodeBlocksEvent& event);
+		void OnPageChanged(wxNotebookEvent& event);
         void OnShiftTab(wxCommandEvent& event);
     protected:
         void CreateIDE();
@@ -149,13 +152,12 @@ class MainFrame : public wxFrame
         wxMenu* RecreateMenu(wxMenuBar* mbar, const wxString& name);
 
         void DoAddPlugin(cbPlugin* plugin);
-        void DoAddPluginToolbar(cbPlugin* plugin);
         void AddPluginInPluginsMenu(cbPlugin* plugin);
         void AddPluginInSettingsMenu(cbPlugin* plugin);
         void AddPluginInHelpPluginsMenu(cbPlugin* plugin);
         void AddPluginInMenus(wxMenu* menu, cbPlugin* plugin, wxObjectEventFunction callback, int pos = -1);
         void RemovePluginFromMenus(const wxString& pluginName);
-		
+
 		void AddEditorInWindowMenu(const wxString& filename, const wxString& title);
 		void RemoveEditorFromWindowMenu(const wxString& filename);
 		int IsEditorInWindowMenu(const wxString& filename);
@@ -167,25 +169,26 @@ class MainFrame : public wxFrame
         void DoCreateStatusBar();
         void DoUpdateStatusBar();
 		void DoUpdateAppTitle();
+		void DoUpdateLayout();
 
+        void RePositionManagerTree(bool left);
         void ShowHideStartPage(bool forceHasProject = false);
-		
+
         void LoadWindowState();
         void SaveWindowState();
 
         void InitializeRecentFilesHistory();
         void TerminateRecentFilesHistory();
-        
+
         wxFileHistory m_FilesHistory;
 
         /// "Close FullScreen" button. Only shown when in FullScreen view
         wxButton* m_pCloseFullScreenBtn;
-        
+
         wxNotebook* m_pNotebook;
-		EditorManager* m_pEdMan;
-		ProjectManager* m_pPrjMan;
-		MessageManager* m_pMsgMan;
-		
+		wxSashLayoutWindow* m_pLeftSash;
+		wxSashLayoutWindow* m_pBottomSash;
+
         wxToolBar* m_pToolbar;
         PluginToolbarsMap m_PluginsTools;
 
@@ -195,10 +198,10 @@ class MainFrame : public wxFrame
 		wxMenu* m_PluginsMenu;
         wxMenu* m_SettingsMenu;
         wxMenu* m_HelpPluginsMenu;
-        
+
         bool m_ReconfiguringPlugins;
         bool m_SmallToolBar;
-		
+
         DECLARE_EVENT_TABLE()
 };
 

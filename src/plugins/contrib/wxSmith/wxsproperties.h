@@ -41,7 +41,7 @@ class wxsProperty
          *  has changed, it must be called every time we need to notice other
          *  components that the value has changed
          */
-        virtual bool ValueChanged(bool Check);
+        virtual void ValueChanged(bool Check);
         
     protected:
         
@@ -61,11 +61,8 @@ class wxsProperty
             /** Function adding entry for this property inside wxPropertyGrid class */
             virtual void AddToPropGrid(wxPropertyGrid* Grid,const wxString& Name) = 0;
             
-            /** Function notifying about property change
-             *
-             * \return If false, changed property has invalid value
-             */
-            virtual bool PropGridChanged(wxPropertyGrid* Grid,wxPGId Id) = 0;
+            /** Function notifying about property change */
+            virtual void PropGridChanged(wxPropertyGrid* Grid,wxPGId Id) = 0;
             
             /** Function updating value of this property insided property grid */
             virtual void UpdatePropGrid(wxPropertyGrid* Grid) = 0;
@@ -116,7 +113,7 @@ class wxsProperties
 		virtual void AddProperty(const wxString& Name,wxArrayString& Array,int Position=-1);
 		
 		/** Adding new wxArrayStrting property with additional "selected" flag */
-		virtual void AddProperty(const wxString& Name,wxArrayString& Array,int& Selected,int SortFlag,int Position=-1);
+		virtual void AddProperty(const wxString& Name,wxArrayString& Array,int& Selected,int Position=-1);
 		
 		/** Adding custom property */
 		virtual void AddProperty(const wxString& Name,wxsProperty* Property,int Position=-1);
@@ -126,9 +123,6 @@ class wxsProperties
 		
 		/** Updating content of current properties window */
 		virtual void UpdateProperties();
-		
-		/** Getting widget associated with this properties obiject */
-		inline wxsWidget* GetWidget() { return Widget; }
 		
     protected:
         

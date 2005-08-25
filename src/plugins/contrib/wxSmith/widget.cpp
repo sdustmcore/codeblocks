@@ -366,11 +366,6 @@ bool wxsWidget::XmlLoadChildren()
                 Name = RealObject->Attribute("class");
                 if ( !Name || !*Name ) continue;
             }
-            else if ( !strcmp(Name,"spacer") )
-            {
-            	// Small fixup
-            	Name = "Spacer";
-            }
                 
             wxsWidget* Child = wxsWidgetFactory::Get()->Generate(wxString(Name,wxConvUTF8),GetResource());
             if ( !Child )
@@ -381,11 +376,7 @@ bool wxsWidget::XmlLoadChildren()
             {
                 if ( !Child->XmlLoad(RealObject) ) Ret = false;
                 Child->XmlLoadSizerStuff(Element);
-                if ( AddChild(Child) < 0 )
-                {
-                	Ret = false;
-                	delete Child;
-                }
+                AddChild(Child);
             }
         }
     }
@@ -406,13 +397,7 @@ bool wxsWidget::XmlSaveChildren()
         if ( W && W->GetInfo().Name )
         {
             TiXmlNode* AddChildToThis = XmlElem();
-            wxString ClassName = W->GetInfo().Name;
-            bool ChildSpacer = W->GetInfo().Spacer;
-            
-            if ( ChildSpacer )
-            {
-            	ClassName = _T("spacer");
-            }
+            const wxString& ClassName = W->GetInfo().Name;
             
             if ( IsSizer && ClassName != _T("spacer") )
             {
@@ -447,16 +432,11 @@ void wxsWidget::XmlLoadSizerStuff(TiXmlElement* Elem)
 {
     TiXmlElement* Store = XmlElem();
     XmlElement = Elem;
- 
+    
     bool Temp;
     
     BaseParams.Proportion = XmlGetInteger(_T("option"),Temp,0);
     BaseParams.Border = XmlGetInteger(_T("border"),Temp,0);
-    BaseParams.BorderFlags = 0;
-    BaseParams.Placement = wxsWidgetBaseParams::Center;
-    BaseParams.Expand = false;
-    BaseParams.Shaped = false;
-    BaseParams.FixedMinSize = false;
     
     wxStringTokenizer tokens(XmlGetVariable(_T("flag")),_T("|"));
     
@@ -526,7 +506,7 @@ void wxsWidget::XmlLoadSizerStuff(TiXmlElement* Elem)
         else if ( VertPos==wxALIGN_CENTER_VERTICAL ) BaseParams.Placement = wxsWidgetBaseParams::LeftCenter;
         else BaseParams.Placement = wxsWidgetBaseParams::LeftTop;
     }
-    
+        
     XmlElement = Store;
 }
 
@@ -538,10 +518,44 @@ void wxsWidget::XmlSaveSizerStuff(TiXmlElement* Elem)
     if ( BaseParams.Proportion ) XmlSetInteger(_T("option"),BaseParams.Proportion);
     if ( BaseParams.Border ) XmlSetInteger(_T("border"),BaseParams.Border);
     
-    wxString Flags = GetFlagToSizer(); 
+    wxString Flags = _T("");
+    
+    int BF = BaseParams.BorderFlags;
+
+    if ( ( BF & wxsWidgetBaseParams::Left ) &&
+         ( BF & wxsWidgetBaseParams::Right ) &&
+         ( BF & wxsWidgetBaseParams::Top ) &&
+         ( BF & wxsWidgetBaseParams::Bottom ) )
+    {
+        Flags.Append(_T("|wxALL"));
+    }
+    else
+    {
+        if ( ( BF & wxsWidgetBaseParams::Left   ) ) Flags.Append(_T("|wxLEFT"));
+        if ( ( BF & wxsWidgetBaseParams::Right  ) ) Flags.Append(_T("|wxRIGHT"));
+        if ( ( BF & wxsWidgetBaseParams::Top    ) ) Flags.Append(_T("|wxTOP"));
+        if ( ( BF & wxsWidgetBaseParams::Bottom ) ) Flags.Append(_T("|wxBOTTOM"));
+    }
+    
+    switch ( BaseParams.Placement )
+    {
+        case wxsWidgetBaseParams::LeftTop:      Flags.Append(_T("|wxALIGN_LEFT|wxALIGN_TOP")); break;
+        case wxsWidgetBaseParams::CenterTop:    Flags.Append(_T("|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP")); break;
+        case wxsWidgetBaseParams::RightTop:     Flags.Append(_T("|wxALIGN_RIGHT|wxALIGN_TOP")); break;
+        case wxsWidgetBaseParams::LeftCenter:   Flags.Append(_T("|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL")); break;
+        case wxsWidgetBaseParams::Center:       Flags.Append(_T("|wxALIGN_CENTER")); break;
+        case wxsWidgetBaseParams::RightCenter:  Flags.Append(_T("|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL")); break;
+        case wxsWidgetBaseParams::LeftBottom:   Flags.Append(_T("|wxALIGN_LEFT|wxALIGN_BOTTOM")); break;
+        case wxsWidgetBaseParams::CenterBottom: Flags.Append(_T("|wxALIGN_CENTER_HORIZONTAL|wxALIGN_BOTTOM")); break;
+        case wxsWidgetBaseParams::RightBottom:  Flags.Append(_T("|wxALIGN_RIGHT|wxALIGN_BOTTOM")); break;
+    }
+    
+    if ( BaseParams.Expand ) Flags.Append(_T("|wxEXPAND"));
+    if ( BaseParams.Shaped ) Flags.Append(_T("|wxSHAPED"));
+    
     if ( Flags.Len() )
     {
-        XmlSetVariable(_T("flag"),Flags);
+        XmlSetVariable(_T("flag"),Flags.Mid(1));
     }
     
     XmlElement = Store;
@@ -595,9 +609,10 @@ bool wxsWidgetManager::RegisterInFactory()
     return true;
 }
 
-wxString wxsWidget::GetCString(const wxString& Source)
+const wxString& wxsWidget::GetCString(const wxString& Source)
 {
-    wxString Result = _T("\"");
+    static wxString Result;
+    Result = _T("\"");
     
     int Len = Source.Length();
     
@@ -643,11 +658,6 @@ wxString wxsWidget::GetCString(const wxString& Source)
     return Result;
 }
 
-wxString wxsWidget::GetWxString(const wxString& Source)
-{
-	return wxString::Format(_T("_(%s)"),GetCString(Source).c_str());
-}
-
 void wxsWidget::BuildTree(wxTreeCtrl* Tree,wxTreeItemId Id,int Index)
 {
     wxString Name = GetInfo().Name;
@@ -663,7 +673,6 @@ void wxsWidget::BuildTree(wxTreeCtrl* Tree,wxTreeItemId Id,int Index)
         SubId = Tree->InsertItem(Id,Index,Name,-1,-1,new wxsResourceTreeData(this));
     }
     TreeId = SubId;
-    AssignedToTree = true;
     
     int SubCnt = GetChildCount();
     for ( int i=0; i<SubCnt; i++ )
@@ -757,47 +766,6 @@ bool wxsWidget::XmlGetStringArray(const wxString& ParentName,const wxString& Chi
       
 }
 //End added
-
-wxString wxsWidget::GetFlagToSizer()
-{
-    wxString Flags = _T("");
-    
-    int BF = BaseParams.BorderFlags;
-
-    if ( ( BF & wxsWidgetBaseParams::Left ) &&
-         ( BF & wxsWidgetBaseParams::Right ) &&
-         ( BF & wxsWidgetBaseParams::Top ) &&
-         ( BF & wxsWidgetBaseParams::Bottom ) )
-    {
-        Flags.Append(_T("|wxALL"));
-    }
-    else
-    {
-        if ( ( BF & wxsWidgetBaseParams::Left   ) ) Flags.Append(_T("|wxLEFT"));
-        if ( ( BF & wxsWidgetBaseParams::Right  ) ) Flags.Append(_T("|wxRIGHT"));
-        if ( ( BF & wxsWidgetBaseParams::Top    ) ) Flags.Append(_T("|wxTOP"));
-        if ( ( BF & wxsWidgetBaseParams::Bottom ) ) Flags.Append(_T("|wxBOTTOM"));
-    }
-    
-    switch ( BaseParams.Placement )
-    {
-        case wxsWidgetBaseParams::LeftTop:      Flags.Append(_T("|wxALIGN_LEFT|wxALIGN_TOP")); break;
-        case wxsWidgetBaseParams::CenterTop:    Flags.Append(_T("|wxALIGN_CENTER_HORIZONTAL|wxALIGN_TOP")); break;
-        case wxsWidgetBaseParams::RightTop:     Flags.Append(_T("|wxALIGN_RIGHT|wxALIGN_TOP")); break;
-        case wxsWidgetBaseParams::LeftCenter:   Flags.Append(_T("|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL")); break;
-        case wxsWidgetBaseParams::Center:       Flags.Append(_T("|wxALIGN_CENTER")); break;
-        case wxsWidgetBaseParams::RightCenter:  Flags.Append(_T("|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL")); break;
-        case wxsWidgetBaseParams::LeftBottom:   Flags.Append(_T("|wxALIGN_LEFT|wxALIGN_BOTTOM")); break;
-        case wxsWidgetBaseParams::CenterBottom: Flags.Append(_T("|wxALIGN_CENTER_HORIZONTAL|wxALIGN_BOTTOM")); break;
-        case wxsWidgetBaseParams::RightBottom:  Flags.Append(_T("|wxALIGN_RIGHT|wxALIGN_BOTTOM")); break;
-    }
-    
-    if ( BaseParams.Expand ) Flags.Append(_T("|wxEXPAND"));
-    if ( BaseParams.Shaped ) Flags.Append(_T("|wxSHAPED"));
-    
-
-    return Flags.Length() ? Flags.Mid(1) : _T("");
-}
 
 wxsWindowEditor* wxsWidget::GetEditor()
 {

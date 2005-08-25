@@ -68,19 +68,8 @@
 			<Add directory="propgrid"/>
 		</Linker>
 		<ExtraCommands>
-			<Mode after="always" />
 			<Add after="update.bat"/>
 		</ExtraCommands>
-		<Unit filename="defwidgets\wxsboxsizer.cpp">
-			<Option compilerVar="CPP"/>
-			<Option target="wxSmith"/>
-		</Unit>
-		<Unit filename="defwidgets\wxsboxsizer.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="wxSmith"/>
-		</Unit>
 		<Unit filename="defwidgets\wxsbutton.cpp">
 			<Option compilerVar="CPP"/>
 			<Option target="wxSmith"/>
@@ -121,31 +110,11 @@
 			<Option link="0"/>
 			<Option target="wxSmith"/>
 		</Unit>
-		<Unit filename="defwidgets\wxsflexgridsizer.cpp">
-			<Option compilerVar="CPP"/>
-			<Option target="wxSmith"/>
-		</Unit>
-		<Unit filename="defwidgets\wxsflexgridsizer.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="wxSmith"/>
-		</Unit>
 		<Unit filename="defwidgets\wxsframe.cpp">
 			<Option compilerVar="CPP"/>
 			<Option target="wxSmith"/>
 		</Unit>
 		<Unit filename="defwidgets\wxsframe.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="wxSmith"/>
-		</Unit>
-		<Unit filename="defwidgets\wxsgauge.cpp">
-			<Option compilerVar="CPP"/>
-			<Option target="wxSmith"/>
-		</Unit>
-		<Unit filename="defwidgets\wxsgauge.h">
 			<Option compilerVar=""/>
 			<Option compile="0"/>
 			<Option link="0"/>
@@ -181,26 +150,6 @@
 			<Option link="0"/>
 			<Option target="wxSmith"/>
 		</Unit>
-		<Unit filename="defwidgets\wxsspacer.cpp">
-			<Option compilerVar="CPP"/>
-			<Option target="wxSmith"/>
-		</Unit>
-		<Unit filename="defwidgets\wxsspacer.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="wxSmith"/>
-		</Unit>
-		<Unit filename="defwidgets\wxsstaticboxsizer.cpp">
-			<Option compilerVar="CPP"/>
-			<Option target="wxSmith"/>
-		</Unit>
-		<Unit filename="defwidgets\wxsstaticboxsizer.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="wxSmith"/>
-		</Unit>
 		<Unit filename="defwidgets\wxsstatictext.cpp">
 			<Option compilerVar="CPP"/>
 			<Option target="wxSmith"/>
@@ -216,16 +165,6 @@
 			<Option target="wxSmith"/>
 		</Unit>
 		<Unit filename="defwidgets\wxsstdmanager.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="wxSmith"/>
-		</Unit>
-		<Unit filename="defwidgets\wxstextctrl.cpp">
-			<Option compilerVar="CPP"/>
-			<Option target="wxSmith"/>
-		</Unit>
-		<Unit filename="defwidgets\wxstextctrl.h">
 			<Option compilerVar=""/>
 			<Option compile="0"/>
 			<Option link="0"/>
@@ -276,16 +215,6 @@
 			<Option target="wxSmith"/>
 		</Unit>
 		<Unit filename="properties\wxsborderproperty.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="wxSmith"/>
-		</Unit>
-		<Unit filename="properties\wxsenumproperty.cpp">
-			<Option compilerVar="CPP"/>
-			<Option target="wxSmith"/>
-		</Unit>
-		<Unit filename="properties\wxsenumproperty.h">
 			<Option compilerVar=""/>
 			<Option compile="0"/>
 			<Option link="0"/>
@@ -457,16 +386,6 @@
 			<Option link="0"/>
 			<Option target="wxSmith"/>
 		</Unit>
-		<Unit filename="wxsdefsizer.cpp">
-			<Option compilerVar="CPP"/>
-			<Option target="wxSmith"/>
-		</Unit>
-		<Unit filename="wxsdefsizer.h">
-			<Option compilerVar=""/>
-			<Option compile="0"/>
-			<Option link="0"/>
-			<Option target="wxSmith"/>
-		</Unit>
 		<Unit filename="wxsdefwidget.cpp">
 			<Option compilerVar="CPP"/>
 			<Option target="wxSmith"/>
@@ -512,6 +431,18 @@
 			<Option target="wxSmith"/>
 		</Unit>
 		<Unit filename="wxsmith.h">
+			<Option compilerVar=""/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="wxSmith"/>
+		</Unit>
+		<Unit filename="wxsmith\maindialog.cpp">
+			<Option compilerVar="CPP"/>
+			<Option compile="0"/>
+			<Option link="0"/>
+			<Option target="wxSmith"/>
+		</Unit>
+		<Unit filename="wxsmith\maindialog.h">
 			<Option compilerVar=""/>
 			<Option compile="0"/>
 			<Option link="0"/>

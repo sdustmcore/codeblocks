@@ -109,7 +109,6 @@ wxs2IntProperty::wxs2IntProperty(wxsProperties* Properties,int& Int1,int& Int2, 
     #ifdef __NO_PROPGRGID
         Window(NULL)
     #else
-        PGId(0),
         Val1Id(0),
         Val2Id(0)
     #endif
@@ -144,14 +143,14 @@ const wxString& wxs2IntProperty::GetTypeName()
 
     void wxs2IntProperty::AddToPropGrid(wxPropertyGrid* Grid,const wxString& Name)
     {
-        PGId   = Grid->Append( wxParentProperty(Name,wxPG_LABEL) );
-        Val1Id = Grid->AppendIn(PGId, wxIntProperty(_("X"), wxPG_LABEL, Value1) );
-        Val2Id = Grid->AppendIn(PGId, wxIntProperty(_("Y"), wxPG_LABEL, Value2) );
+        wxPGId Id = Grid->Append( wxParentProperty(Name,wxPG_LABEL) );
+        Val1Id = Grid->AppendIn(Id, wxIntProperty(_("X"), wxPG_LABEL, Value1) );
+        Val2Id = Grid->AppendIn(Id, wxIntProperty(_("Y"), wxPG_LABEL, Value2) );
     }
     
-    bool wxs2IntProperty::PropGridChanged(wxPropertyGrid* Grid,wxPGId Id)
+    void wxs2IntProperty::PropGridChanged(wxPropertyGrid* Grid,wxPGId Id)
     {
-        if ( (Id == Val1Id) || (Id == Val2Id) || (Id == PGId) )
+        if ( Id == Val1Id || Id == Val2Id )
         {
         	Value1 = Grid->GetPropertyValue(Val1Id).GetLong();
         	Value2 = Grid->GetPropertyValue(Val2Id).GetLong();
@@ -166,9 +165,8 @@ const wxString& wxs2IntProperty::GetTypeName()
         	{
         		Grid->SetPropertyValue(Val2Id,Value2);
         	}
-        	return ValueChanged(true);
+        	ValueChanged(true);
         }
-        return true;
     }
     
     void wxs2IntProperty::UpdatePropGrid(wxPropertyGrid* Grid)

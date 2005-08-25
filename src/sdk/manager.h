@@ -22,14 +22,21 @@ class wxToolBar;
 /*
  * No description
  */
+
+/// Reads a wxString from a non-unicode file. File must be open. File is closed automatically.
+bool DLLIMPORT cbRead(wxFile& file,wxString& st);
+const wxString DLLIMPORT cbRead(wxFile& file);
+
+/// Writes a wxString to a non-unicode file. File must be open. File is closed automatically.
+bool DLLIMPORT cbWrite(wxFile& file, const wxString& buff);
+
 class DLLIMPORT Manager
 {
 	public:
-        static Manager* Get(wxFrame* appWindow = 0L, wxNotebook* prjNB = 0L, wxWindow* clientWin = 0L);
+        static Manager* Get(wxFrame* appWindow = 0L, wxNotebook* notebook = 0L);
 		static void Free();
 		wxFrame* GetAppWindow();
 		wxNotebook* GetNotebook();
-		wxWindow* GetClientWindow();
 		bool ProcessEvent(CodeBlocksEvent& event);
 		ProjectManager* GetProjectManager();
 		EditorManager* GetEditorManager();
@@ -39,22 +46,22 @@ class DLLIMPORT Manager
 		MacrosManager* GetMacrosManager();
 		PersonalityManager* GetPersonalityManager();
 		static bool isappShutingDown();
-		// stupid typo ;-P		
+		// stupid typo ;-P
 		static bool isappShuttingDown();
 
         // Gets a notebook panel with the specified name
         wxWindow* GetNotebookPage(const wxString &name, long style =  wxTAB_TRAVERSAL | wxCLIP_CHILDREN,bool issplit=false);
 
         /////// XML Resource functions ///////
-        
+
 		// Inits XML Resource system
-		static void Initxrc(bool force=false); 
+		static void Initxrc(bool force=false);
 		// Loads XRC file(s) using data_path
-		static void Loadxrc(wxString relpath); 
+		static void Loadxrc(wxString relpath);
 		// Loads Menubar from XRC
 		static wxMenuBar* LoadMenuBar(wxString resid,bool createonfailure=false);
 		// Loads Menu from XRC
-		static wxMenu* LoadMenu(wxString menu_id,bool createonfailure=false); 
+		static wxMenu* LoadMenu(wxString menu_id,bool createonfailure=false);
 		// Loads ToolBar from XRC
 		static wxToolBar *LoadToolBar(wxFrame *parent,wxString resid,bool defaultsmall=true);
 		// Loads ToolBarAddOn from XRC into existing Toolbar
@@ -63,14 +70,13 @@ class DLLIMPORT Manager
         static bool isToolBar16x16(wxToolBar* toolBar);
 
     private:
-		Manager(wxFrame* appWindow, wxNotebook* notebook, wxWindow* clientWin = 0L);
+		Manager(wxFrame* appWindow, wxNotebook* notebook);
 		~Manager();
 
         bool SendEventTo(wxEvtHandler* handler, CodeBlocksEvent& event);
 		void OnMenu(wxCommandEvent& event);
         wxFrame* m_pAppWindow;
         wxNotebook* m_pNotebook;
-        wxWindow* m_pClientWin;
 };
 
 #endif // MANAGER_H
