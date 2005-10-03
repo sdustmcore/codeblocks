@@ -43,13 +43,15 @@ wxDataFormat wxsWindowResDataObject::GetPreferredFormat(Direction dir) const
 
 bool wxsWindowResDataObject::SetData(const wxDataFormat& format, size_t len, const void *buf)
 {
-    char* CharBuff = new char[len+1];
+	if ( !len ) return false;
+    char* CharBuff = new char[len];
     memcpy(CharBuff,buf,len);
-    CharBuff[len] = '\0';      // Adding padding zero
+    CharBuff[len-1] = '\0';      // Adding padding zero, just for sure
     bool Ret = SetXmlData(wxString(CharBuff,wxConvUTF8));
     delete[] CharBuff;
     return Ret;
 }
+
 
 void wxsWindowResDataObject::Clear()
 {
@@ -61,14 +63,14 @@ void wxsWindowResDataObject::Clear()
 bool wxsWindowResDataObject::AddWidget(wxsWidget* Widget)
 {
 	if ( !Widget ) return false;
-    TiXmlElement* Elem = XmlElem->InsertEndChild(TiXmlElement("object"))->ToElement();
-    if ( !Elem ) return false;
-    Elem->SetAttribute("class",Widget->GetInfo().Name.mb_str());
-    if ( !Widget->XmlSave(Elem) )
-    {
-        XmlElem->RemoveChild(Elem);
-        return false;
-    }
+	TiXmlElement* Elem = XmlElem->InsertEndChild(TiXmlElement("object"))->ToElement();
+	if ( !Elem ) return false;
+	Elem->SetAttribute("class",Widget->GetInfo().Name.mb_str());
+	if ( !Widget->XmlSave(Elem) )
+	{
+		XmlElem->RemoveChild(Elem);
+		return false;
+	}
 	WidgetsCount++;
 	return true;
 }
@@ -92,10 +94,10 @@ wxsWidget* wxsWindowResDataObject::BuildWidget(wxsWindowRes* Resource,int Index)
 	}
 	const char* Class = Root->Attribute("class");
 	if ( !Class || !*Class ) return NULL;
-
-	wxsWidget* Widget = wxsGEN(wxString(Class,wxConvUTF8),Resource);
+	
+	wxsWidget* Widget = wxsWidgetFactory::Get()->Generate(wxString(Class,wxConvUTF8),Resource);
 	if ( !Widget ) return NULL;
-
+	
 	Widget->XmlLoad(Root);
 	return Widget;
 }
@@ -119,14 +121,14 @@ bool wxsWindowResDataObject::SetXmlData(const wxString& Data)
     	Clear();
     	return false;
     }
-
+    
     for ( TiXmlElement* Elem = XmlElem->FirstChildElement("object");
           Elem;
           Elem = Elem->NextSiblingElement("object") )
     {
     	WidgetsCount++;
     }
-
+    
     return true;
 }
 

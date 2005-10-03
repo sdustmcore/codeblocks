@@ -41,7 +41,7 @@ void wxsWidgetFactory::Kill(wxsWidget* Widget)
         {
             Parent->DelChild(Widget);
         }
-        Widget->KillTree(wxsTREE());
+        Widget->KillTree(wxSmith::Get()->GetResourceTree());
         if ( Widget->GetPreview() ) Widget->KillPreview();
         
         if ( Widget->GetProperties() ) Widget->KillProperties();

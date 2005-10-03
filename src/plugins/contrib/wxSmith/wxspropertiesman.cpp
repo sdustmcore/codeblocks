@@ -50,7 +50,7 @@ void wxsPropertiesMan::SetActiveWidget(wxsWidget* Widget)
         PropertiesPanel->SetSizer(NewSizer);
         NewSizer->SetVirtualSizeHints(PropertiesPanel);
         
-        wxsTREE()->SelectItem(Widget->GetTreeId());
+        wxSmith::Get()->GetResourceTree()->SelectItem(Widget->GetTreeId());
     }
     
     PropertiesPanel->SetSize(Size);

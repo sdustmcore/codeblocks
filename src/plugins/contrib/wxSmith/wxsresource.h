@@ -8,7 +8,7 @@
 class wxsProject;
 class wxSmith;
 
-class wxsResource: public wxObject
+class wxsResource
 {
 	public:
 	
@@ -20,6 +20,9 @@ class wxsResource: public wxObject
 		
 		/** Getting current project */
 		inline wxsProject* GetProject() { return Project; }
+		
+		/** Getting current wxSmith plugin */
+		wxSmith* GetPlugin();
 		
         /** Function opening this resource in eeditor window,
          *  if editor window already exists, it must be activated
@@ -84,7 +87,6 @@ class wxsResource: public wxObject
         wxsProject* Project;
         int EditMode;
         wxTreeItemId ItemId;
-        
 };
 
 #endif // WXSRESOURCE_H

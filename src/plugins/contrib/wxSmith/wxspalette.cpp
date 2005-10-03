@@ -16,8 +16,9 @@ static const int PreviewId = wxNewId();
 
 wxsPalette* wxsPalette::Singleton = NULL;
 
-wxsPalette::wxsPalette(wxWindow* Parent,int PN):
+wxsPalette::wxsPalette(wxWindow* Parent,wxSmith* _Plugin,int PN):
     wxPanel(Parent),
+    Plugin(_Plugin),
     SelectedRes(NULL),
     SelectedWidget(NULL),
     InsType(itBefore),
@@ -136,7 +137,7 @@ void wxsPalette::CreateWidgetsPalette(wxWindow* Wnd)
     
     MapT Map;
     
-    for ( const wxsWidgetInfo* Info = wxsFACTORY()->GetFirstInfo(); Info; Info = wxsFACTORY()->GetNextInfo() )
+    for ( const wxsWidgetInfo* Info = wxsWidgetFactory::Get()->GetFirstInfo(); Info; Info = wxsWidgetFactory::Get()->GetNextInfo() )
         Map.insert(std::pair<const wxChar*,const wxsWidgetInfo*>(Info->Category,Info));
         
     // Creatign main sizer inside window
@@ -232,7 +233,7 @@ void wxsPalette::InsertRequest(const wxString& Name)
     
     wxsWindowEditor* Edit = Current->GetEditor();
     
-    wxsWidget* NewWidget = wxsGEN(Name,Current->GetResource());
+    wxsWidget* NewWidget = wxsWidgetFactory::Get()->Generate(Name,Current->GetResource());
     if ( NewWidget == NULL )
     {
         DebLog(_("wxSmith: Culdn't generate widget inside factory"));
@@ -254,7 +255,7 @@ void wxsPalette::InsertRequest(const wxString& Name)
             break;
             
         default:
-            wxsKILL(NewWidget);
+            wxsWidgetFactory::Get()->Kill(NewWidget);
             DebLog(_("Something went wrong"));
             break;
     }
@@ -279,14 +280,14 @@ void wxsPalette::InsertBefore(wxsWidget* New,wxsWidget* Ref)
     
     if ( !Parent || (Index=Parent->FindChild(Ref)) < 0 || Parent->AddChild(New,Index) < 0 )
     {
-        wxsKILL(New);
+        wxsWidgetFactory::Get()->Kill(New);
         return;
     }
 
     // Adding this new item into resource tree
     
-    New->BuildTree(wxsTREE(),Parent->TreeId,Index);
-    wxsTREE()->Refresh();
+    New->BuildTree(Plugin->GetResourceTree(),Parent->TreeId,Index);
+    Plugin->GetResourceTree()->Refresh();
 }   
 
 void wxsPalette::InsertAfter(wxsWidget* New,wxsWidget* Ref)
@@ -297,27 +298,26 @@ void wxsPalette::InsertAfter(wxsWidget* New,wxsWidget* Ref)
     
     if ( !Parent || (Index=Parent->FindChild(Ref)) < 0 || Parent->AddChild(New,Index+1) < 0 )
     {
-        wxsKILL(New);
+        wxsWidgetFactory::Get()->Kill(New);
         return;
     }
-    New->BuildTree(wxsTREE(),Parent->TreeId,Index+1);
-    wxsTREE()->Refresh();
+    New->BuildTree(Plugin->GetResourceTree(),Parent->TreeId,Index+1);
+    Plugin->GetResourceTree()->Refresh();
 }   
 
 void wxsPalette::InsertInto(wxsWidget* New,wxsWidget* Ref)
 {
     if ( Ref->AddChild(New) < 0 )
     {
-        wxsKILL(New);
+        wxsWidgetFactory::Get()->Kill(New);
         return;
     }
-    New->BuildTree(wxsTREE(),Ref->TreeId);
-    wxsTREE()->Refresh();
+    New->BuildTree(Plugin->GetResourceTree(),Ref->TreeId);
+    Plugin->GetResourceTree()->Refresh();
 }   
 
 void wxsPalette::DeleteRequest()
 {
-	
     wxsWidget* Current = wxsPropertiesMan::Get()->GetActiveWidget();
     if ( Current == NULL )
     {
@@ -340,7 +340,7 @@ void wxsPalette::DeleteRequest()
         Edit->KillPreview();
     }
     
-    wxsKILL(Current);
+    wxsWidgetFactory::Get()->Kill(Current);
 
     if ( Edit )
     {
@@ -351,7 +351,7 @@ void wxsPalette::DeleteRequest()
     {
 		SelectedRes->NotifyChange();
     }
-    wxsTREE()->Refresh();
+    Plugin->GetResourceTree()->Refresh();
 }
 
 void wxsPalette::PreviewRequest()

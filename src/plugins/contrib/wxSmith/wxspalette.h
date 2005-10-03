@@ -20,7 +20,7 @@ class wxsPalette : public wxPanel
         static const int itInto   = 0x04;
 	
         /** Constructor */
-		wxsPalette(wxWindow* Parent,int PageNum);
+		wxsPalette(wxWindow* Parent,wxSmith* Plugin,int PageNum);
 		
 		/** Destructor */
 		virtual ~wxsPalette();
@@ -33,6 +33,9 @@ class wxsPalette : public wxPanel
         
 	private:
 	
+        /** Plugin object */
+        wxSmith* Plugin;
+        
         /** Currently selected resource */
         wxsResource* SelectedRes;
         
