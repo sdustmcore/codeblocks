@@ -6,9 +6,6 @@ dist_pkgdata_DATA = console.cbp \
 		console.png \
 		console.template \
 		dll.png \
-		glfw-main.cpp \
-		glfw.png \
-		glfw.template \
 		irrlicht.png \
 		irr_main.cpp \
 		ogrelogo.png \

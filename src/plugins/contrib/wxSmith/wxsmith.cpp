@@ -19,7 +19,6 @@
 #include <projectmanager.h>
 #include <wx/notebook.h>
 #include <wx/sashwin.h>
-#include <configmanager.h>
 
 #include "wxsmith.h"
 #include "wxswindoweditor.h"
@@ -33,7 +32,6 @@
 #include "wxsnewwindowdlg.h"
 #include "wxsimportxrcdlg.h"
 #include "wxsresourcetree.h"
-#include "wxssettingsdlg.h"
 
 static int NewDialogId = wxNewId();
 static int NewFrameId = wxNewId();
@@ -82,7 +80,6 @@ wxSmith::~wxSmith()
 
 void wxSmith::OnAttach()
 {
-    ConfigManager::AddConfiguration(m_PluginInfo.title, _T("/wxsmith"));
     wxNotebook* Notebook = Manager::Get()->GetNotebook();
 	if ( Notebook )
 	{
@@ -165,9 +162,7 @@ void wxSmith::OnRelease(bool appShutDown)
 
 int wxSmith::Configure()
 {
-	wxsSettingsDlg Dlg(NULL);
-	Dlg.ShowModal();
-	return 1;
+	return -1;
 }
 
 void wxSmith::BuildMenu(wxMenuBar* menuBar)

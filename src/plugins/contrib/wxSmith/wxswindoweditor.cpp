@@ -144,6 +144,7 @@ bool wxsWindowEditor::GetModified()
 
 void wxsWindowEditor::SetModified(bool modified)
 {
+	DebLog("Setting modified to %d",modified);
     GetWinRes()->SetModified(modified);
     if ( GetWinRes()->GetModified() )
     {

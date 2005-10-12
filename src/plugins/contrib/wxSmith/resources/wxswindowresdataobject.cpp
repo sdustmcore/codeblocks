@@ -102,9 +102,10 @@ wxsWidget* wxsWindowResDataObject::BuildWidget(wxsWindowRes* Resource,int Index)
 
 bool wxsWindowResDataObject::SetXmlData(const wxString& Data)
 {
+    std::istringstream buffer(std::string(Data.mb_str()));
     XmlDoc.Clear();
     WidgetsCount = 0;
-	XmlDoc.Parse(Data.mb_str());
+	buffer >> XmlDoc;
     if ( XmlDoc.Error() )
     {
         DebLog(_T("wxSmith: Error loading Xml data -> ") + wxString(XmlDoc.ErrorDesc(),wxConvUTF8));
@@ -131,13 +132,7 @@ bool wxsWindowResDataObject::SetXmlData(const wxString& Data)
 
 wxString wxsWindowResDataObject::GetXmlData() const
 {
-    #ifdef TIXML_USE_STL
-        std::ostringstream buffer;
-        buffer << XmlDoc;
-        return wxString(buffer.str().c_str(),wxConvUTF8);
-    #else
-        TiXmlOutStream buffer;
-        buffer << XmlDoc;
-        return wxString(buffer.c_str(),wxConvUTF8);
-    #endif
+    std::ostringstream buffer;
+    buffer << XmlDoc;
+    return wxString(buffer.str().c_str(),wxConvUTF8);
 }

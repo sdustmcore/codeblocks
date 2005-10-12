@@ -3,7 +3,6 @@ pkgdatadir = $(datadir)/@PACKAGE@/templates
 dist_pkgdata_DATA = dll.cbp \
 		dll-main.cpp \
 		dll.template \
-		glfw-static.cbp \
 		gui.png \
 		irr_gcc.cbp \
 		irrlicht.template \
