@@ -11,7 +11,7 @@ require_once('prepend.php');
 </li><li> <b>Made in GNU C++</b>. No interpreted languages or proprietary libs needed.
 </li><li> <b>Comes in two presentations</b>: Standalone, and MinGW bundle
 </li><li> <b>Devpack support</b> (optional)
-</li><li> <b>Extensible thru plugins</b> (SDK available in the downloads section)
+</li><li> <b>Extensible through plugins</b> (SDK available in the downloads section)
 </li>
 </ul>
 
