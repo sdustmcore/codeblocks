@@ -5,21 +5,29 @@ require_once('prepend.php');
 <h1>Screenshots</h1>
 
 <ul class="bullet">
-<li><a href="#head"><b>CVS HEAD</b></a></li>
+<li><a href="#head"><b>SVN HEAD</b></a></li>
 <li><a href="#linux"><b>Unix</b></a></li>
 <li><a href="#windows"><b>Windows</b></a></li>
 <li><a href="#plugins"><b>Third-party plugins</b></a></li>
 </ul>
 
+<h3 id="head">SVN HEAD</h3>
+
 <table cellspacing="20">
 <tr>
 <td>
-<h3 id="head">CVS HEAD</h3>
-<a href="/img/screenshots/cvs_head.png">
-<img width="196" height="145" alt="Startup screen (CVS Head)"
-src="/img/screenshots/cvs_head-thumb.png" /></a><br />
-<span class="caption">Startup screen<br />
-(CVS, main branch)</span>
+<a href="/img/screenshots/cb_normal.png">
+<img width="196" height="155" alt="Default layout (SVN Head)"
+src="/img/screenshots/cb_normal_thumb.png" /></a><br />
+<span class="caption">Default layout<br />
+(SVN, main trunk)</span>
+</td>
+<td>
+<a href="/img/screenshots/cb_debugging.png">
+<img width="196" height="155" alt="Debugging (custom) layout (SVN Head)"
+src="/img/screenshots/cb_debugging_thumb.png" /></a><br />
+<span class="caption">Debugging layout<br />
+(SVN, main trunk)</span>
 </td>
 </tr>
 </table>
@@ -115,7 +123,7 @@ Code::Blocks crash)</p>
 <p>Other third-party plugins in the works: <b>GPROF Profiler plugin</b> (in development), <b>UML
 plugin</b> (design stage), <b>SVN plugin</b> (in development)</p>
 
-<p>Both <b>Code::blocks</b> and the <b>third party plugins</b> are available in the <a title="Go to downloads page" href="/downloads.shtml">Downloads page</a>.</p>
+<p>Both <b>Code::Blocks</b> and the <b>third party plugins</b> are available in the <a title="Go to downloads page" href="/downloads.shtml">Downloads page</a>.</p>
 
 <p class="caption"><b>[ <a href="/">Home</a> | <a title="testimonials" href="/testimonials.shtml">Prev</a> | <a title="Go to downloads page" href="/downloads.shtml">Download</a> ]</b></p>
 
