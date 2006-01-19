@@ -44,6 +44,17 @@ I found Code::Blocks and joined in the beginnings of 2005 to help debug and impl
 one or two features. Since then, I've been using Code::Blocks and never regretted it! :)</p>
 </div>
 
+<h4 class="sub">Thomas Denk (<a href="mailto: thomas [dot] denk [at] gmail [dot] com">Thomas</a>)</h4>
+<div class="section">
+<p class="caption"><b>Location: ?<br />
+Areas: Core developer</b></p>
+<h5>Bio:</h5>
+<p>(Not available yet)</p>
+
+<h5>How he joined the project:</h5>
+<p>(Not available yet)</p>
+</div>
+
 <h3>Contributors</h3>
 <p>(in no particular order)</p>
 
@@ -53,7 +64,7 @@ one or two features. Since then, I've been using Code::Blocks and never regrette
 Role: Plugins developer</b></p>
 <h5>Bio:</h5>
 <p>
-  He was born in Pereira and has been living there for 22 years. He's currently
+  Born in 1982. He's currently
   studying System and Computing Engineering in the UTP (<a href="http://www.utp.edu.co/">Universidad Tecnológica
   de Pereira</a>).
 </p>
@@ -102,17 +113,6 @@ Role: Beta-tester</b></p>
 <div class="section">
 <p class="caption"><b>Location: France<br />
 Role: Plugins developer, MSVC-importer contributor</b></p>
-<h5>Bio:</h5>
-<p>(Not available yet)</p>
-
-<h5>How he joined the project:</h5>
-<p>(Not available yet)</p>
-</div>
-
-<h4 class="sub">Thomas Denk (<a href="mailto: thomas [dot] denk [at] gmail [dot] com">Thomas</a>)</h4>
-<div class="section">
-<p class="caption"><b>Location: ?<br />
-Areas: SVN plugin, couple of bugreports, patches, lexer, template, a few WiKis</b></p>
 <h5>Bio:</h5>
 <p>(Not available yet)</p>
 
