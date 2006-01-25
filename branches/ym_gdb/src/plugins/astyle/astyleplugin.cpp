@@ -1,0 +1,147 @@
+/***************************************************************
+ * Name:      astyle.cpp
+ * Purpose:   Code::Blocks plugin
+ * Author:    Yiannis Mandravellos<mandrav@codeblocks.org>
+ * Created:   05/25/04 10:06:40
+ * Copyright: (c) Yiannis Mandravellos
+ * License:   GPL
+ **************************************************************/
+
+#include <sdk.h>
+
+#include "astyleplugin.h"
+#include <cbexception.h>
+#include <licenses.h>
+#include "astyleconfigdlg.h"
+#include <sstream>
+#include <string>
+#include "formattersettings.h"
+#include <manager.h>
+#include <editormanager.h>
+#include <configmanager.h>
+#include <cbeditor.h>
+#include <wx/msgdlg.h>
+#include <wx/xrc/xmlres.h>
+#include <wx/fs_zip.h>
+#include <wx/strconv.h>
+
+using std::istringstream;
+using std::string;
+
+CB_IMPLEMENT_PLUGIN(AStylePlugin);
+
+AStylePlugin::AStylePlugin()
+{
+	//ctor
+  wxFileSystem::AddHandler(new wxZipFSHandler);
+  wxXmlResource::Get()->InitAllHandlers();
+  wxString resPath = ConfigManager::GetDataFolder();
+  wxXmlResource::Get()->Load(resPath + _T("/astyle.zip#zip:*.xrc"));
+
+	m_PluginInfo.name = _T("AStylePlugin");
+	m_PluginInfo.title = _T("Source code formatter (AStyle)");
+	m_PluginInfo.version = _T("1.1");
+	m_PluginInfo.description = _T("Uses AStyle 1.17.0-dev to reformat your sources. Useful when copying code from the net or if you just want to reformat your sources based on a specific style.");
+	m_PluginInfo.author = _T("Yiannis Mandravellos | Ceniza (maintainer)");
+	m_PluginInfo.authorEmail = _T("mandrav@codeblocks.org | ceniza@gda.utp.edu.co");
+	m_PluginInfo.authorWebsite = _T("http://www.codeblocks.org");
+	m_PluginInfo.thanksTo = _T("AStyle team for the useful library.\nSee http://astyle.sourceforge.net");
+	m_PluginInfo.license = LICENSE_GPL;
+}
+
+AStylePlugin::~AStylePlugin()
+{
+	//dtor
+}
+
+void AStylePlugin::OnAttach()
+{
+}
+
+void AStylePlugin::OnRelease(bool appShutDown)
+{
+	// do de-initialization for your plugin
+	// NOTE: after this function, the inherited member variable
+	// m_IsAttached will be FALSE...
+}
+
+int AStylePlugin::Configure()
+{
+//  AstyleConfigDlg dlg(Manager::Get()->GetAppWindow());
+//  dlg.ShowModal();
+
+  return 0;
+}
+
+cbConfigurationPanel* AStylePlugin::GetConfigurationPanel(wxWindow* parent)
+{
+    AstyleConfigDlg* dlg = new AstyleConfigDlg(parent);
+    // deleted by the caller
+
+    return dlg;
+}
+
+int AStylePlugin::Execute()
+{
+  if (!IsAttached())
+  {
+    return -1;
+  }
+
+  cbEditor* ed = Manager::Get()->GetEditorManager()->GetBuiltinActiveEditor();
+
+  if (!ed)
+  {
+    return 0;
+  }
+
+  string edText(ed->GetControl()->GetText().mb_str());
+  wxString formattedText;
+
+  astyle::ASFormatter formatter;
+
+  // load settings
+  FormatterSettings settings;
+  settings.ApplyTo(formatter);
+
+  wxString eolChars;
+
+  switch (ed->GetControl()->GetEOLMode())
+  {
+    case wxSCI_EOL_CRLF: eolChars = _T("\r\n"); break;
+    case wxSCI_EOL_CR: eolChars = _T("\r"); break;
+    case wxSCI_EOL_LF: eolChars = _T("\n"); break;
+  }
+
+  if (edText.size() && *edText.rbegin() != '\r' && *edText.rbegin() != '\n')
+  {
+    edText += eolChars.mb_str();
+  }
+
+  istringstream iter(edText);
+  formatter.init(iter);
+
+  wxSetCursor(*wxHOURGLASS_CURSOR);
+
+  while (formatter.hasMoreLines())
+  {
+    formattedText << _U(formatter.nextLine().c_str());
+
+    if (formatter.hasMoreLines())
+    {
+      formattedText << eolChars;
+    }
+  }
+
+  int pos = ed->GetControl()->GetCurrentPos();
+
+  ed->GetControl()->BeginUndoAction();
+  ed->GetControl()->SetText(formattedText);
+  ed->GetControl()->EndUndoAction();
+  ed->GetControl()->GotoPos(pos);
+  ed->SetModified(true);
+
+  wxSetCursor(*wxSTANDARD_CURSOR);
+
+  return 0;
+}

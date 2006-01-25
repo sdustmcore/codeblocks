@@ -1,0 +1,184 @@
+/*
+* This file is part of Code::Blocks Studio, an open-source cross-platform IDE
+* Copyright (C) 2003  Yiannis An. Mandravellos
+*
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 2 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*
+* Contact e-mail: Yiannis An. Mandravellos <mandrav@codeblocks.org>
+* Program URL   : http://www.codeblocks.org
+*
+* $Id$
+* $Date$
+*/
+
+#include "sdk_precomp.h"
+#include "pipedprocess.h" // class' header file
+#include "sdk_events.h"
+
+// The folowing class is created to override wxTextStream::ReadLine()
+class cbTextInputStream : public wxTextInputStream
+{
+    public:
+#if wxUSE_UNICODE
+        cbTextInputStream(wxInputStream& s, const wxString &sep=wxT(" \t"), wxMBConv& conv = wxConvUTF8 )
+            : wxTextInputStream(s, sep, conv)
+        {
+            memset((void*)m_lastBytes, 0, 10);
+        }
+#else
+        cbTextInputStream(wxInputStream& s, const wxString &sep=wxT(" \t") )
+            : wxTextInputStream(s, sep)
+        {
+            memset((void*)m_lastBytes, 0, 10);
+        }
+#endif
+        ~cbTextInputStream(){}
+
+        // The folowing function was copied verbatim from wxTextStream::ReadLine()
+        // The only change, is the addition of m_input.CanRead() in the while()
+        wxString ReadLine()
+        {
+            wxString line;
+
+            while ( m_input.CanRead() && !m_input.Eof() )
+            {
+                wxChar c = NextChar();
+                if(m_input.LastRead() <= 0)
+                    break;
+
+                if ( !m_input )
+                    break;
+
+                if (EatEOL(c))
+                    break;
+
+                line += c;
+            }
+            return line;
+        }
+};
+
+int idTimerPollProcess = wxNewId();
+
+BEGIN_EVENT_TABLE(PipedProcess, wxProcess)
+    EVT_TIMER(idTimerPollProcess, PipedProcess::OnTimer)
+    EVT_IDLE(PipedProcess::OnIdle)
+END_EVENT_TABLE()
+
+// class constructor
+PipedProcess::PipedProcess(void** pvThis, wxEvtHandler* parent, int id, bool pipe, const wxString& dir)
+    : wxProcess(parent, id),
+	m_Parent(parent),
+	m_Id(id),
+	m_Pid(0),
+	m_pvThis(pvThis)
+{
+	wxSetWorkingDirectory(UnixFilename(dir));
+	if (pipe)
+		Redirect();
+}
+
+// class destructor
+PipedProcess::~PipedProcess()
+{
+	// insert your code here
+}
+
+int PipedProcess::Launch(const wxString& cmd, unsigned int pollingInterval)
+{
+    m_Pid = wxExecute(cmd, wxEXEC_ASYNC, this);
+	if (m_Pid)
+	{
+//		m_timerPollProcess.SetOwner(this, idTimerPollProcess);
+//		m_timerPollProcess.Start(pollingInterval);
+	}
+	return m_Pid;
+}
+
+void PipedProcess::SendString(const wxString& text)
+{
+	//Manager::Get()->GetMessageManager()->Log(m_PageIndex, cmd);
+	wxOutputStream* pOut = GetOutputStream();
+	if (pOut)
+	{
+		wxTextOutputStream sin(*pOut);
+		wxString msg = text + _T('\n');
+		sin.WriteString(msg);
+	}
+}
+
+bool PipedProcess::HasInput()
+{
+    bool hasInput = false;
+
+    if (IsErrorAvailable())
+    {
+        cbTextInputStream serr(*GetErrorStream());
+
+        wxString msg;
+        msg << serr.ReadLine();
+
+		CodeBlocksEvent event(cbEVT_PIPEDPROCESS_STDERR, m_Id);
+        event.SetString(msg);
+		wxPostEvent(m_Parent, event);
+// 		m_Parent->ProcessEvent(event);
+
+        hasInput = true;
+    }
+
+    if (IsInputAvailable())
+    {
+        cbTextInputStream sout(*GetInputStream());
+
+        wxString msg;
+        msg << sout.ReadLine();
+
+		CodeBlocksEvent event(cbEVT_PIPEDPROCESS_STDOUT, m_Id);
+        event.SetString(msg);
+		wxPostEvent(m_Parent, event);
+// 		m_Parent->ProcessEvent(event);
+
+        hasInput = true;
+    }
+
+    return hasInput;
+}
+
+void PipedProcess::OnTerminate(int pid, int status)
+{
+    // show the rest of the output
+    while ( HasInput() )
+        ;
+
+	CodeBlocksEvent event(cbEVT_PIPEDPROCESS_TERMINATED, m_Id);
+    event.SetInt(status);
+//   	m_Parent->ProcessEvent(event);
+	wxPostEvent(m_Parent, event);
+
+	if (m_pvThis)
+		*m_pvThis = 0L;
+    delete this;
+}
+
+void PipedProcess::OnTimer(wxTimerEvent& event)
+{
+    wxWakeUpIdle();
+}
+
+void PipedProcess::OnIdle(wxIdleEvent& event)
+{
+    while (HasInput())
+		;
+}
