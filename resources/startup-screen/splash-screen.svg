@@ -15,7 +15,7 @@
    sodipodi:version="0.32"
    inkscape:version="0.43"
    sodipodi:docbase="D:\Desktop\cb-full\resources\startup-screen"
-   sodipodi:docname="splash-screen.svg"
+   sodipodi:docname="splash-screen2.svg"
    inkscape:export-filename="D:\Desktop\splash_new.png"
    inkscape:export-xdpi="71.956215"
    inkscape:export-ydpi="71.956215">
@@ -199,9 +199,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.64309075"
-     inkscape:cx="111.76871"
-     inkscape:cy="700.29902"
+     inkscape:zoom="1.2861815"
+     inkscape:cx="397.06537"
+     inkscape:cy="798.64113"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      inkscape:window-width="1280"
@@ -363,95 +363,23 @@
        id="path1434"
        sodipodi:nodetypes="csss"
        inkscape:export-filename="D:\Desktop\curve.png"
-       inkscape:export-xdpi="576.32001"
-       inkscape:export-ydpi="576.32001" />
-    <path
-       id="path1436"
-       d="M 224.57642,261.69407 C 240.51757,279.26187 339.57182,355.50347 442.35302,345.97705 C 457.60091,344.55175 471.59543,342.79821 484.67028,340.73707 C 550.71944,330.32498 593.29974,312.06307 655.42913,288.60931"
-       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#410ea1;stroke-width:1.19999993;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       inkscape:export-filename="D:\Desktop\curve.png"
-       inkscape:export-xdpi="576.32001"
-       inkscape:export-ydpi="576.32001" />
-    <path
-       id="path1438"
-       d="M 210.63674,263.86074 C 229.98933,287.07062 333.76832,354.76246 439.38514,343.3149 C 455.1259,341.59083 469.71783,339.50673 483.41415,337.09813 C 555.3451,324.16869 599.18883,303.96086 660.89685,280.5335"
-       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#4d2093;stroke-width:1.19999993;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       inkscape:export-filename="D:\Desktop\curve.png"
-       inkscape:export-xdpi="576.32001"
-       inkscape:export-ydpi="576.32001" />
-    <path
-       id="path1440"
-       d="M 196.69706,266.0274 C 219.46109,294.87936 327.96482,354.02145 436.41727,340.65274 C 452.65089,338.62992 467.84023,336.21524 482.15801,333.45919 C 559.97075,318.01241 605.07792,295.85865 666.36456,272.45768"
-       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#5a3286;stroke-width:1.19999993;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       inkscape:export-filename="D:\Desktop\curve.png"
-       inkscape:export-xdpi="576.32001"
-       inkscape:export-ydpi="576.32001" />
-    <path
-       id="path1442"
-       d="M 182.75738,268.19407 C 208.93285,302.68811 322.16132,353.28045 433.44939,337.99059 C 450.17588,335.669 465.96263,332.92375 480.90188,329.82026 C 564.59641,311.85612 610.96701,287.75645 671.83228,264.38187"
-       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#664479;stroke-width:1.19999993;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       inkscape:export-filename="D:\Desktop\curve.png"
-       inkscape:export-xdpi="576.32001"
-       inkscape:export-ydpi="576.32001" />
-    <path
-       id="path1444"
-       d="M 159.6605,261.78803 C 200.15812,313.22453 316.35782,352.53944 430.48151,335.32843 C 447.70087,332.70809 464.08503,329.63226 479.64575,326.18132 C 569.22207,305.69983 616.8561,279.65424 677.29999,256.30606"
-       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#73566c;stroke-width:1.19999993;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       sodipodi:nodetypes="cccc"
-       inkscape:export-filename="D:\Desktop\curve.png"
-       inkscape:export-xdpi="576.32001"
-       inkscape:export-ydpi="576.32001" />
-    <path
-       id="path1446"
-       d="M 154.09869,271.55323 C 187.09703,317.33143 310.55432,351.79843 427.51364,332.66628 C 445.22585,329.74718 462.20743,326.34077 478.38961,322.54238 C 573.84773,299.54355 622.74519,271.55203 682.76771,248.23024"
-       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#7f695e;stroke-width:1.19999993;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       sodipodi:nodetypes="cccc"
-       inkscape:export-filename="D:\Desktop\curve.png"
-       inkscape:export-xdpi="576.32001"
-       inkscape:export-ydpi="576.32001" />
-    <path
-       id="path1448"
-       d="M 140.93835,274.69407 C 177.34813,326.11435 304.75082,351.05742 424.54576,330.00412 C 442.75084,326.78626 460.32983,323.04928 477.13348,318.90344 C 578.47339,293.38726 628.63428,263.44982 688.23542,240.15443"
-       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#8c7b51;stroke-width:1.19999993;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       inkscape:export-filename="D:\Desktop\curve.png"
-       inkscape:export-xdpi="576.32001"
-       inkscape:export-ydpi="576.32001" />
-    <path
-       id="path1450"
-       d="M 126.99867,276.86074 C 166.81989,333.92309 298.94732,350.31641 421.57789,327.34197 C 440.27583,323.82535 458.45224,319.75779 475.87735,315.2645 C 583.09904,287.23097 634.52337,255.34762 693.70314,232.07862"
-       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#988d44;stroke-width:1.19999993;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       inkscape:export-filename="D:\Desktop\curve.png"
-       inkscape:export-xdpi="576.32001"
-       inkscape:export-ydpi="576.32001" />
-    <path
-       id="path1452"
-       d="M 113.05899,279.0274 C 156.29165,341.73184 293.14381,349.57541 418.61001,324.67982 C 437.80082,320.86443 456.57464,316.46631 474.62121,311.62556 C 587.7247,281.07469 640.41246,247.24541 699.17085,224.0028"
-       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#a59f37;stroke-width:1.19999993;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       inkscape:export-filename="D:\Desktop\curve.png"
-       inkscape:export-xdpi="576.32001"
-       inkscape:export-ydpi="576.32001" />
-    <path
-       id="path1454"
-       d="M 99.119313,281.19407 C 145.76341,349.54058 287.34031,348.8344 415.64213,322.01766 C 435.32581,317.90352 454.69704,313.17482 473.36508,307.98662 C 592.35036,274.9184 646.30155,239.1432 704.63857,215.92699"
-       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#b2b22a;stroke-width:1.19999993;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       inkscape:export-filename="D:\Desktop\curve.png"
-       inkscape:export-xdpi="576.32001"
-       inkscape:export-ydpi="576.32001" />
+       inkscape:export-xdpi="576.3244"
+       inkscape:export-ydpi="576.3244" />
     <path
        sodipodi:nodetypes="csscscscc"
-       inkscape:export-ydpi="576.32001"
+       inkscape:export-ydpi="576.3244"
        inkscape:export-filename="D:\Desktop\curve.png"
        d="M 176.87333,160.41169 C 176.87333,160.41169 570.87333,160.41169 578.87333,160.41169 C 584.63555,160.41169 588.37333,163.78159 588.37333,169.91169 C 588.37333,177.91169 588.37333,181.41169 588.37333,181.41169 C 588.37333,181.41169 588.37313,268.63234 588.37313,268.63234 C 499.22661,302.7175 449.87333,318.78579 347.78996,333.55657 C 273.8981,307.57382 249.96997,281.73684 209.41853,251.62904 C 181.27949,230.73694 165.87333,233.91169 165.87333,233.91169 L 176.87333,160.41169 z "
-       inkscape:export-xdpi="576.32001"
+       inkscape:export-xdpi="576.3244"
        id="path1456"
        style="fill:#e6e6ff;fill-opacity:1;fill-rule:evenodd;stroke:url(#linearGradient1518);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
     <text
        xml:space="preserve"
        x="251.92998"
-       inkscape:export-ydpi="576.32001"
+       inkscape:export-ydpi="576.3244"
        inkscape:export-filename="D:\Desktop\curve.png"
        y="212.51486"
-       inkscape:export-xdpi="576.32001"
+       inkscape:export-xdpi="576.3244"
        sodipodi:linespacing="125%"
        id="text1458"
        style="font-size:28.96531677px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;font-family:Arial"><tspan
@@ -466,10 +394,10 @@
          id="tspan1462"
          style="font-size:12px;font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;stroke:none;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;font-family:Arial" /></text>
     <g
-       inkscape:export-ydpi="576.32001"
+       inkscape:export-ydpi="576.3244"
        inkscape:export-filename="D:\Desktop\curve.png"
        transform="translate(-20.64105,-241.7296)"
-       inkscape:export-xdpi="576.32001"
+       inkscape:export-xdpi="576.3244"
        id="g1464"
        style="opacity:1;fill:url(#linearGradient1520);fill-opacity:1;stroke:none;stroke-opacity:1">
       <rect
@@ -485,10 +413,10 @@
     <text
        xml:space="preserve"
        x="376.74878"
-       inkscape:export-ydpi="576.32001"
+       inkscape:export-ydpi="576.3244"
        inkscape:export-filename="D:\Desktop\curve.png"
        y="242.91881"
-       inkscape:export-xdpi="576.32001"
+       inkscape:export-xdpi="576.3244"
        sodipodi:linespacing="125%"
        id="text1468"
        style="font-size:13.37703609px;font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Times New Roman"><tspan
@@ -507,38 +435,11 @@
          y="273.3957"
          id="tspan1476"
          style="font-size:6px;font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;font-family:Times New Roman"> </tspan></text>
-    <path
-       sodipodi:nodetypes="csc"
-       inkscape:export-ydpi="576.32001"
-       inkscape:export-filename="D:\Desktop\curve.png"
-       d="M 99.119314,281.19398 C 152.91941,360.02601 333.01533,346.99235 473.36508,307.98653 C 592.35036,274.91831 646.30155,239.14311 704.63857,215.9269"
-       inkscape:export-xdpi="576.32001"
-       id="path1478"
-       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#b2b22a;stroke-width:1.19999993;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
-    <path
-       sodipodi:nodetypes="csc"
-       inkscape:export-ydpi="576.32001"
-       inkscape:export-filename="D:\Desktop\curve.png"
-       d="M 224.57642,261.69398 C 240.51757,279.26178 339.57182,355.50338 442.35302,345.97696 C 534.62742,337.35156 581.00083,316.7058 655.42913,288.60922"
-       inkscape:export-xdpi="576.32001"
-       id="path1480"
-       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#410ea1;stroke-width:1.19999993;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
-    <image
-       height="162.14282"
-       x="80.590363"
-       inkscape:export-ydpi="576.32001"
-       inkscape:export-filename="D:\Desktop\curve.png"
-       y="125.82965"
-       sodipodi:absref="D:\Desktop\cb-big.png"
-       width="157.80324"
-       inkscape:export-xdpi="576.32001"
-       xlink:href="cb-big.png"
-       id="image1482" />
     <g
        id="g2280"
        inkscape:export-filename="D:\Desktop\curve.png"
-       inkscape:export-xdpi="576.32001"
-       inkscape:export-ydpi="576.32001">
+       inkscape:export-xdpi="576.3244"
+       inkscape:export-ydpi="576.3244">
       <path
          inkscape:export-ydpi="557.59381"
          inkscape:export-xdpi="557.59381"
@@ -572,10 +473,10 @@
        style="font-size:15px;font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Times New Roman"
        id="text1457"
        sodipodi:linespacing="125%"
-       inkscape:export-xdpi="576.32001"
+       inkscape:export-xdpi="576.3244"
        y="291.63254"
        inkscape:export-filename="D:\Desktop\curve.png"
-       inkscape:export-ydpi="576.32001"
+       inkscape:export-ydpi="576.3244"
        x="377.26199"
        xml:space="preserve"><tspan
          style="font-size:15px;font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;line-height:125%;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;font-family:Times New Roman"
@@ -710,5 +611,89 @@
          inkscape:export-xdpi="557.59381"
          inkscape:export-ydpi="557.59381" />
     </g>
+    <path
+       inkscape:export-ydpi="576.32001"
+       inkscape:export-xdpi="576.32001"
+       inkscape:export-filename="D:\Desktop\curve.png"
+       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#4d2093;stroke-width:1.19999993;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 210.63674,263.86074 C 229.98933,287.07062 333.76832,354.76246 439.38514,343.3149 C 455.1259,341.59083 469.71783,339.50673 483.41415,337.09813 C 555.3451,324.16869 599.18883,303.96086 660.89685,280.5335"
+       id="path1407" />
+    <path
+       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#410ea1;stroke-width:1.19999993;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path1435"
+       inkscape:export-xdpi="576.32001"
+       d="M 224.57642,261.69398 C 240.51757,279.26178 339.57182,355.50338 442.35302,345.97696 C 534.62742,337.35156 581.00083,316.7058 655.42913,288.60922"
+       inkscape:export-filename="D:\Desktop\curve.png"
+       inkscape:export-ydpi="576.32001"
+       sodipodi:nodetypes="csc" />
+    <path
+       inkscape:export-ydpi="576.32001"
+       inkscape:export-xdpi="576.32001"
+       inkscape:export-filename="D:\Desktop\curve.png"
+       sodipodi:nodetypes="cccc"
+       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#73566c;stroke-width:1.19999993;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 159.6605,261.78803 C 200.15812,313.22453 316.35782,352.53944 430.48151,335.32843 C 447.70087,332.70809 464.08503,329.63226 479.64575,326.18132 C 569.22207,305.69983 616.8561,279.65424 677.29999,256.30606"
+       id="path1413" />
+    <path
+       inkscape:export-ydpi="576.32001"
+       inkscape:export-xdpi="576.32001"
+       inkscape:export-filename="D:\Desktop\curve.png"
+       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#664479;stroke-width:1.19999993;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 182.75738,268.19407 C 208.93285,302.68811 322.16132,353.28045 433.44939,337.99059 C 450.17588,335.669 465.96263,332.92375 480.90188,329.82026 C 564.59641,311.85612 610.96701,287.75645 671.83228,264.38187"
+       id="path1411" />
+    <path
+       inkscape:export-ydpi="576.32001"
+       inkscape:export-xdpi="576.32001"
+       inkscape:export-filename="D:\Desktop\curve.png"
+       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#5a3286;stroke-width:1.19999993;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 196.69706,266.0274 C 219.46109,294.87936 327.96482,354.02145 436.41727,340.65274 C 452.65089,338.62992 467.84023,336.21524 482.15801,333.45919 C 559.97075,318.01241 605.07792,295.85865 666.36456,272.45768"
+       id="path1409" />
+    <path
+       inkscape:export-ydpi="576.32001"
+       inkscape:export-xdpi="576.32001"
+       inkscape:export-filename="D:\Desktop\curve.png"
+       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#b2b22a;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 99.119313,281.19407 C 145.76341,349.54058 287.34031,348.8344 415.64213,322.01766 C 435.32581,317.90352 454.69704,313.17482 473.36508,307.98662 C 592.35036,274.9184 646.30155,239.1432 704.63857,215.92699"
+       id="path1423" />
+    <path
+       inkscape:export-ydpi="576.32001"
+       inkscape:export-xdpi="576.32001"
+       inkscape:export-filename="D:\Desktop\curve.png"
+       sodipodi:nodetypes="cccc"
+       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#7f695e;stroke-width:1.19999993;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 154.09869,271.55323 C 187.09703,317.33143 310.55432,351.79843 427.51364,332.66628 C 445.22585,329.74718 462.20743,326.34077 478.38961,322.54238 C 573.84773,299.54355 622.74519,271.55203 682.76771,248.23024"
+       id="path1415" />
+    <path
+       inkscape:export-ydpi="576.32001"
+       inkscape:export-xdpi="576.32001"
+       inkscape:export-filename="D:\Desktop\curve.png"
+       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#8c7b51;stroke-width:1.19999993;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 140.93835,274.69407 C 177.34813,326.11435 304.75082,351.05742 424.54576,330.00412 C 442.75084,326.78626 460.32983,323.04928 477.13348,318.90344 C 578.47339,293.38726 628.63428,263.44982 688.23542,240.15443"
+       id="path1417" />
+    <path
+       inkscape:export-ydpi="576.32001"
+       inkscape:export-xdpi="576.32001"
+       inkscape:export-filename="D:\Desktop\curve.png"
+       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#988d44;stroke-width:1.19999993;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 126.99867,276.86074 C 166.81989,333.92309 298.94732,350.31641 421.57789,327.34197 C 440.27583,323.82535 458.45224,319.75779 475.87735,315.2645 C 583.09904,287.23097 634.52337,255.34762 693.70314,232.07862"
+       id="path1419" />
+    <path
+       inkscape:export-ydpi="576.32001"
+       inkscape:export-xdpi="576.32001"
+       inkscape:export-filename="D:\Desktop\curve.png"
+       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#a59f37;stroke-width:1.19999993;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 113.05899,279.0274 C 156.29165,341.73184 293.14381,349.57541 418.61001,324.67982 C 437.80082,320.86443 456.57464,316.46631 474.62121,311.62556 C 587.7247,281.07469 640.41246,247.24541 699.17085,224.0028"
+       id="path1421" />
+    <image
+       height="162.14282"
+       x="80.590363"
+       inkscape:export-ydpi="576.3244"
+       inkscape:export-filename="D:\Desktop\curve.png"
+       y="125.82965"
+       sodipodi:absref="D:\Desktop\cb-big.png"
+       width="157.80324"
+       inkscape:export-xdpi="576.3244"
+       xlink:href="cb-big.png"
+       id="image1482" />
   </g>
 </svg>
