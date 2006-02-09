@@ -34,7 +34,7 @@ if(in_array($_SERVER['PHP_SELF'],array('/','/index.php')) &&
 
 require_once('prepend.php');
 ?>
-<title>Code::Blocks Studio - Open Source, Cross-platform Free C++ IDE</title>
+<title>Code::Blocks IDE - Open Source, Cross-platform Free C++ IDE</title>
 <h1>Code::Blocks</h1>
 
 <div class="right">
@@ -45,7 +45,8 @@ src="/img/screenshots/scr1_tiny.jpg" /><br />
 <a class="caption" href="screenshots.shtml">(more screenshots)</a>
 </div>
 <h2 style="font-size:1.2em;border-bottom:none;">The open source, cross platform Free C++ IDE.</h2>
-<p><b>Newest version: <a href="/downloads.shtml">1.0rc2</a>, Oct 25, 2005</b></p>
+<p><b>Latest stable release: <a href="/downloads.shtml">1.0rc2</a></b>, Oct 25, 2005<br>
+<b><a href="/nightly">Nightly builds</a></b> are also available.</b></p>
 
 <p>Code::Blocks is a <em>free C++ IDE</em> built specifically to meet the most demanding needs of its users.
 It was designed, right from the start, to be extensible and configurable.</p>
