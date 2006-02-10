@@ -18,7 +18,7 @@
   </li>
   <li><h3>Information</h3>
     <ul>
-      <li><a href="http://codeblocks.sourceforge.net/wiki/index.php/FAQ" rel="external">FAQ</a></li>
+      <li><a href="http://wiki.codeblocks.org/index.php?title=FAQ" rel="external">FAQ</a></li>
       <li><a href="http://codeblocks.sourceforge.net/wiki/" rel="external">WiKi</a></li>
       <li><a href="/handbook.shtml">Handbook</a></li>
       <li><a href="/about.shtml">About us</a></li>
