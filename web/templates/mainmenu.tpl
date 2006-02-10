@@ -19,15 +19,15 @@
   <li><h3>Information</h3>
     <ul>
       <li><a href="http://wiki.codeblocks.org/index.php?title=FAQ" rel="external">FAQ</a></li>
-      <li><a href="http://codeblocks.sourceforge.net/wiki/" rel="external">WiKi</a></li>
+      <li><a href="http://wiki.codeblocks.org" rel="external">WiKi</a></li>
       <li><a href="/handbook.shtml">Handbook</a></li>
       <li><a href="/about.shtml">About us</a></li>
-      <li><a href="http://forums.codeblocks.org/" rel="external">Forum</a></li>
+      <li><a href="http://forums.codeblocks.org/" rel="external">Forums</a></li>
     </ul>
   </li>
   <li><h3>Development</h3>
     <ul>
-      <li><a href="http://sourceforge.net/projects/codeblocks" rel="external"><b>Project Page</b></a></li>
+      <li><a href="http://developer.berlios.de/projects/codeblocks/" rel="external"><b>Project Page</b></a></li>
       <li><a href="http://developer.berlios.de/bugs/?func=addbug&group_id=5358" rel="external">Report bugs</a></li>
       <li><a href="http://developer.berlios.de/patch/?func=addpatch&group_id=5358" rel="external">Submit patch</a></li>
       <li><a href="http://developer.berlios.de/feature/?func=addfeature&group_id=5358" rel="external">Ftr Requests</a></li>
