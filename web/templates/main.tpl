@@ -2,9 +2,10 @@
   if(!in_array($_SERVER['PHP_SELF'],array('/index.shtml','/','/index.php')))
    $title.=' - Code::Blocks';
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" 
-  "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xml:lang="en-us" xmlns="http://www.w3.org/1999/xhtml">
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+                      "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US">
 <head>
     <title><? echo $title;?></title>
 
@@ -14,8 +15,8 @@
 
     <!-- script type="text/javascript" src="/js/scripts.js"></script -->
 
-    <meta http-equiv="Content-type" content="text/html; charset=iso-8859-1" />
-    <meta http-equiv="Content-Language" content="en-us" />
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <meta http-equiv="Content-Language" content="en-US" />
     <meta name="ROBOTS" content="ALL" />
     <meta name="Copyright" content="Design Copyright (c) 2005 Ricardo Garcia, Per Eckerdal. Content Copyright (c) the respective authors" />
     <meta http-equiv="imagetoolbar" content="no" />
