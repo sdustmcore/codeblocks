@@ -60,7 +60,7 @@ We hope you enjoy using it!</p>
 
 <p class="caption"><b>[ <a title="Features list" href="/features.shtml">Next</a> ]</b></p>
 
-<hr>
+<hr />
 
 
 <?php

@@ -24,7 +24,7 @@ google_color_text = "000000";
  alt="Get Firefox!" title="Get Firefox!" width="88" height="31" src="img/getfirefox.gif" /></a></p>
 <p class="center"><a href="http://developer.berlios.de">
  <img src="http://developer.berlios.de/bslogo.php?group_id=5358"
- width="124" height="32" border="0" alt="BerliOS Logo" /></a></p>
+ width="124" height="32" alt="BerliOS Logo" style="border: none;" /></a></p>
 <p class="center"><a href="http://sourceforge.net">
  <img src="http://sourceforge.net/sflogo.php?group_id=126998&amp;type=1"
  width="88" height="31" alt="SourceForge.net Logo" /></a></p>

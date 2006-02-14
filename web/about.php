@@ -100,7 +100,7 @@ Role: Plugins developer (wxSmith visual plugin), unicode converter</b></p>
 
 <h4 class="sub">David Perfors (<a href="mailto: mispunt [at] users [dot] sourceforge [dot] net">Mispunt</a>)</h4>
 <div class="section">
-<p class="caption"><b>Location: Holand<br />
+<p class="caption"><b>Location: Holland<br />
 Role: Beta-tester</b></p>
 <h5>Bio:</h5>
 <p>(Not available yet)</p>

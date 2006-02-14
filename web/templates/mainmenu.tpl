@@ -28,9 +28,9 @@
   <li><h3>Development</h3>
     <ul>
       <li><a href="http://developer.berlios.de/projects/codeblocks/" rel="external"><b>Project Page</b></a></li>
-      <li><a href="http://developer.berlios.de/bugs/?func=addbug&group_id=5358" rel="external">Report bugs</a></li>
-      <li><a href="http://developer.berlios.de/patch/?func=addpatch&group_id=5358" rel="external">Submit patch</a></li>
-      <li><a href="http://developer.berlios.de/feature/?func=addfeature&group_id=5358" rel="external">Ftr Requests</a></li>
+      <li><a href="http://developer.berlios.de/bugs/?func=addbug&amp;group_id=5358" rel="external">Report bugs</a></li>
+      <li><a href="http://developer.berlios.de/patch/?func=addpatch&amp;group_id=5358" rel="external">Submit patch</a></li>
+      <li><a href="http://developer.berlios.de/feature/?func=addfeature&amp;group_id=5358" rel="external">Ftr Requests</a></li>
       <li><a href="/nightly">Nightly builds</a></li>
       <li><a href="/source_code.shtml">Source code</a></li>
     </ul>
