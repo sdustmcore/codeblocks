@@ -1,5 +1,5 @@
 <?php
-ini_set('display_errors','0');
+ini_set('display_errors','1');
 if(is_file('forums/SSI.php'))
   include('forums/SSI.php');
 
@@ -41,22 +41,25 @@ require_once('prepend.php');
 <a href="/img/screenshots/scr1.png"><img width="312" height="229"
 alt="Screenshot" title="Zoom in"
 src="/img/screenshots/scr1_tiny.jpg" /><br />
-<span class="caption">(zoom in)</span></a><br />
+<span class="caption">1.0RC2 (zoom in)</span></a><br />
 <a class="caption" href="screenshots.shtml">(more screenshots)</a>
 </div>
 <h2 style="font-size:1.2em;border-bottom:none;">The open source, cross platform Free C++ IDE.</h2>
-<p><b>Latest stable release: <a href="/downloads.shtml">1.0rc2</a></b>, Oct 25, 2005<br />
-<b><a href="/nightly">Nightly builds</a></b> are also available.</p>
 
 <p>Code::Blocks is a <em>free C++ IDE</em> built specifically to meet the most demanding needs of its users.
 It was designed, right from the start, to be extensible and configurable.</p>
 
-<p>Built around a plugin framework, Code::Blocks can be <em>extended with plugin DLLs</em>. It
-includes a plugin wizard so you can <em>compile your own plugins</em>! (Free SDK downloaded separately)</p>
+<p>Built around a plugin framework, Code::Blocks can be <em>extended with plugins</em>. It
+includes a plugin wizard so you can <em>create your own plugins</em>! (Free SDK downloaded separately)</p>
 
-<p style="clear:right">For more information on Code::Blocks, please go to the <a href="/features.shtml">features list</a>.<br />
-We hope you enjoy using it!</p>
+<p style="clear:right">Finally, an IDE with all the <a href="/features.shtml">features</a> <em>you</em> need,
+having a consistent look'n'feel and operation across platforms.<br />
+We hope you enjoy using Code::Blocks!</p>
 <p>The Code::Blocks Team.</p>
+
+<p><b>Latest official release: <a href="/downloads.shtml">1.0rc2</a></b>, Oct 25, 2005<br />
+<b>Development snapshots are also <a href="/nightly">available</a></b>, one each night (try them, they 're
+pretty stable and unbelievably feature-rich!).</p>
 
 <p class="caption"><b>[ <a title="Features list" href="/features.shtml">Next</a> ]</b></p>
 

@@ -2,7 +2,7 @@
   if(!in_array($_SERVER['PHP_SELF'],array('/index.shtml','/','/index.php')))
    $title.=' - Code::Blocks';
 ?>
-<?xml version="1.0" encoding="iso-8859-1"?>
+<!--?xml version="1.0" encoding="iso-8859-1"?-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
                       "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US">
@@ -48,6 +48,7 @@
 <div class="subblock">
 <a href="http://sourceforge.net/donate/index.php?group_id=126998"><img
  class="center" src="/img/project-support.jpg" width="88" height="32" alt="Support this project"/></a>
+ <span class="caption"><center>Donate if you want to support our efforts!</center></span>
 </div>
 </td>
 <td rowspan="2" class="main topblock"><div id="mainblock">
