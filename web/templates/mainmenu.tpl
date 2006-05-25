@@ -16,13 +16,14 @@
   <li><h3><a href="/news.shtml" accesskey="n">News</a></h3>
    <ul><li><a href="/archive.shtml">Archive</a></li></ul>
   </li>
-  <li><h3>Information</h3>
+  <li><h3>Resources</h3>
     <ul>
       <li><a href="http://wiki.codeblocks.org/index.php?title=FAQ" rel="external">FAQ</a></li>
-      <li><a href="http://wiki.codeblocks.org" rel="external">WiKi</a></li>
-      <li><a href="/handbook.shtml">Handbook</a></li>
-      <li><a href="/about.shtml">About us</a></li>
       <li><a href="http://forums.codeblocks.org/" rel="external">Forums</a></li>
+      <li><a href="http://wiki.codeblocks.org" rel="external">WiKi</a></li>
+      <!-- <li><a href="/handbook.shtml">Handbook</a></li> -->
+      <li><a href="/about.shtml">About us</a></li>
+      <li><a href="/license.shtml">License</a></li>
     </ul>
   </li>
   <li><h3>Development</h3>
