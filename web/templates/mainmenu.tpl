@@ -4,6 +4,7 @@
      <li><a href="/features.shtml">Features</a></li>
      <li><a href="/testimonials.shtml">Testimonials</a></li>
      <li><a href="/screenshots.shtml">Screenshots</a></li>
+     <li><a href="/donations.shtml">Donations</a></li>
    </ul>
   </li>
   <li><h3><a href="/whatsnew.shtml">What's new</a></h3>
