@@ -61,6 +61,11 @@ We hope you enjoy using Code::Blocks!</p>
 <b>Development snapshots are also <a href="/nightly">available</a></b>, one each night (try them, they 're
 pretty stable and unbelievably feature-rich!).</p>
 
+<p>
+<table border=0 cellpadding=0 bgcolor=#ffffc0 align="center"><tr><td><i><sub>NOTE: Code::Blocks is in no way related to Julian Smart or <a href="http://www.anthemion.co.uk/">Anthemion Software</a>'s
+<a href="http://www.anthemion.co.uk/dialogblocks/">DialogBlocks</a>.</sub></i></td></tr></table>
+</p>
+
 <p class="caption"><b>[ <a title="Features list" href="/features.shtml">Next</a> ]</b></p>
 
 <hr />
