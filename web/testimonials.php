@@ -10,6 +10,17 @@ forums (sorted by date; grammar corrected).</p>
 <p>But if you want, you can skip all the hype and jump right to the <a href="/screenshots.shtml">screenshots</a>.</p>
 
 <ul class="bullet">
+<li><h5>Code::Blocks vs. Visual Studio</h5>
+<p class="caption">From: kidmosey (registered user) - Aug 08, 2006 - 09:13 AM</p>
+
+<div class="section">
+<p>
+  It is smaller, faster (the interface), cross-platform, extensible, non-bloated, FREE, and a number of other adjectives.
+<br />
+  After 5 years of using Visual Studio, C::B is a breath of fresh air.
+</p>
+</div>
+</li>
 <li><h5>The Best C++ IDE</h5>
 <p class="caption">From: bszente (registered user. Location: Romania) - Feb 06, 2005 - 05:40 PM</p>
 
