@@ -1,16 +1,11 @@
-SUBDIRS = src
+SUBDIRS = tools sdk src plugins setup templates scripts wxsmith
 
-pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = codeblocks.pc
+dist_pkgdata_DATA = tips.txt
 
-EXTRA_DIST = $(top_srcdir)/bootstrap \
-		$(top_srcdir)/BUGS \
-		$(top_srcdir)/BUILD \
-		$(top_srcdir)/COMPILERS
-
-clean-zipfiles:
-	find . -name "*.zip" | xargs rm -f
-
-clean-bin:
-	find . -name "*.la" | xargs rm -f
-	rm -f src/src/codeblocks
+EXTRA_DIST = CodeBlocks.cbp \
+		CodeBlocks-unix.cbp \
+		ContribPlugins.workspace \
+		ContribPlugins-unix.workspace \
+		update \
+		update.bat \
+		sdk.doxy
