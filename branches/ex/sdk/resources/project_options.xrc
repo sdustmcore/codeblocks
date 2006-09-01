@@ -1,0 +1,577 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resource>
+  <object class="wxDialog" name="dlgProjectOptions">
+    <title>Project/targets options</title>
+    <centered>1</centered>
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxNotebook" name="nbMain">
+          <usenotebooksizer>1</usenotebooksizer>
+          <object class="notebookpage">
+            <label>Project</label>
+            <object class="wxPanel" name="tabProject">
+              <object class="wxBoxSizer">
+                <orient>wxVERTICAL</orient>
+                <object class="sizeritem">
+                  <object class="wxFlexGridSizer">
+                    <cols>2</cols>
+                    <vgap>8</vgap>
+                    <hgap>8</hgap>
+                    <growablecols>1</growablecols>
+                    <object class="sizeritem">
+                      <object class="wxStaticText">
+                        <label>Title:</label>
+                      </object>
+                      <flag>wxTOP</flag>
+                      <border>4</border>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxTextCtrl" name="txtProjectName"/>
+                      <flag>wxEXPAND</flag>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxStaticText">
+                        <label>Filename:</label>
+                      </object>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxStaticText" name="txtProjectFilename">
+                        <label></label>
+                      </object>
+                      <flag>wxEXPAND</flag>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxStaticText">
+                        <label>Makefile:</label>
+                      </object>
+                      <flag>wxTOP</flag>
+                      <border>4</border>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxFlexGridSizer">
+                        <object class="sizeritem">
+                          <object class="wxTextCtrl" name="txtProjectMakefile"/>
+                          <minsize>160,-1</minsize>
+                        </object>
+                        <object class="sizeritem">
+                          <object class="wxCheckBox" name="chkCustomMakefile">
+                            <label>This is a custom Makefile</label>
+                          </object>
+                          <flag>wxTOP</flag>
+                          <border>4</border>
+                        </object>
+                        <cols>2</cols>
+                        <rows>2</rows>
+                        <object class="spacer">
+                          <size>0,0</size>
+                        </object>
+                        <object class="sizeritem">
+                          <object class="wxStaticText">
+                            <label>(the file must exist, no Makefile will be auto-generated)</label>
+                            <fg>#800000</fg>
+                          </object>
+                        </object>
+                        <hgap>8</hgap>
+                      </object>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxStaticText">
+                        <label>Precompiled headers:</label>
+                      </object>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxRadioBox" name="rbPCHStrategy">
+                        <label>Strategy</label>
+                        <content>
+                          <item>Generate PCH in a directory alongside original header</item>
+                          <item>Generate PCH in the object output dir</item>
+                          <item>Generate PCH alongside original header (default)</item>
+                        </content>
+                        <selection>2</selection>
+                        <dimension>1</dimension>
+                        <style>wxRA_SPECIFY_COLS</style>
+                      </object>
+                    </object>
+                    <object class="spacer"/>
+                    <object class="sizeritem">
+                      <object class="wxBoxSizer">
+                        <orient>wxVERTICAL</orient>
+                        <object class="sizeritem">
+                          <object class="wxStaticText">
+                            <label>If you change the strategy used for PCH generation,</label>
+                            <fg>#800000</fg>
+                          </object>
+                        </object>
+                        <object class="sizeritem">
+                          <object class="wxStaticText">
+                            <label>please delete the old PCH file (or directory) manually to avoid conflicts...</label>
+                            <fg>#800000</fg>
+                          </object>
+                        </object>
+                      </object>
+                      <option>1</option>
+                      <flag>wxGROW</flag>
+                    </object>
+                  </object>
+                  <option>1</option>
+                  <flag>wxALL|wxEXPAND</flag>
+                  <border>8</border>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxBoxSizer">
+                    <orient>wxHORIZONTAL</orient>
+                    <object class="sizeritem">
+                      <object class="wxButton" name="btnProjectDeps">
+                        <label>Project's dependencies...</label>
+                      </object>
+                      <flag>wxLEFT</flag>
+                      <border>8</border>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxButton" name="btnProjectBuildOptions">
+                        <label>Project's build options...</label>
+                      </object>
+                      <flag>wxLEFT</flag>
+                      <border>8</border>
+                    </object>
+                  </object>
+                  <flag>wxBOTTOM|wxRIGHT|wxALIGN_RIGHT</flag>
+                  <border>8</border>
+                </object>
+              </object>
+            </object>
+          </object>
+          <object class="notebookpage">
+            <label>Targets</label>
+            <object class="wxPanel" name="tabTargets">
+              <object class="wxBoxSizer">
+                <orient>wxHORIZONTAL</orient>
+                <object class="sizeritem">
+                  <object class="wxStaticBoxSizer">
+                    <orient>wxVERTICAL</orient>
+                    <object class="sizeritem">
+                      <object class="wxBoxSizer">
+                        <orient>wxHORIZONTAL</orient>
+                        <object class="sizeritem">
+                          <object class="wxListBox" name="lstBuildTarget">
+                            <content/>
+                          </object>
+                          <option>1</option>
+                          <flag>wxEXPAND</flag>
+                        </object>
+                        <object class="sizeritem">
+                          <object class="wxBoxSizer">
+                            <orient>wxVERTICAL</orient>
+                            <object class="sizeritem">
+                              <object class="wxButton" name="btnAddBuildTarget">
+                                <label>Add</label>
+                              </object>
+                              <flag>wxGROW</flag>
+                            </object>
+                            <object class="sizeritem">
+                              <object class="wxButton" name="btnEditBuildTarget">
+                                <label>Rename</label>
+                              </object>
+                              <flag>wxTOP|wxGROW</flag>
+                              <border>4</border>
+                            </object>
+                            <object class="sizeritem">
+                              <object class="wxButton" name="btnCopyBuildTarget">
+                                <label>Duplicate</label>
+                              </object>
+                              <flag>wxTOP|wxGROW</flag>
+                              <border>4</border>
+                            </object>
+                            <object class="sizeritem">
+                              <object class="wxButton" name="btnDelBuildTarget">
+                                <label>Delete</label>
+                              </object>
+                              <flag>wxTOP|wxGROW</flag>
+                              <border>4</border>
+                            </object>
+                            <object class="spacer">
+                              <size>0,0</size>
+                              <option>1</option>
+                              <flag>wxGROW</flag>
+                            </object>
+                            <object class="sizeritem">
+                              <object class="wxButton" name="btnVirtualBuildTargets">
+                                <label>Virtual targets...</label>
+                              </object>
+                              <flag>wxGROW</flag>
+                            </object>
+                            <object class="sizeritem">
+                              <object class="wxButton" name="btnExternalDeps">
+                                <label>Dependencies...</label>
+                              </object>
+                              <flag>wxTOP|wxGROW</flag>
+                              <border>4</border>
+                            </object>
+                            <object class="sizeritem">
+                              <object class="wxButton" name="btnBuildOrder">
+                                <label>Re-order...</label>
+                              </object>
+                              <flag>wxTOP|wxGROW</flag>
+                              <border>4</border>
+                            </object>
+                            <object class="sizeritem">
+                              <object class="wxButton" name="btnTargetBuildOptions">
+                                <label>Build options...</label>
+                              </object>
+                              <flag>wxTOP|wxGROW</flag>
+                              <border>4</border>
+                            </object>
+                            <object class="spacer">
+                              <size>0,0</size>
+                              <option>1</option>
+                              <flag>wxGROW</flag>
+                            </object>
+                            <object class="sizeritem">
+                              <object class="wxButton" name="btnExportTarget">
+                                <label>Create project
+from target...</label>
+                              </object>
+                              <flag>wxEXPAND</flag>
+                            </object>
+                          </object>
+                          <flag>wxLEFT|wxGROW</flag>
+                          <border>4</border>
+                        </object>
+                      </object>
+                      <option>1</option>
+                      <flag>wxTOP|wxGROW</flag>
+                      <border>4</border>
+                    </object>
+                    <label>Build targets</label>
+                  </object>
+                  <option>1</option>
+                  <flag>wxALL|wxEXPAND</flag>
+                  <border>8</border>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxBoxSizer">
+                    <orient>wxVERTICAL</orient>
+                    <object class="sizeritem">
+                      <object class="wxStaticBoxSizer">
+                        <label>Selected build target options</label>
+                        <orient>wxVERTICAL</orient>
+                        <object class="sizeritem">
+                          <object class="wxFlexGridSizer">
+                            <object class="sizeritem">
+                              <object class="wxStaticText">
+                                <label>Type:</label>
+                              </object>
+                              <flag>wxTOP</flag>
+                              <border>4</border>
+                            </object>
+                            <object class="sizeritem">
+                              <object class="wxBoxSizer">
+                                <orient>wxVERTICAL</orient>
+                                <object class="sizeritem">
+                                  <object class="wxComboBox" name="cmbProjectType">
+                                    <content>
+                                      <item>GUI application</item>
+                                      <item>Console application</item>
+                                      <item>Static library</item>
+                                      <item>Dynamic library</item>
+                                      <item>Commands only</item>
+                                    </content>
+                                    <selection>0</selection>
+                                    <style>wxCB_READONLY|wxCB_DROPDOWN</style>
+                                  </object>
+                                </object>
+                                <object class="sizeritem">
+                                  <object class="wxCheckBox" name="chkUseConsoleRunner">
+                                    <label>Pause when execution ends</label>
+                                    <tooltip>Pause with &quot;Press any key&quot; when execution ends (only when executed from inside Code::Blocks)</tooltip>
+                                  </object>
+                                  <flag>wxTOP|wxEXPAND</flag>
+                                  <border>2</border>
+                                </object>
+                              </object>
+                              <option>1</option>
+                              <flag>wxBOTTOM|wxEXPAND</flag>
+                              <border>4</border>
+                            </object>
+                            <object class="sizeritem">
+                              <object class="wxStaticText">
+                                <label>Output filename:</label>
+                              </object>
+                              <flag>wxTOP</flag>
+                              <border>4</border>
+                            </object>
+                            <object class="sizeritem">
+                              <object class="wxBoxSizer">
+                                <orient>wxHORIZONTAL</orient>
+                                <object class="sizeritem">
+                                  <object class="wxTextCtrl" name="txtOutputFilename"/>
+                                  <option>1</option>
+                                  <flag>wxEXPAND</flag>
+                                </object>
+                                <object class="sizeritem">
+                                  <object class="wxButton" name="btnBrowseOutputFilename">
+                                    <label>...</label>
+                                  </object>
+                                  <minsize>22,22</minsize>
+                                </object>
+                              </object>
+                              <flag>wxEXPAND</flag>
+                            </object>
+                            <object class="sizeritem">
+                              <object class="wxStaticText">
+                                <label>Execution working dir:</label>
+                              </object>
+                              <flag>wxTOP</flag>
+                              <border>4</border>
+                            </object>
+                            <object class="sizeritem">
+                              <object class="wxBoxSizer">
+                                <orient>wxHORIZONTAL</orient>
+                                <object class="sizeritem">
+                                  <object class="wxTextCtrl" name="txtWorkingDir"/>
+                                  <option>1</option>
+                                  <flag>wxEXPAND</flag>
+                                </object>
+                                <object class="sizeritem">
+                                  <object class="wxButton" name="btnBrowseWorkingDir">
+                                    <label>...</label>
+                                  </object>
+                                  <minsize>22,22</minsize>
+                                </object>
+                              </object>
+                              <flag>wxEXPAND</flag>
+                            </object>
+                            <object class="sizeritem">
+                              <object class="wxStaticText">
+                                <label>Objects output dir:</label>
+                              </object>
+                              <flag>wxTOP</flag>
+                              <border>4</border>
+                            </object>
+                            <object class="sizeritem">
+                              <object class="wxBoxSizer">
+                                <orient>wxHORIZONTAL</orient>
+                                <object class="sizeritem">
+                                  <object class="wxTextCtrl" name="txtObjectDir"/>
+                                  <option>1</option>
+                                  <flag>wxEXPAND</flag>
+                                </object>
+                                <object class="sizeritem">
+                                  <object class="wxButton" name="btnBrowseObjectDir">
+                                    <label>...</label>
+                                  </object>
+                                  <minsize>22,22</minsize>
+                                </object>
+                              </object>
+                              <flag>wxEXPAND</flag>
+                            </object>
+                            <object class="spacer">
+                              <size>0,0</size>
+                            </object>
+                            <object class="sizeritem">
+                              <object class="wxCheckBox" name="chkBuildThisTarget">
+                                <label>Build this target with &quot;All&quot;</label>
+                                <hidden>1</hidden>
+                                <tooltip>Build this target when building the whole project.\nIf no target is marked to be built, the targets resemble MSVC configurations.</tooltip>
+                              </object>
+                              <flag>wxEXPAND</flag>
+                            </object>
+                            <cols>2</cols>
+                            <vgap>4</vgap>
+                            <hgap>4</hgap>
+                            <growablecols>1</growablecols>
+                            <object class="spacer">
+                              <size>0,0</size>
+                            </object>
+                            <object class="sizeritem">
+                              <object class="wxCheckBox" name="chkCreateDefFile">
+                                <label>Create .DEF exports file</label>
+                              </object>
+                              <flag>wxEXPAND</flag>
+                            </object>
+                            <object class="spacer">
+                              <size>0,0</size>
+                            </object>
+                            <object class="sizeritem">
+                              <object class="wxCheckBox" name="chkCreateStaticLib">
+                                <label>Create import library</label>
+                              </object>
+                              <flag>wxEXPAND</flag>
+                            </object>
+                          </object>
+                          <flag>wxTOP|wxEXPAND</flag>
+                          <border>4</border>
+                        </object>
+                      </object>
+                      <flag>wxGROW</flag>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxStaticBoxSizer">
+                        <label>Selected build target files:</label>
+                        <orient>wxVERTICAL</orient>
+                        <object class="sizeritem">
+                          <object class="wxCheckList" name="lstFiles">
+                            <content/>
+                          </object>
+                          <option>1</option>
+                          <flag>wxTOP|wxBOTTOM|wxEXPAND</flag>
+                          <border>4</border>
+                        </object>
+                        <object class="sizeritem">
+                          <object class="wxBoxSizer">
+                            <orient>wxHORIZONTAL</orient>
+                            <object class="sizeritem">
+                              <object class="wxButton" name="btnToggleCheckmarks">
+                                <label>Toggle checkmarks</label>
+                              </object>
+                            </object>
+                            <object class="spacer">
+                              <size>1,1</size>
+                              <option>1</option>
+                            </object>
+                            <object class="sizeritem">
+                              <object class="wxButton" name="btnFileOptions">
+                                <label>Selected file properties</label>
+                              </object>
+                            </object>
+                          </object>
+                          <flag>wxGROW</flag>
+                          <border>4</border>
+                        </object>
+                      </object>
+                      <option>1</option>
+                      <flag>wxTOP|wxEXPAND</flag>
+                      <border>8</border>
+                    </object>
+                  </object>
+                  <option>1</option>
+                  <flag>wxTOP|wxBOTTOM|wxRIGHT|wxEXPAND</flag>
+                  <border>8</border>
+                </object>
+              </object>
+            </object>
+          </object>
+          <object class="notebookpage">
+            <label>Scripts</label>
+            <object class="wxPanel" name="tabScripts">
+              <object class="wxBoxSizer">
+                <orient>wxHORIZONTAL</orient>
+                <object class="sizeritem">
+                  <object class="wxBoxSizer">
+                    <orient>wxVERTICAL</orient>
+                    <object class="sizeritem">
+                      <object class="wxStaticText">
+                        <label>Project overview:</label>
+                      </object>
+                      <flag>wxBOTTOM|wxGROW</flag>
+                      <border>4</border>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxTreeCtrl" name="tcOverview">
+                        <style>wxTR_NO_BUTTONS|wxTR_SINGLE</style>
+                      </object>
+                      <option>1</option>
+                      <flag>wxGROW</flag>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxButton" name="btnCheckScripts">
+                        <label>Validate all attached scripts</label>
+                      </object>
+                      <flag>wxTOP|wxALIGN_CENTRE_HORIZONTAL</flag>
+                      <border>8</border>
+                    </object>
+                  </object>
+                  <option>1</option>
+                  <flag>wxALL|wxGROW</flag>
+                  <border>8</border>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxBoxSizer">
+                    <orient>wxVERTICAL</orient>
+                    <object class="sizeritem">
+                      <object class="wxBoxSizer">
+                        <orient>wxVERTICAL</orient>
+                        <object class="sizeritem">
+                          <object class="wxStaticText">
+                            <label>Attached build scripts:</label>
+                          </object>
+                          <flag>wxBOTTOM|wxGROW</flag>
+                          <border>4</border>
+                        </object>
+                        <object class="sizeritem">
+                          <object class="wxBoxSizer">
+                            <orient>wxHORIZONTAL</orient>
+                            <object class="sizeritem">
+                              <object class="wxListBox" name="lstPreScripts">
+                                <content/>
+                              </object>
+                              <option>1</option>
+                              <flag>wxGROW</flag>
+                            </object>
+                            <object class="sizeritem">
+                              <object class="wxSpinButton" name="spnPreScripts"/>
+                              <flag>wxLEFT|wxALIGN_CENTRE_VERTICAL</flag>
+                              <border>4</border>
+                            </object>
+                          </object>
+                          <option>1</option>
+                          <flag>wxGROW</flag>
+                        </object>
+                        <object class="sizeritem">
+                          <object class="wxBoxSizer">
+                            <orient>wxHORIZONTAL</orient>
+                            <object class="sizeritem">
+                              <object class="wxButton" name="btnAddPreScripts">
+                                <label>Add</label>
+                              </object>
+                            </object>
+                            <object class="sizeritem">
+                              <object class="wxButton" name="btnRemovePreScripts">
+                                <label>Remove</label>
+                              </object>
+                            </object>
+                          </object>
+                          <flag>wxTOP|wxALIGN_CENTRE_HORIZONTAL</flag>
+                          <border>8</border>
+                        </object>
+                      </object>
+                      <option>1</option>
+                      <flag>wxGROW</flag>
+                    </object>
+                  </object>
+                  <option>2</option>
+                  <flag>wxTOP|wxBOTTOM|wxRIGHT|wxGROW</flag>
+                  <border>8</border>
+                </object>
+              </object>
+            </object>
+          </object>
+        </object>
+        <option>1</option>
+        <flag>wxALL|wxEXPAND</flag>
+        <border>8</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxStdDialogButtonSizer">
+          <object class="button">
+            <object class="wxButton" name="wxID_OK">
+              <label></label>
+              <label>&amp;Ok</label>
+              <default>1</default>
+            </object>
+          </object>
+          <object class="button">
+            <object class="wxButton" name="wxID_CANCEL">
+              <label></label>
+              <label>&amp;Cancel</label>
+            </object>
+          </object>
+        </object>
+        <flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTRE_HORIZONTAL</flag>
+        <border>8</border>
+      </object>
+    </object>
+    <style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxRESIZE_BOX</style>
+  </object>
+</resource>

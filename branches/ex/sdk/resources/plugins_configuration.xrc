@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resource>
+  <object class="wxDialog" name="dlgConfigurePlugins">
+    <title>Configure plugins</title>
+    <centered>1</centered>
+    <style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxRESIZE_BOX</style>
+    <object class="wxBoxSizer">
+      <object class="sizeritem">
+        <object class="wxStaticText">
+          <label>Available plugins:</label>
+        </object>
+        <flag>wxTOP|wxALL</flag>
+        <border>8</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxCheckList" name="lstPlugins">
+          <content/>
+        </object>
+        <option>1</option>
+        <flag>wxLEFT|wxRIGHT|wxGROW</flag>
+        <border>8</border>
+        <minsize>320,240</minsize>
+      </object>
+      <object class="sizeritem">
+        <object class="wxStaticText">
+          <label>Put a checkmark on those plugins that should be auto-loaded on startup.</label>
+        </object>
+        <flag>wxTOP|wxLEFT|wxRIGHT|wxGROW</flag>
+        <border>8</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxStaticText">
+          <label>Changes will take effect after restarting Code::Blocks.</label>
+        </object>
+        <flag>wxBOTTOM|wxLEFT|wxRIGHT|wxGROW</flag>
+        <border>8</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxStaticLine"/>
+        <flag>wxLEFT|wxRIGHT|wxGROW</flag>
+        <border>8</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxStdDialogButtonSizer">
+          <object class="button">
+            <object class="wxButton" name="wxID_OK">
+              <label></label>
+              <label>&amp;Ok</label>
+              <default>1</default>
+            </object>
+          </object>
+          <object class="button">
+            <object class="wxButton" name="wxID_CANCEL">
+              <label></label>
+              <label>&amp;Cancel</label>
+            </object>
+          </object>
+        </object>
+        <flag>wxALL|wxALIGN_CENTRE_HORIZONTAL</flag>
+        <border>8</border>
+      </object>
+      <orient>wxVERTICAL</orient>
+    </object>
+  </object>
+</resource>
