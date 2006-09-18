@@ -1,5 +1,0 @@
-function main()
-{
-	Log(_T("Running startup script"));
-    // ShowMessage(_T("Hello world!"));
-}
