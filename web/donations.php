@@ -1,12 +1,13 @@
 <?php require_once('prepend.php'); ?>
 <title>Donations</title>
 <h1>Donations</h1>
-
+We want to thank the following donors for supporting our project:
 <p>
 <ul>
-<li><a href="http://www.seocompany.ca/">SEO Company</a> financially supports the
-free and open source software (FOSS) community with Project SOS (Support Open Source).</li>
-<li>Other anonymous individual donors.</li>
+<li><a href="http://www.seocompany.ca" target="_blank">http://www.seocompany.ca</a></li>
+<li><a href="http://www.zergdir.com" target="_blank">http://www.zergdir.com</a></li>
+<li><a href="http://www.thedirectoryzone.com" target="_blank">http://www.thedirectoryzone.com</a></li>
+<li><b>Other anonymous individual donors who are greatly respected for donating.</b></li>
 </ul>
 </p>
 
@@ -19,4 +20,10 @@ If you want to support Code::Blocks by donating, clik this button:&nbsp;
 <p>
 If you have donated to this project and you don't see your name in the above list (but you want to), please
 <a href="mailto:donations@codeblocks.org">contact us</a>.
+</p>
+<hr/>
+<p class="caption">
+<b>Important note:</b><br/>
+If you own a search engine, web directory or any other relevant enterprise and you want to donate money to this project for your own benefit (e.g. advertising), you are free to do so. But be warned that the link to your site will be removed from this page after one or two months since its initial appearence here.<br/>
+You don't seriously expect to be advertised here forever because you donated a small amount of money once, do you?
 </p>
