@@ -58,7 +58,7 @@ Areas: Core developer</b></p>
 <h3>Contributors</h3>
 <p>(in no particular order)</p>
 
-<h4 class="sub">Paúl Andrés Jiménez (<a title="yes, it's .co, for Colombia" href="mailto:ceniza [at] gda [dot] utp [dot] edu [dot] co">Ceniza</a>)</h4>
+<h4 class="sub">Paúl Andrés Jiménez (<a href="mailto:ceniza666 [at] yahoo [dot] com">Ceniza</a>)</h4>
 <div class="section">
 <p class="caption"><b>Location: Pereira/Risaralda - Colombia - South America<br />
 Role: Plugins developer</b></p>
