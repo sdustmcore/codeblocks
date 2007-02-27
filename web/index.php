@@ -1,7 +1,5 @@
 <?php
-ini_set('display_errors','1');
-if(is_file('forums/SSI.php'))
-  include('forums/SSI.php');
+ini_set('display_errors','0');
 
 ////////////////////////////////////////////////////////
 // Hack to redirect old forum urls (PNphpBB2) to the  //
@@ -42,38 +40,29 @@ require_once('prepend.php');
 alt="Screenshot" title="Zoom in"
 src="/img/screenshots/scr1_tiny.jpg" /><br />
 <span class="caption">1.0RC2 (zoom in)</span></a><br />
-<a class="caption" href="screenshots.shtml">(more screenshots)</a>
+<a class="caption" href="screenshots.php">(more screenshots)</a>
 </div>
 <h2 style="font-size:1.2em;border-bottom:none;">The open source, cross platform Free C++ IDE.</h2>
 
-<p>Code::Blocks is a <em>free C++ IDE</em> built specifically to meet the most demanding needs of its users.
-It was designed, right from the start, to be extensible and configurable.</p>
+<p>Code::Blocks is a <em>free C++ IDE</em> built to meet the most demanding needs of its users.
+It is designed to be very extensible and fully configurable.</p>
 
-<p>Built around a plugin framework, Code::Blocks can be <em>extended with plugins</em>. It
+<p>Built around a plugin framework, Code::Blocks can be <em>extended with plugins</em>. It even
 includes a plugin wizard so you can <em>create your own plugins</em>! (Free SDK downloaded separately)</p>
 
-<p style="clear:right">Finally, an IDE with all the <a href="/features.shtml">features</a> <em>you</em> need,
-having a consistent look'n'feel and operation across platforms.<br />
+<p style="clear:right">Finally, an IDE with all the <a href="/features.php">features</a> <em>you</em> need,
+having a consistent look, feel and operation across platforms.<br />
 We hope you enjoy using Code::Blocks!</p>
 <p>The Code::Blocks Team.</p>
 
-<p><b>Latest official release: <a href="/downloads.shtml">1.0rc2</a></b>, Oct 25, 2005<br />
-<b>Development snapshots are also <a href="/nightly">available</a></b>, one each night (try them, they 're
-pretty stable and unbelievably feature-rich!).</p>
+<p><b><a href="/downloads.php">Download Code::Blocks now!</a></b></p>
 
-<p>
-<table border=0 cellpadding=0 bgcolor=#ffffc0 align="center"><tr><td><i><sub>NOTE: Code::Blocks is in no way related to Julian Smart or <a href="http://www.anthemion.co.uk/">Anthemion Software</a>'s
-<a href="http://www.anthemion.co.uk/dialogblocks/">DialogBlocks</a>.</sub></i></td></tr></table>
-</p>
-
-<p class="caption"><b>[ <a title="Features list" href="/features.shtml">Next</a> ]</b></p>
+<p class="caption"><b>[ <a title="Features list" href="/features.php">Next</a> ]</b></p>
 
 <hr />
 
 
+<p><b>Latest <a href="http://forums.codeblocks.org">forum</a> topics:</b></p>
 <?php
-if(function_exists('ssi_recentTopics')) {
-?><p><b>Latest <a href="http://forums.codeblocks.org">forum</a> topics:</b></p><?
-   ssi_recentTopics();
-}
+include('http://forums.codeblocks.org/SSI.php?ssi_function=recentTopics');
 ?>
