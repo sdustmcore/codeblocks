@@ -39,7 +39,7 @@ require_once('prepend.php');
 <a href="/img/screenshots/scr1.png"><img width="312" height="229"
 alt="Screenshot" title="Zoom in"
 src="/img/screenshots/scr1_tiny.jpg" /><br />
-<span class="caption">1.0RC2 (zoom in)</span></a><br />
+<span class="caption">Nightly build (zoom in)</span></a><br />
 <a class="caption" href="screenshots.php">(more screenshots)</a>
 </div>
 <h2 style="font-size:1.2em;border-bottom:none;">The open source, cross platform Free C++ IDE.</h2>
