@@ -364,3 +364,9 @@ ul#topnav li.third a:hover {
 	font-size: 0.8em;
 	text-align: center;
 }
+
+/* -------- used by SMF forums SSI ------- */
+
+.ssi_table {
+	font-size: 0.8em;
+}
