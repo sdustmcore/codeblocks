@@ -22,7 +22,7 @@
       <li><a href="http://wiki.codeblocks.org/index.php?title=FAQ" rel="external">FAQ</a></li>
       <li><a href="http://forums.codeblocks.org/" rel="external">Forums</a></li>
       <li><a href="http://wiki.codeblocks.org" rel="external">WiKi</a></li>
-      <!-- <li><a href="/handbook.shtml">Handbook</a></li> -->
+      <li><a href="/manual.shtml">Manual</a></li>
       <li><a href="/about.shtml">About us</a></li>
       <li><a href="/license.shtml">License</a></li>
     </ul>
