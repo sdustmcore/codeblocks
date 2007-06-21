@@ -1,7 +1,7 @@
 <div class="center">
 <?php
-	include('textlinkads.tpl');
-	//include('googleads.tpl');
+//	include('textlinkads.tpl');
+	include('googleads.tpl');
 ?>
 </div>
 <p class="center">
