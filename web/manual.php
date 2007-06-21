@@ -11,7 +11,7 @@ community-driven effort and contributions/criticism/suggestions are welcomed.
 
 <p>
 The initial documentation had started as an internal project of
-<a href="www.hightec-rt.com">HighTec EDV-Systeme GmbH</a> who is now
+<a href="www.hightec-rt.com" target="_blank">HighTec EDV-Systeme GmbH</a> who is now
 making it yet another contribution to the community.
 </p>
 

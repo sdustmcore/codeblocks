@@ -4,9 +4,7 @@
 We want to thank the following donors for supporting our project:
 <p>
 <ul>
-<li><a href="http://www.seocompany.ca" target="_blank">http://www.seocompany.ca</a></li>
-<li><a href="http://www.zergdir.com" target="_blank">http://www.zergdir.com</a></li>
-<li><a href="http://www.thedirectoryzone.com" target="_blank">http://www.thedirectoryzone.com</a></li>
+<li><a href="http://www.hightec-rt.com" target="_blank">HighTec EDV-Systeme GmbH</a></li>
 <li><b>Other anonymous individual donors who are greatly respected for donating.</b></li>
 </ul>
 </p>
