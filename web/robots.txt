@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /img
+Disallow: /css
+
+User-agent: EmailCollector
+Disallow: /
