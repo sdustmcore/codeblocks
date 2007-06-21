@@ -55,9 +55,9 @@ having a consistent look, feel and operation across platforms.<br />
 We hope you enjoy using Code::Blocks!</p>
 <p>The Code::Blocks Team.</p>
 
-<p><b><a href="/downloads.php">Download Code::Blocks now!</a></b></p>
+<p><a href="/downloads.php"><img alt="Download Code::Blocks now!" src="/img/download_now.png" /></a></p>
 
-<p class="caption"><b>[ <a title="Features list" href="/features.php">Next</a> ]</b></p>
+<!-- <p class="caption"><b>[ <a title="Features list" href="/features.php">Next</a> ]</b></p> -->
 
 <hr />
 
