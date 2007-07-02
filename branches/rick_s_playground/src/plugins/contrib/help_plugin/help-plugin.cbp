@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="Help" />
+		<Option pch_mode="0" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="help_plugin">
+				<Option output="..\..\..\devel\share\CodeBlocks\plugins\help_plugin.dll" prefix_auto="0" extension_auto="0" />
+				<Option object_output="..\..\..\.objs\plugins\contrib\help_plugin" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option host_application="..\..\..\devel\codeblocks.exe" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+					<Add option="-Winvalid-pch" />
+					<Add option="-pipe" />
+					<Add option="-mthreads" />
+					<Add option="-fmessage-length=0" />
+					<Add option="-fexceptions" />
+					<Add option='-include &quot;sdk.h&quot;' />
+					<Add option="-DBUILDING_PLUGIN" />
+					<Add option="-DCB_PRECOMP" />
+					<Add option="-DWX_PRECOMP" />
+					<Add option="-DHAVE_W32API_H" />
+					<Add option="-D__WXMSW__" />
+					<Add option="-DWXUSINGDLL" />
+					<Add option="-DcbDEBUG" />
+					<Add option="-DTIXML_USE_STL" />
+					<Add option="-DwxUSE_UNICODE" />
+				</Compiler>
+				<ExtraCommands>
+					<Add after="zip -j9 ..\..\..\devel\share\CodeBlocks\help_plugin.zip manifest.xml *.xrc" />
+					<Mode after="always" />
+				</ExtraCommands>
+			</Target>
+			<Environment>
+				<Variable name="WX_SUFFIX" value="u" />
+				<Variable name="WX_CFG" value="" />
+			</Environment>
+		</Build>
+		<VirtualTargets>
+			<Add alias="All" targets="help_plugin;" />
+		</VirtualTargets>
+		<Compiler>
+			<Add directory="$(#WX.include)" />
+			<Add directory="$(#WX.lib)\gcc_dll$(WX_CFG)\msw$(WX_SUFFIX)" />
+			<Add directory="$(#WX)\contrib\include" />
+			<Add directory="$(#CB.include)" />
+			<Add directory="$(#CB.include)\wxscintilla\include" />
+		</Compiler>
+		<ResourceCompiler>
+			<Add directory="$(#WX.include)" />
+		</ResourceCompiler>
+		<Linker>
+			<Add option="-Wl,--enable-auto-image-base" />
+			<Add option="-Wl,--add-stdcall-alias" />
+			<Add library="wxmsw28$(WX_SUFFIX)" />
+			<Add library="codeblocks" />
+			<Add library="wxscintilla" />
+			<Add directory="$(#CB.lib)" />
+			<Add directory="$(#CB)\devel" />
+			<Add directory="$(#WX.lib)\gcc_dll$(WX_CFG)" />
+		</Linker>
+		<Unit filename="HelpConfigDialog.cpp" />
+		<Unit filename="HelpConfigDialog.h" />
+		<Unit filename="help_common.cpp" />
+		<Unit filename="help_common.h" />
+		<Unit filename="help_plugin.cpp" />
+		<Unit filename="help_plugin.h" />
+		<Unit filename="help_plugin.xrc" />
+		<Unit filename="manifest.xml" />
+		<Extensions>
+			<code_completion />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
