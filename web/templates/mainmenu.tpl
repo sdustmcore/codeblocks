@@ -14,8 +14,8 @@
     </ul>
   </li>
   <li><h3><a href="/downloads.shtml" accesskey="d">Downloads</a></h3></li>
-  <li><h3><a href="/news.shtml" accesskey="n">News</a></h3>
-   <ul><li><a href="/archive.shtml">Archive</a></li></ul>
+  <-- <li><h3><a href="/news.shtml" accesskey="n">News</a></h3></li>
+   <ul><li><a href="/archive.shtml">Archive</a></li></ul> -->
   </li>
   <li><h3>Resources</h3>
     <ul>
