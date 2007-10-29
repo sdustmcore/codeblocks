@@ -1,6 +1,43 @@
+# No images, please ----------------------------------
+User-agent: Googlebot-Image
+Disallow: /
+User-agent: yahoo-mmcrawler
+Disallow: /
+
+
+# Throttle down requests -----------------------------
+User-agent: MSNBot
+Crawl-delay: 240
+User-agent: Slurp
+Crawl-delay: 2.2
+User-agent: Speedy
+Crawl-Delay: 10
+
+
+# My Chinese friends ---------------------------------
+
+# Sucks 4 times as much bandwidth as Google and Yahoo, and delivers 0.4% of refe
+rrals
+User-agent: baiduspider
+Disallow: /
+
+# Nasty hammering spider (40-50 requests per second, lots of wrong URLs, daily v
+isits), zero referrals
+User-Agent: YodaoBot
+Disallow: /
+
+
+# WTF? -----------------------------------------------
+# Microsoft: "We are using the MSRBot web crawler to collect data from the web f
+or further study"
+User-agent: msrbot
+Disallow: /
+
+
+# General section ------------------------------------
+
 User-agent: *
+Crawl-delay: 10
+Disallow: /forbidden
 Disallow: /img
 Disallow: /css
-
-User-agent: EmailCollector
-Disallow: /
