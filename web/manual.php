@@ -16,11 +16,11 @@ making it yet another contribution to the community.
 </p>
 
 <p>
-The documentation is provided in English and German, in PDF and CHM formats.
+The documentation is provided in English and German, in PDF, CHM and HTML formats.
 More formats will follow soon.
 </p>
 
 <ul>
-<li><b>English manual</b>: <a href="docs/manual_en.pdf">PDF</a> <a href="docs/manual_en.chm">CHM</a></li>
-<li><b>German manual</b>: <a href="docs/manual_de.pdf">PDF</a> <a href="docs/manual_de.chm">CHM</a></li>
+<li><b>English manual</b>: <a href="docs/manual_en.pdf">PDF</a> <a href="docs/manual_en.chm">CHM</a> <a href="docs/main_codeblocks_en.html">HTML</a></li>
+<li><b>German manual</b>: <a href="docs/manual_de.pdf">PDF</a> <a href="docs/manual_de.chm">CHM</a> <a href="docs/main_codeblocks_de.html">HTML</a></li>
 </ul>
