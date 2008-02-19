@@ -33,6 +33,17 @@ if(in_array($_SERVER['PHP_SELF'],array('/','/index.php')) &&
 require_once('prepend.php');
 ?>
 <title>Code::Blocks IDE - Open Source, Cross-platform Free C++ IDE</title>
+<h1>Moving to new server</h1>
+
+We are in the process of moving our sites to a new server. This will take a few minutes
+from our side, as we have already prepared everything for the move.<br>
+But it might take from a few minutes up to 48 hours for you to "see" the new server. It's
+a matter of the DNS changes propagating around the internet and especially reaching your
+ISP's DNS servers.
+<p>
+Thank you for your patience :)
+<p>
+
 <h1>Code::Blocks</h1>
 
 <div class="right">
