@@ -348,6 +348,12 @@ code with user defined folding
 
 \codeblocks parst beim Öffnen eines Projektes die \samp{Search directories} die für einen Compiler oder Projekt eingestellt wurden und die im Projekt befindlichen Quellen und Header. Des weiteren werden auch die Keywords der zugehörigen Lexerdateien geparst. Die aus dem Parsen gewonne Information über Symbole kann für die sogenannte Auto completion genutzt werden, wenn diese in den Einstellungen des Editors für \codeblocks aktiviert ist. Die Auto completion können Sie im Editor über das Tastenkürzel Ctrl-Space ausführen. Im Menü \menu{Settings,Editor,Syntax highlighting} können eigene keywords zum Lexer hinzugefügt werden.
 
+\subsection{Find broken files}
+
+Wenn eine Datei auf der Festplatte gelöscht wurde, jedoch in der Projektbeschreibung \file{\var{project}.cbp} noch enthalten ist, dann wir diese Datei als \samp{broken file} mit einem unterbrochenem Symbol in der Project View von \codeblocks angezeigt. Das Entfernen einer Datei sollte in der Projekt View mit dem Kontextmenü \menu{Remove file from project} vorgenommen werden.
+
+Bei größeren Projekten mit vielen Unterordnern kann die Suchen nach \samp{broken files} sehr schwierig werden. \codeblocks bietet jedoch mit dem Plugin ThreadSearch (siehe \pxref{sec:thread_search}) eine einfache Lösung. Wenn Sie in ThreadSearch einen Suchbegriff eingeben und als Option \menu{Project files} oder \menu{Workspace files} wählen, wird ThreadSearch alle Dateien eines Projektes durchsuchen; falls ein \samp{broken file} im Projekt oder Workspace vorkommt, wird als Fehler diese Datei gemeldet.
+
 \subsection{Einbinden von Bibliotheken}
 
 In den Builtoption eines Projektes können Sie unter \samp{Linker Settings} im Eintrag \samp{Link libraries} über die Schaltfläche \samp{Add} verwendete Bibliotheken hinzufügen. Dabei können Sie entweder den absoluten Pfad zur Bibliothek durchsuchen oder nur den Namen ohne den Prefix \file{lib} und die Dateiendung angeben.

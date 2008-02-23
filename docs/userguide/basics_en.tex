@@ -347,6 +347,12 @@ code with user defined folding
 
 If you open a open a project in \codeblocks the \samp{Search directories} of your compiler and the project, the sources and headers of your project are parsed. In addition the keyowrds of the corresponding lexer file are parsed. The parse information is used for the auto complete feature in \codeblocks. Please check the settings for the editor if this feature is enabled. The auto completion is accessible with the shortcut Ctrl-Space. Via the menu \menu{Settings,Editor,Syntax highlighting} you can add user defined keywords to your lexer.
 
+\subsection{Find broken files}
+
+If a file is removed from disk, but is still included in the project file \file{\var{project}.cbp}, then this \samp{broken file} will be shown a broken symbol in the project view. You should use the menu \menu{Remove file from project} instead of deleting files.
+
+In large projects with a lot of subdirectories the search for broken files can be time consuming. \codeblocks offers with the plug-in ThreadSearch (see \pxref{sec:thread_search}) a simple solution for this problem. If you enter a search expression in ThreadSearch and select the option \menu{Project files} or \menu{Workspace files}, then ThreadSearch will parse all files that are included in a project or workspace. If a broken file is found ThreadSerch will issue an error with the missing file.
+
 \subsection{Including libraries}
 
 In the build options of a project, you can add the used libraries via the \samp{Add} button in the \samp{Link libraries} entry of the \samp{Linker Settings}. In doing so, you can either use the absolute path to the library or just give the name without the \file{lib} prefix and file extension.
