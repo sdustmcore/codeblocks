@@ -93,7 +93,7 @@
 
 % for input of code (verbatim)
 % docu and html mode
-\newcommand{\codeline}[1]{\fontencoding{T1}\selectfont\lstinline{#1}\fontencoding{\encodingdefault}}% code within text
+\newcommand{\codeline}[1]{\fontencoding{T1}\selectfont\lstinline{#1}\fontencoding{\encodingdefault}\selectfont}% code within text
 \lstset{captionpos=t, morecomment=[is]{/*}{*/},% prefix i for deleting such comments
 basicstyle=\small\sffamily, stringstyle=\sffamily, commentstyle=\color{black}, showstringspaces=false, tabsize=2, language=C}
 % for avoid boldface for keywords set keywordstyle=\small\sffamily

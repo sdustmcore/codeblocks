@@ -156,11 +156,11 @@ HTMLVALIDATE = -cvalidatehtml
 ##PNGCONVERT = -cdvipng
 PNGCONVERT =
 ifeq ($(LANGUAGE),GERMAN)
-RTFC=/T/makefiles/rtfc.bat rtfc_de.cfg $(MAINFILE)
+RTFC=/T/makefiles/rtfc.bat rtfc_de $(MAINFILE)
 endif
 
 ifeq ($(LANGUAGE),ENGLISH)
-RTFC=/T/makefiles/rtfc.bat rtfc_en.cfg $(MAINFILE)
+RTFC=/T/makefiles/rtfc.bat rtfc_en $(MAINFILE) 
 endif
 
 ## Scripts for conversion
@@ -244,8 +244,8 @@ svg2png: $(SRC:%.svg=%.png)
 svg2eps: $(SRC:%.svg=%.eps)
 svg2pdf: $(SRC:%.svg=%.pdf)
 png2eps: $(SRC:%.png=%.eps)
-
-SRC	= $(shell ls *.png)
+MYSRC = *.png
+SRC	= $(shell ls $(MYSRC))
 
 ## Help screen
 help:
@@ -354,10 +354,10 @@ endif
 
 $(MAINFILE).dvi: $(MAINFILE).tex
 	$(LATEX) $(OPTS) $(SAMP)\input $(MAINFILE).tex$(SAMP) && \
+	$(LATEX) $(OPTS) $(SAMP)\input $(MAINFILE).tex$(SAMP) && \
 	if ($(TESTFILE) $(MAINFILE).idx); then $(MAKEINDEX) $(MAINFILE).idx $(INDEXOPT); fi
 	if ($(TESTFILE) $(MAINFILE).glo); then $(MAKECHANGE) $(MAINFILE).chn $(MAINFILE).glo; fi
 	if ($(TESTFILE) $(MAINFILE).bib); then $(BIBTEX) $(MAINFILE); fi
-	$(LATEX) $(OPTS) $(SAMP)\input $(MAINFILE).tex$(SAMP) && \
 	$(LATEX) $(OPTS) $(SAMP)\input $(MAINFILE).tex$(SAMP)
 
 $(MAINFILE).ps: $(MAINFILE).dvi
@@ -443,11 +443,12 @@ $(MAINFILE).pdf: $(MAINFILE).tex
 ifneq ($(MSG), default)
 	@echo $(MSG) && $(SHELLPAUSE)
 endif
-	$(PDFLATEX) $(EPSTOPDFOPT) $(OPTS) $(SAMP)\input $(MAINFILE).tex$(SAMP)
+	if ($(TESTDIR) $(GRAPHICS_SVG)); then make -f $(GENDOCU) svg2pdf SRC="$(shell ls $(GRAPHICS_SVG)/*.svg)"; fi
+	$(PDFLATEX) $(EPSTOPDFOPT) $(OPTS) $(SAMP)\input $(MAINFILE).tex$(SAMP) && \
+	$(PDFLATEX) $(EPSTOPDFOPT) $(OPTS) $(SAMP)\input $(MAINFILE).tex$(SAMP) && \
 	if ($(TESTFILE) $(MAINFILE).idx); then $(MAKEINDEX) $(MAINFILE).idx $(INDEXOPT); fi
 	if ($(TESTFILE) $(MAINFILE).glo); then $(MAKECHANGE) $(MAINFILE).chn $(MAINFILE).glo; fi
 	if ($(TESTFILE) $(MAINFILE).bib); then $(BIBTEX) $(MAINFILE); fi
-	$(PDFLATEX) $(EPSTOPDFOPT) $(OPTS) $(SAMP)\input $(MAINFILE).tex$(SAMP) && \
 	$(PDFLATEX) $(EPSTOPDFOPT) $(OPTS) $(SAMP)\input $(MAINFILE).tex$(SAMP)
 endif
 ##	$(PDFLATEX) -jobname=NUP1x2_$(MAINFILE) $(SAMP)\documentclass{scrbook} \usepackage[pdftex]{graphicx} \usepackage{pdfpages} \usepackage[pdftex]{hyperref} \begin{document} \includepdf[pages=-, nup=1x2, landscape]{$(MAINFILE).pdf} \end{document}$(SAMP)
@@ -462,21 +463,25 @@ endif
 $(MAINFILE).html: $(MAINFILE).tex 
 	$(RMF) *.aux *.log *.4*
 	if !($(TESTDIR) $(GRAPHICS_EPS)); then $(MKDIRPARENT) $(GRAPHICS_EPS); fi
-	if ($(TESTDIR) $(GRAPHICS_PNG)); then make -f $(GENDOCU) png2eps SRC="$(shell ls $(GRAPHICS_PNG)/*.png)" && $(CP) $(GRAPHICS_PNG)/*.eps $(GRAPHICS_EPS); fi
-	if ($(TESTDIR) $(GRAPHICS_SVG)); then make -f $(GENDOCU) svg2eps SRC="$(shell ls $(GRAPHICS_SVG)/*.svg)"  && $(CP) $(GRAPHICS_PNG)/*.eps $(GRAPHICS_EPS); fi
+	if ($(TESTDIR) $(GRAPHICS_PNG)); then make -f $(GENDOCU) png2eps SRC="$(shell ls $(GRAPHICS_PNG)/*.png)" && $(MV) $(GRAPHICS_PNG)/*.eps $(GRAPHICS_EPS); fi
+	if ($(TESTDIR) $(GRAPHICS_SVG)); then make -f $(GENDOCU) svg2eps SRC="$(shell ls $(GRAPHICS_SVG)/*.svg)"  && $(MV) $(GRAPHICS_SVG)/*.eps $(GRAPHICS_EPS); fi
 	$(LATEX) $(OPTS) $(SAMP)\makeatletter\def\htmlmode{enabled}\makeatother$(SAMP) $(SAMP)\input $(MAINFILE).tex$(SAMP) && \
 	if ($(TESTFILE) $(MAINFILE).idx); then $(MAKEINDEX) $(MAINFILE).idx $(INDEXOPT); fi
 	if ($(TESTFILE) $(MAINFILE).chn); then $(MAKECHANGE) $(MAINFILE).chn $(MAINFILE).glo; fi
 	if ($(TESTFILE) $(MAINFILE).bib); then $(BIBTEX) $(MAINFILE); fi
 	if !($(TESTDIR) $(HTMLOUTPUT)); then $(MKDIRPARENT) $(HTMLOUTPUT); fi
 # $2 should be $(TEX4HTCFGHTML) text in quotes must be one string
-	echo '\def\customer{$(CUSTOMER)}\def\mcu{$(PREFIX)}\def\Mcu{$(MCU)}\def\pxros{$(PXROS)}\def\mykeywords{Target: $(MCU), Release: $(RELEASE), DocVersion: $(DOC_MAIN_VERSION), Revision: $(REVISION)}\providecommand{\release}{$(MAINRELEASE)}\def\releasevers{V$(MAINRELEASE)\xspace}\def\DocVersion{$(DOC_MAIN_VERSION) $(REVISION)}\def\htmlmode{enabled} \input $(MAINFILE)' > $(MAINFILE).foo
+	$(shell echo '\def\customer{$(CUSTOMER)}\def\mcu{$(PREFIX)}\def\Mcu{$(MCU)}\def\debugger{$(DEBUGGER)}\def\pxros{$(PXROS)}\def\mykeywords{Target: $(MCU), Release: $(RELEASE), DocVersion: $(DOC_MAIN_VERSION), Revision: $(REVISION)}\providecommand{\release}{$(MAINRELEASE)}\def\releasevers{V$(MAINRELEASE)\xspace}\def\DocVersion{$(DOC_MAIN_VERSION) $(REVISION)}\def\htmlmode{enabled} \input $(MAINFILE)' > $(MAINFILE).foo)
 #	Generate index
 #	tex $(SAMP)\def\filename{{main_gcc_ug}{idx}{4dx}{ind}} \input  idxmake.4ht$(SAMP)
 #  	$(MV) $(MAINFILE).4dx $(MAINFILE).idx
 #	if ($(TESTFILE) $(MAINFILE).idx); then $(MAKEINDEX) $(MAINFILE).idx $(INDEXOPT); fi
 	$(HTMLSCRIPT) $(MAINFILE).foo $(SAMP)$(RTFCFLAGS)$(SAMP) $(SAMP)$(SAMP) $(SAMP)$(SAMP)
-	for i in $$(ls *.html); do cat $$i | sed -es/figures\\/eps\\///g | sed -es/id=\"x1/name=\"x1/g | sed -es/": <\\/td><td"/":"/ -es/"class=\"content\">"// > $$i; done
+	for i in $$(ls *.html); do cat $$i | sed -es/figures\\/eps\\///g | sed -es/id=\"x1/name=\"x1/g | sed -es/": <\\/td><td"/":"/ -es/"class=\"content\">"// > $$i.tmp; done
+	for i in $$(ls *.html.tmp); do $(MV) $$i `echo $$i | sed -es/\.tmp//g`; done
+#	cat $(MAINFILE).html | sed -es/figures\\/eps\\///g | sed -es/id=\"x1/name=\"x1/g | sed -es/": <\\/td><td"/":"/ -es/"class=\"content\">"// > $(MAINFILE)_gen.html
+#	$(MV) $(MAINFILE)_gen.html $(MAINFILE).html
+#	cat $(MAINFILE).html | sed -es/figures\\/eps\\///g | sed -es/id=\"x1/name=\"x1/g | sed -es/": <\\/td><td"/":"/ -es/"class=\"content\">"// > $(MAINFILE).html 
 	$(MV) --target-directory=$(HTMLOUTPUT) $(MAINFILE)*.html $(MAINFILE).css $(MAINFILE)*.png figures/eps/*.png
 
 chm: $(MAINFILE).tex
@@ -489,10 +494,10 @@ $(MAINFILE).xml: $(MAINFILE).tex png2eps svg2eps
 	if !($(TESTDIR) $(XMLOUTPUT)); then $(MKDIRPARENT) $(XMLOUTPUT); fi
 	$(RMF) *.aux *.log *.ind *.idx *.ilg *.4*
 	if !($(TESTDIR) $(GRAPHICS_EPS)); then $(MKDIRPARENT) $(GRAPHICS_EPS); fi
-	if ($(TESTDIR) $(GRAPHICS_PNG)); then make -f $(GENDOCU) png2eps SRC="$(shell ls $(GRAPHICS_PNG)/*.png)" && $(CP) $(GRAPHICS_PNG)/*.eps $(GRAPHICS_EPS); fi
-	if ($(TESTDIR) $(GRAPHICS_SVG)); then make -f $(GENDOCU) svg2eps SRC="$(shell ls $(GRAPHICS_SVG)/*.svg)"  && $(CP) $(GRAPHICS_PNG)/*.eps $(GRAPHICS_EPS); fi
+	if ($(TESTDIR) $(GRAPHICS_PNG)); then make -f $(GENDOCU) png2eps SRC="$(shell ls $(GRAPHICS_PNG)/*.png)" && $(MV) $(GRAPHICS_PNG)/*.eps $(GRAPHICS_EPS); fi
+	if ($(TESTDIR) $(GRAPHICS_SVG)); then make -f $(GENDOCU) svg2eps SRC="$(shell ls $(GRAPHICS_SVG)/*.svg)"  && $(MV) $(GRAPHICS_SVG)/*.eps $(GRAPHICS_EPS); fi
 ## $2 should be $(TEX4HTCFGXML) text in quotes must be one string
-	echo '\def\customer{$(CUSTOMER)}\def\mcu{$(PREFIX)}\def\Mcu{$(MCU)}\def\pxros{$(PXROS)}\def\mykeywords{Target: $(MCU), Release: $(RELEASE), DocVersion: $(DOC_MAIN_VERSION), Revision: $(REVISION)}\providecommand{\release}{$(MAINRELEASE)}\def\releasevers{V$(MAINRELEASE)\xspace}\def\DocVersion{$(DOC_MAIN_VERSION) $(REVISION)}\def\htmlmode{enabled} \input $(MAINFILE)' > $(MAINFILE).foo
+	echo '\def\customer{$(CUSTOMER)}\def\mcu{$(PREFIX)}\def\Mcu{$(MCU)}\def\debugger{$(DEBUGGER)}\def\pxros{$(PXROS)}\def\mykeywords{Target: $(MCU), Release: $(RELEASE), DocVersion: $(DOC_MAIN_VERSION), Revision: $(REVISION)}\providecommand{\release}{$(MAINRELEASE)}\def\releasevers{V$(MAINRELEASE)\xspace}\def\DocVersion{$(DOC_MAIN_VERSION) $(REVISION)}\def\htmlmode{enabled} \input $(MAINFILE)' > $(MAINFILE).foo
 	$(XMLSCRIPT) $(MAINFILE).foo $(SAMP)$(TEX4HTCFGHTML)$(SAMP) $(SAMP)$(SAMP)
 	$(MV) --target-directory=$(XMLOUTPUT) *.xml *.css
 ##	Index generation for docbook format
@@ -507,9 +512,9 @@ $(MAINFILE).xml: $(MAINFILE).tex png2eps svg2eps
 $(MAINFILE).sxw: clean $(MAINFILE).tex
 	if !($(TESTDIR) $(OPENOFFICEOUTPUT)); then $(MKDIRPARENT) $(OPENOFFICEOUTPUT); fi
 	if !($(TESTDIR) $(GRAPHICS_EPS)); then $(MKDIRPARENT) $(GRAPHICS_EPS); fi
-	if ($(TESTDIR) $(GRAPHICS_PNG)); then make -f $(GENDOCU) png2eps SRC="$(shell ls $(GRAPHICS_PNG)/*.png)" && $(CP) $(GRAPHICS_PNG)/*.eps $(GRAPHICS_EPS); fi
-	if ($(TESTDIR) $(GRAPHICS_SVG)); then make -f $(GENDOCU) svg2eps SRC="$(shell ls $(GRAPHICS_SVG)/*.svg)"  && $(CP) $(GRAPHICS_PNG)/*.eps $(GRAPHICS_EPS); fi
-	echo '\def\customer{$(CUSTOMER)}\def\mcu{$(PREFIX)}\def\Mcu{$(MCU)}\def\pxros{$(PXROS)}\providecommand{\release}{$(MAINRELEASE)}\def\releasevers{V$(MAINRELEASE)\xspace}\def\htmlmode{enabled} \input $(MAINFILE)' > $(MAINFILE).foo
+	if ($(TESTDIR) $(GRAPHICS_PNG)); then make -f $(GENDOCU) png2eps SRC="$(shell ls $(GRAPHICS_PNG)/*.png)" && $(MV) $(GRAPHICS_PNG)/*.eps $(GRAPHICS_EPS); fi
+	if ($(TESTDIR) $(GRAPHICS_SVG)); then make -f $(GENDOCU) svg2eps SRC="$(shell ls $(GRAPHICS_SVG)/*.svg)"  && $(MV) $(GRAPHICS_SVG)/*.eps $(GRAPHICS_EPS); fi
+	echo '\def\customer{$(CUSTOMER)}\def\mcu{$(PREFIX)}\def\Mcu{$(MCU)}\def\debugger{$(DEBUGGER)}\def\pxros{$(PXROS)}\def\mykeywords{Target: $(MCU), Release: $(RELEASE), DocVersion: $(DOC_MAIN_VERSION), Revision: $(REVISION)}\providecommand{\release}{$(MAINRELEASE)}\def\releasevers{V$(MAINRELEASE)\xspace}\def\DocVersion{$(DOC_MAIN_VERSION) $(REVISION)}\def\htmlmode{enabled} \input $(MAINFILE)' > $(MAINFILE).foo
 	$(OOSCRIPT) $(MAINFILE).foo $(SAMP)$(SAMP) $(SAMP)$(SAMP) -e$(TEX4HTENV)
 	$(MV) --target-directory=$(OPENOFFICEOUTPUT) *.odt
 
