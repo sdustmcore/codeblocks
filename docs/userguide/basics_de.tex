@@ -321,6 +321,10 @@ Des weiteren bietet \codeblocks eine Fortschrittsanzeige des Buildprozesses im F
 
 \hint{Mit dem Tastenkürzel Ctrl-Numepad-/ oder mit \menu{Edit,Special commands,Zoom,Reset} können Sie auf die ursprüngliche Schriftgröße umschalten.}
 
+\subsection{Wrap Mode}
+
+Für das Editieren von Textdateien z.B. \file{*.txt} innerhalb \codeblocks ist es nützlich den Eingabetext automatisch auf die Textbreite des Editorfensters in mehrere Zeilen umbrechen zu lassen. Diese Funktionalität wird \samp{Word wrap} genannt und diese lässt sich im Menü \menu{Settings,Editor,Other Options} und mit der Checkbox \menu{Word wrap} aktivieren. Durch die Home/Pos 1 Taste springt der Cursor an den Anfang und mit End/Ende an das Ende der umgebrochenen Zeilen. Durch die Einstellung \menu{Settings,Editor,Other Options} und dem Setzen von \menu{Home key always move to caret to first column} wird erreicht, dass die Home/Pos 1 bzw. End/Ende Taste der Cursor an den Zeilenanfang bzw. an das Ende der aktuellen Zeile springt. Falls jedoch ein Sprung des Cursors an den Zeilenanfang des Abschnitts gewünscht ist, muss stattdessen die Tastenkombination \menu{Atl-Home/Pos 1} gedrückt werden. Entsprechendes gilt für \menu{Alt-End/Ende}.
+
 \subsection{Block select Mode im Editor}
 
 \codeblocks unterstützt im Editor einen sogenannten Block select mode. Hiermit können bei gedrückter \samp{ALT} Taste ein Rechteck mit der linken Maustaste aufziehen und kopieren bzw. einfügen. Dies ist zum Beispiel nützlich, wenn nur einige Spalten eines Array markiert und kopiert werden sollen.
@@ -333,8 +337,7 @@ Des weiteren bietet \codeblocks eine Fortschrittsanzeige des Buildprozesses im F
 
 \hint{Der Stil für das Folding und eine Grenze für die Folding-Tiefe kann im Menü \menu{Settings,Editor,Folding} geändert werden.}
 
-Neben dem Folding für Funktionen kann die Funktionalität auch für Präprozessor Direktiven eingestellt werden. Aktivieren Sie hierfür die Option \samp{Fold preprocessor commands} im Menü
-\menu{Settings,Editor} unter dem Eintrag Folding.
+Neben dem Folding für Funktionen kann die Funktionalität auch für Präprozessor Direktiven eingestellt werden. Aktivieren Sie hierfür die Option \samp{Fold preprocessor commands} im Menü \menu{Settings,Editor} unter dem Eintrag Folding.
 
 Eine weitere Möglichkeit ist benutzerdefinierte Folding Punkte zu definieren, indem ein Kommentarzeichen durch eine geöffnete Klammer den Anfang und ein Kommentar mit schließender Klammer das Ende markiert.
 
@@ -343,6 +346,8 @@ Eine weitere Möglichkeit ist benutzerdefinierte Folding Punkte zu definieren, i
 code with user defined folding
 //}
 \end{code}
+
+\hint{Bei eingeschaltetem Folding passiert es häufig, dass bei engem Seitenrand der Anwender anstatt die gewünschte Zeile zu markieren, den Folding point selektiert. In diesem Modus ist es deshalb ratsam die Zeilennummern im Editor einzublenden und dann mit der linken Maustaste in den linken Seitenrand neben der Anzeige der Zeilennummern eine oder mehrere Zeile zu markieren.}
 
 \subsection{Auto complete}
 
@@ -389,7 +394,7 @@ codeblocks.exe /na /nd --no-splash-screen --built <name>.cbp --target='Release'
 
 \begin{optentry}
 \item[\var{filename}] Specifies the project \file{*.cbp} filename or workspace \file{*.workspace} filename. For instance, \var{filename} may be \file{project.cbp}. Place this argument at the end of the command line, just before the output redirection if there is any.
-\item[--file=\var{filename}\optional{:line}] Open file in Code::Blocks and optionally jump to a specific line. 
+\item[--file=\var{filename}\optional{:line}] Open file in Code::Blocks and optionally jump to a specific line.
 \item[/h, --help] Shows a help message regarding the command line arguments.
 \item[/na, --no-check-associations] Don't perform any file association checks (Windows only).
 \item[/nd, --no-dde] Don't start a DDE server (Windows only).
