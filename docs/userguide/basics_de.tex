@@ -218,7 +218,11 @@ In \codeblocks aktivieren Sie die Anzeige von Zeilennummern in \menu{Settings,Ge
 
 \subsection{Symbolansicht}
 
-Für das Navigieren über Funktionen oder Variablen bietet das Management Fenster in \codeblocks eine Baumansicht für Symbole von C/C++ Quellen. Dabei lässt sicht der Gültigkeitsbereich (Scope) der Ansicht auf die aktuelle Datei oder Projekt oder den gesamten Arbeitsbereich einstellen. Für die Kategorien der Symbole existieren folgende Kategorien.
+Für das Navigieren über Funktionen oder Variablen bietet das Management Fenster in \codeblocks eine Baumansicht für Symbole von C/C++ Quellen. Dabei lässt sicht der Gültigkeitsbereich (Scope) der Ansicht auf die aktuelle Datei oder Projekt oder den gesamten Arbeitsbereich einstellen.
+
+\hint{Wenn Sie einen Suchbegriff bzw. Symbolnamen in die Eingabemaske Search des Symbol Browsers eingeben, erhalten Sie, bei vorhandenen Suchtreffern, eine gefilterte Ansicht von Symbolen.}
+
+Für die Kategorien der Symbole existieren folgende Kategorien.
 
 \screenshot{symbols}{Symbolansicht}
 
@@ -232,7 +236,6 @@ Für das Navigieren über Funktionen oder Variablen bietet das Management Fenste
 Strukturen und Klassen werden unterhalb von Preprocessor symbols angezeigt. Wenn eine Kategorie mit der Maus angewählt wird, erscheinen die gefundenen Symbole in dem unteren Teil des Fensters (siehe \pxref{fig:symbols}). Ein Doppelklick auf das Symbol öffnet die Datei, wo das Symbol definiert bzw. die Funktion implementiert ist und springt an die zugehörige Zeile.
 
 \hint{Im Editor können Sie über das Kontextmenü \menu{Insert Class method declaration implementation} bzw. \menu{All class methods without implementation} sich auch die Liste der Klassen anzeigen lassen.}
-%split view horizontally, vertically
 
 \subsection{Einbinden von externen Hilfen}
 
@@ -295,6 +298,12 @@ oder unter Linux
 \begin{cmd}
 echo \$PATH > project.env
 \end{cmd}
+
+\subsection{Umschalten zwischen Layouts}
+
+Abhängig von der Aufgabenstellung ist es sinnvoll unterschiedliche Konfigurationen oder Ansichten in \codeblocks zu haben und diese zu speichern. Standardmäßig werden die Einstellungen wie z.B. Anzeige von Symbolleisten, Layout etc. in der Konfigurationsdatei \file{default.conf} gespeichert. Durch die Verwendung der Kommandozeilenoption \opt{--personality=ask} beim Start von \codeblocks kann zwischen verschiedenen Einstellungen umgeschaltet werden. Neben dieser globalen Einstellung besteht jedoch häufig auch der Wunsch während einer Session zwischen Ansichten für Fenster und Symbolleisten zu wechseln. Zwei typische Szenarien sind z.B. das Editieren von Dateien oder das Debuggen eines Projektes. Damit der Anwender nicht ständig mit dem Öffnen und Schließen von Fenstern, Symbolleisten etc. beschäftigt ist, bietet \codeblocks einen Mechanismus um unterschiedliche Layouts zu speichern bzw. diese umzuschalten. Über das Menü \menu{View,Layouts,Save current} und Eingabe eines Namens \var{name} wird ein Layout gespeichert. Über \menu{Settings,Editor,Keyboard shortcuts,View,Layouts,\var{name}} kann ein Tastenkürzel hierfür angegeben werden. Durch diese Vorgehensweise können Sie nun einfach zwischen den Ansichten über Ihre Tastenkürzel wechseln.
+
+\hint{Ein weiteres Anwendungsbeispiel ist das Editieren einer Datei im Full Screen Modus ohne Symbolleisten. Hierfür können Sie sich auch ein Layout z.B. \samp{Full} anlegen und ein Tastenkürzel vergeben.}
 
 \subsection{Umschalten zwischen Projekten}
 
