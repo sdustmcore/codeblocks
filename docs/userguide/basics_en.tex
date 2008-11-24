@@ -217,7 +217,11 @@ The display of line numbers in \codeblocks can be activated via \menu{Settings,G
 
 \subsection{Symbol view}
 
-The \codeblocks Management window offers a tree view for symbols of C/C++ sources for navigating via functions or variables. As the scope of this view, you can set the current file or project, or the whole workspace. The following categories exist for the symbols:
+The \codeblocks Management window offers a tree view for symbols of C/C++ sources for navigating via functions or variables. As the scope of this view, you can set the current file or project, or the whole workspace.
+
+\hint{Entering a search term or symbol names in the 'Search' input mask of the Symbol Browser results in a filtered view of the symbols if any hits occurred.}
+
+The following categories exist for the symbols:
 
 \screenshot{symbols}{Symbol view}
 
@@ -295,6 +299,12 @@ or under Linux
 echo \$PATH > project.env
 \end{cmd}
 
+\subsection{Switching between layouts}
+
+Depending on the task in hand, it can be useful to have different configurations or views in \codeblocks and to save these configurations/views. By default, the settings (e. g. show/hide symbol bars, layout, etc.) are stored in the \file{default.conf} configuration file. By using the command line option \opt{--personality=ask} during the start of \codeblocks, different settings can be selected. Apart from this global setting, a situation might occur where you wish to switch between different views of windows and symbol bars during a session. Editing files and debugging projects are two typical examples for such situations. \codeblocks offers a mechanism for storing and selecting different layouts to prevent the user from frequently having to open and close windows and symbol bars manually. To save a layout, select the menu \menu{View,Layouts,Save current} and enter a name at \var{name}. The command \menu{Settings,Editor,Keyboard shortcuts,View,Layouts,\var{name}} allows a keyboard shortcut to be defined for this process. This mechanism makes it possible to switch between different views by simply using hot keys.
+
+\hint{Another example is editing a file in Full Screen mode without symbol bars. You can create a layout such as \samp{Full} and assign a hot key for this purpose.}
+
 \subsection{Switching between projects}
 
 If several projects or files are opened at the same time, the user needs a way to switch quickly between the projects or files. \codeblocks has a number of shortcuts for such situations.
@@ -319,6 +329,10 @@ Furthermore, \codeblocks offers a progress bar for the build process in the Buil
 \codeblocks offers a very efficient editor. This editor allows you to change the size in which the opened text is displayed. If you use a mouse with a wheel, you only need to press the Ctrl key and scroll via the mouse wheel to zoom in and out of the text.
 
 \hint{With the shortcut Ctrl-Numepad-/ or with the menu \menu{Edit,Special commands,Zoom,Reset} the original font size of the active file in the editor is restored.}
+
+\subsection{Wrap Mode}
+
+When editing text files, e. g. \file{*.txt}, within \codeblocks, it might be useful to have the text wrapped, meaning long lines will be displayed in several lines on the screen so that they can be properly edited. The \samp{Word wrap} function can be activated via \menu{Settings,Editor,Other Options} or by setting the checkbox \menu{Word wrap}. The Home and End keys position the cursor at the beginning or end of wrapped lines respectively. When setting \menu{Settings,Editor,Other Options} and \menu{Home key always move to caret to first column}, the cursor will be positioned at the beginning or end of the current line respectively, if the Home or End keys are pressed. If positioning the cursor at the beginning of the first line of the current paragraph is desired, the key combination \menu{Alt-Home} is to be used. The same applies analogously for \menu{Alt-End} for positioning the cursor at the end of the last line of the current paragraph.
 
 \subsection{Block select mode in editor}
 
@@ -388,7 +402,7 @@ codeblocks.exe /na /nd --no-splash-screen --built <name>.cbp --target='Release'
 
 \begin{optentry}
 \item[\var{filename}] Specifies the project \file{*.cbp} filename or workspace \file{*.workspace} filename. For instance, \var{filename} may be \file{project.cbp}. Place this argument at the end of the command line, just before the output redirection if there is any.
-\item[--file=\var{filename}\optional{:line}] Open file in Code::Blocks and optionally jump to a specific line. 
+\item[--file=\var{filename}\optional{:line}] Open file in Code::Blocks and optionally jump to a specific line.
 \item[/h, --help] Shows a help message regarding the command line arguments.
 \item[/na, --no-check-associations] Don't perform any file association checks (Windows only).
 \item[/nd, --no-dde] Don't start a DDE server (Windows only).
