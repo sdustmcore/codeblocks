@@ -36,6 +36,7 @@ OUT =
 
 ## User option and defines
 metadata:
+SVNTAG = $(shell grep "Revision:"  $(MAINFILE).tex  | sed -es/%//g | sed -es/"Revision:"//g | sed -es/" "//g | sed -e 's/\$$//g')
 CVSTAG = $(shell grep "Name:"  $(MAINFILE).tex  | sed -es/%//g| sed -es/"\\\\RCS "//g | sed -es/"Name:"//g | sed -es/" "//g | sed -e 's/\$$//g')
 RELEASE = $(shell echo $(CVSTAG) |  sed -es/".*\(V.*\)"/"\1"/g | sed -es/_/\./g)
 MAINRELEASE = $(shell echo $(RELEASE) | sed -e"s/\(^V[0-9]*\.[0-9]*\.[0-9]*\).*/\1/" | sed -es/"V"//g)
@@ -45,7 +46,7 @@ TARGET_LOWERCASE = $(shell echo $(TARGET) |  tr [A-Z] [a-z])
 PREFIX = $(TARGET_LOWERCASE)
 DOC_FULL_VERSION = $(shell echo $(CVSTAG) | sed -es/"\(.*\)_[^_]*_V.*"/"\1"/g | sed -es/" "//g)
 DOC_MAIN_VERSION = $(shell echo $(DOC_FULL_VERSION) | sed -es/"\(V[0-9]*_[0-9]*\).*"/"\1"/g | sed -es/"_"/"\."/g | sed -es/"V"//g)
-REVISION = $(shell echo $(DOC_FULL_VERSION) | grep "Rev" | sed -es/".*\(Rev_.\)"/"\1"/g | sed -es/"_"/" "/g)
+REVISION = SVN ($(SVNTAG))
 LANGUAGE=$(shell grep "lang{" $(MAINFILE).tex | sed -es/"\\\\def\\\\lang{"//g | sed -es/"}"//g | tr [a-z] [A-Z])
 MSG = default
 
@@ -160,7 +161,7 @@ RTFC=/T/makefiles/rtfc.bat rtfc_de $(MAINFILE)
 endif
 
 ifeq ($(LANGUAGE),ENGLISH)
-RTFC=/T/makefiles/rtfc.bat rtfc_en $(MAINFILE) 
+RTFC=/T/makefiles/rtfc.bat rtfc_en $(MAINFILE)
 endif
 
 ## Scripts for conversion
@@ -460,7 +461,7 @@ else
 endif
 
 ## html and xml generation
-$(MAINFILE).html: $(MAINFILE).tex 
+$(MAINFILE).html: $(MAINFILE).tex
 	$(RMF) *.aux *.log *.4*
 	if !($(TESTDIR) $(GRAPHICS_EPS)); then $(MKDIRPARENT) $(GRAPHICS_EPS); fi
 	if ($(TESTDIR) $(GRAPHICS_PNG)); then make -f $(GENDOCU) png2eps SRC="$(shell ls $(GRAPHICS_PNG)/*.png)" && $(MV) $(GRAPHICS_PNG)/*.eps $(GRAPHICS_EPS); fi
@@ -481,7 +482,7 @@ $(MAINFILE).html: $(MAINFILE).tex
 	for i in $$(ls *.html.tmp); do $(MV) $$i `echo $$i | sed -es/\.tmp//g`; done
 #	cat $(MAINFILE).html | sed -es/figures\\/eps\\///g | sed -es/id=\"x1/name=\"x1/g | sed -es/": <\\/td><td"/":"/ -es/"class=\"content\">"// > $(MAINFILE)_gen.html
 #	$(MV) $(MAINFILE)_gen.html $(MAINFILE).html
-#	cat $(MAINFILE).html | sed -es/figures\\/eps\\///g | sed -es/id=\"x1/name=\"x1/g | sed -es/": <\\/td><td"/":"/ -es/"class=\"content\">"// > $(MAINFILE).html 
+#	cat $(MAINFILE).html | sed -es/figures\\/eps\\///g | sed -es/id=\"x1/name=\"x1/g | sed -es/": <\\/td><td"/":"/ -es/"class=\"content\">"// > $(MAINFILE).html
 	$(MV) --target-directory=$(HTMLOUTPUT) $(MAINFILE)*.html $(MAINFILE).css $(MAINFILE)*.png figures/eps/*.png
 
 chm: $(MAINFILE).tex
