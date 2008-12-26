@@ -268,6 +268,10 @@ Die Einbindung von externen Tools ist in \codeblocks unter dem Menüeintrag \men
 
 In diesem Kapitel werden Ihnen einige nützliche Einstellungen in \codeblocks vorgestellt.
 
+\subsection{Datenaustausch mit anderen Anwendungen}
+
+Zwischen \codeblocks und anderen Anwendungen können Daten dynamisch ausgetauscht werden. Diese Interprozess Kommuikation wird unter Windows auf DDE (Dynamic Data Exchange) und unter anderen Betriebssystemen auf eine TCP Kommunikation zwischen den Anwendungen abgebildet.
+
 \subsection{Konfiguration von Umgebungsvariablen}
 
 Die Konfiguration für ein Betriebssystem wird durch sogenannte Umgebungsvariablen festgelegt. Zum Beispiel enthält die Umgebungsvariablen \codeline{PATH} den Pfad auf einen installierten Compiler. Das Betriebssystem geht diese Umgebungsvariable von vorne nach hinten durch, d.h. die Einträge am Ende werden als letztes durchsucht. Wenn nun unterschiedliche Versionen eines Compilers oder anderer Anwendungen installiert sind, können nun folgende Situationen auftreten:
@@ -407,6 +411,7 @@ codeblocks.exe /na /nd --no-splash-screen --built <name>.cbp --target='Release'
 \item[/h, --help] Shows a help message regarding the command line arguments.
 \item[/na, --no-check-associations] Don't perform any file association checks (Windows only).
 \item[/nd, --no-dde] Don't start a DDE server (Windows only).
+\item[/ni, --no-ipc] Don't start an IPC server (Linux and Mac only).
 \item[/ns, --no-splash-screen] Hides the splash screen while the application is loading.
 \item[/d, --debug-log] Display the debug log of the application.
 \item[--prefix=\var{str}] Sets the shared data directory prefix.

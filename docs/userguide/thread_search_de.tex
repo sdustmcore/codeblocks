@@ -74,6 +74,14 @@ Sie können Filter für die Suche von Dateien konfigurieren.
 \begin{description}
 \item[Enable \samp{Find occurrences contextual menu item}] Fügt den Eintrag \samp{Find occurrences of \samp{Focused word}} im Kontextmenü im Editor hinzu.
 \item[Use default options when running \samp{Find occurrences}] Diese Einstellung übernimmt die voreingestellte Konfiguration für das Kontextmenü \samp{Find occurrences}. Standardmäßig ist die Einstellung \samp{Whole word} und \samp{Match case} aktiv.
+\item[Delete previous results at search begin] Bei der Suche mit ThreadSearch und der Einstellung \samp{Tree View} werden die Suchergebnisse hierarchisch angezeigt, d.h.
+\begin{itemize}
+\item der erste Knoten ist der Suchbegriff selbst
+\item darunter werden die Dateien, die den Suchbegriff enthalten, gelistet
+\item innerhalb der Dateiliste wird die Zeilennummer und der zugehörige Inhalt, wo der Suchbegriff gefunden wurde, angezeigt
+\end{itemize}
+Bei einer Suche nach mehreren Begriffen wird die Liste schnell unübersichtlich, deshalb bietet diese Einstellung die Möglichkeit vorangegangene Suchergebnisse beim Start einer Suche zu löschen.
+\hint{In der Anzeige der Suchergebnisse können auch einzelne oder alle Einträge über das Kontextmenü \menu{Delete item} bzw. \menu{Delete all items} gelöscht werden.}
 \end{description}
 
 \subsection{Layout}

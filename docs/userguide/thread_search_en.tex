@@ -74,6 +74,14 @@ Search in part defines the set of files that will be analysed.
 \begin{description}
 \item[Enable \samp{Find occurrences contextual menu item}] If checked, the Find occurrences of \samp{Focused word} entry is added to the editor contextual menu.
 \item[Use default options when running \samp{Find occurrences}] If checked, a set of default options is applied to the searches launched with the \samp{Find occurrences} contextual menu item.Per defaut option \samp{Whole word} and \samp{Match case} is enabled.
+\item[Delete previous results at search begin] If ThreadSearch is configured with \samp{Tree View} then the search results will be listet hierarchically,
+\begin{itemize}
+\item the first node contains the search term
+\item above the files which contain the search term are listed
+\item within this list the line number and the corresponding content of the occurence is displayed
+\end{itemize}
+If you search different terms the list will become confusing, therefore previous search results can be cleared at search begin using this option.
+\hint{In the list of occurences single items or all items can be deleted via the context menu \menu{Delete item} or \menu{Delete all items}.}
 \end{description}
 
 \subsection{Layout}

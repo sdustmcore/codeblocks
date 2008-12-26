@@ -235,7 +235,6 @@ The following categories exist for the symbols:
 Structures and classes are displayed below the pre-processor symbols. If a category is selected by mouse-click, the found symbols will be displayed in the lower part of the window (see \pxref{fig:symbols}). Double-clicking the symbol will open the file in which the symbol is defined or the function implemented, and jumps to the corresponding line.
 
 \hint{In the editor, a list of the classes can be displayed via the context menus \menu{Insert Class method declaration implementation} or \menu{All class methods without implementation}.}
-%split view horizontally, vertically
 
 \subsection{Including external help files}
 
@@ -267,6 +266,8 @@ Including external tools is possible in \codeblocks via \menu{Tools,Configure To
 \section{Tips for working with \codeblocks}
 
 In this chapter we will present some useful settings in \codeblocks.
+
+\subsection{Data Exchange with other applications}
 
 \subsection{Configuring environmental variables}
 
@@ -406,6 +407,7 @@ codeblocks.exe /na /nd --no-splash-screen --built <name>.cbp --target='Release'
 \item[/h, --help] Shows a help message regarding the command line arguments.
 \item[/na, --no-check-associations] Don't perform any file association checks (Windows only).
 \item[/nd, --no-dde] Don't start a DDE server (Windows only).
+\item[/ni, --no-ipc] Don't start an IPC server (Linux and Mac only).
 \item[/ns, --no-splash-screen] Hides the splash screen while the application is loading.
 \item[/d, --debug-log] Display the debug log of the application.
 \item[--prefix=\var{str}] Sets the shared data directory prefix.
