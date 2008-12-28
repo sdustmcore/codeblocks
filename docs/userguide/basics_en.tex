@@ -267,7 +267,43 @@ Including external tools is possible in \codeblocks via \menu{Tools,Configure To
 
 In this chapter we will present some useful settings in \codeblocks.
 
+\subsection{Tracking of Modifications}
+
+\codeblocks provides a feature to track modifications within a source file and to show a bar in the margin for the changes. Modifications are marked with a yellow changebar and modifications that are already saved will use a green changebar (see \pxref{fig:changebar}).
+
+\screenshot{changebar}{Tracking of modifications}
+
+This feature can be enabled or disabled with the checkbox \menu{Use Changebar} in the menu
+\menu{Settings,Editor,Margins and caret}.
+
+\hint{If a modified file is closed, then all tracking information gets lost, so that no changebars are displayed if the file is opened again.}
+
 \subsection{Data Exchange with other applications}
+
+Data can be exchanged between \codeblocks and other applications. For this interprocess communication DDE (Dynamic Data Exchange) is used for windows and under different operating systems it is a TCP based communication.
+
+With this interface different commands with the following syntax can be sent to a \codeblocks instance.
+
+\codeline{[\var{command}("\var{parameter}")]}
+
+These commands are currently available:
+
+\begin{codeentry}
+\item[Open] The command
+
+\begin{code}
+[Open("d:\temp\test.txt")]
+\end{code}
+
+uses the parameter, in our case it is a file specified with an absolute path, and opens it in an existing \codeblocks instance or starts a first instance if required.
+\item[OpenLine] This command opens a file at a given line number in a \codeblocks instance. The line number is specified with \codeline{:line}.
+
+\begin{code}
+[OpenLine("d:\temp\test.txt:10")]
+\end{code}
+
+\item[Raise] Set the focus to the \codeblocks instance. A parameter must not be passed.
+\end{codeentry}
 
 \subsection{Configuring environmental variables}
 

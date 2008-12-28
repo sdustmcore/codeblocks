@@ -268,9 +268,42 @@ Die Einbindung von externen Tools ist in \codeblocks unter dem Menüeintrag \men
 
 In diesem Kapitel werden Ihnen einige nützliche Einstellungen in \codeblocks vorgestellt.
 
+\subsection{Änderungen im Editor verfolgen}
+
+\codeblocks bietet die Möglichkeit geänderte Stellen eines Quellcodes im Vergleich zu einer Vorversion mit Hilfe von seitlich angebrachten Revisionsbalken automatisch sichtbar zu machen. Dabei werden Änderungen mit einem gelben Balken und gespeicherte Änderungen mit einem grünen Balken dargestellt (siehe \pxref{fig:changebar}).
+
+\screenshot{changebar}{Verfolgen von Änderungen}
+
+Diese Feature kann unter \menu{Settings,Editor,Margins and caret} mit der Checkbox \menu{Use Changebar} aktiviert bzw. deaktiviert werden.
+
+\hint{Wenn eine geänderte Datei geschlossen wird, geht die Änderungsinformation verloren, d.h. beim nächsten Öffnen werden keine Balken mehr angezeigt.}
+
 \subsection{Datenaustausch mit anderen Anwendungen}
 
 Zwischen \codeblocks und anderen Anwendungen können Daten dynamisch ausgetauscht werden. Diese Interprozess Kommuikation wird unter Windows auf DDE (Dynamic Data Exchange) und unter anderen Betriebssystemen auf eine TCP Kommunikation zwischen den Anwendungen abgebildet.
+
+Über diese Schnittstelle können an \codeblocks Kommandos mit der folgenden Syntax weitergegeben werden.
+
+\codeline{[\var{command}("\var{parameter}")]}
+
+Als Kommandos stehen zur Verfügung:
+
+\begin{codeentry}
+\item[Open] Mit dem folgenden Kommando
+
+\begin{code}
+[Open("d:\temp\test.txt")]
+\end{code}
+
+wird der Parameter, hier die Datei mit absolutem Pfad, innerhalb einer \codeblocks Instanz geöffnet oder bei Bedarf eine erste Instanz gestartet.
+\item[OpenLine] Das Kommando öffnet eine Datei mit spezifizierter Zeilennummer in einer \codeblocks Instanz. Diese Zeilennummer wird mit \codeline{:line} angegeben.
+
+\begin{code}
+[OpenLine("d:\temp\test.txt:10")]
+\end{code}
+
+\item[Raise] Setzt den Fokus auf die \codeblocks Instanz. Hier darf kein Parameter angegeben werden.
+\end{codeentry}
 
 \subsection{Konfiguration von Umgebungsvariablen}
 
