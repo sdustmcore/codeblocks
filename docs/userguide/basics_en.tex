@@ -269,7 +269,7 @@ In this chapter we will present some useful settings in \codeblocks.
 
 \subsection{Tracking of Modifications}
 
-\codeblocks provides a feature to track modifications within a source file and to show a bar in the margin for the changes. Modifications are marked with a yellow changebar and modifications that are already saved will use a green changebar (see \pxref{fig:changebar}).
+\codeblocks provides a feature to track modifications within a source file and to show a bar in the margin for the changes. Modifications are marked with a yellow changebar and modifications that are already saved will use a green changebar (see \pxref{fig:changebar}). You can navigate between your changes via the menu \menu{Search,Goto next changed line} or \menu{Search,Goto previous changed line}. The same functionality is also accessible via the shortcuts Ctrl-F3 and Ctrl-Shift-F3.
 
 \screenshot{changebar}{Tracking of modifications}
 
@@ -461,79 +461,4 @@ codeblocks.exe /na /nd --no-splash-screen --built <name>.cbp --target='Release'
 
 Even if an IDE such as \codeblocks is mainly handled by mouse, keyboard shortcuts are nevertheless a very helpful way of speeding up and simplifying work processes. In the below table, we have collected some of the available keyboard shortcuts.
 
-\subsection{Editor}
-
-\begin{tabular}{|l|l|}\hline
-Function		&	Shortcut Key\\ \hline
-Undo last action 	&	Ctrl-Z\\ \hline
-Redo last action 	&	Ctrl-Shift-Z\\ \hline
-Swap header / source 	&	F11\\ \hline
-Comment highlighted code &	Ctrl-Shift-C\\ \hline
-Uncomment highlighted code & 	Ctrl-Shift-X\\ \hline
-Auto-complete / Abbreviations & 	Ctrl-Space/Ctrl-J\\ \hline
-Toggle bookmark 	&	Ctrl-B\\ \hline
-Goto previous bookmark 	&	Alt-PgUp\\ \hline
-Goto next bookmark 	&	Alt-PgDown\\ \hline
-\end{tabular}
-
-This is a list of shortcuts provided by the \codeblocks editor component. These shortcuts cannot be rebound.
-
-\begin{tabular}{|l|l|}\hline
-Create or delete a bookmark	&	Ctrl-F2\\ \hline
-Go to next bookmark		&	F2\\ \hline
-Select to next bookmark		&	Alt-F2\\ \hline
-Find selection.			& 	Ctrl-F3\\ \hline
-Find selection backwards. 	&	Ctrl-Shift-F3\\ \hline
-Find matching preprocessor conditional, skipping nested ones. &	Ctrl-K\\ \hline
-\end{tabular}
-
-\subsection{Files}
-
-\begin{tabular}{|l|l|}\hline
-Function 		&	Shortcut Key\\ \hline
-New file or project 	&	Ctrl-N\\ \hline
-Open existing file or project &	Ctrl-O\\ \hline
-Save current file 	&	Ctrl-S\\ \hline
-Save all files 		&	Ctrl-Shift-S\\ \hline
-Close current file 	&	Ctrl-F4/Ctrl-W\\ \hline
-Close all files 	&	Ctrl-Shift-F4/Ctrl-Shift-W\\ \hline
-\end{tabular}
-
-\subsection{View}
-
-\begin{tabular}{|l|l|}\hline
-Function 		&	Shortcut Key\\ \hline
-Show / hide Messages pane	&	F2\\ \hline
-Show / hide Management pane 	&	Shift-F2\\ \hline
-Activate prior (in Project tree) & 	Alt-F5\\ \hline
-Activate next (in Project tree)  &	Alt-F6\\ \hline
-\end{tabular}
-
-\subsection{Search}
-
-\begin{tabular}{|l|l|}\hline
-Function 	&	Shortcut Key\\ \hline
-Find 		&	Ctrl-F\\ \hline
-Find next 	&	F3\\ \hline
-Find previous 	&	Shift-F3\\ \hline
-Find in files 	&	Crtl-Shift-F\\ \hline
-Replace 	&	Ctrl-R\\ \hline
-Replace in files &	Ctrl-Shift-R\\ \hline
-Goto line 	&	Ctrl-G\\ \hline
-Goto file 	&	Alt-G\\ \hline
-Goto function 	&	Ctrl-Alt-G\\ \hline
-Goto declaration & Ctrl-Shift-.\\ \hline
-Goto implementation & Ctrl-.\\ \hline
-Open include file & Ctrl-Alt-.\\ \hline
-\end{tabular}
-
-\subsection{Build}
-
-\begin{tabular}{|l|l|}\hline
-Function 	&	Shortcut Key\\ \hline
-Build 		&	Ctrl-F9\\ \hline
-Compile current file	&	Ctrl-Shift-F9\\ \hline
-Run		&	Ctrl-F10\\ \hline
-Build and Run 	&	F9\\ \hline
-Rebuild 	&	Ctrl-F11\\ \hline
-\end{tabular}
+\input{shortcuts}

@@ -270,7 +270,7 @@ In diesem Kapitel werden Ihnen einige nützliche Einstellungen in \codeblocks vo
 
 \subsection{Änderungen im Editor verfolgen}
 
-\codeblocks bietet die Möglichkeit geänderte Stellen eines Quellcodes im Vergleich zu einer Vorversion mit Hilfe von seitlich angebrachten Revisionsbalken automatisch sichtbar zu machen. Dabei werden Änderungen mit einem gelben Balken und gespeicherte Änderungen mit einem grünen Balken dargestellt (siehe \pxref{fig:changebar}).
+\codeblocks bietet die Möglichkeit geänderte Stellen eines Quellcodes im Vergleich zu einer Vorversion mit Hilfe von seitlich angebrachten Revisionsbalken automatisch sichtbar zu machen. Dabei werden Änderungen mit einem gelben Balken und gespeicherte Änderungen mit einem grünen Balken dargestellt (siehe \pxref{fig:changebar}). Das Navigieren zwischen den einzelnen Änderungen ist über das Menü \menu{Search,Goto next changed line} oder \menu{Search,Goto previous changed line} möglich. Standardmäßig sind hierfür die Tastenkürzel Ctrl-F3 und Ctrl-Shift-F3 konfiguriert.
 
 \screenshot{changebar}{Verfolgen von Änderungen}
 
@@ -462,85 +462,4 @@ codeblocks.exe /na /nd --no-splash-screen --built <name>.cbp --target='Release'
 
 Auch wenn man eine IDE wie \codeblocks überwiegend mit der Maus bedient, erweisen sich dennoch Tastenkombinationen immer wieder als hilfreich, um die Arbeit zu vereinfachen und zu beschleunigen. In nachstehender Tabelle sind einige verfügbare Tastenkombinationen zusammengefasst.
 
-\subsection{Editor}
-
-\begin{tabular}{|l|l|}\hline
-Function		&	Shortcut Key\\ \hline
-Undo last action 	&	Ctrl-Z\\ \hline
-Redo last action 	&	Ctrl-Shift-Z\\ \hline
-Swap header / source 	&	F11\\ \hline
-Comment highlighted code &	Ctrl-Shift-C\\ \hline
-Uncomment highlighted code & 	Ctrl-Shift-X\\ \hline
-Auto-complete / Abbreviations & 	Ctrl-Space/Ctrl-J\\ \hline
-Toggle bookmark 	&	Ctrl-B\\ \hline
-Goto previous bookmark 	&	Alt-PgUp\\ \hline
-Goto next bookmark 	&	Alt-PgDown\\ \hline
-\end{tabular}
-
-This is a list of shortcuts provided by the \codeblocks editor component. These shortcuts cannot be rebound.
-
-\begin{tabular}{|l|l|}\hline
-Create or delete a bookmark	&	Ctrl-F2\\ \hline
-Go to next bookmark		&	F2\\ \hline
-Select to next bookmark		&	Alt-F2\\ \hline
-Find selection.			& 	Ctrl-F3\\ \hline
-Find selection backwards. 	&	Ctrl-Shift-F3\\ \hline
-Find matching preprocessor conditional, skipping nested ones. &	Ctrl-K\\ \hline
-\end{tabular}
-
-\subsection{Files}
-
-\begin{tabular}{|l|l|}\hline
-Function 		&	Shortcut Key\\ \hline
-New file or project 	&	Ctrl-N\\ \hline
-Open existing file or project &	Ctrl-O\\ \hline
-Save current file 	&	Ctrl-S\\ \hline
-Save all files 		&	Ctrl-Shift-S\\ \hline
-Close current file 	&	Ctrl-F4/Ctrl-W\\ \hline
-Close all files 	&	Ctrl-Shift-F4/Ctrl-Shift-W\\ \hline
-\end{tabular}
-
-\subsection{View}
-
-\begin{tabular}{|l|l|}\hline
-Function 		&	Shortcut Key\\ \hline
-Show / hide Messages pane	&	F2\\ \hline
-Show / hide Management pane 	&	Shift-F2\\ \hline
-Activate prior (in Project tree) & 	Alt-F5\\ \hline
-Activate next (in Project tree)  &	Alt-F6\\ \hline
-\end{tabular}
-
-\subsection{Search}
-
-\begin{tabular}{|l|l|}\hline
-Function 	&	Shortcut Key\\ \hline
-Find 		&	Ctrl-F\\ \hline
-Find next 	&	F3\\ \hline
-Find previous 	&	Shift-F3\\ \hline
-Find in files 	&	Crtl-Shift-F\\ \hline
-Replace 	&	Ctrl-R\\ \hline
-Replace in files &	Ctrl-Shift-R\\ \hline
-Goto line 	&	Ctrl-G\\ \hline
-Goto file 	&	Alt-G\\ \hline
-Goto function 	&	Ctrl-Alt-G\\ \hline
-Goto declaration & Ctrl-Shift-.\\ \hline
-Goto implementation & Ctrl-.\\ \hline
-Open include file & Ctrl-Alt-.\\ \hline
-\end{tabular}
-
-\subsection{Build}
-
-\begin{tabular}{|l|l|}\hline
-Function 	&	Shortcut Key\\ \hline
-Build 		&	Ctrl-F9\\ \hline
-Compile current file	&	Ctrl-Shift-F9\\ \hline
-Run		&	Ctrl-F10\\ \hline
-Build and Run 	&	F9\\ \hline
-Rebuild 	&	Ctrl-F11\\ \hline
-\end{tabular}
-
-
-
-
-
-
+\input{shortcuts}
