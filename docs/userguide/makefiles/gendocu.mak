@@ -140,7 +140,8 @@ endif
 
 ## Tex4ht parameter (HTML, XML, SXW)
 XMLINDEX = $(SAMP)\def\filename{{$(MAINFILE)}{idx}{4dx}{ind}} \input idxmake.4ht$(SAMP)
-TEX4HTCFGHTML = $(GUTENBERG)/$(TEXDISTRIBUTION)/configfiles/html.cfg
+TEX4HTCFGHTML = ./configfiles/html.cfg
+TEX4HTCFGHTMLWEB = ./configfiles/htmlweb.cfg
 TEX4HTCFGXML = $(GUTENBERG)/$(TEXDISTRIBUTION)/configfiles/xml.cfg
 TEX4HTCFGODT = $(GUTENBERG)/$(TEXDISTRIBUTION)/configfiles/odt.cfg
 TEX4HTCFGBEAMERXML = $(GUTENBERG)/$(TEXDISTRIBUTION)/configfiles/beamerxml.cfg
@@ -214,6 +215,7 @@ SCALE = 0.95
 
 ## Options for tex4ht for html generation
 HTMLFLAGS = $(SAMP)$(TEX4HTCFGHTML),html,2,sections+,info,next,refcaption,fn-in$(SAMP)
+HTMLWEBFLAGS = $(SAMP)$(TEX4HTCFGHTMLWEB),html,pic-tabular,pic-longtable$(SAMP)
 RTFCFLAGS = $(SAMP)$(TEX4HTCFGHTML),html,pic-tabular,pic-longtable$(SAMP)
 
 ## For $(TEXDISTRIBUTION) this option for inlcuding eps in pdf with use of package epstopdf
@@ -487,6 +489,9 @@ $(MAINFILE).html: $(MAINFILE).tex
 
 chm: $(MAINFILE).tex
 	$(RTFC)
+
+htmlweb: $(MAINFILE).tex png2eps svg2eps
+	make -f $(GENDOCU) html RTFCFLAGS=$(HTMLWEBFLAGS)
 
 htmlsec: $(MAINFILE).tex png2eps svg2eps
 	make -f $(GENDOCU) html RTFCFLAGS=$(HTMLFLAGS)
