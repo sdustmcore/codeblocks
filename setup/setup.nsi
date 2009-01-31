@@ -14,22 +14,47 @@
 
 Name CodeBlocks
 
+# Comment out the following line to remove the
+# 'Nullsoft Install System vX.XX' String:
+#BrandingText " "
+# (Notice that this string contains a space character.)
+
+
 #########################################################
 # Room for adjustments of most important settings BEGIN #
+#########################################################
+# Note: For each PC the installer needs to be adjusted  #
+# in terms of source path's for the files required by   #
+# the installer. These settings can be adjusted in      #
+# between this comment and the same with "END".         #
+# (... just look quite below).                          #
 #########################################################
 
 # The following line toggles whether the installer includes the MinGW
 # compiler suite (including GDB) or not. Comment out to exclude MinGW.
 #!define MINGW_BUNDLE
 
-# Defines
+# Notice installer packagers:
+# Some path's are system specific and need most likely to be adjusted
+# to suite your directories. Those path's start with a comment line:
+# "Possibly required to adjust manually:" (see below).
+
+###########
+# Defines #
+###########
 !define REGKEY           "SOFTWARE\$(^Name)"
 !define VERSION          8.02
 !define COMPANY          "The Code::Blocks Team"
 !define URL              http://www.codeblocks.org
+
+###########
+# Folders #
+###########
 # Possibly required to adjust manually:
+# (Folder with wxWidgets DLL - unicode, monolitic.)
 !define WX_BASE          D:\Devel\wxWidgets\lib\gcc_dll
 # Possibly required to adjust manually:
+# (CodeBlocks binary folder - the one where codeblocks.exe is.)
 !define CB_BASE          D:\Devel\CodeBlocks
 !define CB_SHARE         \share
 !define CB_SHARE_CB      ${CB_SHARE}\CodeBlocks
@@ -43,29 +68,37 @@ Name CodeBlocks
 !define CB_IMG_16        ${CB_IMAGES}\16x16
 !define CB_IMG_SETTINGS  ${CB_IMAGES}\settings
 # Possibly required to adjust manually:
+# (Folder with full MinGW/GCC installation, *including* debugger.)
+!define MINGW_BASE       D:\Devel\GCC345
+# Possibly required to adjust manually:
+# (Folder with logos and GPL license as text file.)
 !define CB_ADDONS        ${CB_BASE}\src\setup
+# Possibly required to adjust manually:
+# (Folder with documentation provided by mariocup.)
 !define CB_DOCS_SRC      ${CB_BASE}\src\setup
 !ifdef MINGW_BUNDLE
-# Possibly required to adjust manually:
-!define MINGW_BASE       D:\Devel\CodeBlocks_Devel\src\setup\MinGW
 !define CB_MINGW         \MinGW
 !endif
+
+#########
+# Files #
+#########
 # Possibly required to adjust manually:
-# Note: This file is only rerquired for the installer.
+# Note: This file is only required for the installer.
 !define CB_SPLASH        ${CB_ADDONS}\setup_splash.bmp
 !define CB_LOGO          ${CB_ADDONS}\setup_logo.bmp
 # Possibly required to adjust manually:
-# Note: This file is only rerquired for the installer.
+# Note: This file is only required for the installer.
 !define CB_LICENSE       ${CB_ADDONS}\gpl-3.0.txt
 !define CB_SM_GROUP      $(^Name)
 
 # Interface configuration (MUI defines)
-!define MUI_ICON                             "${NSISDIR}\Contrib\Graphics\Icons\modern-install.ico"
+!define MUI_ICON                     "${NSISDIR}\Contrib\Graphics\Icons\modern-install.ico"
 !define MUI_HEADERIMAGE
-!define MUI_HEADERIMAGE_BITMAP               "${CB_LOGO}" ; optional
+!define MUI_HEADERIMAGE_BITMAP       "${CB_LOGO}" ; optional
 !define MUI_COMPONENTSPAGE_SMALLDESC
 !define MUI_FINISHPAGE_NOAUTOCLOSE
-!define MUI_UNICON                           "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
+!define MUI_UNICON                   "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
 !define MUI_UNFINISHPAGE_NOAUTOCLOSE
 
 #######################################################
@@ -141,7 +174,7 @@ SectionGroup "!Default install" SECGRP_DEFAULT
             # Ask the user to probably abort installation process.
             MessageBox MB_YESNO|MB_ICONQUESTION \
                 "The target directory does already exist. OK to continue anyways?$\r$\n(If you are unsure and want to keep the folder, click No.)" \
-                IDYES continueInstall IDNO abortInstall
+                /SD IDNO IDYES continueInstall IDNO abortInstall
 abortInstall:
             # If user selected "no" -> abort the installation
             DetailPrint "Aborting installation."
@@ -154,18 +187,19 @@ doInstall:
         # If not, issue an error message and abort installation
         IfErrors 0 accessOK
             MessageBox MB_OK|MB_ICONEXCLAMATION \
-                "Cannot create the target folder.$\r$\nInstallation cannot continue.$\r$\n(Probably missing access rights?)"
+                "Cannot create the target folder.$\r$\nInstallation cannot continue.$\r$\n(Probably missing access rights?)" \
+                /SD IDOK
             DetailPrint "Aborting installation."
             Abort
 accessOK:
         SetOverwrite on
-        File ${WX_BASE}\wxmsw28u_gcc_cb.dll
+        File ${WX_BASE}\wxmsw28u_gcc_custom.dll
         File ${CB_BASE}\cb_console_runner.exe
         File ${CB_BASE}\codeblocks.dll
         File ${CB_BASE}\codeblocks.exe
         File ${CB_BASE}\exchndl.dll
-        File ${CB_BASE}\mingwm10.dll
         File ${CB_BASE}\wxscintilla.dll
+        File ${MINGW_BASE}\bin\mingwm10.dll
         SetOutPath $INSTDIR${CB_SHARE_CB}
         File ${CB_BASE}${CB_SHARE_CB}\start_here.zip
         File ${CB_BASE}${CB_SHARE_CB}\tips.txt
@@ -208,7 +242,8 @@ accessOK:
             # Verify if that succeeded. If not, issue an error message
             IfErrors 0 +2
                 MessageBox MB_OK|MB_ICONEXCLAMATION \
-                    "Cannot create shortcut for all users.$\r$\n(Probably missing admin rights?)"
+                    "Cannot create shortcut for all users.$\r$\n(Probably missing admin rights?)" \
+                    /SD IDOK
             SetShellVarContext current
             WriteRegStr HKCU "${REGKEY}\Components" "Program Shortcut All Users" 1
         SectionEnd
@@ -958,7 +993,8 @@ Section -post SEC_MISC
     WriteRegDWORD HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" NoRepair 1
 
     MessageBox MB_YESNO|MB_ICONQUESTION \
-        "Do you want to run Code::Blocks now?" IDYES yesRunCB IDNO noRunCB
+        "Do you want to run Code::Blocks now?" \
+        /SD IDNO IDYES yesRunCB IDNO noRunCB
 yesRunCB:
     DetailPrint "Running Code::Blocks."
     Exec '"$INSTDIR\codeblocks.exe"'
@@ -1517,14 +1553,15 @@ Section -un.post UNSEC_MISC
         # Ask the user to probably force the removal.
         MessageBox MB_YESNO|MB_ICONQUESTION \
             "Remove all files in your Code::Blocks directory?$\r$\n(If you have anything you created that you want to keep, click No.)" \
-            IDYES yesRMDir IDNO noRMDir
+            /SD IDNO IDYES yesRMDir IDNO noRMDir
 yesRMDir:
         # Try to delete all remaining files and finally $INSTDIR recursively
         Delete $INSTDIR\*.*
         RMDir /r $INSTDIR
         IfFileExists $INSTDIR 0 instDirOperated
             MessageBox MB_OK|MB_ICONEXCLAMATION \
-                "Warning: $INSTDIR could not be removed.$\r$\n(Probably missing access rights?)"
+                "Warning: $INSTDIR could not be removed.$\r$\n(Probably missing access rights?)" \
+                /SD IDOK
 noRMDir:
         # If user selected "no" -> skip the next steps
 instDirOperated:
