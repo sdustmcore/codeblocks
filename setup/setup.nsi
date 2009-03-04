@@ -861,6 +861,16 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "HexEditor plugin" 1
     SectionEnd
 
+    Section /o "IncrementalSearch plugin" SEC_INCREMENTALSEARCH
+        SectionIn 1
+        SetOutPath $INSTDIR${CB_SHARE_CB}
+        SetOverwrite on
+        File ${CB_BASE}${CB_SHARE_CB}\IncrementalSearch.zip
+        SetOutPath $INSTDIR${CB_PLUGINS}
+        File ${CB_BASE}${CB_PLUGINS}\IncrementalSearch.dll
+        WriteRegStr HKCU "${REGKEY}\Components" "IncrementalSearch plugin" 1
+    SectionEnd
+
     Section /o "Key Binder plugin" SEC_KEYBINDER
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
@@ -1139,6 +1149,12 @@ Section /o "-un.HexEditor plugin" UNSEC_HEXEDITOR
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\HexEditor.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\HexEditor.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "HexEditor plugin"
+SectionEnd
+
+Section /o "-un.IncrementalSearch plugin" UNSEC_INCREMENTALSEARCH
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\IncrementalSearch.dll
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\IncrementalSearch.zip
+    DeleteRegValue HKCU "${REGKEY}\Components" "IncrementalSearch plugin"
 SectionEnd
 
 Section /o "-un.Key Binder plugin" UNSEC_KEYBINDER
@@ -1681,6 +1697,7 @@ Function un.onInit
     !insertmacro SELECT_UNSECTION "HeaderFixUp plugin"         ${UNSEC_HEADERFIXUP}
     !insertmacro SELECT_UNSECTION "Help plugin"                ${UNSEC_HELP}
     !insertmacro SELECT_UNSECTION "HexEditor plugin"           ${UNSEC_HEXEDITOR}
+    !insertmacro SELECT_UNSECTION "IncrementalSearch plugin"   ${UNSEC_INCREMENTALSEARCH}
     !insertmacro SELECT_UNSECTION "Key Binder plugin"          ${UNSEC_KEYBINDER}
     !insertmacro SELECT_UNSECTION "Koders plugin"              ${UNSEC_KODERS}
     !insertmacro SELECT_UNSECTION "Lib Finder plugin"          ${UNSEC_LIBFINDER}
@@ -1742,6 +1759,7 @@ FunctionEnd
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_HEADERFIXUP}         "Provides analysis of header files according a customisable setup. C::B and wxWidgets are included by default."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_HELP}                "Add a list of help/MAN files to the help menu so you can have them handy to launch."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_HEXEDITOR}           "Provides an embedded very powerful hex editor to Code::Blocks (supports large binary files, too)."
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_INCREMENTALSEARCH}   "Searches and highlights a marked text incrementally within the open editor."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_KEYBINDER}           "Provides the user an ability to bind custom key combinations to the menu items."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_KODERS}              "Provides an interface to search for code snippets at the Koders webpage."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_LIBFINDER}           "Tool which automatically searches for installed libraries and adds them to global variables and projects."
