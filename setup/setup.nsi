@@ -755,16 +755,6 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "Byo Games plugin" 1
     SectionEnd
 
-    Section /o "Koders plugin" SEC_KODERS
-        SectionIn 1
-        SetOutPath $INSTDIR${CB_SHARE_CB}
-        SetOverwrite on
-        File ${CB_BASE}${CB_SHARE_CB}\cb_koders.zip
-        SetOutPath $INSTDIR${CB_PLUGINS}
-        File ${CB_BASE}${CB_PLUGINS}\cb_koders.dll
-        WriteRegStr HKCU "${REGKEY}\Components" "Koders plugin" 1
-    SectionEnd
-
     Section /o "Code Snippets plugin" SEC_CODESNIPPETS
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
@@ -838,6 +828,16 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "EnvVars plugin" 1
     SectionEnd
 
+    Section /o "HeaderFixUp plugin" SEC_HEADERFIXUP
+        SectionIn 1
+        SetOutPath $INSTDIR${CB_SHARE_CB}
+        SetOverwrite on
+        File ${CB_BASE}${CB_SHARE_CB}\headerfixup.zip
+        SetOutPath $INSTDIR${CB_PLUGINS}
+        File ${CB_BASE}${CB_PLUGINS}\headerfixup.dll
+        WriteRegStr HKCU "${REGKEY}\Components" "HeaderFixUp plugin" 1
+    SectionEnd
+
     Section /o "Help plugin" SEC_HELP
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
@@ -851,6 +851,16 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "Help plugin" 1
     SectionEnd
 
+    Section /o "HexEditor plugin" SEC_HEXEDITOR
+        SectionIn 1
+        SetOutPath $INSTDIR${CB_SHARE_CB}
+        SetOverwrite on
+        File ${CB_BASE}${CB_SHARE_CB}\HexEditor.zip
+        SetOutPath $INSTDIR${CB_PLUGINS}
+        File ${CB_BASE}${CB_PLUGINS}\HexEditor.dll
+        WriteRegStr HKCU "${REGKEY}\Components" "HexEditor plugin" 1
+    SectionEnd
+
     Section /o "Key Binder plugin" SEC_KEYBINDER
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
@@ -862,6 +872,16 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         File ${CB_BASE}${CB_IMG_SETTINGS}\onekeytobindthem.png
         File ${CB_BASE}${CB_IMG_SETTINGS}\onekeytobindthem-off.png
         WriteRegStr HKCU "${REGKEY}\Components" "Key Binder plugin" 1
+    SectionEnd
+
+    Section /o "Koders plugin" SEC_KODERS
+        SectionIn 1
+        SetOutPath $INSTDIR${CB_SHARE_CB}
+        SetOverwrite on
+        File ${CB_BASE}${CB_SHARE_CB}\cb_koders.zip
+        SetOutPath $INSTDIR${CB_PLUGINS}
+        File ${CB_BASE}${CB_PLUGINS}\cb_koders.dll
+        WriteRegStr HKCU "${REGKEY}\Components" "Koders plugin" 1
     SectionEnd
 
     Section /o "Lib Finder plugin" SEC_LIBFINDER
@@ -1057,12 +1077,6 @@ Section /o "-un.Byo Games plugin" UNSEC_BYOGAMES
     DeleteRegValue HKCU "${REGKEY}\Components" "Byo Games plugin"
 SectionEnd
 
-Section /o "-un.Koders plugin" UNSEC_KODERS
-    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\cb_koders.dll
-    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\cb_koders.zip
-    DeleteRegValue HKCU "${REGKEY}\Components" "Koders plugin"
-SectionEnd
-
 Section /o "-un.Code Snippets plugin" UNSEC_CODESNIPPETS
     Delete /REBOOTOK $INSTDIR\codesnippets.exe
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\codesnippets.dll
@@ -1107,6 +1121,12 @@ Section /o "-un.EnvVars plugin" UNSEC_ENVVARS
     DeleteRegValue HKCU "${REGKEY}\Components" "EnvVars plugin"
 SectionEnd
 
+Section /o "-un.HeaderFixUp plugin" UNSEC_HEADERFIXUP
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\headerfixup.dll
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\headerfixup.zip
+    DeleteRegValue HKCU "${REGKEY}\Components" "HeaderFixUp plugin"
+SectionEnd
+
 Section /o "-un.Help plugin" UNSEC_HELP
     Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\help-plugin-off.png
     Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\help-plugin.png
@@ -1115,12 +1135,24 @@ Section /o "-un.Help plugin" UNSEC_HELP
     DeleteRegValue HKCU "${REGKEY}\Components" "Help plugin"
 SectionEnd
 
+Section /o "-un.HexEditor plugin" UNSEC_HEXEDITOR
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\HexEditor.dll
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\HexEditor.zip
+    DeleteRegValue HKCU "${REGKEY}\Components" "HexEditor plugin"
+SectionEnd
+
 Section /o "-un.Key Binder plugin" UNSEC_KEYBINDER
     Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\onekeytobindthem-off.png
     Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\onekeytobindthem.png
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\keybinder.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\keybinder.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "Key Binder plugin"
+SectionEnd
+
+Section /o "-un.Koders plugin" UNSEC_KODERS
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\cb_koders.dll
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\cb_koders.zip
+    DeleteRegValue HKCU "${REGKEY}\Components" "Koders plugin"
 SectionEnd
 
 Section /o "-un.Lib Finder plugin" UNSEC_LIBFINDER
@@ -1640,15 +1672,17 @@ Function un.onInit
     !insertmacro SELECT_UNSECTION "Auto Versioning plugin"     ${UNSEC_AUTOVERSIONING}
     !insertmacro SELECT_UNSECTION "Browse Tracker plugin"      ${UNSEC_BROWSETRACKER}
     !insertmacro SELECT_UNSECTION "Byo Games plugin"           ${UNSEC_BYOGAMES}
-    !insertmacro SELECT_UNSECTION "Koders plugin"              ${UNSEC_KODERS}
     !insertmacro SELECT_UNSECTION "Code Snippets plugin"       ${UNSEC_CODESNIPPETS}
     !insertmacro SELECT_UNSECTION "Code Stat plugin"           ${UNSEC_CODESTAT}
     !insertmacro SELECT_UNSECTION "Copy Strings plugin"        ${UNSEC_COPYSTRINGS}
     !insertmacro SELECT_UNSECTION "DevPak plugin"              ${UNSEC_DEVPAK}
     !insertmacro SELECT_UNSECTION "Drag Scroll plugin"         ${UNSEC_DRAGSCROLL}
     !insertmacro SELECT_UNSECTION "EnvVars plugin"             ${UNSEC_ENVVARS}
+    !insertmacro SELECT_UNSECTION "HeaderFixUp plugin"         ${UNSEC_HEADERFIXUP}
     !insertmacro SELECT_UNSECTION "Help plugin"                ${UNSEC_HELP}
+    !insertmacro SELECT_UNSECTION "HexEditor plugin"           ${UNSEC_HEXEDITOR}
     !insertmacro SELECT_UNSECTION "Key Binder plugin"          ${UNSEC_KEYBINDER}
+    !insertmacro SELECT_UNSECTION "Koders plugin"              ${UNSEC_KODERS}
     !insertmacro SELECT_UNSECTION "Lib Finder plugin"          ${UNSEC_LIBFINDER}
     !insertmacro SELECT_UNSECTION "Profiler plugin"            ${UNSEC_PROFILER}
     !insertmacro SELECT_UNSECTION "RegEx Testbed plugin"       ${UNSEC_REGEXTESTBED}
@@ -1699,15 +1733,17 @@ FunctionEnd
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_AUTOVERSIONING}      "Auto increments the version and build number of your application every time a change has been made."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_BROWSETRACKER}       "Browse to previous source positions / editors comfortable."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_BYOGAMES}            "Provides a collection of games inside C::B for fun."
-!insertmacro MUI_DESCRIPTION_TEXT ${SEC_KODERS}              "Provides an interface to search for code snippets at the Koders webpage."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_CODESNIPPETS}        "Allows to create and save small pieces of code (snippets) for later use."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_CODESTAT}            "A plugin for counting code, comments and empty lines of a project."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_COPYSTRINGS}         "Copies all the strings in the current editor into the clipboard."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_DEVPAK}              "Installs selected DevPaks from the internet."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_DRAGSCROLL}          "Mouse drag and scroll using right or middle mouse key."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_ENVVARS}             "Sets up environment variables within the focus of Code::Blocks."
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_HEADERFIXUP}         "Provides analysis of header files according a customisable setup. C::B and wxWidgets are included by default."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_HELP}                "Add a list of help/MAN files to the help menu so you can have them handy to launch."
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_HEXEDITOR}           "Provides an embedded very powerful hex editor to Code::Blocks (supports large binary files, too)."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_KEYBINDER}           "Provides the user an ability to bind custom key combinations to the menu items."
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_KODERS}              "Provides an interface to search for code snippets at the Koders webpage."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_LIBFINDER}           "Tool which automatically searches for installed libraries and adds them to global variables and projects."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_PROFILER}            "Provides a simple graphical interface to the GNU GProf profiler."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_REGEXTESTBED}        "Provides a regular expressions testbed."
