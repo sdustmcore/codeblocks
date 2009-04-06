@@ -1,6 +1,6 @@
-\section{File Explorer und Shell Extension Plugin}\label{sec:file_explorer}
+\section{FileManager und PowerShell Plugin}\label{sec:file_explorer}
 
-Der File Explorer \pxref{fig:file_explorer} ist im Shell Extension Plugin enthalten. In \pxref{fig:file_explorer} ist der Aufbau des File Explorers dargestellt. Der File Explorer erscheint als Tab \samp{Files} im Management Fenster.
+Der File Explorer \pxref{fig:file_explorer} ist im FileManager Plugin enthalten. In \pxref{fig:file_explorer} ist der Aufbau des File Explorers dargestellt. Der File Explorer erscheint als Tab \samp{Files} im Management Fenster.
 
 Das oberste Eingabefeld dient zur Angabe des Pfades. Die History der letzten Einträge erhalten Sie durch Mausklick auf die Schaltfläche neben dem Eingabefeld. Dadurch öffnet sich das Listenfeld, in dem der entsprechende Eintrag ausgewählt werden kann. Die Pfeil-nach-oben-Schaltfläche rechts daneben schiebt die Anzeige der Verzeichnisstruktur um eins nach oben.
 
@@ -16,7 +16,7 @@ Für die Auswahl eines oder mehrerer Verzeichnisse im File Explorer stehen Ihnen
 \item[Make Root] Definiert das aktuell ausgewählte Verzeichnis als Hauptverzeichnis.
 \item[Add to Favorites] Setzt ein Lesezeichen für das Verzeichnis und speichert es als Favorit ab. Durch diese Auswahl können Sie schnell zwischen häufig verwendeten Verzeichnissen, z.B. auf unterschiedlichen Netzlaufwerken, springen.
 \item[New File] Erzeugt eine neue Datei in ausgewählten Verzeichnis.
-\item[Make Directory] Legt ein neues Unterverzeichnis im ausgewählten Ordner an.
+\item[New Directory] Legt ein neues Unterverzeichnis im ausgewählten Ordner an.
 \end{description}
 
 Für die Auswahl von Dateien und Verzeichnissen stehen im Kontextmenü folgende gemeinsamen Befehle zur Verfügung.
@@ -40,10 +40,10 @@ Folgende Einträge sind nur für die Auswahl ein oder mehrerer Dateien gültig.
 
 \hint{Die im File-Explorer ausgewählten Dateien oder Verzeichnisse sind über die Variable \codeline{mpaths} im Shell Extension Plugin verfügbar.}
 
-Über den Menübefehl \menu{Settings,Environment,Shell Extensions} können benutzerdefinierte Funktionen erstellt werden. In der Eingabemaske des Shell Extensions wird mit der Schaltfläche \samp{New} eine neue Funktion angelegt, die frei benannt werden kann. Im Feld ShellCommand Executable wird das auszuführende Programm angegeben, im unteren Feld können dem auszuführenden Programm zusätzliche Parameter übergeben werden.
-Durch Auswahl der Funktion im Kontextmenü oder Shell Extensions-Menü wird die eingetragene Aktion für die markierten Dateien oder Verzeichnisse ausgeführt. Die Ausgabe wird dabei auf ein eigenes Shell-Window umgelenkt.
+Über den Menübefehl \menu{Settings,Environment,PowerShell} können benutzerdefinierte Funktionen erstellt werden. In der Eingabemaske des PowerShell wird mit der Schaltfläche \samp{New} eine neue Funktion angelegt, die frei benannt werden kann. Im Feld ShellCommand Executable wird das auszuführende Programm angegeben, im unteren Feld können dem auszuführenden Programm zusätzliche Parameter übergeben werden.
+Durch Auswahl der Funktion im Kontextmenü oder PowerShell-Menü wird die eingetragene Aktion für die markierten Dateien oder Verzeichnisse ausgeführt. Die Ausgabe wird dabei auf ein eigenes Shell-Window umgelenkt.
 
-Als Beispiel wird für den Eintrag mit dem Namen \samp{SVN} ein zugehöriger Menüeintrag in \menu{Shell Extensions,SVN} und im Kontextmenü des File-Explorers hinzugefügt. Hierbei bedeutet \codeline{$file} die Datei, welche im FileExplorer markiert ist, und \codeline{$mpath} die markierten Dateien oder Verzeichnisse.
+Als Beispiel wird für den Eintrag mit dem Namen \samp{SVN} ein zugehöriger Menüeintrag in \menu{PowerShell,SVN} und im Kontextmenü des File-Explorers hinzugefügt. Hierbei bedeutet \codeline{$file} die Datei, welche im FileExplorer markiert ist, und \codeline{$mpath} die markierten Dateien oder Verzeichnisse.
 
 \begin{code}
  Add;$interpreter add $mpaths;;;
@@ -68,7 +68,7 @@ eine im File Explorer von \codeblocks ausgewählte Datei gegen die SVN base Vers
 Sie können den File-Explorer auch verwendet um Unterschiede zwischen verschiedenen Dateien oder Verzeichnisse anzeigen zu lassen. Dabei gehen Sie wie folgt vor.
 
 \begin{enumerate}
-\item Fügen Sie im \menu{Settings,Environment,Shell Extensions} den Namen ein, der später im Menü ShellExtensions bzw. im Kontextmenü erscheinen soll.
+\item Fügen Sie im \menu{Settings,Environment,PowerShell} den Namen ein, der später im Menü ShellExtensions bzw. im Kontextmenü erscheinen soll.
 \item Geben Sie den absoluten Pfad des Diff-Programms an (z.B. kdiff3). Dies wird über die Variable \codeline{$interpreter} zugegriffen.
 \item Fügen Sie im unteren Feld den Eintrag:
 \begin{cmd}
@@ -78,7 +78,7 @@ Diff;$interpreter $mpaths;;;
 
 In diesem Aufruf wird über die Variable \codeline{$mpaths} die im File-Explorer selektierten Dateien oder Verzeichnisse zugegriffen. Somit können Sie einfach ausgewählte Dateien oder Verzeichnisse gegeneineander vergleichen.
 
-Als Übergabeparameter eines Befehl einer Shell Extensions unterstützt auch den Zugriff der in \codeblocks verfügbaren Variablen (siehe \pxref{sec:builtin_variables}).
+Als Übergabeparameter eines Befehl einer PowerShell unterstützt auch den Zugriff der in \codeblocks verfügbaren Variablen (siehe \pxref{sec:builtin_variables}).
 
 \begin{codeentry}
 \item[\$interpreter] Aufzurufendes Programm.
