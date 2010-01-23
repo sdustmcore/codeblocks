@@ -10,6 +10,7 @@
 # 2.) Add Uninstaller section (files in reverse order of installer) #
 # 3.) Add macro to uninstaller functions                            #
 # 4.) Add section description                                       #
+# --> Basically you need to add stuff at 4 places! :-)              #
 #####################################################################
 
 Name CodeBlocks
@@ -69,7 +70,8 @@ Name CodeBlocks
 !define CB_IMG_SETTINGS  ${CB_IMAGES}\settings
 # Possibly required to adjust manually:
 # (Folder with full MinGW/GCC installation, *including* debugger.)
-!define MINGW_BASE       D:\Devel\GCC345
+!define MINGW_BASE       D:\Devel\GCC3
+#!define MINGW_BASE       D:\Devel\GCC4TDM
 # Possibly required to adjust manually:
 # (Folder with logos and GPL license as text file.)
 !define CB_ADDONS        ${CB_BASE}\src\setup
