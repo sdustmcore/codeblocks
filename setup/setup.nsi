@@ -1003,9 +1003,11 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         File ${CB_BASE}\wxsmithlib.dll
         SetOutPath $INSTDIR${CB_SHARE_CB}
         File ${CB_BASE}${CB_SHARE_CB}\wxsmith.zip
+        File ${CB_BASE}${CB_SHARE_CB}\wxSmithAui.zip
         File ${CB_BASE}${CB_SHARE_CB}\wxSmithContribItems.zip
         SetOutPath $INSTDIR${CB_PLUGINS}
         File ${CB_BASE}${CB_PLUGINS}\wxsmith.dll
+        File ${CB_BASE}${CB_PLUGINS}\wxSmithAui.dll
         File ${CB_BASE}${CB_PLUGINS}\wxSmithContribItems.dll
         SetOutPath $INSTDIR${CB_IMG_SETTINGS}
         File ${CB_BASE}${CB_IMG_SETTINGS}\wxsmith.png
@@ -1271,8 +1273,10 @@ Section "-un.wxSmith plugin" UNSEC_WXSMITH
     Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\wxsmith-off.png
     Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\wxsmith.png
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\wxsmith.dll
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\wxSmithAui.dll
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\wxSmithContribItems.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\wxsmith.zip
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\wxSmithAui.zip
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\wxSmithContribItems.zip
     Delete /REBOOTOK $INSTDIR\wxsmithlib.dll
     DeleteRegValue HKCU "${REGKEY}\Components" "wxSmith plugin"
