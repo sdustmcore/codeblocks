@@ -755,6 +755,16 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "Byo Games plugin" 1
     SectionEnd
 
+    Section /o "Cccc plugin" SEC_CCCC
+        SectionIn 1
+        SetOutPath $INSTDIR${CB_SHARE_CB}
+        SetOverwrite on
+        File ${CB_BASE}${CB_SHARE_CB}\Cccc.zip
+        SetOutPath $INSTDIR${CB_PLUGINS}
+        File ${CB_BASE}${CB_PLUGINS}\Cccc.dll
+        WriteRegStr HKCU "${REGKEY}\Components" "Cccc plugin" 1
+    SectionEnd
+
     Section /o "Code Snippets plugin" SEC_CODESNIPPETS
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
@@ -790,6 +800,16 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         SetOutPath $INSTDIR${CB_PLUGINS}
         File ${CB_BASE}${CB_PLUGINS}\copystrings.dll
         WriteRegStr HKCU "${REGKEY}\Components" "Copy Strings plugin" 1
+    SectionEnd
+
+    Section /o "CppCheck plugin" SEC_CPPCHECK
+        SectionIn 1
+        SetOutPath $INSTDIR${CB_SHARE_CB}
+        SetOverwrite on
+        File ${CB_BASE}${CB_SHARE_CB}\CppCheck.zip
+        SetOutPath $INSTDIR${CB_PLUGINS}
+        File ${CB_BASE}${CB_PLUGINS}\CppCheck.dll
+        WriteRegStr HKCU "${REGKEY}\Components" "CppCheck plugin" 1
     SectionEnd
 
     Section /o "DevPak plugin" SEC_DEVPAK
@@ -904,6 +924,16 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         SetOutPath $INSTDIR${CB_SHARE_CB}\lib_finder
         File ${CB_BASE}${CB_SHARE_CB}\lib_finder\*.xml
         WriteRegStr HKCU "${REGKEY}\Components" "Lib Finder plugin" 1
+    SectionEnd
+
+    Section /o "MouseSap plugin" SEC_MOUSESAP
+        SectionIn 1
+        SetOutPath $INSTDIR${CB_SHARE_CB}
+        SetOverwrite on
+        File ${CB_BASE}${CB_SHARE_CB}\MouseSap.zip
+        SetOutPath $INSTDIR${CB_PLUGINS}
+        File ${CB_BASE}${CB_PLUGINS}\MouseSap.dll
+        WriteRegStr HKCU "${REGKEY}\Components" "MoueSap plugin" 1
     SectionEnd
 
     Section /o "Profiler plugin" SEC_PROFILER
@@ -1087,6 +1117,12 @@ Section /o "-un.Byo Games plugin" UNSEC_BYOGAMES
     DeleteRegValue HKCU "${REGKEY}\Components" "Byo Games plugin"
 SectionEnd
 
+Section /o "-un.Cccc plugin" UNSEC_CCCC
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\Cccc.dll
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\Cccc.zip
+    DeleteRegValue HKCU "${REGKEY}\Components" "Cccc plugin"
+SectionEnd
+
 Section /o "-un.Code Snippets plugin" UNSEC_CODESNIPPETS
     Delete /REBOOTOK $INSTDIR\codesnippets.exe
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\codesnippets.dll
@@ -1107,6 +1143,12 @@ Section /o "-un.Copy Strings plugin" UNSEC_COPYSTRINGS
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\copystrings.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\copystrings.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "Copy Strings plugin"
+SectionEnd
+
+Section /o "-un.CppCheck plugin" UNSEC_CPPCHECK
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\CppCheck.dll
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\CppCheck.zip
+    DeleteRegValue HKCU "${REGKEY}\Components" "CppCheck plugin"
 SectionEnd
 
 Section /o "-un.DevPak plugin" UNSEC_DEVPAK
@@ -1177,6 +1219,12 @@ Section /o "-un.Lib Finder plugin" UNSEC_LIBFINDER
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\lib_finder.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\lib_finder.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "Lib Finder plugin"
+SectionEnd
+
+Section /o "-un.MouseSap plugin" UNSEC_MOUSESAP
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\MouseSap.dll
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\MouseSap.zip
+    DeleteRegValue HKCU "${REGKEY}\Components" "MouseSap plugin"
 SectionEnd
 
 Section /o "-un.Profiler plugin" UNSEC_PROFILER
@@ -1688,9 +1736,11 @@ Function un.onInit
     !insertmacro SELECT_UNSECTION "Auto Versioning plugin"     ${UNSEC_AUTOVERSIONING}
     !insertmacro SELECT_UNSECTION "Browse Tracker plugin"      ${UNSEC_BROWSETRACKER}
     !insertmacro SELECT_UNSECTION "Byo Games plugin"           ${UNSEC_BYOGAMES}
+    !insertmacro SELECT_UNSECTION "Cccc plugin"                ${UNSEC_CCCC}
     !insertmacro SELECT_UNSECTION "Code Snippets plugin"       ${UNSEC_CODESNIPPETS}
     !insertmacro SELECT_UNSECTION "Code Stat plugin"           ${UNSEC_CODESTAT}
     !insertmacro SELECT_UNSECTION "Copy Strings plugin"        ${UNSEC_COPYSTRINGS}
+    !insertmacro SELECT_UNSECTION "CppCheck plugin"            ${UNSEC_CPPCHECK}
     !insertmacro SELECT_UNSECTION "DevPak plugin"              ${UNSEC_DEVPAK}
     !insertmacro SELECT_UNSECTION "Drag Scroll plugin"         ${UNSEC_DRAGSCROLL}
     !insertmacro SELECT_UNSECTION "EnvVars plugin"             ${UNSEC_ENVVARS}
@@ -1701,6 +1751,7 @@ Function un.onInit
     !insertmacro SELECT_UNSECTION "Key Binder plugin"          ${UNSEC_KEYBINDER}
     !insertmacro SELECT_UNSECTION "Koders plugin"              ${UNSEC_KODERS}
     !insertmacro SELECT_UNSECTION "Lib Finder plugin"          ${UNSEC_LIBFINDER}
+    !insertmacro SELECT_UNSECTION "MouseSap plugin"            ${UNSEC_MOUSESAP}
     !insertmacro SELECT_UNSECTION "Profiler plugin"            ${UNSEC_PROFILER}
     !insertmacro SELECT_UNSECTION "RegEx Testbed plugin"       ${UNSEC_REGEXTESTBED}
     !insertmacro SELECT_UNSECTION "Exporter plugin"            ${UNSEC_EXPORTER}
@@ -1750,9 +1801,11 @@ FunctionEnd
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_AUTOVERSIONING}      "Auto increments the version and build number of your application every time a change has been made."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_BROWSETRACKER}       "Browse to previous source positions / editors comfortable."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_BYOGAMES}            "Provides a collection of games inside C::B for fun."
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_CCCC}                "A plugin for code analysis based on Cccc (C and C++ Code Counter)."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_CODESNIPPETS}        "Allows to create and save small pieces of code (snippets) for later use."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_CODESTAT}            "A plugin for counting code, comments and empty lines of a project."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_COPYSTRINGS}         "Copies all the strings in the current editor into the clipboard."
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_CPPCHECK}            "A plugin for code analysis based on CppCheck."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_DEVPAK}              "Installs selected DevPaks from the internet."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_DRAGSCROLL}          "Mouse drag and scroll using right or middle mouse key."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_ENVVARS}             "Sets up environment variables within the focus of Code::Blocks."
@@ -1763,6 +1816,7 @@ FunctionEnd
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_KEYBINDER}           "Provides the user an ability to bind custom key combinations to the menu items."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_KODERS}              "Provides an interface to search for code snippets at the Koders webpage."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_LIBFINDER}           "Tool which automatically searches for installed libraries and adds them to global variables and projects."
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_MOUSESAP}            "Plugin to provide middle mouse select and paste functionality."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_PROFILER}            "Provides a simple graphical interface to the GNU GProf profiler."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_REGEXTESTBED}        "Provides a regular expressions testbed."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_EXPORTER}            "Provides the ability to export syntax highlighted source files to HTML, RTF, ODT or PDF."
