@@ -21,8 +21,11 @@ The status bar gives an overview of the following settings:
 \item The editor uses the default character encoding of your host operating system. This setting will be displayed with \codeline{default}.
 \item Row and column number of the current cursor position in the editor.
 \item The configured keyboard mode for inserting text (Insert or Overwrite).
-\item Current state of a file. A modified file will be marked with \codeline{Modified} otherwise this entry is empty.
+\item Current state of a file. A modified file will be marked with \codeline{Modified} otherwise this entry is empty. 
 \item The permission of a file. A file with read only settings will display \codeline{Read only} in the status bar. In the window \menu{Open files list} these files will be emphasised with a lock as icon overlay.
+
+\hint{In the active editor the user can select the context menu properties. In the appearing dialog in the tab \menu{General} the option \menu{File is read-only} can be selected. This option will result in a read-only access of the corresponding file within \codeblocks, but the original read and write attributes of the file on the filesystem are not modified.}
+
 \item If you start \codeblocks with the command line option \opt{--personality=\var{profile}} then the status bar will show the currently used profile, otherwise \codeline{default} will be shown. The settings of \codeblocks are stored in the corresponding configuration file \file{\var{personality}.conf}.
 \end{itemize}
 
@@ -30,7 +33,9 @@ The status bar gives an overview of the following settings:
 
 \section{Project View}\label{sec:categories}
 
-In \codeblocks, the sources and the settings for the build process are stored in a project file \file{\var{name}.cbp}. C/C++ sources and the corresponding header files are the typical components of a project. The easiest way to create a new project is  executing the command \menu{File,Project} and selecting a wizard. Then you can add files to the project via the context menu \menu{Add files} in the Management window. \codeblocks governs the project files in categories according to their file extensions. These are the preset categories:
+In \codeblocks, the sources and the settings for the build process are stored in a project file \file{\var{name}.cbp}. C/C++ sources and the corresponding header files are the typical components of a project. The easiest way to create a new project is  executing the command \menu{File,Project} and selecting a wizard. Then you can add files to the project via the context menu \menu{Add files} in the Management window. 
+
+\codeblocks governs the project files in categories according to their file extensions. These are the preset categories:
 
 \begin{description}
 \item[Sources] includes source files with the extensions \file{*.c;*.cpp;}.
@@ -127,13 +132,13 @@ The \codeblocks variables are marked by \codeline{$} (see \pxref{sec:command_mac
 
 \subsection{Default Code}
 
-The company's Coding Rules require source files to have a standard design. \codeblocks makes it possible to include a predefined content at the beginning of a file automatically when creating new C/C++ sources and headers. This predefined content is called default code. This setting can be selected under \menu{Stettings,Editor} Default Code. A new file can be created via the menu \menu{File,New,File}.
+The company's Coding Rules require source files to have a standard design. \codeblocks makes it possible to include a predefined content at the beginning of a file automatically when creating new C/C++ sources and headers. This predefined content is called default code. This setting can be selected under \menu{Stettings,Editor} Default Code. If you create a new file then a macro expansion of variables, e.g. defined via menu \menu{Settings,Global variables},  is performed. A new file can be created via the menu \menu{File,New,File}.
 
 \genterm{Example}
 
 \begin{code}
 /*************************************************************************
- *  Project:
+ *  Project: $(proejct)
  *  Function:
  *************************************************************************
  *  $Author: mario $
@@ -201,13 +206,18 @@ In \codeblocks you can easily navigate between header/source files like:
 
 Alt-G and Ctrl-Alt-G are another useful functions. The dialogue which will open on using this shortcut, lets you select files/functions and then jumps to the implementation of the selected function (see \pxref{fig:select_function}) or opens the selected file in the editor. You may use wildcards like \codeline{*} or \codeline{?} etc. for an incremental search in the dialog.
 
-\screenshot[][width=.5\columnwidth]{select_function}{Search for functions}
+\screenshot[!hbt][width=.5\columnwidth]{select_function}{Search for functions}
 
 \hint{With the Ctrl-PgUp shortcut you can jump to the previous function, and via Ctrl-PgDn you can jump to the next function.}
 
-In the editor, you can switch between the tabs with the open files via Ctrl-Tab. Alternatively you can set \samp{Use Smart Tab-switching scheme} in \menu{Settings,Notebook appearance}, then Ctrl-Tab will bring up an Open Tabs window in which all the open files will be listed which can then be selected by mouse-click (see \pxref{fig:tab_scheme}). You can use the shortcut Ctrl-Tab in the management window to switch between the different tabs.
+In the editor, you can open a new Open Files dialog via Ctrl-Tab and you can switch between the listed entries. If the Ctrl-key is pressed, then a file can be selected in different ways:
 
-\screenshot{tab_scheme}{Settings of switching between tabs}
+\begin{enumerate}
+\item If you select an entry with the left mouse button, then the selected file will be opened.
+\item If you press the Tab-key you will switch between the listed entries. Releasing the Crtl-key will open the selected file.
+\item If you move the mouse over the listed entries, then the current selection will be highlighted. Releasing the Crtl-key will open the selected file.
+\item If the mouse pointer is  outside the highlighted selection, then you can use the mouse-wheel to switch between the entries. Releasing the Crtl-key will open the selected file.
+\end{enumerate}
 
 A common procedure when developing software is to struggle with a set of functions which are implemented in different files. The Browse Tracker plugin will help you solve this problem by showing you the order in which the files were selected. You can then comfortably navigate the function calls (see \pxref{sec:browsetracker}).
 
@@ -223,18 +233,23 @@ The \codeblocks Management window offers a tree view for symbols of C/C++ source
 
 The following categories exist for the symbols:
 
-\screenshot{symbols}{Symbol view}
-
 \begin{description}
 \item[Global functions] Lists the implementation of global functions.
 \item[Global typedefs] Lists the use of \codeline{typedef} definitions.
 \item[Global variables] Displays the symbols of global variables.
 \item[Preprocessor symbols] Lists the pre-processor directives created by \codeline{#define}.
+\item[Global macros] Lists macros of pre-processor directives.
 \end{description}
 
-Structures and classes are displayed below the pre-processor symbols. If a category is selected by mouse-click, the found symbols will be displayed in the lower part of the window (see \pxref{fig:symbols}). Double-clicking the symbol will open the file in which the symbol is defined or the function implemented, and jumps to the corresponding line.
+\figures[H][width=.3\columnwidth]{symbols}{Symbol view}
+
+Structures and classes are displayed in the \menu{bottom tree} and the sort sequence can be modified via the context menu. If a category is selected by mouse-click, the found symbols will be displayed in the lower part of the window (see \pxref{fig:symbols}). Double-clicking the symbol will open the file in which the symbol is defined or the function implemented, and jumps to the corresponding line. An auto-refresh of the symbol browser without saving a file, can be activated via the menu  \menu{Settings,Editor,Code Completion} (see \pxref{fig:cc_realtime_parsing}). For projects with many symbols the performance within \codeblocks will be affected.
+
+\screenshot{cc_realtime_parsing}{Aktivieren von Echtzeit-Parsing}
 
 \hint{In the editor, a list of the classes can be displayed via the context menus \menu{Insert Class method declaration implementation} or \menu{All class methods without implementation}.}
+
+cc_realtime_parsing
 
 \subsection{Including external help files}
 
@@ -373,9 +388,16 @@ Furthermore, \codeblocks offers a progress bar for the build process in the Buil
 
 When editing text files, e. g. \file{*.txt}, within \codeblocks, it might be useful to have the text wrapped, meaning long lines will be displayed in several lines on the screen so that they can be properly edited. The \samp{Word wrap} function can be activated via \menu{Settings,Editor,Other Options} or by setting the checkbox \menu{Word wrap}. The Home and End keys position the cursor at the beginning or end of wrapped lines respectively. When setting \menu{Settings,Editor,Other Options} and \menu{Home key always move to caret to first column}, the cursor will be positioned at the beginning or end of the current line respectively, if the Home or End keys are pressed. If positioning the cursor at the beginning of the first line of the current paragraph is desired, the key combination \menu{Alt-Home} is to be used. The same applies analogously for \menu{Alt-End} for positioning the cursor at the end of the last line of the current paragraph.
 
-\subsection{Block select mode in editor}
+\subsection{Select modes in editor}
 
-\codeblocks supports the block select mode within the editor. Hold the key \samp{ALT} and select a region with the left mouse button and copy or paste your selection. This feature is helpful if you want to select some columns e.g. of an array and copy and paste the content.
+\codeblocks supports different modes for selecting or pasting of strings.
+
+\begin{enumerate}
+\item With the left mouse button a text in the active editor can be selected and then the mouse button can be released. With the mouse wheel the user can scroll to a position. If the middle mouse button is pressed then the formerly selected text will be inserted. This feature is available per file and can be seen a clipboard per file.
+\item Pressing the \samp{ALT} key will activate the so-called block-select mode and a rectangle selection can be raised with the left mouse button. If the Alt key is released this selection can be copied or pasted. This feature is helpful if you want to select some columns e.g. of an array and copy and paste the content.
+ \item In the menu \menu{Settings,Editor,Margins und Caret} so-called \menu{Virtual Spaces} can be activated. This option enables that a selection in the block select mode can start or end within an empty line.
+\item In the menu  \menu{Settings,Editor,Margins und Caret} the \menu{Multiple Selection} can be activated. While holding the Ctrl-key the user can select different lines in the active editor via the left mouse button. The selections will be appended in the clipboard via the shortcut  Ctrl-C or Ctrl-X. Ctrl-V will insert the content at the current cursor position. An additional option  called \menu{Enable typing (and deleting)}  can be activated for multiple selections. This feature is useful if you want to add a pre-processor directive like \codeline{#ifdef} at different source lines or if you want to overwrite or replace a text at several positions.
+\end{enumerate}
 
 \hint{Most Linux window managers use ALT-LeftClickDrag to move a window, so you will have to disable this window manager behavior first for block select to work.}
 

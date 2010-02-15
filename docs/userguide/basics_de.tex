@@ -23,7 +23,10 @@ Die Statusbar gibt einen Überblick der folgenden Einstellungen:
 \item Über die Tastatur eingestellte Modus für das Einfügen von Text (Insert oder Overwrite).
 \item Aktuelle Status einer Datei. Für eine geänderte Datei steht der Eintrag auf \codeline{Modified} ansonsten ist dieser Eintrag leer.
 \item Die für eine Datei eingestellte Berechtigung. Eine schreibgeschützte Datei wird als \codeline{Read only} in der Statusbar gekennzeichnet. Im Fenster \menu{Open files list} werden solche mit einem Schloss als Icon Overlay markiert.
-\item Falls \codeblocks mit der Kommandozeileoption \opt{--personality=\var{profile}} gestartet wird, steht in der Statusbar das aktuell verwendete Profil, ansonsten wird hier \codeline{default} angezeigt. Die Einstellungen von \codeblocks werden in der gleichnamigen Konfigurationsdatei \file{\var{personality}.conf} gespeichert.
+
+\hint{Im aktiven Editor kann über das Kontextmenü Properties im Reiter \menu{General} die Option \menu{File is read-only} aktiviert werden. Dies bewirkt das die Datei nur innerhalb \codeblocks schreibgeschützt ist, jedoch bleibt die Lese- und Schreibberechtigung auf der Festplatte unverändert.}
+
+\item Falls \codeblocks mit der Kommandozeilenoption \opt{--personality=\var{profile}} gestartet wird, steht in der Statusbar das aktuell verwendete Profil, ansonsten wird hier \codeline{default} angezeigt. Die Einstellungen von \codeblocks werden in der gleichnamigen Konfigurationsdatei \file{\var{personality}.conf} gespeichert.
 \end{itemize}
 
 \codeblocks bietet eine sehr flexible und umfassende Projektverwaltung. Der folgende Text geht nur auf einige Besonderheiten der Projektverwaltung ein.
@@ -127,13 +130,13 @@ Dabei sind die \codeblocks Variablen durch \codeline{$} gekennzeichnet (siehe \p
 
 \subsection{Default Code}
 
-Durch vorgegebene Coding Rules im Unternehmen müssen Quelldateien einen einheitlichen Aufbau vorweisen. \codeblocks bietet die Möglichkeit, beim Anlegen von neuen C/C++ Quellen und Header einen vorgegebenen Inhalt am Anfang einer Datei automatisiert einzufügen. Die vorgebene Inhalt wird als Default Code bezeichnet. Die Einstellung hierfür kann unter \menu{Stettings,Editor} Default Code vorgenommen werden. Eine neue Datei erzeugen Sie über das Menü \menu{File,New,File}.
+Durch vorgegebene Coding Rules im Unternehmen müssen Quelldateien einen einheitlichen Aufbau vorweisen. \codeblocks bietet die Möglichkeit, beim Anlegen von neuen C/C++ Quellen und Header einen vorgegebenen Inhalt am Anfang einer Datei automatisiert einzufügen. Die vorgebene Inhalt wird als Default Code bezeichnet. Die Einstellung hierfür kann unter \menu{Stettings,Editor} Default Code vorgenommen werden. Wenn eine neue Datei angelegt wird, dann wird eine Makroauflösung von Variablen, die zum Beispiel über das Menü \menu{Settings,Global variables} definiert wurden, durchgeführt. Eine neue Datei erzeugen Sie über das Menü \menu{File,New,File}.
 
 \genterm{Beispiel}
 
 \begin{code}
 /*************************************************************************
- *  Project:
+ *  Project: $(project)
  *  Function:
  *************************************************************************
  *  $Author: mario $
@@ -202,13 +205,18 @@ Für das schnelle Navigieren zwischen Header/Quelle Dateien bietet \codeblocks f
 
 Eine weitere komfortable Funktion bietet das Tastenkürzel Alt-G und Ctrl-Alt-G. Der sich öffnende Dialog erlaubt die Auswahl von Dateien/Funktionen und springt anschließend an die Implementierung der Funktion (siehe \pxref{fig:select_function}) bzw. öffnete die ausgewählte Datei. Als Eingabe werden auf Wildcards \codeline{*} oder \codeline{?} etc. für eine inkrementelle Suche unterstützt.
 
-\screenshot[][width=.5\columnwidth]{select_function}{Suche nach Funktionen}
+\screenshot[!hbt][width=.5\columnwidth]{select_function}{Suche nach Funktionen}
 
 \hint{Mit dem Tastenkürzel Ctrl-PAGEUP springen Sie an die vorherige Funktion und mit Ctrl-PAGEDOWN zur nächsten Funktion.}
 
-Wenn Sie sich im Editor Fenster befinden, können Sie mit Ctrl-Tab zwischen den Reiter von geöffneten Dateien springen. Durch setzen der Einstellung \samp{Use Smart Tab-switching scheme} in \menu{Settings,Notebook appearance} erhalten Sie nun über Ctrl-Tab ein zusätzliches Open Tabs Fenster im Editor (siehe \pxref{fig:tab_scheme}). Dabei wird die Liste in der Reihenfolge der geöffneten Dateien gezeigt. Sie können die Tastenkombination Ctrl-Tab auch im Management Fenster verwenden, um in zwischen den Reitern zu wechseln.
+Wenn Sie sich im Editor Fenster befinden, öffnet sich mit Ctrl-Tab ein zusätzliches Open Files Dialog und es kann zwischen den Einträgen der zu öffnenden Dateien gewechselt werden. Bei gedrückter Ctrl-Taste kann eine  Auswahl auf unterschiedliche Weise erfolgen:
 
-\screenshot{tab_scheme}{Einstellungen für Wechseln zwischen Reitern}
+\begin{enumerate}
+\item Mit der linken Maustaste einen Eintrag anklicken und es öffnet sich die Datei.
+\item Betätigen der Tab-Taste wechselt zwischen den Einträgen. Durch Loslassen der Ctrl-Taste wird die ausgewählte Datei geöffnet.
+\item Wenn die Maus über die Einträge bewegt werden, dann erscheint die aktuelle Auswahl farblich hervorgehoben. Beim Loslassen wird die ausgewählte Datei geöffnet.
+\item Wenn der Mauszeiger außerhalb der farblich Hervorhebung steht, dann kann über das Mausrad eine Auswahl getroffen werden. Beim Loslassen der Crtl-Taste wird die ausgewählte Datei geöffnet.
+\end{enumerate}
 
 Eine häufige Arbeitsweise bei der Entwicklung von Software ist jedoch, dass man sich durch ein Satz von Funktion hangelt, die in unterschiedlichen Dateien implementiert sind. Durch das Plugin Browse Tracker zeigt mit dem Fenster \samp{Browsed Tabs} eine Liste in der Reihenfolge wie Dateien selektiert wurden. Somit können Sie komfortabel zwischen den Aufrufen navigieren (siehe \pxref{sec:browsetracker}).
 
@@ -224,16 +232,19 @@ Für das Navigieren über Funktionen oder Variablen bietet das Management Fenste
 
 Für die Kategorien der Symbole existieren folgende Kategorien.
 
-\screenshot{symbols}{Symbolansicht}
-
 \begin{description}
 \item[Global functions] Listet die Implementierung von globalen Funktionen.
 \item[Global typedefs] Listet die Verwendung von \codeline{typedef} Definitionen.
 \item[Global variables] Zeigt die Symbole von globalen Variablen an.
 \item[Preprocessor symbols] Auflistung der mit \codeline{#define} erzeugten Präprozessor Direktiven.
+\item[Global macros] Listet Makros von Präprozessor Direktiven auf.
 \end{description}
 
-Strukturen und Klassen werden unterhalb von Preprocessor symbols angezeigt. Wenn eine Kategorie mit der Maus angewählt wird, erscheinen die gefundenen Symbole in dem unteren Teil des Fensters (siehe \pxref{fig:symbols}). Ein Doppelklick auf das Symbol öffnet die Datei, wo das Symbol definiert bzw. die Funktion implementiert ist und springt an die zugehörige Zeile.
+\figures[H][width=.3\columnwidth]{symbols}{Symbolansicht}
+
+Strukturen und Klassen werden unterhalb im \menu{bottom tree} angezeigt und die Sortierung kann über das Kontextmenü geändert werden. Wenn eine Kategorie mit der Maus angewählt wird, erscheinen die gefundenen Symbole in dem unteren Teil des Fensters (siehe \pxref{fig:symbols}). Ein Doppelklick auf das Symbol öffnet die Datei, wo das Symbol definiert bzw. die Funktion implementiert ist und springt an die zugehörige Zeile. Die Symbolansicht wird beim Speichern einer Datei aktualisiert. Eine Auto-Refresh des Symbolbrowsers ohne Speichern ist über das Menü \menu{Settings,Editor,Code Completion} aktivierbar (siehe \pxref{fig:cc_realtime_parsing}). Bei Projekten mit vielen Symbolen wird die Performance innerhalb \codeblocks beeinträchtgt.
+
+\screenshot{cc_realtime_parsing}{Aktivieren von Echtzeit-Parsing}
 
 \hint{Im Editor können Sie über das Kontextmenü \menu{Insert Class method declaration implementation} bzw. \menu{All class methods without implementation} sich auch die Liste der Klassen anzeigen lassen.}
 
@@ -373,9 +384,16 @@ Des weiteren bietet \codeblocks eine Fortschrittsanzeige des Buildprozesses im F
 
 Für das Editieren von Textdateien z.B. \file{*.txt} innerhalb \codeblocks ist es nützlich den Eingabetext automatisch auf die Textbreite des Editorfensters in mehrere Zeilen umbrechen zu lassen. Diese Funktionalität wird \samp{Word wrap} genannt und diese lässt sich im Menü \menu{Settings,Editor,Other Options} und mit der Checkbox \menu{Word wrap} aktivieren. Durch die Home/Pos 1 Taste springt der Cursor an den Anfang und mit End/Ende an das Ende der umgebrochenen Zeilen. Durch die Einstellung \menu{Settings,Editor,Other Options} und dem Setzen von \menu{Home key always move to caret to first column} wird erreicht, dass die Home/Pos 1 bzw. End/Ende Taste der Cursor an den Zeilenanfang bzw. an das Ende der aktuellen Zeile springt. Falls jedoch ein Sprung des Cursors an den Zeilenanfang des Abschnitts gewünscht ist, muss stattdessen die Tastenkombination \menu{Atl-Home/Pos 1} gedrückt werden. Entsprechendes gilt für \menu{Alt-End/Ende}.
 
-\subsection{Block select Mode im Editor}
+\subsection{Select Modes im Editor}
 
-\codeblocks unterstützt im Editor einen sogenannten Block select mode. Hiermit können bei gedrückter \samp{ALT} Taste ein Rechteck mit der linken Maustaste aufziehen und kopieren bzw. einfügen. Dies ist zum Beispiel nützlich, wenn nur einige Spalten eines Array markiert und kopiert werden sollen.
+\codeblocks unterstützt im Editor verschiedene Modes für Selektion und Einfügen von Text. 
+
+\begin{enumerate}
+\item Mit der linken Maustaste kann ein Text innerhalb des Editors selektiert werden und dann die Maustaste gelöst werden. Nun kann der Benutzer mit dem Mausrad innerhalb des aktiven Editors scrollen und durch Betätigen der mittleren Maustaste, wird der ehemals selektierte Text an die aktuelle Cursorposition eingefügt. Dieses Verhalten funktioniert pro Datei und die Selektion kann als Zwischenablage pro Datei verstanden werden.
+\item Durch Halten der \samp{ALT} Taste wird der Block-Select Modus aktiviert und ein Rechteck kann mit der linken Maustaste aufgezogen werden und dann kopiert bzw. eingefügt weden. Dies ist zum Beispiel nützlich, wenn nur einige Spalten eines Array markiert und kopiert werden sollen.
+ \item Im Menü \menu{Settings,Editor,Margins und Caret} können sogenannte \menu{Virtual Spaces} aktiviert werden. Diese Option bewirkt, dass im Block Select Modus eine Auswahl auch innerhalb einer leeren Zeilen beginnen oder enden kann.
+\item Im Menü  \menu{Settings,Editor,Margins und Caret} kann \menu{Multiple Selection} aktiviert werden. Bei gedrückter Crtl-Taste können dann mit der linken Maustaste mehrere Textpassagen im Editor selektiert werden. Die Selektionen können mit Ctrl-C bzw. Ctrl-X in der Zwischenablage hintereinander angehängt und mit Ctrl-V an die gewünschte Stelle eingefügt werden. Zudem kann im \menu{multiple Selection} Modus die Option \menu{Enable typing (and deleting)} aktiviert werden. Dies kann z.B. nützlich sein, wenn Sie an mehreren Stellen eine Präprozessor Direktive wie \codeline{#ifdef} einfügen wollen oder z.B. ein Text an mehreren Stellen überschreiben oder ersetzen wollen.
+\end{enumerate}
 
 \hint{Beachten Sie, dass die meisten Linux Fenstermanager diese Tastenkombination für das Verschieben von Fenster vordefinieren. Deshalb muss dieses Verhalten des Fenstermanager geändert werden, damit der Block select mode unter Linux funktioniert.}
 
