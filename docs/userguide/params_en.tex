@@ -47,6 +47,8 @@ The variables listed here are built-in variables of \codeblocks. They cannot be 
 \item[\$(PROJECT\_NAME)] The name of the currently compiled project.
 \item[\$(PROJECT\_DIR), \$(PROJECTDIR), \$(PROJECT\_DIRECTORY)] The common top-level directory of the currently compiled project.
 \item[\$(ACTIVE\_EDITOR\_FILENAME)] The filename of the file opened in the currently active editor.
+\item[\$(ACTIVE\_EDITOR\_LINE)] Return the current line in the active editor.
+\item[\$(ACTIVE\_EDITOR\_COLUMN] Return the column of the current line in the active editor.
 \item[\$(ACTIVE\_EDITOR\_DIRNAME)] the directory containing the currently active file (relative to the common top level path).
 \item[\$(ACTIVE\_EDITOR\_STEM)] The base name (without extension) of the currently active file.
 \item[\$(ACTIVE\_EDITOR\_EXT)] The extension of the currently active file.
@@ -55,6 +57,7 @@ The variables listed here are built-in variables of \codeblocks. They cannot be 
 \item[\$(CODEBLOCKS), \$(APP\_PATH), \$(APPPATH), \$(APP-PATH)] The path to the currently running instance of \codeblocks.
 \item[\$(DATAPATH), \$(DATA\_PATH), \$(DATA-PATH)] The 'shared' directory of the currently running instance of \codeblocks.
 \item[\$(PLUGINS)] The \file{plugins} directory of the currently running instance of \codeblocks.
+\item[\$(TARGET\_COMPILER\_DIR)] The compiler installation directory so-called master path.
 \end{codeentry}
 
 \subsection{Build targets}
