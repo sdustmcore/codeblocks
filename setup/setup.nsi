@@ -87,8 +87,8 @@ Name CodeBlocks
 #########
 # Possibly required to adjust manually:
 # Note: This file is only required for the installer.
-!define CB_SPLASH        ${CB_ADDONS}\setup_splash.bmp
-!define CB_LOGO          ${CB_ADDONS}\setup_logo.bmp
+!define CB_SPLASH        ${CB_ADDONS}\setup_splash_0802.bmp
+!define CB_LOGO          ${CB_ADDONS}\setup_logo_0802.bmp
 # Possibly required to adjust manually:
 # Note: This file is only required for the installer.
 !define CB_LICENSE       ${CB_ADDONS}\gpl-3.0.txt
