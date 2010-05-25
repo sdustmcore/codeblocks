@@ -1,5 +1,12 @@
 ## SHELL for linux
+ifeq ($(OSTYPE),linux)
 SHELL=/bin/sh
+endif
+
+ifeq (,$(findstring gnu,$(OSTYPE)))
+SHELL=/bin/bash
+OSTYPE=linux
+endif
 
 ## IP address of gutenberg
 SERVERIP = T:
@@ -392,13 +399,13 @@ eps2pdf:
 	$(GS) $(BOOKLETGSOPT) -dEPSCrop -sOutputFile=$(MAINFILE).pdf -c save pop -f $(MAINFILE).eps
 
 %.eps: %.png
-	inkscape --without-gui --export-eps=$@ --export-bbox-page --export-text-to-path $<
+	inkscape --without-gui --export-eps=$@ --export-text-to-path $<
 
 %.png: %.svg
 	inkscape --without-gui --export-png=$@ --export-text-to-path $<
 
 %.eps: %.svg
-	inkscape --without-gui --export-eps=$@ --export-bbox-page --export-text-to-path  $<
+	inkscape --without-gui --export-eps=$@ --export-text-to-path  $<
 
 %.pdf: %.svg
 	inkscape --without-gui --export-pdf=$@ --export-text-to-path $<
