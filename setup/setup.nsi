@@ -47,16 +47,17 @@ Name CodeBlocks
 !define VERSION          10.05
 !define COMPANY          "The Code::Blocks Team"
 !define URL              http://www.codeblocks.org
+#!define MINGW_BUNDLE
 
 ###########
 # Folders #
 ###########
 # Possibly required to adjust manually:
 # (Folder with wxWidgets DLL - unicode, monolitic.)
-!define WX_BASE          D:\Devel\wxWidgets\lib\gcc_dll
+!define WX_BASE          E:\wxMSW-2.8.10\lib\gcc_dll
 # Possibly required to adjust manually:
 # (CodeBlocks binary folder - the one where codeblocks.exe is.)
-!define CB_BASE          D:\Devel\CodeBlocks
+!define CB_BASE          C:\CodeBlocks\trunk\src\output
 !define CB_SHARE         \share
 !define CB_SHARE_CB      ${CB_SHARE}\CodeBlocks
 !define CB_DOCS          ${CB_SHARE_CB}\docs
@@ -70,14 +71,13 @@ Name CodeBlocks
 !define CB_IMG_SETTINGS  ${CB_IMAGES}\settings
 # Possibly required to adjust manually:
 # (Folder with full MinGW/GCC installation, *including* debugger.)
-!define MINGW_BASE       D:\Devel\GCC3
-#!define MINGW_BASE       D:\Devel\GCC4TDM
+!define MINGW_BASE       C:\MinGW
 # Possibly required to adjust manually:
 # (Folder with logos and GPL license as text file.)
-!define CB_ADDONS        ${CB_BASE}\src\setup
+!define CB_ADDONS      ${CB_BASE}\..\..\..\setup
 # Possibly required to adjust manually:
 # (Folder with documentation provided by mariocup.)
-!define CB_DOCS_SRC      ${CB_BASE}\src\setup
+!define CB_DOCS_SRC      ${CB_BASE}\..\..\..\setup
 !ifdef MINGW_BUNDLE
 !define CB_MINGW         \MinGW
 !endif
@@ -195,24 +195,26 @@ doInstall:
             Abort
 accessOK:
         SetOverwrite on
-        File ${WX_BASE}\wxmsw28u_gcc_custom.dll
+        File ${WX_BASE}\wxmsw28u_gcc_cb.dll
         File ${CB_BASE}\cb_console_runner.exe
         File ${CB_BASE}\codeblocks.dll
         File ${CB_BASE}\codeblocks.exe
         File ${CB_BASE}\exchndl.dll
+        File ${CB_BASE}\mingwm10.dll
         File ${CB_BASE}\wxscintilla.dll
-        File ${MINGW_BASE}\bin\mingwm10.dll
         SetOutPath $INSTDIR${CB_SHARE_CB}
         File ${CB_BASE}${CB_SHARE_CB}\start_here.zip
         File ${CB_BASE}${CB_SHARE_CB}\tips.txt
         File ${CB_BASE}${CB_SHARE_CB}\manager_resources.zip
         File ${CB_BASE}${CB_SHARE_CB}\resources.zip
+        File ${CB_BASE}${CB_SCRIPTS}\stl-views-1.0.3.gdb
         SetOutPath $INSTDIR${CB_DOCS}
         File ${CB_DOCS_SRC}\codeblocks.chm
         File ${CB_DOCS_SRC}\codeblocks.pdf
         File ${CB_DOCS_SRC}\index.ini
         SetOutPath $INSTDIR${CB_SCRIPTS}
         File ${CB_BASE}${CB_SCRIPTS}\*.script
+        File ${CB_BASE}${CB_SCRIPTS}\stl-views-1.0.3.gdb
         SetOutPath $INSTDIR${CB_TEMPLATES}
         File ${CB_BASE}${CB_TEMPLATES}\*.*
         SetOutPath $INSTDIR${CB_IMAGES}
@@ -283,6 +285,15 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "C/C++" 1
             SectionEnd
 
+            Section /o "Ada"
+                SectionIn 1 4
+                SetOutPath $INSTDIR${CB_LEXERS}
+                SetOverwrite on
+                File ${CB_BASE}${CB_LEXERS}\lexer_ada.sample
+                File ${CB_BASE}${CB_LEXERS}\lexer_ada.xml
+                WriteRegStr HKCU "${REGKEY}\Components" "Ada" 1
+            SectionEnd
+
             Section /o "The D Language"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
@@ -301,6 +312,24 @@ accessOK:
                 File ${CB_BASE}${CB_LEXERS}\lexer_fortran.sample
                 File ${CB_BASE}${CB_LEXERS}\lexer_fortran.xml
                 WriteRegStr HKCU "${REGKEY}\Components" "Fortran" 1
+            SectionEnd
+
+            Section /o "Pascal"
+                SectionIn 1 4
+                SetOutPath $INSTDIR${CB_LEXERS}
+                SetOverwrite on
+                File ${CB_BASE}${CB_LEXERS}\lexer_pascal.sample
+                File ${CB_BASE}${CB_LEXERS}\lexer_pascal.xml
+                WriteRegStr HKCU "${REGKEY}\Components" "Pascal" 1
+            SectionEnd
+
+            Section /o "Smalltalk"
+                SectionIn 1 4
+                SetOutPath $INSTDIR${CB_LEXERS}
+                SetOverwrite on
+                File ${CB_BASE}${CB_LEXERS}\lexer_smalltalk.sample
+                File ${CB_BASE}${CB_LEXERS}\lexer_smalltalk.xml
+                WriteRegStr HKCU "${REGKEY}\Components" "SmallTalk" 1
             SectionEnd
         SectionGroupEnd
 
@@ -322,6 +351,33 @@ accessOK:
                 File ${CB_BASE}${CB_LEXERS}\lexer_angelscript.sample
                 File ${CB_BASE}${CB_LEXERS}\lexer_angelscript.xml
                 WriteRegStr HKCU "${REGKEY}\Components" "Angelscript" 1
+            SectionEnd
+
+            Section /o "Caml"
+                SectionIn 1 4
+                SetOutPath $INSTDIR${CB_LEXERS}
+                SetOverwrite on
+                File ${CB_BASE}${CB_LEXERS}\lexer_caml.sample
+                File ${CB_BASE}${CB_LEXERS}\lexer_caml.xml
+                WriteRegStr HKCU "${REGKEY}\Components" "Caml" 1
+            SectionEnd
+
+            Section /o "Haskell"
+                SectionIn 1 4
+                SetOutPath $INSTDIR${CB_LEXERS}
+                SetOverwrite on
+                File ${CB_BASE}${CB_LEXERS}\lexer_haskell.sample
+                File ${CB_BASE}${CB_LEXERS}\lexer_haskell.xml
+                WriteRegStr HKCU "${REGKEY}\Components" "Haskell" 1
+            SectionEnd
+
+            Section /o "Lisp"
+                SectionIn 1 4
+                SetOutPath $INSTDIR${CB_LEXERS}
+                SetOverwrite on
+                File ${CB_BASE}${CB_LEXERS}\lexer_lisp.sample
+                File ${CB_BASE}${CB_LEXERS}\lexer_lisp.xml
+                WriteRegStr HKCU "${REGKEY}\Components" "Lisp" 1
             SectionEnd
 
             Section /o "Lua"
@@ -349,6 +405,24 @@ accessOK:
                 File ${CB_BASE}${CB_LEXERS}\lexer_perl.sample
                 File ${CB_BASE}${CB_LEXERS}\lexer_perl.xml
                 WriteRegStr HKCU "${REGKEY}\Components" "Perl" 1
+            SectionEnd
+
+            Section /o "Postscript"
+                SectionIn 1 4
+                SetOutPath $INSTDIR${CB_LEXERS}
+                SetOverwrite on
+                File ${CB_BASE}${CB_LEXERS}\lexer_postscript.sample
+                File ${CB_BASE}${CB_LEXERS}\lexer_postscript.xml
+                WriteRegStr HKCU "${REGKEY}\Components" "Postscript" 1
+            SectionEnd
+
+            Section /o "Ruby"
+                SectionIn 1 4
+                SetOutPath $INSTDIR${CB_LEXERS}
+                SetOverwrite on
+                File ${CB_BASE}${CB_LEXERS}\lexer_ruby.sample
+                File ${CB_BASE}${CB_LEXERS}\lexer_ruby.xml
+                WriteRegStr HKCU "${REGKEY}\Components" "Ruby" 1
             SectionEnd
 
             Section /o "VB Script"
@@ -537,6 +611,15 @@ accessOK:
                 File ${CB_BASE}${CB_LEXERS}\lexer_matlab.sample
                 File ${CB_BASE}${CB_LEXERS}\lexer_matlab.xml
                 WriteRegStr HKCU "${REGKEY}\Components" "Matlab" 1
+            SectionEnd
+
+            Section /o "Sql"
+                SectionIn 1 4
+                SetOutPath $INSTDIR${CB_LEXERS}
+                SetOverwrite on
+                File ${CB_BASE}${CB_LEXERS}\lexer_sql.sample
+                File ${CB_BASE}${CB_LEXERS}\lexer_sql.xml
+                WriteRegStr HKCU "${REGKEY}\Components" "Sql" 1
             SectionEnd
 
             Section /o "XBase"
@@ -775,6 +858,8 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         File ${CB_BASE}${CB_SHARE_CB}\codesnippets.zip
         SetOutPath $INSTDIR${CB_PLUGINS}
         File ${CB_BASE}${CB_PLUGINS}\codesnippets.dll
+        SetOutPath $INSTDIR${CB_IMAGES}\codesnippets
+        File ${CB_BASE}${CB_IMAGES}\codesnippets\*.png
         SetOutPath $INSTDIR
         File ${CB_BASE}\codesnippets.exe
         SetOutPath $SMPROGRAMS\${CB_SM_GROUP}
@@ -936,7 +1021,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         File ${CB_BASE}${CB_SHARE_CB}\MouseSap.zip
         SetOutPath $INSTDIR${CB_PLUGINS}
         File ${CB_BASE}${CB_PLUGINS}\MouseSap.dll
-        WriteRegStr HKCU "${REGKEY}\Components" "MoueSap plugin" 1
+        WriteRegStr HKCU "${REGKEY}\Components" "MouseSap plugin" 1
     SectionEnd
 
     Section /o "Profiler plugin" SEC_PROFILER
@@ -994,6 +1079,10 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         File ${CB_BASE}${CB_IMG_SETTINGS}\ThreadSearch-off.png
         SetOutPath $INSTDIR${CB_IMAGES}\ThreadSearch
         File ${CB_BASE}${CB_IMAGES}\ThreadSearch\*.png
+        SetOutPath $INSTDIR${CB_IMAGES}\ThreadSearch\16x16
+        File ${CB_BASE}${CB_IMAGES}\ThreadSearch\16x16\*.png
+        SetOutPath $INSTDIR${CB_IMAGES}\ThreadSearch\22x22
+        File ${CB_BASE}${CB_IMAGES}\ThreadSearch\22x22\*.png
         WriteRegStr HKCU "${REGKEY}\Components" "ThreadSearch plugin" 1
     SectionEnd
 
@@ -1002,6 +1091,9 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         SetOutPath $INSTDIR
         SetOverwrite on
         File ${CB_BASE}\wxsmithlib.dll
+        File ${CB_BASE}\wxchartctrl.dll
+        File ${CB_BASE}\wxcustombutton.dll
+        File ${CB_BASE}\wxflatnotebook.dll
         SetOutPath $INSTDIR${CB_SHARE_CB}
         File ${CB_BASE}${CB_SHARE_CB}\wxsmith.zip
         File ${CB_BASE}${CB_SHARE_CB}\wxSmithAui.zip
@@ -1129,6 +1221,8 @@ Section /o "-un.Cccc plugin" UNSEC_CCCC
 SectionEnd
 
 Section /o "-un.Code Snippets plugin" UNSEC_CODESNIPPETS
+    Delete /REBOOTOK $INSTDIR${CB_IMAGES}\codesnippets\*.png
+    RMDir  /REBOOTOK $INSTDIR${CB_IMAGES}\codesnippets
     Delete /REBOOTOK $INSTDIR\codesnippets.exe
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\codesnippets.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\codesnippets.zip
@@ -1259,6 +1353,10 @@ Section /o "-un.SymTab plugin" UNSEC_SYMTAB
 SectionEnd
 
 Section /o "-un.ThreadSearch plugin" UNSEC_THREADSEARCH
+    Delete /REBOOTOK $INSTDIR${CB_IMAGES}\ThreadSearch\22x22\*.png
+    RMDir  /REBOOTOK $INSTDIR${CB_IMAGES}\ThreadSearch\22x22
+    Delete /REBOOTOK $INSTDIR${CB_IMAGES}\ThreadSearch\16x16\*.png
+    RMDir  /REBOOTOK $INSTDIR${CB_IMAGES}\ThreadSearch\16x16
     Delete /REBOOTOK $INSTDIR${CB_IMAGES}\ThreadSearch\*.png
     RMDir  /REBOOTOK $INSTDIR${CB_IMAGES}\ThreadSearch
     Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\ThreadSearch-off.png
@@ -1276,6 +1374,9 @@ Section "-un.wxSmith plugin" UNSEC_WXSMITH
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\wxsmith.dll
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\wxSmithAui.dll
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\wxSmithContribItems.dll
+    Delete /REBOOTOK $INSTDIR\wxchartctrl.dll
+    Delete /REBOOTOK $INSTDIR\wxcustombutton.dll
+    Delete /REBOOTOK $INSTDIR\wxflatnotebook.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\wxsmith.zip
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\wxSmithAui.zip
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\wxSmithContribItems.zip
@@ -1397,6 +1498,13 @@ Section "-un.C/C++" UNSEC_CPP
     DeleteRegValue HKCU "${REGKEY}\Components" "C/C++"
 SectionEnd
 
+Section /o "-un.Ada" UNSEC_ADA
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_ada.xml
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_ada.sample
+    DeleteRegValue HKCU "${REGKEY}\Components" "Ada"
+SectionEnd
+
+
 Section /o "-un.The D Language" UNSEC_D
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_d.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_d.sample
@@ -1411,6 +1519,18 @@ Section /o "-un.Fortran" UNSEC_F
     DeleteRegValue HKCU "${REGKEY}\Components" "Fortran"
 SectionEnd
 
+Section /o "-un.Pascal" UNSEC_PASCAL
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_pascal.xml
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_pascal.sample
+    DeleteRegValue HKCU "${REGKEY}\Components" "Pascal"
+SectionEnd
+
+Section /o "-un.Smalltalk" UNSEC_SMALLTALK
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_smalltalk.xml
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_smalltalk.sample
+    DeleteRegValue HKCU "${REGKEY}\Components" "Smalltalk"
+SectionEnd
+
 Section "-un.Squirrel" UNSEC_SQ
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_squirrel.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_squirrel.sample
@@ -1421,6 +1541,24 @@ Section /o "-un.Angelscript" UNSEC_AS
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_angelscript.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_angelscript.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "Angelscript"
+SectionEnd
+
+Section /o "-un.Caml" UNSEC_CAML
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_caml.xml
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_caml.sample
+    DeleteRegValue HKCU "${REGKEY}\Components" "Caml"
+SectionEnd
+
+Section /o "-un.Haskell" UNSEC_HASKELL
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_haskell.xml
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_haskell.sample
+    DeleteRegValue HKCU "${REGKEY}\Components" "Haskell"
+SectionEnd
+
+Section /o "-un.Lisp" UNSEC_LISP
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_lisp.xml
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_lisp.sample
+    DeleteRegValue HKCU "${REGKEY}\Components" "Lisp"
 SectionEnd
 
 Section /o "-un.Lua" UNSEC_LUA
@@ -1439,6 +1577,18 @@ Section /o "-un.Perl" UNSEC_PERL
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_perl.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_perl.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "Perl"
+SectionEnd
+
+Section /o "-un.Postscript" UNSEC_POSTSCRIPT
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_postscript.xml
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_postscript.sample
+    DeleteRegValue HKCU "${REGKEY}\Components" "Postscript"
+SectionEnd
+
+Section /o "-un.Ruby" UNSEC_RUBY
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_ruby.xml
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_ruby.sample
+    DeleteRegValue HKCU "${REGKEY}\Components" "Ruby"
 SectionEnd
 
 Section /o "-un.VB Script" UNSEC_VB
@@ -1557,6 +1707,12 @@ Section /o "-un.Matlab" UNSEC_MATLAB
     DeleteRegValue HKCU "${REGKEY}\Components" "Matlab"
 SectionEnd
 
+Section /o "-un.Sql" UNSEC_SQL
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_sql.xml
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_sql.sample
+    DeleteRegValue HKCU "${REGKEY}\Components" "Sql"
+SectionEnd
+
 Section /o "-un.XBase" UNSEC_XBASE
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_prg.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_prg.sample
@@ -1610,6 +1766,7 @@ Section "-un.Core Files (required)" UNSEC_CORE
     # Just try the following, if it fails that's ok
     # cause the post section will handles this.
     RMDir            $INSTDIR${CB_TEMPLATES}
+    Delete /REBOOTOK $INSTDIR${CB_SCRIPTS}\stl-views-1.0.3.gdb
     Delete /REBOOTOK $INSTDIR${CB_SCRIPTS}\*.script
     # Just try the following, if it fails that's ok
     # cause the post section will handles this.
@@ -1618,7 +1775,9 @@ Section "-un.Core Files (required)" UNSEC_CORE
     RMDir            $INSTDIR${CB_PLUGINS}
     Delete /REBOOTOK $INSTDIR${CB_DOCS}\index.ini
     Delete /REBOOTOK $INSTDIR${CB_DOCS}\codeblocks.chm
+    Delete /REBOOTOK $INSTDIR${CB_DOCS}\codeblocks.pdf
     RMDir  /REBOOTOK $INSTDIR${CB_DOCS}
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\stl-views-1.0.3.gdb
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\resources.zip
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\manager_resources.zip
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\tips.txt
@@ -1631,7 +1790,7 @@ Section "-un.Core Files (required)" UNSEC_CORE
     Delete /REBOOTOK $INSTDIR\codeblocks.exe
     Delete /REBOOTOK $INSTDIR\codeblocks.dll
     Delete /REBOOTOK $INSTDIR\cb_console_runner.exe
-    Delete /REBOOTOK $INSTDIR\wxmsw28u_gcc_custom.dll
+    Delete /REBOOTOK $INSTDIR\wxmsw28u_gcc_cb.dll
     DeleteRegValue HKCU "${REGKEY}\Components" "Core Files (required)"
 SectionEnd
 
@@ -1698,13 +1857,21 @@ Function un.onInit
     !insertmacro SELECT_UNSECTION "Quick Launch Shortcut"      ${UNSEC_QUICKLAUNCHSHORTCUT}
                                                              
     !insertmacro SELECT_UNSECTION "C/C++"                      ${UNSEC_CPP}
+    !insertmacro SELECT_UNSECTION "Ada"                        ${UNSEC_ADA}
     !insertmacro SELECT_UNSECTION "The D Language"             ${UNSEC_D}
     !insertmacro SELECT_UNSECTION "Fortran"                    ${UNSEC_F}
+    !insertmacro SELECT_UNSECTION "Pascal"                     ${UNSEC_PASCAL}
+    !insertmacro SELECT_UNSECTION "Smalltalk"                  ${UNSEC_SMALLTALK}
     !insertmacro SELECT_UNSECTION "Squirrel"                   ${UNSEC_SQ}
     !insertmacro SELECT_UNSECTION "Angelscript"                ${UNSEC_AS}
+    !insertmacro SELECT_UNSECTION "Caml"                       ${UNSEC_CAML}
+    !insertmacro SELECT_UNSECTION "Haskell"                    ${UNSEC_HASKELL}
+    !insertmacro SELECT_UNSECTION "Lisp"                       ${UNSEC_LISP}
     !insertmacro SELECT_UNSECTION "Lua"                        ${UNSEC_LUA}
     !insertmacro SELECT_UNSECTION "Python"                     ${UNSEC_PY}
     !insertmacro SELECT_UNSECTION "Perl"                       ${UNSEC_PERL}
+    !insertmacro SELECT_UNSECTION "Postscript"                 ${UNSEC_POSTSCRIPT}
+    !insertmacro SELECT_UNSECTION "Ruby"                       ${UNSEC_RUBY}
     !insertmacro SELECT_UNSECTION "VB Script"                  ${UNSEC_VB}
     !insertmacro SELECT_UNSECTION "Game Monkey"                ${UNSEC_GM}
     !insertmacro SELECT_UNSECTION "diff"                       ${UNSEC_DIFF}
@@ -1724,6 +1891,7 @@ Function un.onInit
     !insertmacro SELECT_UNSECTION "MASM"                       ${UNSEC_MASM}
     !insertmacro SELECT_UNSECTION "NSIS installer script"      ${UNSEC_NSIS}
     !insertmacro SELECT_UNSECTION "MATLAB"                     ${UNSEC_MATLAB}
+    !insertmacro SELECT_UNSECTION "Sql"                        ${UNSEC_SQL}
     !insertmacro SELECT_UNSECTION "XBASE"                      ${UNSEC_XBASE}
     !insertmacro SELECT_UNSECTION "Property file"              ${UNSEC_PROP}
                                                              
