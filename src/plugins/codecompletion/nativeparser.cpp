@@ -65,7 +65,6 @@
 
 int idTimerEditorActivated       = wxNewId();
 int idTimerReparseAfterClear     = wxNewId();
-int idTimerParsingOneByOne       = wxNewId();
 bool s_DebugSmartSense           = false;
 const wxString g_StartHereTitle  = _("Start here");
 const int g_EditorActivatedDelay = 200;
@@ -77,7 +76,6 @@ BEGIN_EVENT_TABLE(NativeParser, wxEvtHandler)
     EVT_MENU(PARSER_END, NativeParser::OnParserEnd)
     EVT_TIMER(idTimerEditorActivated, NativeParser::OnEditorActivatedTimer)
     EVT_TIMER(idTimerReparseAfterClear, NativeParser::OnReparseAfterClearTimer)
-    EVT_TIMER(idTimerParsingOneByOne, NativeParser::OnParsingOneByOneTimer)
 END_EVENT_TABLE()
 
 NativeParser::NativeParser() :
@@ -94,7 +92,6 @@ NativeParser::NativeParser() :
     m_LastAISearchWasGlobal(false),
     m_TimerEditorActivated(this, idTimerEditorActivated),
     m_TimerReparseAfterClear(this, idTimerReparseAfterClear),
-    m_TimerParsingOneByOne(this, idTimerParsingOneByOne),
     m_ClassBrowser(nullptr),
     m_ClassBrowserIsFloating(false),
     m_ImageList(nullptr),
@@ -1049,50 +1046,37 @@ Parser* NativeParser::CreateParser(cbProject* project)
         return nullptr;
     }
 
-    if (!m_ParserPerWorkspace || m_ParsedProjects.empty())
+    Parser* parser = new(std::nothrow) Parser(this, project);
+    if (!parser)
     {
-        Parser* parser = new(std::nothrow) Parser(this, project);
-        if (!parser)
-        {
-            Manager::Get()->GetLogManager()->DebugLog(_T("Failed to create parser instances!"));
-            return nullptr;
-        }
-
-        if (m_Parser == &m_TempParser)
-            SetParser(parser);
-
-        if (m_ParserPerWorkspace)
-            m_ParsedProjects.insert(project);
-
-        m_ParserList.push_back(std::make_pair(project, parser));
-        StartCompleteParsing(project, parser);
-
-        wxString log(F(_("Create new parser for project '%s'"), project
-                       ? project->GetTitle().wx_str()
-                       : _T("*NONE*")));
-        Manager::Get()->GetLogManager()->Log(log);
-        Manager::Get()->GetLogManager()->DebugLog(log);
-
-        RemoveObsoleteParsers();
-        return parser;
+        Manager::Get()->GetLogManager()->DebugLog(_T("Failed to create parser instances!"));
+        return nullptr;
     }
-    else
-    {
-        AddProjectToParser(project);
-        return m_ParserList.begin()->second;
-    }
+
+    if (m_Parser == &m_TempParser)
+        SetParser(parser);
+
+    m_ParserList.push_back(std::make_pair(project, parser));
+    StartCompleteParsing(project, parser);
+
+    wxString log(F(_("Create new parser for project '%s'"), project
+                   ? project->GetTitle().wx_str()
+                   : _T("*NONE*")));
+    Manager::Get()->GetLogManager()->Log(log);
+    Manager::Get()->GetLogManager()->DebugLog(log);
+
+    RemoveObsoleteParsers();
+
+    return parser;
 }
 
 bool NativeParser::DeleteParser(cbProject* project)
 {
     ParserList::iterator it = m_ParserList.begin();
-    if (!m_ParserPerWorkspace)
+    for (; it != m_ParserList.end(); ++it)
     {
-        for (; it != m_ParserList.end(); ++it)
-        {
-            if (it->first == project)
-                break;
-        }
+        if (it->first == project)
+            break;
     }
 
     if (it == m_ParserList.end())
@@ -1101,23 +1085,17 @@ bool NativeParser::DeleteParser(cbProject* project)
         return false;
     }
 
-    if (m_ParserPerWorkspace)
-        RemoveProjectFromParser(project);
-
-    if (m_ParsedProjects.empty() && it->second == m_Parser)
+    if (it->second == m_Parser)
         SetParser(&m_TempParser);
 
-    if (m_ParsedProjects.empty())
-    {
-        delete it->second;
-        m_ParserList.erase(it);
+    delete it->second;
+    m_ParserList.erase(it);
 
-        wxString log(F(_("Delete parser for project '%s'!"), project
+    wxString log(F(_("Delete parser for project '%s'!"), project
                    ? project->GetTitle().wx_str()
                    : _T("*NONE*")));
-        Manager::Get()->GetLogManager()->Log(log);
-        Manager::Get()->GetLogManager()->DebugLog(log);
-    }
+    Manager::Get()->GetLogManager()->Log(log);
+    Manager::Get()->GetLogManager()->DebugLog(log);
 
     return true;
 }
@@ -1157,7 +1135,7 @@ bool NativeParser::AddFileToParser(cbProject* project, const wxString& filename)
     if (!parser)
         return false;
 
-    return parser->AddFile(filename, project);
+    return parser->AddFile(filename);
 }
 
 bool NativeParser::RemoveFileFromParser(cbProject* project, const wxString& filename)
@@ -3322,10 +3300,10 @@ void NativeParser::OnThreadEnd(wxCommandEvent& event)
 
 void NativeParser::OnParserStart(wxCommandEvent& event)
 {
-    cbProject* project = static_cast<cbProject*>(event.GetClientData());
-    const ParsingType type = static_cast<ParsingType>(event.GetInt());
+    Parser* parser = static_cast<Parser*>(event.GetEventObject());
+    cbProject* project = GetProjectByParser(parser);
 
-    switch (type)
+    switch (static_cast<ParsingType>(event.GetInt()))
     {
     case ptCreateParser:
         Manager::Get()->GetLogManager()->DebugLog(F(_("Starting batch parsing for project '%s'..."), project
@@ -3365,9 +3343,14 @@ void NativeParser::OnParserStart(wxCommandEvent& event)
 void NativeParser::OnParserEnd(wxCommandEvent& event)
 {
     Parser* parser = static_cast<Parser*>(event.GetEventObject());
-    cbProject* project = static_cast<cbProject*>(event.GetClientData());
-    const ParsingType type = static_cast<ParsingType>(event.GetInt());
+    if (!parser)
+        return;
 
+    cbProject* project = GetProjectByParser(parser);
+    if (project != parser->GetParsingProject())
+        return;
+
+    const ParsingType type = static_cast<ParsingType>(event.GetInt());
     switch (type)
     {
     case ptCreateParser:
@@ -3422,9 +3405,6 @@ void NativeParser::OnParserEnd(wxCommandEvent& event)
 
     UpdateClassBrowser();
 
-    if (m_ParserPerWorkspace)
-        m_TimerParsingOneByOne.Start(500, wxTIMER_ONE_SHOT);
-
     event.Skip();
 }
 
@@ -3434,19 +3414,6 @@ void NativeParser::OnReparseAfterClearTimer(wxTimerEvent& event)
     cbProject* project = GetCurrentProject();
     ClearParsers();
     CreateParser(project);
-}
-
-void NativeParser::OnParsingOneByOneTimer(wxTimerEvent& event)
-{
-    ProjectsArray* projs = Manager::Get()->GetProjectManager()->GetProjects();
-    for (size_t i = 0; i < projs->GetCount(); ++i)
-    {
-        if (m_ParsedProjects.find(projs->Item(i)) == m_ParsedProjects.end())
-        {
-            CreateParser(projs->Item(i));
-            break;
-        }
-    }
 }
 
 void NativeParser::OnEditorActivatedTimer(wxTimerEvent& event)
@@ -3481,7 +3448,7 @@ void NativeParser::OnEditorActivatedTimer(wxTimerEvent& event)
                 wxFileName file(lastFile);
                 parser->AddIncludeDir(file.GetPath());
                 m_StandaloneFiles.Add(lastFile);
-                parser->AddFile(lastFile, project);
+                parser->AddFile(lastFile);
             }
         }
         else
@@ -3942,78 +3909,5 @@ void NativeParser::RemoveLastFunctionChildren()
         m_LastFuncTokenIdx = -1;
         if (token->m_TokenKind & tkAnyFunction)
             token->DeleteAllChildren();
-    }
-}
-
-void NativeParser::AddProjectToParser(cbProject* project)
-{
-    Parser* parser = GetParserByProject(project);
-    if (parser)
-        return;
-
-    // Add the cbProject to set
-    m_ParsedProjects.insert(project);
-
-    if (!project || m_ParsedProjects.empty())
-        return;
-
-    wxString log(F(_("Add project (%s) to parser"), project
-                   ? project->GetTitle().wx_str()
-                   : _T("*NONE*")));
-    Manager::Get()->GetLogManager()->Log(log);
-    Manager::Get()->GetLogManager()->DebugLog(log);
-
-    AddCompilerDirs(project, parser);
-    AddCompilerPredefinedMacros(project, parser);
-    AddProjectDefinedMacros(project, parser);
-
-    for (int i = 0; i < project->GetFilesCount(); ++i)
-    {
-        ProjectFile* pf = project->GetFile(i);
-        if (!pf)
-            continue;
-        if (   FileTypeOf(pf->relativeFilename) == ftHeader
-            && CCFileTypeOf(pf->relativeFilename) != ccftOther)
-        {
-            AddFileToParser(project, pf->file.GetFullPath());
-        }
-    }
-
-    for (int i = 0; i < project->GetFilesCount(); ++i)
-    {
-        ProjectFile* pf = project->GetFile(i);
-        if (!pf)
-            continue;
-        if (   FileTypeOf(pf->relativeFilename) == ftSource
-            && CCFileTypeOf(pf->relativeFilename) != ccftOther)
-        {
-            AddFileToParser(project, pf->file.GetFullPath());
-        }
-    }
-}
-
-void NativeParser::RemoveProjectFromParser(cbProject* project)
-{
-    Parser* parser = GetParserByProject(project);
-    if (!parser)
-        return;
-
-    // Remove from the cbProject set
-    m_ParsedProjects.erase(project);
-
-    if (!project || m_ParsedProjects.empty())
-        return;
-
-    wxString log(F(_("Remove project (%s) from parser"), project
-                   ? project->GetTitle().wx_str()
-                   : _T("*NONE*")));
-    Manager::Get()->GetLogManager()->Log(log);
-    Manager::Get()->GetLogManager()->DebugLog(log);
-
-    for (int i = 0; i < project->GetFilesCount(); ++i)
-    {
-        ProjectFile* pf = project->GetFile(i);
-        if (pf && CCFileTypeOf(pf->relativeFilename) != ccftOther)
-            RemoveFileFromParser(project, pf->file.GetFullPath());
     }
 }

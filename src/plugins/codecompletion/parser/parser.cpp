@@ -626,7 +626,7 @@ bool Parser::RemoveFile(const wxString& filename)
     return result;
 }
 
-bool Parser::AddFile(const wxString& filename, cbProject* project, bool isLocal)
+bool Parser::AddFile(const wxString& filename, bool isLocal)
 {
     wxString file = UnixFilename(filename);
     if (IsFileParsed(file))
@@ -636,11 +636,8 @@ bool Parser::AddFile(const wxString& filename, cbProject* project, bool isLocal)
         m_ParsingType = ptAddFileToParser;
 
     AddParse(file);
-    if (project)
-    {
+    if (m_Project)
         m_NeedMarkFileAsLocal = true;
-        m_Project = project;
-    }
 
     return true;
 }
@@ -1196,8 +1193,7 @@ bool Parser::IsFileParsed(const wxString& filename)
 void Parser::ProcessParserEvent(ParsingType type, int id, const wxString& info)
 {
     wxCommandEvent evt(wxEVT_COMMAND_MENU_SELECTED, id);
-    evt.SetEventObject(this);       // Parser*
-    evt.SetClientData(m_Project);   // cbProject*
+    evt.SetEventObject(this);
     evt.SetInt(type);
     evt.SetString(info);
     m_Parent->ProcessEvent(evt);

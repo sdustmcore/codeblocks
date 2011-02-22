@@ -19,23 +19,25 @@ class DebuggerState
         DebuggerState(DebuggerGDB* plugin);
         ~DebuggerState();
 
-        BreakpointsList& GetBreakpoints(){ return m_Breakpoints; }
+        BreakpointsList const & GetBreakpoints() const { return m_Breakpoints; }
 
         bool StartDriver(ProjectBuildTarget* target);
         void StopDriver();
 
-		/// Check so see if Driver exists before getting it
-		bool HasDriver();
-		
-		/// Will always return a driver, or throw a code assertion error
-		// (to fix multiple bugs in use of GetDriver without checking return value)
+        /// Check so see if Driver exists before getting it
+        bool HasDriver() const;
+
+        /// Will always return a driver, or throw a code assertion error
+        // (to fix multiple bugs in use of GetDriver without checking return value)
         DebuggerDriver* GetDriver();
+        const DebuggerDriver* GetDriver() const;
 
         void CleanUp();
 
         int AddBreakpoint(DebuggerBreakpoint* bp); // returns -1 if not found
-        int AddBreakpoint(const wxString& file, int line, bool temp = false, const wxString& lineText = wxEmptyString); // returns -1 if not found
-        int AddBreakpoint(const wxString& dataAddr, bool onRead = false, bool onWrite = true); // returns -1 if not found
+        DebuggerBreakpoint* AddBreakpoint(const wxString& file, int line, bool temp = false,
+                                          const wxString& lineText = wxEmptyString);
+        DebuggerBreakpoint* AddBreakpoint(const wxString& dataAddr, bool onRead = false, bool onWrite = true);
         DebuggerBreakpoint* RemoveBreakpoint(const wxString& file, int line, bool deleteit = true);
         DebuggerBreakpoint* RemoveBreakpoint(int idx, bool deleteit = true);
         DebuggerBreakpoint* RemoveBreakpoint(DebuggerBreakpoint* bp, bool deleteit = true);
@@ -45,11 +47,13 @@ class DebuggerState
         // helpers to keep in sync with the editors
         int RemoveBreakpointsRange(const wxString& file, int startline, int endline);
         void ShiftBreakpoints(const wxString& file, int startline, int nroflines);
+        void ShiftBreakpoint(DebuggerBreakpoint* bp, int nroflines);
 
         int HasBreakpoint(const wxString& file, int line); // returns -1 if not found
-		int HasBreakpoint(const wxString& dataAddr);
+        int HasBreakpoint(const wxString& dataAddr);
         DebuggerBreakpoint* GetBreakpoint(int idx);
         DebuggerBreakpoint* GetBreakpointByNumber(int num);
+        const DebuggerBreakpoint* GetBreakpointByNumber(int num) const;
         void ResetBreakpoint(int idx);
         void ResetBreakpoint(DebuggerBreakpoint* bp);
         void ApplyBreakpoints();

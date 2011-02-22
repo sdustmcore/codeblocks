@@ -16,21 +16,25 @@ class CDB_driver : public DebuggerDriver
 
         virtual wxString GetCommandLine(const wxString& debugger, const wxString& debuggee);
         virtual wxString GetCommandLine(const wxString& debugger, int pid);
-        virtual void Prepare(ProjectBuildTarget* target, bool isConsole);
+        virtual void SetTarget(ProjectBuildTarget* target);
+        virtual void Prepare(bool isConsole);
         virtual void Start(bool breakOnEntry);
         virtual void Stop();
 
         virtual void Continue();
         virtual void Step();
         virtual void StepInstruction();
+        virtual void StepIntoInstruction();
         virtual void StepIn();
         virtual void StepOut();
+        virtual void SetNextStatement(const wxString& filename, int line);
         virtual void Backtrace();
         virtual void Disassemble();
         virtual void CPURegisters();
         virtual void SwitchToFrame(size_t number);
         virtual void SetVarValue(const wxString& var, const wxString& value);
         virtual void MemoryDump();
+        virtual void Attach(int pid);
         virtual void Detach();
         virtual void RunningThreads();
 
@@ -45,10 +49,21 @@ class CDB_driver : public DebuggerDriver
         virtual void AddBreakpoint(DebuggerBreakpoint* bp);
         virtual void RemoveBreakpoint(DebuggerBreakpoint* bp);
         virtual void EvaluateSymbol(const wxString& symbol, const wxRect& tipRect);
-        virtual void UpdateWatches(bool doLocals, bool doArgs, DebuggerTree* tree);
+        virtual void UpdateWatches(bool doLocals, bool doArgs, WatchesContainer &watches);
+        virtual void UpdateWatch(GDBWatch::Pointer const &watch);
         virtual void ParseOutput(const wxString& output);
+        virtual bool IsDebuggingStarted() const;
+#ifdef __WXMSW__
+        virtual bool UseDebugBreakProcess() { return true; }
+#endif
+        virtual wxString GetDebuggersWorkingDirectory() const;
     protected:
     private:
+        void DoBacktrace(bool switchToFirst);
+        wxString GetCommonCommandLine(const wxString& debugger);
+    private:
+    	ProjectBuildTarget *m_Target;
+        bool m_IsStarted;
 };
 
 #endif // CDB_DRIVER_H

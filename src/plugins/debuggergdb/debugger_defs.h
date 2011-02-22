@@ -8,6 +8,10 @@
 
 #include <wx/string.h>
 #include <wx/dynarray.h>
+#include <vector>
+#include <tr1/memory>
+
+#include "debuggermanager.h"
 
 class DebuggerDriver;
 class DebuggerTree;
@@ -94,11 +98,9 @@ class DebuggerInfoCmd : public DebuggerCmd
 class DbgCmd_UpdateWatchesTree : public DebuggerCmd
 {
     public:
-        DbgCmd_UpdateWatchesTree(DebuggerDriver* driver, DebuggerTree* tree);
+        DbgCmd_UpdateWatchesTree(DebuggerDriver* driver);
         virtual ~DbgCmd_UpdateWatchesTree(){}
         virtual void Action();
-    protected:
-        DebuggerTree* m_pTree;
 };
 
 /** Debugger breakpoint interface.
@@ -108,12 +110,12 @@ class DbgCmd_UpdateWatchesTree : public DebuggerCmd
 ////////////////////////////////////////////////////////////////////////////////
 struct DebuggerBreakpoint
 {
-	enum BreakpointType
-	{
-		bptCode = 0,	///< Normal file/line breakpoint
-		bptFunction,	///< Function signature breakpoint
-		bptData			///< Data breakpoint
-	};
+    enum BreakpointType
+    {
+        bptCode = 0,    ///< Normal file/line breakpoint
+        bptFunction,    ///< Function signature breakpoint
+        bptData            ///< Data breakpoint
+    };
 
     /** Constructor.
       * Sets default values for members.
@@ -191,25 +193,68 @@ enum WatchStringFormat
   */
 struct Watch
 {
-    Watch(const wxString& k, WatchFormat f = Undefined) : keyword(k), format(f), is_array(false), array_start(0), array_count(0), hasActiveCommand(false), pendingDelete(false) {}
-    Watch(const Watch& rhs) : keyword(rhs.keyword), format(rhs.format), is_array(rhs.is_array), array_start(rhs.array_start), array_count(rhs.array_count), hasActiveCommand(rhs.hasActiveCommand), pendingDelete(rhs.pendingDelete) {}
+    Watch(const wxString& k, WatchFormat f = Undefined) : keyword(k), format(f), is_array(false), array_start(0), array_count(0) {}
+    Watch(const Watch& rhs) : keyword(rhs.keyword), format(rhs.format), is_array(rhs.is_array), array_start(rhs.array_start), array_count(rhs.array_count) {}
     wxString keyword; ///< The symbol to watch.
     WatchFormat format; ///< The format to use for display.
     bool is_array; ///< True if it is an array, false if not.
     size_t array_start; ///< The array start (valid for array types only).
     size_t array_count; ///< The array count (valid for array types only).
-    bool hasActiveCommand;
-    bool pendingDelete;
 };
 WX_DECLARE_OBJARRAY(Watch, WatchesArray);
+
+class GDBWatch : public cbWatch
+{
+    public:
+        typedef std::tr1::shared_ptr<GDBWatch> Pointer;
+    public:
+        GDBWatch(wxString const &symbol);
+    public:
+
+        virtual void GetSymbol(wxString &symbol) const;
+        virtual void GetValue(wxString &value) const;
+        virtual bool SetValue(const wxString &value);
+        virtual void GetFullWatchString(wxString &full_watch) const;
+        virtual void GetType(wxString &type) const;
+        virtual void SetType(const wxString &type);
+
+        virtual wxString const & GetDebugString() const;
+    public:
+        void SetDebugValue(wxString const &value);
+        void SetSymbol(const wxString& symbol);
+
+        void SetFormat(WatchFormat format);
+        WatchFormat GetFormat() const;
+
+        void SetArray(bool flag);
+        bool IsArray() const;
+        void SetArrayParams(int start, int count);
+        int GetArrayStart() const;
+        int GetArrayCount() const;
+
+    protected:
+        virtual void DoDestroy();
+
+    private:
+        wxString m_symbol;
+        wxString m_type;
+        wxString m_raw_value;
+        wxString m_debug_value;
+        WatchFormat m_format;
+        int m_array_start;
+        int m_array_count;
+        bool m_is_array;
+    };
+
+typedef std::vector<std::tr1::shared_ptr<GDBWatch> > WatchesContainer;
 
 /** Stack frame.
   *
   * This keeps info about a specific stack frame.
   */
-struct StackFrame
+struct oldStackFrame
 {
-    StackFrame() : valid(false), number(0), address(0) {}
+    oldStackFrame() : valid(false), number(0), address(0) {}
     /** Clear everything. */
     void Clear()
     {

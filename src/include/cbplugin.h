@@ -16,6 +16,8 @@
 #include "manager.h"
 #include "pluginmanager.h"
 
+#include "debuggermanager.h"
+
 #ifdef __WXMSW__
     #ifndef PLUGIN_EXPORT
         #ifdef EXPORT_LIB
@@ -35,8 +37,8 @@
 // this is the plugins SDK version number
 // it will change when the SDK interface breaks
 #define PLUGIN_SDK_VERSION_MAJOR 1
-#define PLUGIN_SDK_VERSION_MINOR 11
-#define PLUGIN_SDK_VERSION_RELEASE 13
+#define PLUGIN_SDK_VERSION_MINOR 12
+#define PLUGIN_SDK_VERSION_RELEASE 0
 
 // class decls
 class wxMenuBar;
@@ -48,6 +50,7 @@ class cbEditor;
 class cbProject;
 class ProjectBuildTarget;
 class CompileTargetBase;
+class Compiler;
 class FileTreeData;
 class cbConfigurationPanel;
 struct PluginInfo;
@@ -358,6 +361,9 @@ class PLUGIN_EXPORT cbCompilerPlugin: public cbPlugin
     private:
 };
 
+
+class wxScintillaEvent;
+
 /** @brief Base class for debugger plugins
   *
   * This plugin type must offer some pre-defined debug facilities, on top
@@ -368,37 +374,16 @@ class PLUGIN_EXPORT cbDebuggerPlugin: public cbPlugin
     public:
         cbDebuggerPlugin();
 
-        /** @brief Request to add a breakpoint.
-          * @param file The file to add the breakpoint based on a file/line pair.
-          * @param line The line number to put the breakpoint in @c file.
-          * @return True if succeeded, false if not.
-          */
-        virtual bool AddBreakpoint(const wxString& file, int line) = 0;
+    public:
+        /** @brief Returns the toolbar associated with this plugin. */
+        wxToolBar* GetToolbar();
 
-        /** @brief Request to add a breakpoint based on a function signature.
-          * @param functionSignature The function signature to add the breakpoint.
-          * @return True if succeeded, false if not.
-          */
-        virtual bool AddBreakpoint(const wxString& functionSignature) = 0;
+        virtual void OnAttach();
+        virtual void OnRelease(bool appShutDown);
 
-        /** @brief Request to remove a breakpoint based on a file/line pair.
-          * @param file The file to remove the breakpoint.
-          * @param line The line number the breakpoint is in @c file.
-          * @return True if succeeded, false if not.
-          */
-        virtual bool RemoveBreakpoint(const wxString& file, int line) = 0;
-
-        /** @brief Request to remove a breakpoint based on a function signature.
-          * @param functionSignature The function signature to remove the breakpoint.
-          * @return True if succeeded, false if not.
-          */
-        virtual bool RemoveBreakpoint(const wxString& functionSignature) = 0;
-
-        /** @brief Request to remove all breakpoints from a file.
-          * @param file The file to remove all breakpoints in. If the argument is empty, all breakpoints are removed from all files.
-          * @return True if succeeded, false if not.
-          */
-        virtual bool RemoveAllBreakpoints(const wxString& file = wxEmptyString) = 0;
+        virtual void BuildMenu(wxMenuBar* menuBar);
+        virtual void BuildModuleMenu(const ModuleType type, wxMenu* menu, const FileTreeData* data = 0);
+        virtual bool BuildToolBar(wxToolBar* toolBar);
 
         /** @brief Notify the debugger that lines were added or removed in an editor.
           * This causes the debugger to keep the breakpoints list in-sync with the
@@ -408,19 +393,41 @@ class PLUGIN_EXPORT cbDebuggerPlugin: public cbPlugin
           * @param lines The number of lines added or removed. If it's a positive number,
           *              lines were added. If it's a negative number, lines were removed.
           */
-        virtual void EditorLinesAddedOrRemoved(cbEditor* editor, int startline, int lines) = 0;
+        virtual void EditorLinesAddedOrRemoved(cbEditor* editor, int startline, int lines);
+    public:
+        virtual void OnAttachReal() = 0;
+        virtual void OnReleaseReal(bool appShutDown) = 0;
+
+        virtual void ShowToolMenu() = 0;
+        virtual bool ToolMenuEnabled() const;
+
 
         /** @brief Start a new debugging process. */
-        virtual int Debug() = 0;
+        virtual bool Debug(bool breakOnEntry) = 0;
 
         /** @brief Continue running the debugged program. */
         virtual void Continue() = 0;
 
+        /** @brief Run the debugged program until it reaches the cursor at the current editor */
+        virtual bool RunToCursor(const wxString& filename, int line, const wxString& line_text) = 0;
+
+        /** @brief Sets the position of the Program counter to the specified filename:line */
+        virtual void SetNextStatement(const wxString& filename, int line) = 0;
+
         /** @brief Execute the next instruction and return control to the debugger. */
         virtual void Next() = 0;
 
+        /** @brief Execute the next instruction and return control to the debugger. */
+        virtual void NextInstruction() = 0;
+
+        /** @brief Execute the next instruction and return control to the debugger, if the instruction is a function call step into it. */
+        virtual void StepIntoInstruction() = 0;
+
         /** @brief Execute the next instruction, stepping into function calls if needed, and return control to the debugger. */
         virtual void Step() = 0;
+
+        /** @brief Execute the next instruction, stepping out of function calls if needed, and return control to the debugger. */
+        virtual void StepOut() = 0;
 
         /** @brief Break the debugging process (stop the debuggee for debugging). */
         virtual void Break() = 0;
@@ -431,8 +438,142 @@ class PLUGIN_EXPORT cbDebuggerPlugin: public cbPlugin
         /** @brief Is the plugin currently debugging? */
         virtual bool IsRunning() const = 0;
 
+        /** @brief Is the plugin stopped on breakpoint? */
+        virtual bool IsStopped() const = 0;
+
         /** @brief Get the exit code of the last debug process. */
         virtual int GetExitCode() const = 0;
+
+        // stack frame calls;
+        virtual int GetStackFrameCount() const = 0;
+        virtual const cbStackFrame& GetStackFrame(int index) const = 0;
+        virtual void SwitchToFrame(int number) = 0;
+        virtual int GetActiveStackFrame() const = 0;
+
+        // breakpoints calls
+        /** @brief Request to add a breakpoint.
+          * @param file The file to add the breakpoint based on a file/line pair.
+          * @param line The line number to put the breakpoint in @c file.
+          * @return True if succeeded, false if not.
+          */
+        virtual cbBreakpoint* AddBreakpoint(const wxString& filename, int line) = 0;
+
+        /** @brief Request to add a breakpoint based on a data expression.
+          * @param dataExpression The data expression to add the breakpoint.
+          * @return True if succeeded, false if not.
+          */
+        virtual cbBreakpoint* AddDataBreakpoint(const wxString& dataExpression) = 0;
+        virtual int GetBreakpointsCount() const = 0;
+        virtual cbBreakpoint* GetBreakpoint(int index) = 0;
+        virtual const cbBreakpoint* GetBreakpoint(int index) const = 0;
+        virtual void UpdateBreakpoint(cbBreakpoint *breakpoint) = 0;
+        virtual void DeleteBreakpoint(cbBreakpoint* breakpoint) = 0;
+        virtual void DeleteAllBreakpoints() = 0;
+        virtual void ShiftBreakpoint(int index, int lines_to_shift) = 0;
+        // threads
+        virtual int GetThreadsCount() const = 0;
+        virtual const cbThread& GetThread(int index) const = 0;
+        virtual bool SwitchToThread(int thread_number) = 0;
+
+        // watches
+        virtual cbWatch* AddWatch(const wxString& symbol) = 0;
+        virtual void DeleteWatch(cbWatch *watch) = 0;
+        virtual bool HasWatch(cbWatch *watch) = 0;
+        virtual void ShowWatchProperties(cbWatch *watch) = 0;
+        virtual bool SetWatchValue(cbWatch *watch, const wxString &value) = 0;
+        virtual void ExpandWatch(cbWatch *watch) = 0;
+        virtual void CollapseWatch(cbWatch *watch) = 0;
+
+        virtual void OnWatchesContextMenu(wxMenu &menu, const cbWatch &watch, wxObject *property) {};
+
+        virtual void SendCommand(const wxString& cmd, bool debugLog) = 0;
+
+        virtual void AttachToProcess(const wxString& pid) = 0;
+        virtual void DetachFromProcess() = 0;
+        virtual bool IsAttachedToProcess() const = 0;
+
+        virtual void GetCurrentPosition(wxString &filename, int &line) = 0;
+
+    protected:
+        enum StartType
+        {
+            StartTypeUnknown = 0,
+            StartTypeRun,
+            StartTypeStepInto
+        };
+    protected:
+        virtual void ConvertDirectory(wxString& str, wxString base = _T(""), bool relative = true) = 0;
+        virtual cbProject* GetProject() = 0;
+        virtual void ResetProject() = 0;
+        virtual void CleanupWhenProjectClosed(cbProject *project) = 0;
+
+        /** @brief Called when the compilation has finished. The compilation is started when EnsureBuildUpToDate is called.
+          * @param compilerFailed the compilation failed for some reason.
+          * @param startType it is the same value given to the Debug method, when the debugger session was started.
+          * @return True if debug session is start, false if there are any errors or the users canceled the session.
+        */
+        virtual bool CompilerFinished(bool compilerFailed, StartType startType) { return false; }
+    public:
+        enum DebugWindows
+        {
+            Backtrace,
+            CPURegisters,
+            Disassembly,
+            ExamineMemory,
+            Threads,
+            Watches
+        };
+
+        virtual void RequestUpdate(DebugWindows window) = 0;
+
+    public:
+        virtual wxString GetEditorWordAtCaret(const wxPoint *mousePosition = NULL);
+        void ClearActiveMarkFromAllEditors();
+
+        enum SyncEditorResult
+        {
+            SyncOk = 0,
+            SyncFileNotFound,
+            SyncFileUnknown
+        };
+
+        SyncEditorResult SyncEditor(const wxString& filename, int line, bool setMarker = true);
+
+        void BringCBToFront();
+
+        bool DragInProgress() const;
+
+    protected:
+        void SwitchToDebuggingLayout();
+        void SwitchToPreviousLayout();
+        void ShowLog(bool clear);
+
+        bool GetDebuggee(wxString &pathToDebuggee, ProjectBuildTarget* target);
+        wxString FindDebuggerExecutable(Compiler* compiler);
+        bool EnsureBuildUpToDate(StartType startType);
+        bool WaitingCompilerToFinish() const { return m_WaitingCompilerToFinish; }
+
+        int RunNixConsole(wxString &consoleTty);
+        void MarkAsStopped();
+
+    private:
+        wxString GetConsoleTty(int ConsolePid);
+
+    private:
+        void OnEditorOpened(CodeBlocksEvent& event);
+        void OnProjectActivated(CodeBlocksEvent& event);
+        void OnProjectClosed(CodeBlocksEvent& event);
+        void OnCompilerFinished(CodeBlocksEvent& event);
+        void OnEditorHook(cbEditor* editor, wxScintillaEvent& event);
+    private:
+        wxToolBar *m_toolbar;
+        wxString m_PreviousLayout;
+        cbCompilerPlugin* m_pCompiler;
+        bool m_WaitingCompilerToFinish;
+
+        int m_EditorHookId;
+        StartType m_StartType;
+        bool m_DragInProgress;
 };
 
 /** @brief Base class for tool plugins

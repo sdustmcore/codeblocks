@@ -93,7 +93,6 @@ enum BrowserDisplayFilter
 {
     bdfFile = 0,
     bdfProject,
-    bdfWorkspace,
     bdfEverything
 };
 
@@ -184,7 +183,7 @@ public:
     bool ParseBufferForUsingNamespace(const wxString& buffer, wxArrayString& result);
 
     bool Reparse(const wxString& filename, bool isLocal = true);
-    bool AddFile(const wxString& filename, cbProject* project, bool isLocal = true);
+    bool AddFile(const wxString& filename, bool isLocal = true);
     bool RemoveFile(const wxString& filename);
 
     void ReadOptions();

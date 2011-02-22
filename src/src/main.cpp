@@ -238,6 +238,7 @@ int idViewLayoutDelete = XRCID("idViewLayoutDelete");
 int idViewLayoutSave = XRCID("idViewLayoutSave");
 int idViewToolbars = XRCID("idViewToolbars");
 int idViewToolMain = XRCID("idViewToolMain");
+int idViewToolDebugger = XRCID("idViewToolDebugger");
 int idViewManager = XRCID("idViewManager");
 int idViewLogManager = XRCID("idViewLogManager");
 int idViewStatusbar = XRCID("idViewStatusbar");
@@ -463,6 +464,7 @@ BEGIN_EVENT_TABLE(MainFrame, wxFrame)
     EVT_MENU(idViewLayoutSave, MainFrame::OnViewLayoutSave)
     EVT_MENU(idViewLayoutDelete, MainFrame::OnViewLayoutDelete)
     EVT_MENU(idViewToolMain, MainFrame::OnToggleBar)
+    EVT_MENU(XRCID("idViewToolDebugger"), MainFrame::OnToggleBar)
     EVT_MENU(idViewLogManager, MainFrame::OnToggleBar)
     EVT_MENU(idViewManager, MainFrame::OnToggleBar)
     EVT_MENU(idViewStatusbar, MainFrame::OnToggleStatusBar)
@@ -1012,18 +1014,21 @@ void MainFrame::CreateToolbars()
     myres->Load(resPath + _T("/resources.zip#zip:*.xrc"));
     Manager::Get()->GetLogManager()->DebugLog(_T("Loading toolbar..."));
 
-    wxSize size = m_SmallToolBar ? wxSize(16, 16) : (platform::macosx ? wxSize(32, 32) : wxSize(22, 22));
-    m_pToolbar = new wxToolBar(this, -1, wxDefaultPosition, size, wxTB_FLAT | wxTB_NODIVIDER);
-    m_pToolbar->SetToolBitmapSize(size);
+    m_pToolbar = Manager::Get()->CreateEmptyToolbar();
     Manager::Get()->AddonToolBar(m_pToolbar,xrcToolbarName);
 
     m_pToolbar->Realize();
 
     m_pToolbar->SetInitialSize();
 
+    wxToolBar *debugger_toolbar = Manager::Get()->GetDebuggerManager()->GetToolbar();
+
     // add toolbars in docking system
     m_LayoutManager.AddPane(m_pToolbar, wxAuiPaneInfo().
                           Name(wxT("MainToolbar")).Caption(_("Main Toolbar")).
+                          ToolbarPane().Top());
+    m_LayoutManager.AddPane(debugger_toolbar, wxAuiPaneInfo().
+                          Name(wxT("DebuggerToolbar")).Caption(_("Debugger Toolbar")).
                           ToolbarPane().Top());
     DoUpdateLayout();
 
@@ -1192,11 +1197,6 @@ void MainFrame::LoadWindowState()
     // load manager and messages selected page
     Manager::Get()->GetProjectManager()->GetNotebook()->SetSelection(Manager::Get()->GetConfigManager(_T("app"))->ReadInt(_T("/main_frame/layout/left_block_selection"), 0));
     m_pInfoPane->SetSelection(Manager::Get()->GetConfigManager(_T("app"))->ReadInt(_T("/main_frame/layout/bottom_block_selection"), 0));
-
-    // Cryogen 23/3/10 wxAuiNotebook can't set it's own tab position once instantiated, for some reason. This code fails in InfoPane::InfoPane().
-    // Moved here as this seems like a resonable place to do UI setup. Feel free to move it elsewhere.
-    if (Manager::Get()->GetConfigManager(_T("app"))->ReadBool(_T("/environment/infopane_tabs_bottom"), false))
-        m_pInfoPane->SetWindowStyleFlag(m_pInfoPane->GetWindowStyleFlag() | wxAUI_NB_BOTTOM);
 
 #ifndef __WXMAC__
     int x = 0;
@@ -1482,9 +1482,7 @@ void MainFrame::DoAddPluginStatusField(cbPlugin* plugin)
 
 void MainFrame::DoAddPluginToolbar(cbPlugin* plugin)
 {
-    wxSize size = m_SmallToolBar ? wxSize(16, 16) : (platform::macosx ? wxSize(32, 32) : wxSize(22, 22));
-    wxToolBar* tb = new wxToolBar(this, -1, wxDefaultPosition, size, wxTB_FLAT | wxTB_NODIVIDER);
-    tb->SetToolBitmapSize(size);
+    wxToolBar *tb = Manager::Get()->CreateEmptyToolbar();
     if (plugin->BuildToolBar(tb))
     {
         SetToolBar(0);
@@ -1718,8 +1716,6 @@ bool MainFrame::DoOpenFile(const wxString& filename, bool addToHistory)
     cbEditor* ed = Manager::Get()->GetEditorManager()->Open(filename);
     if (ed)
     {
-        // Cryogen 24/3/10 Activate the editor after opening. Partial fix for bug #14087.
-        ed->Activate();
         if (addToHistory)
             AddToRecentFilesHistory(ed->GetFilename());
         return true;
@@ -4057,6 +4053,7 @@ void MainFrame::OnViewMenuUpdateUI(wxUpdateUIEvent& event)
 
     // toolbars
     mbar->Check(idViewToolMain, m_LayoutManager.GetPane(m_pToolbar).IsShown());
+    mbar->Check(idViewToolDebugger, m_LayoutManager.GetPane(Manager::Get()->GetDebuggerManager()->GetToolbar(false)).IsShown());
     wxMenu* viewToolbars = 0;
     GetMenuBar()->FindItem(idViewToolMain, &viewToolbars);
     if (viewToolbars)
@@ -4156,6 +4153,8 @@ void MainFrame::OnToggleBar(wxCommandEvent& event)
         win = m_pInfoPane;
     else if (event.GetId() == idViewToolMain)
         win = m_pToolbar;
+    else if (event.GetId() == idViewToolDebugger)
+        win = Manager::Get()->GetDebuggerManager()->GetToolbar();
     else
     {
         wxString pluginName = m_PluginIDsMap[event.GetId()];

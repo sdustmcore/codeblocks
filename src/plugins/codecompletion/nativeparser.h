@@ -496,9 +496,6 @@ private:
     /** Event handler when clear all parsers, and reparse current project */
     void OnReparseAfterClearTimer(wxTimerEvent& event);
 
-    /** If use one parser per whole workspace, we need parse all project one by one */
-    void OnParsingOneByOneTimer(wxTimerEvent& event);
-
     /** Event handler when an editor activate, *NONE* project is handled here*/
     void OnEditorActivated(EditorBase* editor);
 
@@ -589,12 +586,6 @@ private:
     /** Remove the last function's childrens */
     void RemoveLastFunctionChildren();
 
-    /** Add all project files to parser */
-    void AddProjectToParser(cbProject* project);
-
-    /** Remove all project files from parser */
-    void RemoveProjectFromParser(cbProject* project);
-
 private:
     typedef std::pair<cbProject*, Parser*> ParserPair;
     typedef std::list<ParserPair> ParserList;
@@ -624,7 +615,6 @@ private:
 
     wxTimer                      m_TimerEditorActivated;
     wxTimer                      m_TimerReparseAfterClear;
-    wxTimer                      m_TimerParsingOneByOne;
     ClassBrowser*                m_ClassBrowser;
     bool                         m_ClassBrowserIsFloating;
     ProjectSearchDirsMap         m_ProjectSearchDirsMap;
