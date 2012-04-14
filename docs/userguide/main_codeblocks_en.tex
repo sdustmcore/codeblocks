@@ -3,7 +3,7 @@
 
 
 \def\newcharencode{utf8}% set character encoding
-\input{booleans}% boolean declaration
+\input{mystyles/booleans}% boolean declaration
 \setboolean{urlreg}{true}% for url catalogue
 \setboolean{bibreg}{false}% for bibliography
 \setboolean{indreg}{false}% for index generation
@@ -14,7 +14,7 @@
 \def\graphmode{final}% graphmodes: draft: box; final: including figures
 
 % generate url catalog for toolchain
-\def\urlfilename{url_codeblocks}
+\def\urlfilename{mystyles/url_codeblocks}
 
 %%%%%%%% parameter for titlepage %%%%%%%%%%
 \def\Subject{Code::Blocks}
@@ -22,8 +22,8 @@
 \def\DocVersion{1.1}
 
 % style for documentation
-\input{format_docu}
-\input{new_interface}
+\input{mystyles/format_docu}
+\input{mystyles/new_interface}
 
 % own macro file
 \input{user_settings_en}
@@ -32,10 +32,10 @@
 \include{mystyles/cb_titlepage}
 \include{basics_en}
 \include{plugins_en}
-\include{more_plugins}
+\include{more_plugins_en}
 \include{params_en}
 %\include{generate_en}
 %\appendix % generation of appendix
 %\include{appendices}
-\include{lists}
+\include{mystyles/lists}
 \end{document}

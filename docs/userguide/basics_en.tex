@@ -21,7 +21,7 @@ The status bar gives an overview of the following settings:
 \item The editor uses the default character encoding of your host operating system. This setting will be displayed with \codeline{default}.
 \item Row and column number of the current cursor position in the editor.
 \item The configured keyboard mode for inserting text (Insert or Overwrite).
-\item Current state of a file. A modified file will be marked with \codeline{Modified} otherwise this entry is empty. 
+\item Current state of a file. A modified file will be marked with \codeline{Modified} otherwise this entry is empty.
 \item The permission of a file. A file with read only settings will display \codeline{Read only} in the status bar. In the window \menu{Open files list} these files will be emphasised with a lock as icon overlay.
 
 \hint{In the active editor the user can select the context menu properties. In the appearing dialog in the tab \menu{General} the option \menu{File is read-only} can be selected. This option will result in a read-only access of the corresponding file within \codeblocks, but the original read and write attributes of the file on the filesystem are not modified.}
@@ -33,7 +33,7 @@ The status bar gives an overview of the following settings:
 
 \section{Project View}\label{sec:categories}
 
-In \codeblocks, the sources and the settings for the build process are stored in a project file \file{\var{name}.cbp}. C/C++ sources and the corresponding header files are the typical components of a project. The easiest way to create a new project is  executing the command \menu{File,Project} and selecting a wizard. Then you can add files to the project via the context menu \menu{Add files} in the Management window. 
+In \codeblocks, the sources and the settings for the build process are stored in a project file \file{\var{name}.cbp}. C/C++ sources and the corresponding header files are the typical components of a project. The easiest way to create a new project is  executing the command \menu{File,Project} and selecting a wizard. Then you can add files to the project via the context menu \menu{Add files} in the Management window.
 
 \codeblocks governs the project files in categories according to their file extensions. These are the preset categories:
 
@@ -166,7 +166,7 @@ Parametrisation is also possible by including variables \codeline{$(NAME}) in th
 
 When performing the abbreviation \var{name} in the source text and performing Ctrl-J, the content of the variable is requested and included.
 %Inherit Class
-%Im Editor kann durch Auswahl von Inherit Class über die rechte Maustaste. ???
+%Im Editor kann durch Auswahl von Inherit Class \"{u}ber die rechte Maustaste. ???
 
 \subsection{Personalities}\label{sec:personalities}
 
@@ -245,11 +245,9 @@ The following categories exist for the symbols:
 
 Structures and classes are displayed in the \menu{bottom tree} and the sort sequence can be modified via the context menu. If a category is selected by mouse-click, the found symbols will be displayed in the lower part of the window (see \pxref{fig:symbols}). Double-clicking the symbol will open the file in which the symbol is defined or the function implemented, and jumps to the corresponding line. An auto-refresh of the symbol browser without saving a file, can be activated via the menu  \menu{Settings,Editor,Code Completion} (see \pxref{fig:cc_realtime_parsing}). For projects with many symbols the performance within \codeblocks will be affected.
 
-\screenshot{cc_realtime_parsing}{Enabl real-time parsing}
+\screenshot{cc_realtime_parsing}{Enable real-time parsing}
 
 \hint{In the editor, a list of the classes can be displayed via the context menus \menu{Insert Class method declaration implementation} or \menu{All class methods without implementation}.}
-
-cc_realtime_parsing
 
 \subsection{Including external help files}
 

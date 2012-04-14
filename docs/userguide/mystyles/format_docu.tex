@@ -10,7 +10,7 @@
 \ifthenelse{\boolean{glossreg}}{\usepackage{glosstex}}{}
 
 % common packages
-\input{common_pack}
+\input{mystyles/common_pack}
 
 \topmargin=-1cm \oddsidemargin=0mm \evensidemargin=0mm
 \textheight24cm \textwidth16cm \marginparsep=3mm \marginparwidth=15mm %\reversemarginpar
@@ -19,8 +19,8 @@
 \frenchspacing \footskip 10mm \abovecaptionskip10pt
 
 % setup for pdf generation
-\input{hypersetup}
-\input{macros}
+\input{mystyles/hypersetup}
+\input{mystyles/macros}
 
 % change layout of scrbook.cls
 \renewcommand*{\partpagestyle}{empty}
