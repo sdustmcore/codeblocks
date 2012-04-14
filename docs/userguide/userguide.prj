@@ -5,9 +5,12 @@
 1
 main_codeblocks_en.tex
 11
-0
+1
 0
 
+main_codeblocks_en.tex
+TeX
+403714043 0 39 19 26 1 0 0 656 420 0 25 306 -1 -1 0 0 33 0 0 33 1 0 1 26   0
 mystyles\macros.tex
 TeX
 269496315 0 0 1 112 26 44 58 700 478 0 225 -1309 -1 -1 0 0 -1 -1 -1 -1 1 0 26 112   0
@@ -32,9 +35,6 @@ TeX
 mystyles\lists.tex
 TeX:UNIX
 269594619 0 15 38 5 18 110 145 766 565 0 161 85 -1 -1 0 0 -1 -1 -1 -1 1 0 18 5   0
-main_codeblocks_en.tex
-TeX
-403714043 0 39 19 16 27 0 0 656 420 0 233 136 -1 -1 0 0 -1 -1 -1 -1 1 0 27 16   0
 mystyles\common_pack.tex
 TeX:UNIX
 269594619 0 0 1 0 1 22 29 678 449 0 25 0 -1 -1 0 0 -1 -1 -1 -1 1 0 1 0   0
@@ -47,9 +47,9 @@ TeX:UNIX
 *mystyles/booleans
 *mystyles/format_docu
 >
-*common_pack
-*hypersetup
-*macros
+*mystyles/common_pack
+*mystyles/hypersetup
+*mystyles/macros
 <
 *mystyles/new_interface
 *user_settings_en
