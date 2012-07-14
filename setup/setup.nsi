@@ -4,6 +4,7 @@
 # "Lexers"            -> includes C::B lexers for different langs   #
 # "Contrib plugins"   -> includes C::B contrib plugins              #
 # "C::B share config" -> includes the C::B Share Config tool        #
+# "C::B Launcher"     -> includes CbLauncher                        #
 #####################################################################
 # What to do to add a new installer section (e.g. a new plugin):    #
 # 1.) Add Installer section                                         #
@@ -54,10 +55,10 @@ Name CodeBlocks
 ###########
 # Possibly required to adjust manually:
 # (Folder with wxWidgets DLL - unicode, monolitic.)
-!define WX_BASE          E:\wxMSW-2.8.10\lib\gcc_dll
+!define WX_BASE          C:\Devel\wxWidgets\lib\gcc_dll
 # Possibly required to adjust manually:
 # (CodeBlocks binary folder - the one where codeblocks.exe is.)
-!define CB_BASE          C:\CodeBlocks\trunk\src\output
+!define CB_BASE          C:\Devel\CodeBlocks
 !define CB_SHARE         \share
 !define CB_SHARE_CB      ${CB_SHARE}\CodeBlocks
 !define CB_DOCS          ${CB_SHARE_CB}\docs
@@ -71,7 +72,7 @@ Name CodeBlocks
 !define CB_IMG_SETTINGS  ${CB_IMAGES}\settings
 # Possibly required to adjust manually:
 # (Folder with full MinGW/GCC installation, *including* debugger.)
-!define MINGW_BASE       C:\MinGW
+!define MINGW_BASE       C:\Devel\GCC46TDM
 # Possibly required to adjust manually:
 # (Folder with logos and GPL license as text file.)
 !define CB_ADDONS      ${CB_BASE}\..\..\..\setup
@@ -113,7 +114,7 @@ Name CodeBlocks
 
 # Included files
 !include Sections.nsh
-!include MUI.nsh
+!include MUI2.nsh
 
 # Reserved Files
 ReserveFile "${NSISDIR}\Plugins\AdvSplash.dll"
@@ -125,6 +126,7 @@ ReserveFile "${NSISDIR}\Plugins\AdvSplash.dll"
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
+# Un-Installer pages
 !insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
 
@@ -148,6 +150,9 @@ VIAddVersionKey   FileDescription "Code::Blocks cross-platform IDE"
 VIAddVersionKey   LegalCopyright  ""
 InstallDirRegKey  HKCU "${REGKEY}" Path
 ShowUninstDetails show
+
+# Required on Windows Vista/7/8: Start with user priviledges by default.
+RequestExecutionLevel user
 
 ######################
 # Installer sections #
@@ -195,13 +200,15 @@ doInstall:
             Abort
 accessOK:
         SetOverwrite on
-        File ${WX_BASE}\wxmsw28u_gcc_cb.dll
+        File ${WX_BASE}\wxmsw28u_gcc_custom.dll
         File ${CB_BASE}\cb_console_runner.exe
         File ${CB_BASE}\codeblocks.dll
         File ${CB_BASE}\codeblocks.exe
         File ${CB_BASE}\exchndl.dll
-        File ${CB_BASE}\mingwm10.dll
-        File ${CB_BASE}\wxscintilla.dll
+	File ${CB_BASE}\wxcustombutton.dll
+	File ${CB_BASE}\wxflatnotebook.dll
+	File ${CB_BASE}\wxpropgrid.dll
+        File ${MINGW_BASE}\bin\mingwm10.dll
         SetOutPath $INSTDIR${CB_SHARE_CB}
         File ${CB_BASE}${CB_SHARE_CB}\start_here.zip
         File ${CB_BASE}${CB_SHARE_CB}\tips.txt
@@ -312,6 +319,15 @@ accessOK:
                 File ${CB_BASE}${CB_LEXERS}\lexer_fortran.sample
                 File ${CB_BASE}${CB_LEXERS}\lexer_fortran.xml
                 WriteRegStr HKCU "${REGKEY}\Components" "Fortran" 1
+            SectionEnd
+
+            Section /o "Java"
+                SectionIn 1 4
+                SetOutPath $INSTDIR${CB_LEXERS}
+                SetOverwrite on
+                File ${CB_BASE}${CB_LEXERS}\lexer_java.sample
+                File ${CB_BASE}${CB_LEXERS}\lexer_java.xml
+                WriteRegStr HKCU "${REGKEY}\Components" "Java" 1
             SectionEnd
 
             Section /o "Pascal"
@@ -517,6 +533,15 @@ accessOK:
 
 
         SectionGroup "Embedded development"
+            Section /o "A68k Assembler"
+                SetOutPath $INSTDIR${CB_LEXERS}
+                SectionIn 1 4
+                SetOverwrite on
+                File ${CB_BASE}${CB_LEXERS}\lexer_A68k.sample
+                File ${CB_BASE}${CB_LEXERS}\lexer_A68k.xml
+                WriteRegStr HKCU "${REGKEY}\Components" "A68k Assembler" 1
+            SectionEnd
+
             Section /o "Hitachi Assembler"
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SectionIn 1 4
@@ -647,6 +672,21 @@ accessOK:
     # C::B core plugins begin
 
     SectionGroup "Core Plugins" SECGRP_CORE_PLUGINS
+
+        Section "Abbreviations plugin" SEC_ABBREV
+            SectionIn 1 2 4
+            SetOutPath $INSTDIR${CB_SHARE_CB}
+            SetOverwrite on
+            File ${CB_BASE}${CB_SHARE_CB}\abbreviations.zip
+            SetOutPath $INSTDIR${CB_PLUGINS}
+            File ${CB_BASE}${CB_PLUGINS}\abbreviations.dll
+            SetOutPath $INSTDIR${CB_IMG_SETTINGS}
+            File ${CB_BASE}${CB_IMG_SETTINGS}\abbrev.png
+            File ${CB_BASE}${CB_IMG_SETTINGS}\abbrev-off.png
+            WriteRegStr HKCU "${REGKEY}\Components" "Abbreviations plugin" 1
+        SectionEnd
+
+
         Section "AStyle plugin" SEC_ASTYLE
             SectionIn 1 2 4
             SetOutPath $INSTDIR${CB_SHARE_CB}
@@ -910,6 +950,36 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "DevPak plugin" 1
     SectionEnd
 
+    Section /o "DoxyBlocks plugin" SEC_DOXYBLOCKS
+        SectionIn 1
+        SetOutPath $INSTDIR${CB_SHARE_CB}
+        SetOverwrite on
+        File ${CB_BASE}${CB_SHARE_CB}\DoxyBlocks.zip
+        SetOutPath $INSTDIR${CB_PLUGINS}
+        File ${CB_BASE}${CB_PLUGINS}\DoxyBlocks.dll
+        SetOutPath $INSTDIR${CB_IMAGES}\DoxyBlocks
+        File ${CB_BASE}${CB_IMAGES}\DoxyBlocks\chm.png
+        File ${CB_BASE}${CB_IMAGES}\DoxyBlocks\comment_block.png
+        File ${CB_BASE}${CB_IMAGES}\DoxyBlocks\comment_line.png
+        File ${CB_BASE}${CB_IMAGES}\DoxyBlocks\configure.png
+        File ${CB_BASE}${CB_IMAGES}\DoxyBlocks\doxywizard.png
+        File ${CB_BASE}${CB_IMAGES}\DoxyBlocks\extract.png
+        File ${CB_BASE}${CB_IMAGES}\DoxyBlocks\html.png
+        SetOutPath $INSTDIR${CB_IMAGES}\DoxyBlocks\16x16
+        File ${CB_BASE}${CB_IMAGES}\DoxyBlocks\16x16\chm.png
+        File ${CB_BASE}${CB_IMAGES}\DoxyBlocks\16x16\comment_block.png
+        File ${CB_BASE}${CB_IMAGES}\DoxyBlocks\16x16\comment_line.png
+        File ${CB_BASE}${CB_IMAGES}\DoxyBlocks\16x16\configure.png
+        File ${CB_BASE}${CB_IMAGES}\DoxyBlocks\16x16\doxywizard.png
+        File ${CB_BASE}${CB_IMAGES}\DoxyBlocks\16x16\extract.png
+        File ${CB_BASE}${CB_IMAGES}\DoxyBlocks\16x16\html.png
+        SetOutPath $INSTDIR${CB_IMG_SETTINGS}
+        File ${CB_BASE}${CB_IMG_SETTINGS}\DoxyBlocks.png
+        File ${CB_BASE}${CB_IMG_SETTINGS}\DoxyBlocks-off.png
+        WriteRegStr HKCU "${REGKEY}\Components" "DoxyBlocks plugin" 1
+    SectionEnd
+
+
     Section /o "Drag Scroll plugin" SEC_DRAGSCROLL
         SectionIn 1 4
         SetOutPath $INSTDIR${CB_SHARE_CB}
@@ -923,6 +993,26 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "Drag Scroll plugin" 1
     SectionEnd
 
+    Section /o "EditorConfig plugin" SEC_EDITORCONFIG
+        SectionIn 1
+        SetOutPath $INSTDIR${CB_SHARE_CB}
+        SetOverwrite on
+        File ${CB_BASE}${CB_SHARE_CB}\EditorConfig.zip
+        SetOutPath $INSTDIR${CB_PLUGINS}
+        File ${CB_BASE}${CB_PLUGINS}\EditorConfig.dll
+        WriteRegStr HKCU "${REGKEY}\Components" "EditorConfig plugin" 1
+    SectionEnd
+	
+    Section /o "Editor Tweaks plugin" SEC_EDITORTWEAKS
+        SectionIn 1
+        SetOutPath $INSTDIR${CB_SHARE_CB}
+        SetOverwrite on
+        File ${CB_BASE}${CB_SHARE_CB}\EditorTweaks.zip
+        SetOutPath $INSTDIR${CB_PLUGINS}
+        File ${CB_BASE}${CB_PLUGINS}\EditorTweaks.dll
+        WriteRegStr HKCU "${REGKEY}\Components" "Editor tweaks plugin" 1
+    SectionEnd
+
     Section /o "EnvVars plugin" SEC_ENVVARS
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
@@ -934,6 +1024,16 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         File ${CB_BASE}${CB_IMG_SETTINGS}\envvars.png
         File ${CB_BASE}${CB_IMG_SETTINGS}\envvars-off.png
         WriteRegStr HKCU "${REGKEY}\Components" "EnvVars plugin" 1
+    SectionEnd
+
+    Section /o "File Manager plugin" SEC_FILEMANAGER
+        SectionIn 1
+        SetOutPath $INSTDIR${CB_SHARE_CB}
+        SetOverwrite on
+        File ${CB_BASE}${CB_SHARE_CB}\FileManager.zip
+        SetOutPath $INSTDIR${CB_PLUGINS}
+        File ${CB_BASE}${CB_PLUGINS}\FileManager.dll
+        WriteRegStr HKCU "${REGKEY}\Components" "File Manager plugin" 1
     SectionEnd
 
     Section /o "HeaderFixUp plugin" SEC_HEADERFIXUP
@@ -1024,6 +1124,26 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "MouseSap plugin" 1
     SectionEnd
 
+    Section /o "Nassi Shneiderman plugin" SEC_NASSI
+        SectionIn 1
+        SetOutPath $INSTDIR${CB_SHARE_CB}
+        SetOverwrite on
+        File ${CB_BASE}${CB_SHARE_CB}\NassiShneiderman.zip
+        SetOutPath $INSTDIR${CB_PLUGINS}
+        File ${CB_BASE}${CB_PLUGINS}\NassiShneiderman.dll
+        WriteRegStr HKCU "${REGKEY}\Components" "Nassi Shneiderman plugin" 1
+    SectionEnd
+
+    Section /o "Tools+ plugin" SEC_TOOLSPLUS
+        SectionIn 1
+        SetOutPath $INSTDIR${CB_SHARE_CB}
+        SetOverwrite on
+        File ${CB_BASE}${CB_SHARE_CB}\ToolsPlus.zip
+        SetOutPath $INSTDIR${CB_PLUGINS}
+        File ${CB_BASE}${CB_PLUGINS}\ToolsPlus.dll
+        WriteRegStr HKCU "${REGKEY}\Components" "Tools+ plugin" 1
+    SectionEnd
+
     Section /o "Profiler plugin" SEC_PROFILER
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
@@ -1047,6 +1167,16 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "RegEx Testbed plugin" 1
     SectionEnd
 
+    Section /o "Reopen Editor plugin" SEC_REOPEN
+        SectionIn 1
+        SetOutPath $INSTDIR${CB_SHARE_CB}
+        SetOverwrite on
+        File ${CB_BASE}${CB_SHARE_CB}\ReopenEditor.zip
+        SetOutPath $INSTDIR${CB_PLUGINS}
+        File ${CB_BASE}${CB_PLUGINS}\ReopenEditor.dll
+        WriteRegStr HKCU "${REGKEY}\Components" "Reopen Editor plugin" 1
+    SectionEnd
+
     Section /o "Exporter plugin" SEC_EXPORTER
         SectionIn 1 4
         SetOutPath $INSTDIR${CB_SHARE_CB}
@@ -1055,6 +1185,21 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         SetOutPath $INSTDIR${CB_PLUGINS}
         File ${CB_BASE}${CB_PLUGINS}\Exporter.dll
         WriteRegStr HKCU "${REGKEY}\Components" "Exporter plugin" 1
+    SectionEnd
+
+    Section /o "SpellChecker plugin" SEC_SPELLCHECKER
+        SectionIn 1
+        SetOutPath $INSTDIR${CB_SHARE_CB}
+        SetOverwrite on
+        File ${CB_BASE}${CB_SHARE_CB}\SpellChecker.zip
+        SetOutPath $INSTDIR${CB_PLUGINS}
+        File ${CB_BASE}${CB_PLUGINS}\SpellChecker.dll
+        SetOutPath $INSTDIR${CB_IMG_SETTINGS}
+        File ${CB_BASE}${CB_IMG_SETTINGS}\spellchecker.png
+        File ${CB_BASE}${CB_IMG_SETTINGS}\spellchecker-off.png
+        SetOutPath $INSTDIR${CB_SHARE_CB}\SpellChecker
+        File ${CB_BASE}${CB_SHARE_CB}\SpellChecker\OnlineSpellChecking.xml
+        WriteRegStr HKCU "${REGKEY}\Components" "SpellChecker plugin" 1
     SectionEnd
 
     Section /o "SymTab plugin" SEC_SYMTAB
@@ -1124,6 +1269,15 @@ Section /o "C::B Share Config" SEC_SHARECONFIG
     WriteRegStr HKCU "${REGKEY}\Components" "C::B Share Config" 1
 SectionEnd
 
+Section /o "C::B Launcher" SEC_LAUNCHER
+    SectionIn 1
+    SetOutPath $INSTDIR
+    SetOverwrite on
+    File ${CB_BASE}\CbLauncher.exe
+    CreateShortcut "$SMPROGRAMS\${CB_SM_GROUP}\$(^Name) (Launcher).lnk" $INSTDIR\CbLauncher.exe
+    WriteRegStr HKCU "${REGKEY}\Components" "C::B Launcher" 1
+SectionEnd
+
 !ifdef MINGW_BUNDLE
 Section "MinGW Compiler Suite" SEC_MINGW
     SectionIn 1 2 3
@@ -1187,6 +1341,12 @@ Section "-un.MinGW Compiler Suite" UNSEC_MINGW
     DeleteRegValue HKCU "${REGKEY}\Components" "MinGW Compiler Suite"
 SectionEnd
 !endif
+
+Section /o "-un.C::B Launcher" UNSEC_LAUNCHER
+    Delete /REBOOTOK $INSTDIR\CbLauncher.exe
+    Delete /REBOOTOK "$SMPROGRAMS\${CB_SM_GROUP}\$(^Name) (Launcher).lnk"
+    DeleteRegValue HKCU "${REGKEY}\Components" "C::B Launcher"
+SectionEnd
 
 Section /o "-un.C::B Share Config" UNSEC_SHARECONFIG
     Delete /REBOOTOK $INSTDIR\cb_share_config.exe
@@ -1256,6 +1416,18 @@ Section /o "-un.DevPak plugin" UNSEC_DEVPAK
     DeleteRegValue HKCU "${REGKEY}\Components" "DevPak plugin"
 SectionEnd
 
+Section /o "-un.DoxyBlocks plugin" UNSEC_DOXYBLOCKS
+    Delete /REBOOTOK $INSTDIR${CB_IMAGES}\DoxyBlocks\16x16\*.png
+    RMDir  /REBOOTOK $INSTDIR${CB_IMAGES}\DoxyBlocks\16x16
+    Delete /REBOOTOK $INSTDIR${CB_IMAGES}\DoxyBlocks\*.png
+    RMDir  /REBOOTOK $INSTDIR${CB_IMAGES}\DoxyBlocks
+    Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\DoxyBlocks-off.png
+    Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\DoxyBlocks.png
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\DoxyBlocks.dll
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\DoxyBlocks.zip
+    DeleteRegValue HKCU "${REGKEY}\Components" "DoxyBlocks plugin"
+SectionEnd
+
 Section /o "-un.Drag Scroll plugin" UNSEC_DRAGSCROLL
     Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\dragscroll-off.png
     Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\dragscroll.png
@@ -1264,12 +1436,30 @@ Section /o "-un.Drag Scroll plugin" UNSEC_DRAGSCROLL
     DeleteRegValue HKCU "${REGKEY}\Components" "Drag Scroll plugin"
 SectionEnd
 
+Section /o "-un.EditorConfig plugin" UNSEC_EDITORCONFIG
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\EditorConfig.dll
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\EditorConfig.zip
+    DeleteRegValue HKCU "${REGKEY}\Components" "EditorConfig plugin"
+SectionEnd
+
+Section /o "-un.Editor tweaks plugin" UNSEC_EDITORTWEAKS
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\EditorTweaks.dll
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\EditorTweaks.zip
+    DeleteRegValue HKCU "${REGKEY}\Components" "Editor tweaks plugin"
+SectionEnd
+
 Section /o "-un.EnvVars plugin" UNSEC_ENVVARS
     Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\envvars-off.png
     Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\envvars.png
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\envvars.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\envvars.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "EnvVars plugin"
+SectionEnd
+
+Section /o "-un.File Manager plugin" UNSEC_FILEMANAGER
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\FileManager.dll
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\FileManager.zip
+    DeleteRegValue HKCU "${REGKEY}\Components" "File Manager plugin"
 SectionEnd
 
 Section /o "-un.HeaderFixUp plugin" UNSEC_HEADERFIXUP
@@ -1326,6 +1516,18 @@ Section /o "-un.MouseSap plugin" UNSEC_MOUSESAP
     DeleteRegValue HKCU "${REGKEY}\Components" "MouseSap plugin"
 SectionEnd
 
+Section /o "-un.Nassi Shneiderman plugin" UNSEC_NASSI
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\NassiShneiderman.dll
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\NassiShneiderman.zip
+    DeleteRegValue HKCU "${REGKEY}\Components" "Nassi Shneiderman plugin"
+SectionEnd
+
+Section /o "-un.Tools+ plugin" UNSEC_TOOLSPLUS
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\ToolsPlus.dll
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\ToolsPlus.zip
+    DeleteRegValue HKCU "${REGKEY}\Components" "Tools+ plugin"
+SectionEnd
+
 Section /o "-un.Profiler plugin" UNSEC_PROFILER
     Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\profiler-off.png
     Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\profiler.png
@@ -1340,6 +1542,12 @@ Section /o "-un.RegEx Testbed plugin" UNSEC_REGEXTESTBED
     DeleteRegValue HKCU "${REGKEY}\Components" "RegEx Testbed plugin"
 SectionEnd
 
+Section /o "-un.Reopen Editor plugin" UNSEC_REOPEN
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\ReopenEditor.dll
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\ReopenEditor.zip
+    DeleteRegValue HKCU "${REGKEY}\Components" "Reopen Editor plugin"
+SectionEnd
+
 Section /o "-un.Exporter plugin" UNSEC_EXPORTER
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\Exporter.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\Exporter.zip
@@ -1350,6 +1558,19 @@ Section /o "-un.SymTab plugin" UNSEC_SYMTAB
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\SymTab.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\SymTab.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "SymTab plugin"
+SectionEnd
+
+Section /o "-un.SpellChecker plugin" UNSEC_SPELLCHECKER
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\SpellChecker\*.aff
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\SpellChecker\*.dic
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\SpellChecker\*.png
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\SpellChecker\OnlineSpellChecking.xml
+    RMDir  /REBOOTOK $INSTDIR${CB_SHARE_CB}\SpellChecker
+    Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\SpellChecker-off.png
+    Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\SpellChecker.png
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\SpellChecker.dll
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\SpellChecker.zip
+    DeleteRegValue HKCU "${REGKEY}\Components" "SpellChecker plugin"
 SectionEnd
 
 Section /o "-un.ThreadSearch plugin" UNSEC_THREADSEARCH
@@ -1387,6 +1608,14 @@ SectionEnd
 # C::B contrib plugins end
 
 # C::B core plugins begin
+
+Section "-un.Abbreviations plugin" UNSEC_ABBREV
+    Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\abbrev-off.png
+    Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\abbrev.png
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\abbreviations.dll
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\abbreviations.zip
+    DeleteRegValue HKCU "${REGKEY}\Components" "Abbreviations plugin"
+SectionEnd
 
 Section "-un.AStyle plugin" UNSEC_ASTYLE
     Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\astyle-plugin-off.png
@@ -1517,6 +1746,12 @@ Section /o "-un.Fortran" UNSEC_F
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_fortran.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_fortran.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "Fortran"
+SectionEnd
+
+Section /o "-un.Java" UNSEC_JAVA
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_java.xml
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_java.sample
+    DeleteRegValue HKCU "${REGKEY}\Components" "Java"
 SectionEnd
 
 Section /o "-un.Pascal" UNSEC_PASCAL
@@ -1671,6 +1906,12 @@ Section /o "-un.Ogre" UNSEC_OGRE
     DeleteRegValue HKCU "${REGKEY}\Components" "Ogre"
 SectionEnd
 
+Section /o "-un.A68k Assembler" UNSEC_A68K
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_A68k.xml
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_A68k.sample
+    DeleteRegValue HKCU "${REGKEY}\Components" "A68k Assembler"
+SectionEnd
+
 Section /o "-un.Hitachi Assembler" UNSEC_HITACHI
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_hitasm.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_hitasm.sample
@@ -1764,12 +2005,12 @@ Section "-un.Core Files (required)" UNSEC_CORE
     RMDir  /REBOOTOK $INSTDIR${CB_IMAGES}
     Delete /REBOOTOK $INSTDIR${CB_TEMPLATES}\*.*
     # Just try the following, if it fails that's ok
-    # cause the post section will handles this.
+    # cause the post section will handle this.
     RMDir            $INSTDIR${CB_TEMPLATES}
     Delete /REBOOTOK $INSTDIR${CB_SCRIPTS}\stl-views-1.0.3.gdb
     Delete /REBOOTOK $INSTDIR${CB_SCRIPTS}\*.script
     # Just try the following, if it fails that's ok
-    # cause the post section will handles this.
+    # cause the post section will handle this.
     RMDir            $INSTDIR${CB_SCRIPTS}
     RMDir            $INSTDIR${CB_LEXERS}
     RMDir            $INSTDIR${CB_PLUGINS}
@@ -1784,13 +2025,15 @@ Section "-un.Core Files (required)" UNSEC_CORE
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\start_here.zip
     RMDir  /REBOOTOK $INSTDIR${CB_SHARE_CB}
     RMDir  /REBOOTOK $INSTDIR${CB_SHARE}
-    Delete /REBOOTOK $INSTDIR\wxscintilla.dll
     Delete /REBOOTOK $INSTDIR\mingwm10.dll
     Delete /REBOOTOK $INSTDIR\exchndl.dll
     Delete /REBOOTOK $INSTDIR\codeblocks.exe
     Delete /REBOOTOK $INSTDIR\codeblocks.dll
     Delete /REBOOTOK $INSTDIR\cb_console_runner.exe
-    Delete /REBOOTOK $INSTDIR\wxmsw28u_gcc_cb.dll
+    Delete /REBOOTOK $INSTDIR\wxpropgrid.dll
+    Delete /REBOOTOK $INSTDIR\wxflatnotebook.dll
+    Delete /REBOOTOK $INSTDIR\wxcustombutton.dll
+    Delete /REBOOTOK $INSTDIR\wxmsw28u_gcc_custom.dll
     DeleteRegValue HKCU "${REGKEY}\Components" "Core Files (required)"
 SectionEnd
 
@@ -1860,6 +2103,7 @@ Function un.onInit
     !insertmacro SELECT_UNSECTION "Ada"                        ${UNSEC_ADA}
     !insertmacro SELECT_UNSECTION "The D Language"             ${UNSEC_D}
     !insertmacro SELECT_UNSECTION "Fortran"                    ${UNSEC_F}
+    !insertmacro SELECT_UNSECTION "Java"                       ${UNSEC_JAVA}
     !insertmacro SELECT_UNSECTION "Pascal"                     ${UNSEC_PASCAL}
     !insertmacro SELECT_UNSECTION "Smalltalk"                  ${UNSEC_SMALLTALK}
     !insertmacro SELECT_UNSECTION "Squirrel"                   ${UNSEC_SQ}
@@ -1885,7 +2129,8 @@ Function un.onInit
     !insertmacro SELECT_UNSECTION "GLSL (GLSlang)"             ${UNSEC_GLSL}
     !insertmacro SELECT_UNSECTION "nVidia Cg"                  ${UNSEC_CG}
     !insertmacro SELECT_UNSECTION "Ogre"                       ${UNSEC_OGRE}
-    !insertmacro SELECT_UNSECTION "Hitachi assembler"          ${UNSEC_HITACHI}
+    !insertmacro SELECT_UNSECTION "A68k Assembler"             ${UNSEC_A68K}
+    !insertmacro SELECT_UNSECTION "Hitachi Assembler"          ${UNSEC_HITACHI}
     !insertmacro SELECT_UNSECTION "VHDL"                       ${UNSEC_VHDL}
     !insertmacro SELECT_UNSECTION "Verilog"                    ${UNSEC_VERILOG}
     !insertmacro SELECT_UNSECTION "MASM"                       ${UNSEC_MASM}
@@ -1894,7 +2139,8 @@ Function un.onInit
     !insertmacro SELECT_UNSECTION "Sql"                        ${UNSEC_SQL}
     !insertmacro SELECT_UNSECTION "XBASE"                      ${UNSEC_XBASE}
     !insertmacro SELECT_UNSECTION "Property file"              ${UNSEC_PROP}
-                                                             
+
+    !insertmacro SELECT_UNSECTION "Abbreviations plugin"       ${UNSEC_ABBREV}
     !insertmacro SELECT_UNSECTION "AStyle plugin"              ${UNSEC_ASTYLE}
     !insertmacro SELECT_UNSECTION "Autosave plugin"            ${UNSEC_AUTOSAVE}
     !insertmacro SELECT_UNSECTION "Class Wizard plugin"        ${UNSEC_CLASSWIZARD}
@@ -1917,8 +2163,12 @@ Function un.onInit
     !insertmacro SELECT_UNSECTION "Copy Strings plugin"        ${UNSEC_COPYSTRINGS}
     !insertmacro SELECT_UNSECTION "CppCheck plugin"            ${UNSEC_CPPCHECK}
     !insertmacro SELECT_UNSECTION "DevPak plugin"              ${UNSEC_DEVPAK}
+    !insertmacro SELECT_UNSECTION "DoxyBlocks plugin"          ${UNSEC_DOXYBLOCKS}
     !insertmacro SELECT_UNSECTION "Drag Scroll plugin"         ${UNSEC_DRAGSCROLL}
+    !insertmacro SELECT_UNSECTION "EditorConfig plugin"		   ${UNSEC_EDITORCONFIG}
+    !insertmacro SELECT_UNSECTION "Editor tweaks plugin"       ${UNSEC_EDITORTWEAKS}
     !insertmacro SELECT_UNSECTION "EnvVars plugin"             ${UNSEC_ENVVARS}
+    !insertmacro SELECT_UNSECTION "File Manager plugin"        ${UNSEC_FILEMANAGER}
     !insertmacro SELECT_UNSECTION "HeaderFixUp plugin"         ${UNSEC_HEADERFIXUP}
     !insertmacro SELECT_UNSECTION "Help plugin"                ${UNSEC_HELP}
     !insertmacro SELECT_UNSECTION "HexEditor plugin"           ${UNSEC_HEXEDITOR}
@@ -1927,16 +2177,20 @@ Function un.onInit
     !insertmacro SELECT_UNSECTION "Koders plugin"              ${UNSEC_KODERS}
     !insertmacro SELECT_UNSECTION "Lib Finder plugin"          ${UNSEC_LIBFINDER}
     !insertmacro SELECT_UNSECTION "MouseSap plugin"            ${UNSEC_MOUSESAP}
+    !insertmacro SELECT_UNSECTION "Nassi Shneiderman plugin"   ${UNSEC_NASSI}
+    !insertmacro SELECT_UNSECTION "Tools+ plugin"              ${UNSEC_TOOLSPLUS}
     !insertmacro SELECT_UNSECTION "Profiler plugin"            ${UNSEC_PROFILER}
     !insertmacro SELECT_UNSECTION "RegEx Testbed plugin"       ${UNSEC_REGEXTESTBED}
     !insertmacro SELECT_UNSECTION "Exporter plugin"            ${UNSEC_EXPORTER}
+    !insertmacro SELECT_UNSECTION "SpellChecker plugin"        ${UNSEC_SPELLCHECKER}
     !insertmacro SELECT_UNSECTION "SymTab plugin"              ${UNSEC_SYMTAB}
     !insertmacro SELECT_UNSECTION "ThreadSearch plugin"        ${UNSEC_THREADSEARCH}
     !insertmacro SELECT_UNSECTION "wxSmith plugin"             ${UNSEC_WXSMITH}
                                                              
     !insertmacro SELECT_UNSECTION "C::B Share Config"          ${UNSEC_SHARECONFIG}
-                                                             
-!ifdef MINGW_BUNDLE                                          
+    !insertmacro SELECT_UNSECTION "C::B Launcher"              ${UNSEC_LAUNCHER}
+
+!ifdef MINGW_BUNDLE
     !insertmacro SELECT_UNSECTION "MinGW Compiler Suite"       ${UNSEC_MINGW}
 !endif
 FunctionEnd
@@ -1959,6 +2213,7 @@ FunctionEnd
 !insertmacro MUI_DESCRIPTION_TEXT ${SECGRP_LEXERS}           "Lexer files provide syntax styling and delimiter matching for different programming languages and others."
                                                             
 !insertmacro MUI_DESCRIPTION_TEXT ${SECGRP_CORE_PLUGINS}     "Core plugins that are most likely desired. This includes the compiler and debugger plugin."
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_ABBREV}              "Speeds up the code typing with configurable abbreviations."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_ASTYLE}              "Source code formatter. Uses AStyle to reformat your sources."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_AUTOSAVE}            "Saves your work in regular intervals."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_CLASSWIZARD}         "Provides an easy way to create a new C++ class file pair."
@@ -1977,13 +2232,17 @@ FunctionEnd
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_BROWSETRACKER}       "Browse to previous source positions / editors comfortable."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_BYOGAMES}            "Provides a collection of games inside C::B for fun."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_CCCC}                "A plugin for code analysis based on Cccc (C and C++ Code Counter)."
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_EDITORCONFIG}        "Allow different editor configurations (like tabs, spaces etc.) per project."
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_EDITORTWEAKS}        "Several source code editor tweaks and bits like quick access to settings or alignment of source code."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_CODESNIPPETS}        "Allows to create and save small pieces of code (snippets) for later use."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_CODESTAT}            "A plugin for counting code, comments and empty lines of a project."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_COPYSTRINGS}         "Copies all the strings in the current editor into the clipboard."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_CPPCHECK}            "A plugin for code analysis based on CppCheck."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_DEVPAK}              "Installs selected DevPaks from the internet."
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_DOXYBLOCKS}          "Add Doxygen documentation generator support for Code::Blocks."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_DRAGSCROLL}          "Mouse drag and scroll using right or middle mouse key."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_ENVVARS}             "Sets up environment variables within the focus of Code::Blocks."
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_FILEMANAGER}         "Browses folders and files directly inside Code::Blocks (Explorer-like)."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_HEADERFIXUP}         "Provides analysis of header files according a customisable setup. C::B and wxWidgets are included by default."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_HELP}                "Add a list of help/MAN files to the help menu so you can have them handy to launch."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_HEXEDITOR}           "Provides an embedded very powerful hex editor to Code::Blocks (supports large binary files, too)."
@@ -1992,15 +2251,20 @@ FunctionEnd
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_KODERS}              "Provides an interface to search for code snippets at the Koders webpage."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_LIBFINDER}           "Tool which automatically searches for installed libraries and adds them to global variables and projects."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_MOUSESAP}            "Plugin to provide middle mouse select and paste functionality."
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_NASSI}               "Generate and use source code with Nassi Shneiderman diagrams."
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_TOOLSPLUS}           "Provides a refined Code::Blocks Tools menu."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_PROFILER}            "Provides a simple graphical interface to the GNU GProf profiler."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_REGEXTESTBED}        "Provides a regular expressions testbed."
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_REOPEN}              "Helper plugin to quickly re-open recently closed editors."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_EXPORTER}            "Provides the ability to export syntax highlighted source files to HTML, RTF, ODT or PDF."
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_SPELLCHECKER}        "Online spell checker for Code::Blocks (required additional free dictionaries to be downloaded e.g. from OpenOffice.org)."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_SYMTAB}              "Provides a simple graphical interface to the GNU symbol table displayer (nm)."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_THREADSEARCH}        "Multi-threaded 'Search in files' with preview window."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_WXSMITH}             "RAD tool used to create wxWidgets based GUI applications, forms, dialogs and other."
                                                             
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_SHARECONFIG}         "Allows sharing of most important settings between Code::Blocks instances or different users."
-                                                            
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_LAUNCHER}            "Makes Code::Blocks portable on Windows, including config from APPDATA and alike."
+
 !ifdef MINGW_BUNDLE                                         
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_MINGW}               "Additional setup that will install the GNU compiler suite (requires additional downloads)."
 !endif
