@@ -205,9 +205,7 @@ accessOK:
         File ${CB_BASE}\codeblocks.dll
         File ${CB_BASE}\codeblocks.exe
         File ${CB_BASE}\exchndl.dll
-	File ${CB_BASE}\wxcustombutton.dll
-	File ${CB_BASE}\wxflatnotebook.dll
-	File ${CB_BASE}\wxpropgrid.dll
+        File ${CB_BASE}\wxpropgrid.dll
         File ${MINGW_BASE}\bin\mingwm10.dll
         SetOutPath $INSTDIR${CB_SHARE_CB}
         File ${CB_BASE}${CB_SHARE_CB}\start_here.zip
@@ -1239,6 +1237,11 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         File ${CB_BASE}\wxchartctrl.dll
         File ${CB_BASE}\wxcustombutton.dll
         File ${CB_BASE}\wxflatnotebook.dll
+        File ${CB_BASE}\wximagepanel.dll
+        File ${CB_BASE}\wxkwic.dll
+        File ${CB_BASE}\wxled.dll
+        File ${CB_BASE}\wxspeedbutton.dll
+        File ${CB_BASE}\wxtreelist.dll
         SetOutPath $INSTDIR${CB_SHARE_CB}
         File ${CB_BASE}${CB_SHARE_CB}\wxsmith.zip
         File ${CB_BASE}${CB_SHARE_CB}\wxSmithAui.zip
@@ -1595,9 +1598,14 @@ Section "-un.wxSmith plugin" UNSEC_WXSMITH
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\wxsmith.dll
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\wxSmithAui.dll
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\wxSmithContribItems.dll
-    Delete /REBOOTOK $INSTDIR\wxchartctrl.dll
-    Delete /REBOOTOK $INSTDIR\wxcustombutton.dll
+    Delete /REBOOTOK $INSTDIR\wxtreelist.dll
+    Delete /REBOOTOK $INSTDIR\wxspeedbutton.dll
+    Delete /REBOOTOK $INSTDIR\wxled.dll
+    Delete /REBOOTOK $INSTDIR\wxkwic.dll
+    Delete /REBOOTOK $INSTDIR\wximagepanel.dll
     Delete /REBOOTOK $INSTDIR\wxflatnotebook.dll
+    Delete /REBOOTOK $INSTDIR\wxcustombutton.dll
+    Delete /REBOOTOK $INSTDIR\wxchartctrl.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\wxsmith.zip
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\wxSmithAui.zip
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\wxSmithContribItems.zip
@@ -2031,8 +2039,6 @@ Section "-un.Core Files (required)" UNSEC_CORE
     Delete /REBOOTOK $INSTDIR\codeblocks.dll
     Delete /REBOOTOK $INSTDIR\cb_console_runner.exe
     Delete /REBOOTOK $INSTDIR\wxpropgrid.dll
-    Delete /REBOOTOK $INSTDIR\wxflatnotebook.dll
-    Delete /REBOOTOK $INSTDIR\wxcustombutton.dll
     Delete /REBOOTOK $INSTDIR\wxmsw28u_gcc_custom.dll
     DeleteRegValue HKCU "${REGKEY}\Components" "Core Files (required)"
 SectionEnd
