@@ -1,5 +1,5 @@
 #####################################################################
-# The installer is devided into 4 main sections (section groups):   #
+# The installer is divided into 5 main sections (section groups):   #
 # "Default"           -> includes C::B core and core plugins        #
 # "Lexers"            -> includes C::B lexers for different langs   #
 # "Contrib plugins"   -> includes C::B contrib plugins              #
@@ -12,6 +12,15 @@
 # 3.) Add macro to uninstaller functions                            #
 # 4.) Add section description                                       #
 # --> Basically you need to add stuff at 4 places! :-)              #
+#####################################################################
+# To compile this script:                                           #
+# - adopt the PATH's to the binary / stuff to package below         #
+# - download and install NSIS (v2.46) from here:                    #
+#   http://nsis.sourceforge.net/Download                            #
+# - run NSIS using this command line                                #
+#   C:\PATH_TO\NSIS\makensis.exe setup.nsi                          #
+# - enable the MINGW_BUNDLE switch below and run again              #
+#   (for the MínGW bundle version)                                  #
 #####################################################################
 
 Name CodeBlocks
@@ -45,7 +54,7 @@ Name CodeBlocks
 # Defines #
 ###########
 !define REGKEY           "SOFTWARE\$(^Name)"
-!define VERSION          10.05
+!define VERSION          12.11
 !define COMPANY          "The Code::Blocks Team"
 !define URL              http://www.codeblocks.org
 #!define MINGW_BUNDLE
@@ -58,7 +67,7 @@ Name CodeBlocks
 !define WX_BASE          C:\Devel\wxWidgets\lib\gcc_dll
 # Possibly required to adjust manually:
 # (CodeBlocks binary folder - the one where codeblocks.exe is.)
-!define CB_BASE          C:\Devel\CodeBlocks
+!define CB_BASE          C:\Devel\CodeBlocks\Release\CodeBlocks\output
 !define CB_SHARE         \share
 !define CB_SHARE_CB      ${CB_SHARE}\CodeBlocks
 !define CB_DOCS          ${CB_SHARE_CB}\docs
@@ -72,13 +81,13 @@ Name CodeBlocks
 !define CB_IMG_SETTINGS  ${CB_IMAGES}\settings
 # Possibly required to adjust manually:
 # (Folder with full MinGW/GCC installation, *including* debugger.)
-!define MINGW_BASE       C:\Devel\GCC46TDM
+!define MINGW_BASE       C:\Devel\CodeBlocks\Release\MinGW
 # Possibly required to adjust manually:
 # (Folder with logos and GPL license as text file.)
-!define CB_ADDONS      ${CB_BASE}\..\..\..\setup
+!define CB_ADDONS        C:\Devel\CodeBlocks\Release\Setup
 # Possibly required to adjust manually:
 # (Folder with documentation provided by mariocup.)
-!define CB_DOCS_SRC      ${CB_BASE}\..\..\..\setup
+!define CB_DOCS_SRC      C:\Devel\CodeBlocks\Release\Setup
 !ifdef MINGW_BUNDLE
 !define CB_MINGW         \MinGW
 !endif
@@ -88,8 +97,8 @@ Name CodeBlocks
 #########
 # Possibly required to adjust manually:
 # Note: This file is only required for the installer.
-!define CB_SPLASH        ${CB_ADDONS}\setup_splash_1005.bmp
-!define CB_LOGO          ${CB_ADDONS}\setup_logo_1005.bmp
+!define CB_SPLASH        ${CB_ADDONS}\setup_splash_1211.bmp
+!define CB_LOGO          ${CB_ADDONS}\setup_logo_1211.bmp
 # Possibly required to adjust manually:
 # Note: This file is only required for the installer.
 !define CB_LICENSE       ${CB_ADDONS}\gpl-3.0.txt
@@ -151,7 +160,7 @@ VIAddVersionKey   LegalCopyright  ""
 InstallDirRegKey  HKCU "${REGKEY}" Path
 ShowUninstDetails show
 
-# Required on Windows Vista/7/8: Start with user priviledges by default.
+# Required on Windows Vista/7/8: Start with user privileges by default.
 RequestExecutionLevel user
 
 ######################
@@ -201,10 +210,11 @@ doInstall:
 accessOK:
         SetOverwrite on
         File ${WX_BASE}\wxmsw28u_gcc_custom.dll
+        File ${CB_BASE}\Addr2LineUI.exe
         File ${CB_BASE}\cb_console_runner.exe
         File ${CB_BASE}\codeblocks.dll
         File ${CB_BASE}\codeblocks.exe
-        File ${CB_BASE}\exchndl.dll
+        File ${CB_ADDONS}\exchndl.dll
         File ${CB_BASE}\wxpropgrid.dll
         File ${MINGW_BASE}\bin\mingwm10.dll
         SetOutPath $INSTDIR${CB_SHARE_CB}
@@ -349,15 +359,6 @@ accessOK:
 
 
         SectionGroup "Script Languages"
-            Section "Squirrel"
-                SectionIn 1 2 3 4
-                SetOutPath $INSTDIR${CB_LEXERS}
-                SetOverwrite on
-                File ${CB_BASE}${CB_LEXERS}\lexer_squirrel.sample
-                File ${CB_BASE}${CB_LEXERS}\lexer_squirrel.xml
-                WriteRegStr HKCU "${REGKEY}\Components" "Squirrel" 1
-            SectionEnd
-
             Section /o "Angelscript"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
@@ -374,6 +375,15 @@ accessOK:
                 File ${CB_BASE}${CB_LEXERS}\lexer_caml.sample
                 File ${CB_BASE}${CB_LEXERS}\lexer_caml.xml
                 WriteRegStr HKCU "${REGKEY}\Components" "Caml" 1
+            SectionEnd
+
+            Section /o "Game Monkey"
+                SectionIn 1 4
+                SetOutPath $INSTDIR${CB_LEXERS}
+                SetOverwrite on
+                File ${CB_BASE}${CB_LEXERS}\lexer_gm.sample
+                File ${CB_BASE}${CB_LEXERS}\lexer_gm.xml
+                WriteRegStr HKCU "${REGKEY}\Components" "Game Monkey" 1
             SectionEnd
 
             Section /o "Haskell"
@@ -403,15 +413,6 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "Lua" 1
             SectionEnd
 
-            Section /o "Python"
-                SectionIn 1 4
-                SetOutPath $INSTDIR${CB_LEXERS}
-                SetOverwrite on
-                File ${CB_BASE}${CB_LEXERS}\lexer_python.sample
-                File ${CB_BASE}${CB_LEXERS}\lexer_python.xml
-                WriteRegStr HKCU "${REGKEY}\Components" "Python" 1
-            SectionEnd
-
             Section /o "Perl"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
@@ -430,6 +431,15 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "Postscript" 1
             SectionEnd
 
+            Section /o "Python"
+                SectionIn 1 4
+                SetOutPath $INSTDIR${CB_LEXERS}
+                SetOverwrite on
+                File ${CB_BASE}${CB_LEXERS}\lexer_python.sample
+                File ${CB_BASE}${CB_LEXERS}\lexer_python.xml
+                WriteRegStr HKCU "${REGKEY}\Components" "Python" 1
+            SectionEnd
+
             Section /o "Ruby"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
@@ -437,6 +447,15 @@ accessOK:
                 File ${CB_BASE}${CB_LEXERS}\lexer_ruby.sample
                 File ${CB_BASE}${CB_LEXERS}\lexer_ruby.xml
                 WriteRegStr HKCU "${REGKEY}\Components" "Ruby" 1
+            SectionEnd
+
+            Section "Squirrel"
+                SectionIn 1 2 3 4
+                SetOutPath $INSTDIR${CB_LEXERS}
+                SetOverwrite on
+                File ${CB_BASE}${CB_LEXERS}\lexer_squirrel.sample
+                File ${CB_BASE}${CB_LEXERS}\lexer_squirrel.xml
+                WriteRegStr HKCU "${REGKEY}\Components" "Squirrel" 1
             SectionEnd
 
             Section /o "VB Script"
@@ -447,35 +466,16 @@ accessOK:
                 File ${CB_BASE}${CB_LEXERS}\lexer_vbscript.xml
                 WriteRegStr HKCU "${REGKEY}\Components" "VB Script" 1
             SectionEnd
-
-            Section /o "Game Monkey"
-                SectionIn 1 4
-                SetOutPath $INSTDIR${CB_LEXERS}
-                SetOverwrite on
-                File ${CB_BASE}${CB_LEXERS}\lexer_gm.sample
-                File ${CB_BASE}${CB_LEXERS}\lexer_gm.xml
-                WriteRegStr HKCU "${REGKEY}\Components" "Game Monkey" 1
-            SectionEnd
         SectionGroupEnd
 
 
         SectionGroup "Markup Languages"
-            Section "XML"
-                SectionIn 1 2 3 4
-                SetOutPath $INSTDIR${CB_LEXERS}
-                SetOverwrite on
-                File ${CB_BASE}${CB_LEXERS}\lexer_xml.sample
-                File ${CB_BASE}${CB_LEXERS}\lexer_xml.xml
-                WriteRegStr HKCU "${REGKEY}\Components" "XML" 1
-            SectionEnd
-
-            Section /o "HTML"
+            Section /o "BiBTeX"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
-                File ${CB_BASE}${CB_LEXERS}\lexer_html.sample
-                File ${CB_BASE}${CB_LEXERS}\lexer_html.xml
-                WriteRegStr HKCU "${REGKEY}\Components" "HTML" 1
+                File ${CB_BASE}${CB_LEXERS}\lexer_bibtex.xml
+                WriteRegStr HKCU "${REGKEY}\Components" "BiBTeX" 1
             SectionEnd
 
             Section /o "CSS"
@@ -487,6 +487,15 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "CSS" 1
             SectionEnd
 
+            Section /o "HTML"
+                SectionIn 1 4
+                SetOutPath $INSTDIR${CB_LEXERS}
+                SetOverwrite on
+                File ${CB_BASE}${CB_LEXERS}\lexer_html.sample
+                File ${CB_BASE}${CB_LEXERS}\lexer_html.xml
+                WriteRegStr HKCU "${REGKEY}\Components" "HTML" 1
+            SectionEnd
+
             Section /o "LaTeX"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
@@ -494,6 +503,15 @@ accessOK:
                 File ${CB_BASE}${CB_LEXERS}\lexer_latex.sample
                 File ${CB_BASE}${CB_LEXERS}\lexer_latex.xml
                 WriteRegStr HKCU "${REGKEY}\Components" "LaTeX" 1
+            SectionEnd
+
+            Section "XML"
+                SectionIn 1 2 3 4
+                SetOutPath $INSTDIR${CB_LEXERS}
+                SetOverwrite on
+                File ${CB_BASE}${CB_LEXERS}\lexer_xml.sample
+                File ${CB_BASE}${CB_LEXERS}\lexer_xml.xml
+                WriteRegStr HKCU "${REGKEY}\Components" "XML" 1
             SectionEnd
         SectionGroupEnd
 
@@ -549,15 +567,6 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "Hitachi Assembler" 1
             SectionEnd
 
-            Section /o "VHDL"
-                SectionIn 1 4
-                SetOutPath $INSTDIR${CB_LEXERS}
-                SetOverwrite on
-                File ${CB_BASE}${CB_LEXERS}\lexer_vhdl.sample
-                File ${CB_BASE}${CB_LEXERS}\lexer_vhdl.xml
-                WriteRegStr HKCU "${REGKEY}\Components" "VHDL" 1
-            SectionEnd
-
             Section /o "Verilog"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
@@ -566,28 +575,19 @@ accessOK:
                 File ${CB_BASE}${CB_LEXERS}\lexer_verilog.xml
                 WriteRegStr HKCU "${REGKEY}\Components" "Verilog" 1
             SectionEnd
+
+            Section /o "VHDL"
+                SectionIn 1 4
+                SetOutPath $INSTDIR${CB_LEXERS}
+                SetOverwrite on
+                File ${CB_BASE}${CB_LEXERS}\lexer_vhdl.sample
+                File ${CB_BASE}${CB_LEXERS}\lexer_vhdl.xml
+                WriteRegStr HKCU "${REGKEY}\Components" "VHDL" 1
+            SectionEnd
         SectionGroupEnd
 
 
         SectionGroup "Shell / Binutils"
-            Section /o "diff"
-                SectionIn 1 4
-                SetOutPath $INSTDIR${CB_LEXERS}
-                SetOverwrite on
-                File ${CB_BASE}${CB_LEXERS}\lexer_diff.sample
-                File ${CB_BASE}${CB_LEXERS}\lexer_diff.xml
-                WriteRegStr HKCU "${REGKEY}\Components" "diff" 1
-            SectionEnd
-
-            Section /o "Makefile"
-                SectionIn 1 4
-                SetOutPath $INSTDIR${CB_LEXERS}
-                SetOverwrite on
-                File ${CB_BASE}${CB_LEXERS}\lexer_make.sample
-                File ${CB_BASE}${CB_LEXERS}\lexer_make.xml
-                WriteRegStr HKCU "${REGKEY}\Components" "Makefile" 1
-            SectionEnd
-
             Section /o "bash script"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
@@ -605,6 +605,33 @@ accessOK:
                 File ${CB_BASE}${CB_LEXERS}\lexer_batch.xml
                 WriteRegStr HKCU "${REGKEY}\Components" "DOS batch files" 1
             SectionEnd
+
+            Section /o "Cmake"
+                SectionIn 1 4
+                SetOutPath $INSTDIR${CB_LEXERS}
+                SetOverwrite on
+                File ${CB_BASE}${CB_LEXERS}\lexer_cmake.sample
+                File ${CB_BASE}${CB_LEXERS}\lexer_cmake.xml
+                WriteRegStr HKCU "${REGKEY}\Components" "Cmake" 1
+            SectionEnd
+
+            Section /o "diff"
+                SectionIn 1 4
+                SetOutPath $INSTDIR${CB_LEXERS}
+                SetOverwrite on
+                File ${CB_BASE}${CB_LEXERS}\lexer_diff.sample
+                File ${CB_BASE}${CB_LEXERS}\lexer_diff.xml
+                WriteRegStr HKCU "${REGKEY}\Components" "diff" 1
+            SectionEnd
+
+            Section /o "Makefile"
+                SectionIn 1 4
+                SetOutPath $INSTDIR${CB_LEXERS}
+                SetOverwrite on
+                File ${CB_BASE}${CB_LEXERS}\lexer_make.sample
+                File ${CB_BASE}${CB_LEXERS}\lexer_make.xml
+                WriteRegStr HKCU "${REGKEY}\Components" "Makefile" 1
+            SectionEnd
         SectionGroupEnd
 
 
@@ -618,6 +645,15 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "MASM" 1
             SectionEnd
 
+            Section /o "Matlab"
+                SectionIn 1 4
+                SetOutPath $INSTDIR${CB_LEXERS}
+                SetOverwrite on
+                File ${CB_BASE}${CB_LEXERS}\lexer_matlab.sample
+                File ${CB_BASE}${CB_LEXERS}\lexer_matlab.xml
+                WriteRegStr HKCU "${REGKEY}\Components" "Matlab" 1
+            SectionEnd
+
             Section /o "NSIS installer script"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
@@ -627,13 +663,13 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "NSIS installer script" 1
             SectionEnd
 
-            Section /o "Matlab"
+            Section /o "Property file"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
-                File ${CB_BASE}${CB_LEXERS}\lexer_matlab.sample
-                File ${CB_BASE}${CB_LEXERS}\lexer_matlab.xml
-                WriteRegStr HKCU "${REGKEY}\Components" "Matlab" 1
+                File ${CB_BASE}${CB_LEXERS}\lexer_properties.sample
+                File ${CB_BASE}${CB_LEXERS}\lexer_properties.xml
+                WriteRegStr HKCU "${REGKEY}\Components" "Property file" 1
             SectionEnd
 
             Section /o "Sql"
@@ -652,15 +688,6 @@ accessOK:
                 File ${CB_BASE}${CB_LEXERS}\lexer_prg.sample
                 File ${CB_BASE}${CB_LEXERS}\lexer_prg.xml
                 WriteRegStr HKCU "${REGKEY}\Components" "XBase" 1
-            SectionEnd
-
-            Section /o "Property file"
-                SectionIn 1 4
-                SetOutPath $INSTDIR${CB_LEXERS}
-                SetOverwrite on
-                File ${CB_BASE}${CB_LEXERS}\lexer_properties.sample
-                File ${CB_BASE}${CB_LEXERS}\lexer_properties.xml
-                WriteRegStr HKCU "${REGKEY}\Components" "Property file" 1
             SectionEnd
         SectionGroupEnd
     SectionGroupEnd
@@ -816,6 +843,28 @@ accessOK:
             WriteRegStr HKCU "${REGKEY}\Components" "Scripted Wizard plugin" 1
         SectionEnd
 
+        Section "SmartIndent plugin" SEC_SMARTINDENT
+            SectionIn 1 2 4
+            SetOutPath $INSTDIR${CB_SHARE_CB}
+            SetOverwrite on
+            File ${CB_BASE}${CB_SHARE_CB}\CppSmartIndent.zip
+            File ${CB_BASE}${CB_SHARE_CB}\FortranSmartIndent.zip
+            File ${CB_BASE}${CB_SHARE_CB}\HDLSmartIndent.zip
+            File ${CB_BASE}${CB_SHARE_CB}\LuaSmartIndent.zip
+            File ${CB_BASE}${CB_SHARE_CB}\PascalSmartIndent.zip
+            File ${CB_BASE}${CB_SHARE_CB}\PythonSmartIndent.zip
+            File ${CB_BASE}${CB_SHARE_CB}\XMLSmartIndent.zip
+            SetOutPath $INSTDIR${CB_PLUGINS}
+            File ${CB_BASE}${CB_PLUGINS}\CppSmartIndent.dll
+            File ${CB_BASE}${CB_PLUGINS}\FortranSmartIndent.dll
+            File ${CB_BASE}${CB_PLUGINS}\HDLSmartIndent.dll
+            File ${CB_BASE}${CB_PLUGINS}\LuaSmartIndent.dll
+            File ${CB_BASE}${CB_PLUGINS}\PascalSmartIndent.dll
+            File ${CB_BASE}${CB_PLUGINS}\PythonSmartIndent.dll
+            File ${CB_BASE}${CB_PLUGINS}\XMLSmartIndent.dll
+            WriteRegStr HKCU "${REGKEY}\Components" "SmartIndent plugin" 1
+        SectionEnd
+
         Section "ToDo List plugin" SEC_TODOLIST
             SectionIn 1 2 3 4
             SetOutPath $INSTDIR${CB_SHARE_CB}
@@ -938,6 +987,16 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "CppCheck plugin" 1
     SectionEnd
 
+    Section /o "Cscope plugin" SEC_CSCOPE
+        SectionIn 1
+        SetOutPath $INSTDIR${CB_SHARE_CB}
+        SetOverwrite on
+        File ${CB_BASE}${CB_SHARE_CB}\Cscope.zip
+        SetOutPath $INSTDIR${CB_PLUGINS}
+        File ${CB_BASE}${CB_PLUGINS}\Cscope.dll
+        WriteRegStr HKCU "${REGKEY}\Components" "Cscope plugin" 1
+    SectionEnd
+
     Section /o "DevPak plugin" SEC_DEVPAK
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
@@ -992,7 +1051,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
     SectionEnd
 
     Section /o "EditorConfig plugin" SEC_EDITORCONFIG
-        SectionIn 1
+        SectionIn 1 4
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
         File ${CB_BASE}${CB_SHARE_CB}\EditorConfig.zip
@@ -1000,9 +1059,9 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         File ${CB_BASE}${CB_PLUGINS}\EditorConfig.dll
         WriteRegStr HKCU "${REGKEY}\Components" "EditorConfig plugin" 1
     SectionEnd
-	
+
     Section /o "Editor Tweaks plugin" SEC_EDITORTWEAKS
-        SectionIn 1
+        SectionIn 1 4
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
         File ${CB_BASE}${CB_SHARE_CB}\EditorTweaks.zip
@@ -1197,6 +1256,11 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         File ${CB_BASE}${CB_IMG_SETTINGS}\spellchecker-off.png
         SetOutPath $INSTDIR${CB_SHARE_CB}\SpellChecker
         File ${CB_BASE}${CB_SHARE_CB}\SpellChecker\OnlineSpellChecking.xml
+        File ${CB_BASE}${CB_SHARE_CB}\SpellChecker\*.png
+        File ${CB_ADDONS}\en_GB.aff
+        File ${CB_ADDONS}\en_GB.dic
+        File ${CB_ADDONS}\en_US.aff
+        File ${CB_ADDONS}\en_US.dic
         WriteRegStr HKCU "${REGKEY}\Components" "SpellChecker plugin" 1
     SectionEnd
 
@@ -1411,6 +1475,12 @@ Section /o "-un.CppCheck plugin" UNSEC_CPPCHECK
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\CppCheck.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\CppCheck.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "CppCheck plugin"
+SectionEnd
+
+Section /o "-un.Cscope plugin" UNSEC_CSCOPE
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\Cscope.dll
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\Cscope.zip
+    DeleteRegValue HKCU "${REGKEY}\Components" "Cscope plugin"
 SectionEnd
 
 Section /o "-un.DevPak plugin" UNSEC_DEVPAK
@@ -1701,6 +1771,24 @@ Section "-un.Projects Importer plugin" UNSEC_PROJECTSIMPORTER
     DeleteRegValue HKCU "${REGKEY}\Components" "Projects Importer plugin"
 SectionEnd
 
+Section "-un.SmartIndent plugin" UNSEC_SMARTINDENT
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\CppSmartIndent.dll
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\FortranSmartIndent.dll
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\HDLSmartIndent.dll
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\LuaSmartIndent.dll
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\PascalSmartIndent.dll
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\PythonSmartIndent.dll
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\XMLSmartIndent.dll
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\CppSmartIndent.zip
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\FortranSmartIndent.zip
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\HDLSmartIndent.zip
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\LuaSmartIndent.zip
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\PascalSmartIndent.zip
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\PythonSmartIndent.zip
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\XMLSmartIndent.zip
+    DeleteRegValue HKCU "${REGKEY}\Components" "SmartIndent plugin"
+SectionEnd
+
 Section "-un.Scripted Wizard plugin" UNSEC_SCRIPTEDWIZARD
     Delete /REBOOTOK $INSTDIR${CB_WIZARD}\*.*
     RMDir  /r /REBOOTOK $INSTDIR${CB_WIZARD}
@@ -1726,6 +1814,8 @@ SectionEnd
 # C::B core plugins end
 
 # C::B lexers begin
+
+# "Compiler Languages"
 
 Section "-un.C/C++" UNSEC_CPP
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_rc.xml
@@ -1774,11 +1864,7 @@ Section /o "-un.Smalltalk" UNSEC_SMALLTALK
     DeleteRegValue HKCU "${REGKEY}\Components" "Smalltalk"
 SectionEnd
 
-Section "-un.Squirrel" UNSEC_SQ
-    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_squirrel.xml
-    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_squirrel.sample
-    DeleteRegValue HKCU "${REGKEY}\Components" "Squirrel"
-SectionEnd
+# "Script Languages"
 
 Section /o "-un.Angelscript" UNSEC_AS
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_angelscript.xml
@@ -1790,6 +1876,12 @@ Section /o "-un.Caml" UNSEC_CAML
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_caml.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_caml.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "Caml"
+SectionEnd
+
+Section /o "-un.Game Monkey" UNSEC_GM
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_gm.xml
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_gm.sample
+    DeleteRegValue HKCU "${REGKEY}\Components" "Game Monkey"
 SectionEnd
 
 Section /o "-un.Haskell" UNSEC_HASKELL
@@ -1810,12 +1902,6 @@ Section /o "-un.Lua" UNSEC_LUA
     DeleteRegValue HKCU "${REGKEY}\Components" "Lua"
 SectionEnd
 
-Section /o "-un.Python" UNSEC_PY
-    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_python.xml
-    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_python.sample
-    DeleteRegValue HKCU "${REGKEY}\Components" "Python"
-SectionEnd
-
 Section /o "-un.Perl" UNSEC_PERL
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_perl.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_perl.sample
@@ -1828,10 +1914,22 @@ Section /o "-un.Postscript" UNSEC_POSTSCRIPT
     DeleteRegValue HKCU "${REGKEY}\Components" "Postscript"
 SectionEnd
 
+Section /o "-un.Python" UNSEC_PY
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_python.xml
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_python.sample
+    DeleteRegValue HKCU "${REGKEY}\Components" "Python"
+SectionEnd
+
 Section /o "-un.Ruby" UNSEC_RUBY
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_ruby.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_ruby.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "Ruby"
+SectionEnd
+
+Section "-un.Squirrel" UNSEC_SQ
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_squirrel.xml
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_squirrel.sample
+    DeleteRegValue HKCU "${REGKEY}\Components" "Squirrel"
 SectionEnd
 
 Section /o "-un.VB Script" UNSEC_VB
@@ -1840,10 +1938,24 @@ Section /o "-un.VB Script" UNSEC_VB
     DeleteRegValue HKCU "${REGKEY}\Components" "VB Script"
 SectionEnd
 
-Section /o "-un.Game Monkey" UNSEC_GM
-    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_gm.xml
-    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_gm.sample
-    DeleteRegValue HKCU "${REGKEY}\Components" "Game Monkey"
+# "Shell / Binutils"
+
+Section /o "-un.bash script" UNSEC_BASH
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_bash.xml
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_bash.sample
+    DeleteRegValue HKCU "${REGKEY}\Components" "bash script"
+SectionEnd
+
+Section /o "-un.DOS batch files" UNSEC_DOS
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_batch.xml
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_batch.sample
+    DeleteRegValue HKCU "${REGKEY}\Components" "DOS batch files"
+SectionEnd
+
+Section /o "-un.Cmake" UNSEC_CMAKE
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_cmake.xml
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_cmake.sample
+    DeleteRegValue HKCU "${REGKEY}\Components" "Cmake"
 SectionEnd
 
 Section /o "-un.diff" UNSEC_DIFF
@@ -1858,28 +1970,11 @@ Section /o "-un.Makefile" UNSEC_MAKE
     DeleteRegValue HKCU "${REGKEY}\Components" "Makefile"
 SectionEnd
 
-Section /o "-un.bash script" UNSEC_BASH
-    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_bash.xml
-    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_bash.sample
-    DeleteRegValue HKCU "${REGKEY}\Components" "bash script"
-SectionEnd
+# "Markup Languages"
 
-Section /o "-un.DOS batch files" UNSEC_DOS
-    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_batch.xml
-    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_batch.sample
-    DeleteRegValue HKCU "${REGKEY}\Components" "DOS batch files"
-SectionEnd
-
-Section "-un.XML" UNSEC_XML
-    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_xml.xml
-    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_xml.sample
-    DeleteRegValue HKCU "${REGKEY}\Components" "XML"
-SectionEnd
-
-Section /o "-un.HTML" UNSEC_HTML
-    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_html.xml
-    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_html.sample
-    DeleteRegValue HKCU "${REGKEY}\Components" "HTML"
+Section /o "-un.BiBTeX" UNSEC_BIBTEX
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_bibtex.xml
+    DeleteRegValue HKCU "${REGKEY}\Components" "BiBTeX"
 SectionEnd
 
 Section /o "-un.CSS" UNSEC_CSS
@@ -1888,11 +1983,25 @@ Section /o "-un.CSS" UNSEC_CSS
     DeleteRegValue HKCU "${REGKEY}\Components" "CSS"
 SectionEnd
 
+Section /o "-un.HTML" UNSEC_HTML
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_html.xml
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_html.sample
+    DeleteRegValue HKCU "${REGKEY}\Components" "HTML"
+SectionEnd
+
 Section /o "-un.LaTeX" UNSEC_LATEX
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_latex.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_latex.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "LaTeX"
 SectionEnd
+
+Section "-un.XML" UNSEC_XML
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_xml.xml
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_xml.sample
+    DeleteRegValue HKCU "${REGKEY}\Components" "XML"
+SectionEnd
+
+# "Graphics Programming"
 
 Section /o "-un.GLSL (GLslang)" UNSEC_GLSL
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_glsl.xml
@@ -1914,6 +2023,8 @@ Section /o "-un.Ogre" UNSEC_OGRE
     DeleteRegValue HKCU "${REGKEY}\Components" "Ogre"
 SectionEnd
 
+# "Embedded development"
+
 Section /o "-un.A68k Assembler" UNSEC_A68K
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_A68k.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_A68k.sample
@@ -1926,28 +2037,24 @@ Section /o "-un.Hitachi Assembler" UNSEC_HITACHI
     DeleteRegValue HKCU "${REGKEY}\Components" "Hitachi Assembler"
 SectionEnd
 
-Section /o "-un.VHDL" UNSEC_VHDL
-    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_vhdl.xml
-    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_vhdl.sample
-    DeleteRegValue HKCU "${REGKEY}\Components" "VHDL"
-SectionEnd
-
 Section /o "-un.Verilog" UNSEC_VERILOG
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_verilog.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_verilog.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "Verilog"
 SectionEnd
 
+Section /o "-un.VHDL" UNSEC_VHDL
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_vhdl.xml
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_vhdl.sample
+    DeleteRegValue HKCU "${REGKEY}\Components" "VHDL"
+SectionEnd
+
+# "Others"
+
 Section /o "-un.MASM" UNSEC_MASM
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_masm.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_masm.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "MASM"
-SectionEnd
-
-Section /o "-un.NSIS installer script" UNSEC_NSIS
-    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_nsis.xml
-    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_nsis.sample
-    DeleteRegValue HKCU "${REGKEY}\Components" "NSIS installer script"
 SectionEnd
 
 Section /o "-un.Matlab" UNSEC_MATLAB
@@ -1956,10 +2063,10 @@ Section /o "-un.Matlab" UNSEC_MATLAB
     DeleteRegValue HKCU "${REGKEY}\Components" "Matlab"
 SectionEnd
 
-Section /o "-un.Sql" UNSEC_SQL
-    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_sql.xml
-    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_sql.sample
-    DeleteRegValue HKCU "${REGKEY}\Components" "Sql"
+Section /o "-un.NSIS installer script" UNSEC_NSIS
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_nsis.xml
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_nsis.sample
+    DeleteRegValue HKCU "${REGKEY}\Components" "NSIS installer script"
 SectionEnd
 
 Section /o "-un.XBase" UNSEC_XBASE
@@ -1972,6 +2079,12 @@ Section /o "-un.Property file" UNSEC_PROP
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_properties.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_properties.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "Property file"
+SectionEnd
+
+Section /o "-un.Sql" UNSEC_SQL
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_sql.xml
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_sql.sample
+    DeleteRegValue HKCU "${REGKEY}\Components" "Sql"
 SectionEnd
 
 # C::B lexers end
@@ -2037,6 +2150,7 @@ Section "-un.Core Files (required)" UNSEC_CORE
     Delete /REBOOTOK $INSTDIR\exchndl.dll
     Delete /REBOOTOK $INSTDIR\codeblocks.exe
     Delete /REBOOTOK $INSTDIR\codeblocks.dll
+    Delete /REBOOTOK $INSTDIR\Addr2LineUI.exe
     Delete /REBOOTOK $INSTDIR\cb_console_runner.exe
     Delete /REBOOTOK $INSTDIR\wxpropgrid.dll
     Delete /REBOOTOK $INSTDIR\wxmsw28u_gcc_custom.dll
@@ -2104,7 +2218,8 @@ Function un.onInit
     !insertmacro SELECT_UNSECTION "Program Shortcut All Users" ${UNSEC_PROGRAMSHORTCUT_ALL}
     !insertmacro SELECT_UNSECTION "Desktop Shortcut"           ${UNSEC_DESKTOPSHORTCUT}
     !insertmacro SELECT_UNSECTION "Quick Launch Shortcut"      ${UNSEC_QUICKLAUNCHSHORTCUT}
-                                                             
+
+    # "Compiler Languages"
     !insertmacro SELECT_UNSECTION "C/C++"                      ${UNSEC_CPP}
     !insertmacro SELECT_UNSECTION "Ada"                        ${UNSEC_ADA}
     !insertmacro SELECT_UNSECTION "The D Language"             ${UNSEC_D}
@@ -2112,39 +2227,47 @@ Function un.onInit
     !insertmacro SELECT_UNSECTION "Java"                       ${UNSEC_JAVA}
     !insertmacro SELECT_UNSECTION "Pascal"                     ${UNSEC_PASCAL}
     !insertmacro SELECT_UNSECTION "Smalltalk"                  ${UNSEC_SMALLTALK}
-    !insertmacro SELECT_UNSECTION "Squirrel"                   ${UNSEC_SQ}
+    # "Script Languages"
     !insertmacro SELECT_UNSECTION "Angelscript"                ${UNSEC_AS}
     !insertmacro SELECT_UNSECTION "Caml"                       ${UNSEC_CAML}
+    !insertmacro SELECT_UNSECTION "Game Monkey"                ${UNSEC_GM}
     !insertmacro SELECT_UNSECTION "Haskell"                    ${UNSEC_HASKELL}
     !insertmacro SELECT_UNSECTION "Lisp"                       ${UNSEC_LISP}
     !insertmacro SELECT_UNSECTION "Lua"                        ${UNSEC_LUA}
-    !insertmacro SELECT_UNSECTION "Python"                     ${UNSEC_PY}
     !insertmacro SELECT_UNSECTION "Perl"                       ${UNSEC_PERL}
     !insertmacro SELECT_UNSECTION "Postscript"                 ${UNSEC_POSTSCRIPT}
+    !insertmacro SELECT_UNSECTION "Python"                     ${UNSEC_PY}
     !insertmacro SELECT_UNSECTION "Ruby"                       ${UNSEC_RUBY}
+    !insertmacro SELECT_UNSECTION "Squirrel"                   ${UNSEC_SQ}
     !insertmacro SELECT_UNSECTION "VB Script"                  ${UNSEC_VB}
-    !insertmacro SELECT_UNSECTION "Game Monkey"                ${UNSEC_GM}
-    !insertmacro SELECT_UNSECTION "diff"                       ${UNSEC_DIFF}
-    !insertmacro SELECT_UNSECTION "makefile"                   ${UNSEC_MAKE}
-    !insertmacro SELECT_UNSECTION "bash script"                ${UNSEC_BASH}
-    !insertmacro SELECT_UNSECTION "DOS batch files"            ${UNSEC_DOS}
-    !insertmacro SELECT_UNSECTION "XML"                        ${UNSEC_XML}
-    !insertmacro SELECT_UNSECTION "HTML"                       ${UNSEC_HTML}
+    # "Markup Languages"
+    !insertmacro SELECT_UNSECTION "BiBTeX"                     ${UNSEC_BIBTEX}
     !insertmacro SELECT_UNSECTION "CSS"                        ${UNSEC_CSS}
+    !insertmacro SELECT_UNSECTION "HTML"                       ${UNSEC_HTML}
     !insertmacro SELECT_UNSECTION "LaTeX"                      ${UNSEC_LATEX}
+    !insertmacro SELECT_UNSECTION "XML"                        ${UNSEC_XML}
+    # "Graphics Programming"
     !insertmacro SELECT_UNSECTION "GLSL (GLSlang)"             ${UNSEC_GLSL}
     !insertmacro SELECT_UNSECTION "nVidia Cg"                  ${UNSEC_CG}
     !insertmacro SELECT_UNSECTION "Ogre"                       ${UNSEC_OGRE}
+    # "Embedded development"
     !insertmacro SELECT_UNSECTION "A68k Assembler"             ${UNSEC_A68K}
     !insertmacro SELECT_UNSECTION "Hitachi Assembler"          ${UNSEC_HITACHI}
-    !insertmacro SELECT_UNSECTION "VHDL"                       ${UNSEC_VHDL}
     !insertmacro SELECT_UNSECTION "Verilog"                    ${UNSEC_VERILOG}
+    !insertmacro SELECT_UNSECTION "VHDL"                       ${UNSEC_VHDL}
+    # "Shell / Binutils"
+    !insertmacro SELECT_UNSECTION "bash script"                ${UNSEC_BASH}
+    !insertmacro SELECT_UNSECTION "DOS batch files"            ${UNSEC_DOS}
+    !insertmacro SELECT_UNSECTION "Cmake"                      ${UNSEC_CMAKE}
+    !insertmacro SELECT_UNSECTION "diff"                       ${UNSEC_DIFF}
+    !insertmacro SELECT_UNSECTION "Makefile"                   ${UNSEC_MAKE}
+    # "Others"
     !insertmacro SELECT_UNSECTION "MASM"                       ${UNSEC_MASM}
-    !insertmacro SELECT_UNSECTION "NSIS installer script"      ${UNSEC_NSIS}
     !insertmacro SELECT_UNSECTION "MATLAB"                     ${UNSEC_MATLAB}
-    !insertmacro SELECT_UNSECTION "Sql"                        ${UNSEC_SQL}
-    !insertmacro SELECT_UNSECTION "XBASE"                      ${UNSEC_XBASE}
+    !insertmacro SELECT_UNSECTION "NSIS installer script"      ${UNSEC_NSIS}
     !insertmacro SELECT_UNSECTION "Property file"              ${UNSEC_PROP}
+    !insertmacro SELECT_UNSECTION "Sql"                        ${UNSEC_SQL}
+    !insertmacro SELECT_UNSECTION "XBase"                      ${UNSEC_XBASE}
 
     !insertmacro SELECT_UNSECTION "Abbreviations plugin"       ${UNSEC_ABBREV}
     !insertmacro SELECT_UNSECTION "AStyle plugin"              ${UNSEC_ASTYLE}
@@ -2156,10 +2279,11 @@ Function un.onInit
     !insertmacro SELECT_UNSECTION "MIME Handler plugin"        ${UNSEC_MIMEHANDLER}
     !insertmacro SELECT_UNSECTION "Open Files List plugin"     ${UNSEC_OPENFILESLIST}
     !insertmacro SELECT_UNSECTION "Projects Importer plugin"   ${UNSEC_PROJECTSIMPORTER}
+    !insertmacro SELECT_UNSECTION "SmartIndent plugin"         ${UNSEC_SMARTINDENT}
     !insertmacro SELECT_UNSECTION "Scripted Wizard plugin"     ${UNSEC_SCRIPTEDWIZARD}
     !insertmacro SELECT_UNSECTION "ToDo List plugin"           ${UNSEC_TODOLIST}
     !insertmacro SELECT_UNSECTION "XP Look And Feel plugin"    ${UNSEC_XPLOOKANDFEEL}
-                                                             
+
     !insertmacro SELECT_UNSECTION "Auto Versioning plugin"     ${UNSEC_AUTOVERSIONING}
     !insertmacro SELECT_UNSECTION "Browse Tracker plugin"      ${UNSEC_BROWSETRACKER}
     !insertmacro SELECT_UNSECTION "Byo Games plugin"           ${UNSEC_BYOGAMES}
@@ -2168,10 +2292,11 @@ Function un.onInit
     !insertmacro SELECT_UNSECTION "Code Stat plugin"           ${UNSEC_CODESTAT}
     !insertmacro SELECT_UNSECTION "Copy Strings plugin"        ${UNSEC_COPYSTRINGS}
     !insertmacro SELECT_UNSECTION "CppCheck plugin"            ${UNSEC_CPPCHECK}
+    !insertmacro SELECT_UNSECTION "Cscope plugin"              ${UNSEC_CSCOPE}
     !insertmacro SELECT_UNSECTION "DevPak plugin"              ${UNSEC_DEVPAK}
     !insertmacro SELECT_UNSECTION "DoxyBlocks plugin"          ${UNSEC_DOXYBLOCKS}
     !insertmacro SELECT_UNSECTION "Drag Scroll plugin"         ${UNSEC_DRAGSCROLL}
-    !insertmacro SELECT_UNSECTION "EditorConfig plugin"		   ${UNSEC_EDITORCONFIG}
+    !insertmacro SELECT_UNSECTION "EditorConfig plugin"        ${UNSEC_EDITORCONFIG}
     !insertmacro SELECT_UNSECTION "Editor tweaks plugin"       ${UNSEC_EDITORTWEAKS}
     !insertmacro SELECT_UNSECTION "EnvVars plugin"             ${UNSEC_ENVVARS}
     !insertmacro SELECT_UNSECTION "File Manager plugin"        ${UNSEC_FILEMANAGER}
@@ -2187,12 +2312,13 @@ Function un.onInit
     !insertmacro SELECT_UNSECTION "Tools+ plugin"              ${UNSEC_TOOLSPLUS}
     !insertmacro SELECT_UNSECTION "Profiler plugin"            ${UNSEC_PROFILER}
     !insertmacro SELECT_UNSECTION "RegEx Testbed plugin"       ${UNSEC_REGEXTESTBED}
+    !insertmacro SELECT_UNSECTION "ReOpen Editor plugin"       ${UNSEC_REOPEN}
     !insertmacro SELECT_UNSECTION "Exporter plugin"            ${UNSEC_EXPORTER}
     !insertmacro SELECT_UNSECTION "SpellChecker plugin"        ${UNSEC_SPELLCHECKER}
     !insertmacro SELECT_UNSECTION "SymTab plugin"              ${UNSEC_SYMTAB}
     !insertmacro SELECT_UNSECTION "ThreadSearch plugin"        ${UNSEC_THREADSEARCH}
     !insertmacro SELECT_UNSECTION "wxSmith plugin"             ${UNSEC_WXSMITH}
-                                                             
+
     !insertmacro SELECT_UNSECTION "C::B Share Config"          ${UNSEC_SHARECONFIG}
     !insertmacro SELECT_UNSECTION "C::B Launcher"              ${UNSEC_LAUNCHER}
 
@@ -2217,7 +2343,7 @@ FunctionEnd
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_QUICKLAUNCHSHORTCUT} "Creates a shortcut to Code::Blocks in the quick lauch bar."
 
 !insertmacro MUI_DESCRIPTION_TEXT ${SECGRP_LEXERS}           "Lexer files provide syntax styling and delimiter matching for different programming languages and others."
-                                                            
+
 !insertmacro MUI_DESCRIPTION_TEXT ${SECGRP_CORE_PLUGINS}     "Core plugins that are most likely desired. This includes the compiler and debugger plugin."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_ABBREV}              "Speeds up the code typing with configurable abbreviations."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_ASTYLE}              "Source code formatter. Uses AStyle to reformat your sources."
@@ -2228,11 +2354,12 @@ FunctionEnd
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_DEBUGGER}            "Provides interfaces to the GNU GDB and MS CDB debuggers."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_MIMEHANDLER}         "Provides a (default) files extension handler."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_OPENFILESLIST}       "Shows all currently open files (editors) in a list."
-!insertmacro MUI_DESCRIPTION_TEXT ${SEC_PROJECTSIMPORTER}    "Imports foreign projects/workspaces (Dev-C++, MSVC6, MSVS7, MSVS8)."
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_PROJECTSIMPORTER}    "Imports foreign projects/workspaces (Dev-C++, MSVC6, MSVS7, MSVS8, MSVC10)."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_SCRIPTEDWIZARD}      "Provides a generic platform for creating project wizards (already includes a lot of wizards)."
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_SMARTINDENT}         "Provided smart indention options for several languages (C++, Fortran, HDL, Lua, Pascal, Python, XML)."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_TODOLIST}            "Provides a To-Do list and collects items accoringly from source files of a file/project/workspace."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_XPLOOKANDFEEL}       "Creates a manifest file that makes use of common controls 6.0 under Windows XP."
-                                                            
+
 !insertmacro MUI_DESCRIPTION_TEXT ${SECGRP_CONTRIB_PLUGINS}  "Contributed plugins by the Code::Blocks user/developer community. These plugins extend the IDE nicely."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_AUTOVERSIONING}      "Auto increments the version and build number of your application every time a change has been made."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_BROWSETRACKER}       "Browse to previous source positions / editors comfortable."
@@ -2244,6 +2371,7 @@ FunctionEnd
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_CODESTAT}            "A plugin for counting code, comments and empty lines of a project."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_COPYSTRINGS}         "Copies all the strings in the current editor into the clipboard."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_CPPCHECK}            "A plugin for code analysis based on CppCheck."
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_CSCOPE}              "A plugin for code analysis based on Cscope."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_DEVPAK}              "Installs selected DevPaks from the internet."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_DOXYBLOCKS}          "Add Doxygen documentation generator support for Code::Blocks."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_DRAGSCROLL}          "Mouse drag and scroll using right or middle mouse key."
@@ -2267,11 +2395,11 @@ FunctionEnd
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_SYMTAB}              "Provides a simple graphical interface to the GNU symbol table displayer (nm)."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_THREADSEARCH}        "Multi-threaded 'Search in files' with preview window."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_WXSMITH}             "RAD tool used to create wxWidgets based GUI applications, forms, dialogs and other."
-                                                            
+
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_SHARECONFIG}         "Allows sharing of most important settings between Code::Blocks instances or different users."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_LAUNCHER}            "Makes Code::Blocks portable on Windows, including config from APPDATA and alike."
 
-!ifdef MINGW_BUNDLE                                         
+!ifdef MINGW_BUNDLE
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_MINGW}               "Additional setup that will install the GNU compiler suite (requires additional downloads)."
 !endif
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
