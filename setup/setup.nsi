@@ -20,12 +20,14 @@
 # - run NSIS using this command line                                #
 #   C:\PATH_TO\NSIS\makensis.exe setup.nsi                          #
 # - enable the MINGW_BUNDLE switch below and run again              #
-#   (for the MínGW bundle version)                                  #
+#   (for the MinGW bundle version)                                  #
+# - enable the CB_LAUNCHER switch below and run again               #
+#   (to bundle the CBLauncher portable tool)                        #
 #####################################################################
 
 Name CodeBlocks
 
-# Comment out the following line to remove the
+# Uncomment the following line to remove the
 # 'Nullsoft Install System vX.XX' String:
 #BrandingText " "
 # (Notice that this string contains a space character.)
@@ -42,8 +44,11 @@ Name CodeBlocks
 #########################################################
 
 # The following line toggles whether the installer includes the MinGW
-# compiler suite (including GDB) or not. Comment out to exclude MinGW.
-#!define MINGW_BUNDLE
+# compiler suite (including GDB) or not. Uncomment to exclude MinGW.
+!define MINGW_BUNDLE
+# The following line toggles whether the installer includes the
+# CBLauncher tool for portable settings (AppData in the C::B folder).
+#!define CB_LAUNCHER
 
 # Notice installer packagers:
 # Some path's are system specific and need most likely to be adjusted
@@ -57,17 +62,16 @@ Name CodeBlocks
 !define VERSION          12.11
 !define COMPANY          "The Code::Blocks Team"
 !define URL              http://www.codeblocks.org
-#!define MINGW_BUNDLE
 
 ###########
 # Folders #
 ###########
 # Possibly required to adjust manually:
 # (Folder with wxWidgets DLL - unicode, monolitic.)
-!define WX_BASE          C:\Devel\wxWidgets\lib\gcc_dll
+!define WX_BASE          C:\Devel\CodeBlocks\Release\CodeBlocks
 # Possibly required to adjust manually:
 # (CodeBlocks binary folder - the one where codeblocks.exe is.)
-!define CB_BASE          C:\Devel\CodeBlocks\Release\CodeBlocks\output
+!define CB_BASE          C:\Devel\CodeBlocks\Release\CodeBlocks
 !define CB_SHARE         \share
 !define CB_SHARE_CB      ${CB_SHARE}\CodeBlocks
 !define CB_DOCS          ${CB_SHARE_CB}\docs
@@ -209,7 +213,7 @@ doInstall:
             Abort
 accessOK:
         SetOverwrite on
-        File ${WX_BASE}\wxmsw28u_gcc_custom.dll
+        File ${WX_BASE}\wxmsw28u_gcc_cb.dll
         File ${CB_BASE}\Addr2LineUI.exe
         File ${CB_BASE}\cb_console_runner.exe
         File ${CB_BASE}\codeblocks.dll
@@ -847,21 +851,21 @@ accessOK:
             SectionIn 1 2 4
             SetOutPath $INSTDIR${CB_SHARE_CB}
             SetOverwrite on
-            File ${CB_BASE}${CB_SHARE_CB}\CppSmartIndent.zip
-            File ${CB_BASE}${CB_SHARE_CB}\FortranSmartIndent.zip
-            File ${CB_BASE}${CB_SHARE_CB}\HDLSmartIndent.zip
-            File ${CB_BASE}${CB_SHARE_CB}\LuaSmartIndent.zip
-            File ${CB_BASE}${CB_SHARE_CB}\PascalSmartIndent.zip
-            File ${CB_BASE}${CB_SHARE_CB}\PythonSmartIndent.zip
-            File ${CB_BASE}${CB_SHARE_CB}\XMLSmartIndent.zip
+            File ${CB_BASE}${CB_SHARE_CB}\SmartIndentCpp.zip
+            File ${CB_BASE}${CB_SHARE_CB}\SmartIndentFortran.zip
+            File ${CB_BASE}${CB_SHARE_CB}\SmartIndentHDL.zip
+            File ${CB_BASE}${CB_SHARE_CB}\SmartIndentLua.zip
+            File ${CB_BASE}${CB_SHARE_CB}\SmartIndentPascal.zip
+            File ${CB_BASE}${CB_SHARE_CB}\SmartIndentPython.zip
+            File ${CB_BASE}${CB_SHARE_CB}\SmartIndentXML.zip
             SetOutPath $INSTDIR${CB_PLUGINS}
-            File ${CB_BASE}${CB_PLUGINS}\CppSmartIndent.dll
-            File ${CB_BASE}${CB_PLUGINS}\FortranSmartIndent.dll
-            File ${CB_BASE}${CB_PLUGINS}\HDLSmartIndent.dll
-            File ${CB_BASE}${CB_PLUGINS}\LuaSmartIndent.dll
-            File ${CB_BASE}${CB_PLUGINS}\PascalSmartIndent.dll
-            File ${CB_BASE}${CB_PLUGINS}\PythonSmartIndent.dll
-            File ${CB_BASE}${CB_PLUGINS}\XMLSmartIndent.dll
+            File ${CB_BASE}${CB_PLUGINS}\SmartIndentCpp.dll
+            File ${CB_BASE}${CB_PLUGINS}\SmartIndentFortran.dll
+            File ${CB_BASE}${CB_PLUGINS}\SmartIndentHDL.dll
+            File ${CB_BASE}${CB_PLUGINS}\SmartIndentLua.dll
+            File ${CB_BASE}${CB_PLUGINS}\SmartIndentPascal.dll
+            File ${CB_BASE}${CB_PLUGINS}\SmartIndentPython.dll
+            File ${CB_BASE}${CB_PLUGINS}\SmartIndentXML.dll
             WriteRegStr HKCU "${REGKEY}\Components" "SmartIndent plugin" 1
         SectionEnd
 
@@ -1336,6 +1340,7 @@ Section /o "C::B Share Config" SEC_SHARECONFIG
     WriteRegStr HKCU "${REGKEY}\Components" "C::B Share Config" 1
 SectionEnd
 
+!ifdef CB_LAUNCHER
 Section /o "C::B Launcher" SEC_LAUNCHER
     SectionIn 1
     SetOutPath $INSTDIR
@@ -1344,6 +1349,7 @@ Section /o "C::B Launcher" SEC_LAUNCHER
     CreateShortcut "$SMPROGRAMS\${CB_SM_GROUP}\$(^Name) (Launcher).lnk" $INSTDIR\CbLauncher.exe
     WriteRegStr HKCU "${REGKEY}\Components" "C::B Launcher" 1
 SectionEnd
+!endif
 
 !ifdef MINGW_BUNDLE
 Section "MinGW Compiler Suite" SEC_MINGW
@@ -1409,11 +1415,13 @@ Section "-un.MinGW Compiler Suite" UNSEC_MINGW
 SectionEnd
 !endif
 
+!ifdef CB_LAUNCHER
 Section /o "-un.C::B Launcher" UNSEC_LAUNCHER
     Delete /REBOOTOK $INSTDIR\CbLauncher.exe
     Delete /REBOOTOK "$SMPROGRAMS\${CB_SM_GROUP}\$(^Name) (Launcher).lnk"
     DeleteRegValue HKCU "${REGKEY}\Components" "C::B Launcher"
 SectionEnd
+!endif
 
 Section /o "-un.C::B Share Config" UNSEC_SHARECONFIG
     Delete /REBOOTOK $INSTDIR\cb_share_config.exe
@@ -1772,20 +1780,20 @@ Section "-un.Projects Importer plugin" UNSEC_PROJECTSIMPORTER
 SectionEnd
 
 Section "-un.SmartIndent plugin" UNSEC_SMARTINDENT
-    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\CppSmartIndent.dll
-    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\FortranSmartIndent.dll
-    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\HDLSmartIndent.dll
-    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\LuaSmartIndent.dll
-    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\PascalSmartIndent.dll
-    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\PythonSmartIndent.dll
-    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\XMLSmartIndent.dll
-    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\CppSmartIndent.zip
-    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\FortranSmartIndent.zip
-    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\HDLSmartIndent.zip
-    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\LuaSmartIndent.zip
-    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\PascalSmartIndent.zip
-    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\PythonSmartIndent.zip
-    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\XMLSmartIndent.zip
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\SmartIndentCpp.dll
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\SmartIndentFortran.dll
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\SmartIndentHDL.dll
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\SmartIndentLua.dll
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\SmartIndentPascal.dll
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\SmartIndentPython.dll
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\SmartIndentXML.dll
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\SmartIndentCpp.zip
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\SmartIndentFortran.zip
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\SmartIndentHDL.zip
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\SmartIndentLua.zip
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\SmartIndentPascal.zip
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\SmartIndentPython.zip
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\SmartIndentXML.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "SmartIndent plugin"
 SectionEnd
 
@@ -2153,7 +2161,7 @@ Section "-un.Core Files (required)" UNSEC_CORE
     Delete /REBOOTOK $INSTDIR\Addr2LineUI.exe
     Delete /REBOOTOK $INSTDIR\cb_console_runner.exe
     Delete /REBOOTOK $INSTDIR\wxpropgrid.dll
-    Delete /REBOOTOK $INSTDIR\wxmsw28u_gcc_custom.dll
+    Delete /REBOOTOK $INSTDIR\wxmsw28u_gcc_cb.dll
     DeleteRegValue HKCU "${REGKEY}\Components" "Core Files (required)"
 SectionEnd
 
@@ -2320,8 +2328,10 @@ Function un.onInit
     !insertmacro SELECT_UNSECTION "wxSmith plugin"             ${UNSEC_WXSMITH}
 
     !insertmacro SELECT_UNSECTION "C::B Share Config"          ${UNSEC_SHARECONFIG}
-    !insertmacro SELECT_UNSECTION "C::B Launcher"              ${UNSEC_LAUNCHER}
 
+!ifdef CB_LAUNCHER
+    !insertmacro SELECT_UNSECTION "C::B Launcher"              ${UNSEC_LAUNCHER}
+!endif
 !ifdef MINGW_BUNDLE
     !insertmacro SELECT_UNSECTION "MinGW Compiler Suite"       ${UNSEC_MINGW}
 !endif
@@ -2397,8 +2407,10 @@ FunctionEnd
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_WXSMITH}             "RAD tool used to create wxWidgets based GUI applications, forms, dialogs and other."
 
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_SHARECONFIG}         "Allows sharing of most important settings between Code::Blocks instances or different users."
-!insertmacro MUI_DESCRIPTION_TEXT ${SEC_LAUNCHER}            "Makes Code::Blocks portable on Windows, including config from APPDATA and alike."
 
+!ifdef CB_LAUNCHER
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_LAUNCHER}            "Makes Code::Blocks portable on Windows, including config from APPDATA and alike."
+!endif
 !ifdef MINGW_BUNDLE
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_MINGW}               "Additional setup that will install the GNU compiler suite (requires additional downloads)."
 !endif
