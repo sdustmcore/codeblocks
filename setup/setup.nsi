@@ -45,7 +45,7 @@ Name CodeBlocks
 
 # The following line toggles whether the installer includes the MinGW
 # compiler suite (including GDB) or not. Uncomment to exclude MinGW.
-!define MINGW_BUNDLE
+#!define MINGW_BUNDLE
 # The following line toggles whether the installer includes the
 # CBLauncher tool for portable settings (AppData in the C::B folder).
 #!define CB_LAUNCHER
@@ -68,10 +68,10 @@ Name CodeBlocks
 ###########
 # Possibly required to adjust manually:
 # (Folder with wxWidgets DLL - unicode, monolitic.)
-!define WX_BASE          C:\Devel\CodeBlocks\Release\CodeBlocks
+!define WX_BASE          C:\Devel\CodeBlocks\Releases\CodeBlocks_1211
 # Possibly required to adjust manually:
 # (CodeBlocks binary folder - the one where codeblocks.exe is.)
-!define CB_BASE          C:\Devel\CodeBlocks\Release\CodeBlocks
+!define CB_BASE          C:\Devel\CodeBlocks\Releases\CodeBlocks_1211
 !define CB_SHARE         \share
 !define CB_SHARE_CB      ${CB_SHARE}\CodeBlocks
 !define CB_DOCS          ${CB_SHARE_CB}\docs
@@ -85,13 +85,13 @@ Name CodeBlocks
 !define CB_IMG_SETTINGS  ${CB_IMAGES}\settings
 # Possibly required to adjust manually:
 # (Folder with full MinGW/GCC installation, *including* debugger.)
-!define MINGW_BASE       C:\Devel\CodeBlocks\Release\MinGW
+!define MINGW_BASE       C:\Devel\CodeBlocks\Releases\MinGW
 # Possibly required to adjust manually:
 # (Folder with logos and GPL license as text file.)
-!define CB_ADDONS        C:\Devel\CodeBlocks\Release\Setup
+!define CB_ADDONS        C:\Devel\CodeBlocks\Releases\Setup
 # Possibly required to adjust manually:
 # (Folder with documentation provided by mariocup.)
-!define CB_DOCS_SRC      C:\Devel\CodeBlocks\Release\Setup
+!define CB_DOCS_SRC      C:\Devel\CodeBlocks\Releases\Setup
 !ifdef MINGW_BUNDLE
 !define CB_MINGW         \MinGW
 !endif
@@ -184,6 +184,11 @@ InstType "Editor: Code::Blocks as editor only (all lexers)"
 # They basically define the tree of components available.
 SectionGroup "!Default install" SECGRP_DEFAULT
 
+    # Short explanation:
+    # Section    "!Name" -> Section is bold
+    # Section /o "Name"  -> Section is optional and not selectd by default
+    # Section    "-Name" -> Section is hidden an cannot be unselected
+
     # C::B core begin
 
     Section "!Core Files (required)" SEC_CORE
@@ -258,7 +263,7 @@ accessOK:
             WriteRegStr HKCU "${REGKEY}\Components" "Program Shortcut" 1
         SectionEnd
 
-        Section /o "Program Shortcut All Users" SEC_PROGRAMSHORTCUT_ALL
+        Section "Program Shortcut All Users" SEC_PROGRAMSHORTCUT_ALL
             SectionIn 1 2 3 4
             SetShellVarContext all
             SetOutPath $SMPROGRAMS\${CB_SM_GROUP}
@@ -272,13 +277,13 @@ accessOK:
             WriteRegStr HKCU "${REGKEY}\Components" "Program Shortcut All Users" 1
         SectionEnd
 
-        Section /o "Desktop Shortcut" SEC_DESKTOPSHORTCUT
+        Section "Desktop Shortcut" SEC_DESKTOPSHORTCUT
             SectionIn 1
             CreateShortCut "$DESKTOP\$(^Name).lnk" $INSTDIR\CodeBlocks.exe
             WriteRegStr HKCU "${REGKEY}\Components" "Desktop Shortcut" 1
         SectionEnd
 
-        Section /o "Quick Launch Shortcut" SEC_QUICKLAUNCHSHORTCUT
+        Section "Quick Launch Shortcut" SEC_QUICKLAUNCHSHORTCUT
             SectionIn 1
             CreateShortCut "$QUICKLAUNCH\$(^Name).lnk" $INSTDIR\CodeBlocks.exe
             WriteRegStr HKCU "${REGKEY}\Components" "Quick Launch Shortcut" 1
@@ -304,7 +309,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "C/C++" 1
             SectionEnd
 
-            Section /o "Ada"
+            Section "Ada"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -313,7 +318,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "Ada" 1
             SectionEnd
 
-            Section /o "The D Language"
+            Section "The D Language"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -322,7 +327,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "The D Language" 1
             SectionEnd
 
-            Section /o "Fortran"
+            Section "Fortran"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -333,7 +338,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "Fortran" 1
             SectionEnd
 
-            Section /o "Java"
+            Section "Java"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -342,7 +347,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "Java" 1
             SectionEnd
 
-            Section /o "Pascal"
+            Section "Pascal"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -351,7 +356,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "Pascal" 1
             SectionEnd
 
-            Section /o "Smalltalk"
+            Section "Smalltalk"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -363,7 +368,7 @@ accessOK:
 
 
         SectionGroup "Script Languages"
-            Section /o "Angelscript"
+            Section "Angelscript"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -372,7 +377,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "Angelscript" 1
             SectionEnd
 
-            Section /o "Caml"
+            Section "Caml"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -381,7 +386,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "Caml" 1
             SectionEnd
 
-            Section /o "Game Monkey"
+            Section "Game Monkey"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -390,7 +395,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "Game Monkey" 1
             SectionEnd
 
-            Section /o "Haskell"
+            Section "Haskell"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -399,7 +404,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "Haskell" 1
             SectionEnd
 
-            Section /o "Lisp"
+            Section "Lisp"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -408,7 +413,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "Lisp" 1
             SectionEnd
 
-            Section /o "Lua"
+            Section "Lua"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -417,7 +422,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "Lua" 1
             SectionEnd
 
-            Section /o "Perl"
+            Section "Perl"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -426,7 +431,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "Perl" 1
             SectionEnd
 
-            Section /o "Postscript"
+            Section "Postscript"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -435,7 +440,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "Postscript" 1
             SectionEnd
 
-            Section /o "Python"
+            Section "Python"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -444,7 +449,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "Python" 1
             SectionEnd
 
-            Section /o "Ruby"
+            Section "Ruby"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -462,7 +467,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "Squirrel" 1
             SectionEnd
 
-            Section /o "VB Script"
+            Section "VB Script"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -474,7 +479,7 @@ accessOK:
 
 
         SectionGroup "Markup Languages"
-            Section /o "BiBTeX"
+            Section "BiBTeX"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -482,7 +487,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "BiBTeX" 1
             SectionEnd
 
-            Section /o "CSS"
+            Section "CSS"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -491,7 +496,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "CSS" 1
             SectionEnd
 
-            Section /o "HTML"
+            Section "HTML"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -500,7 +505,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "HTML" 1
             SectionEnd
 
-            Section /o "LaTeX"
+            Section "LaTeX"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -521,7 +526,7 @@ accessOK:
 
 
         SectionGroup "Graphics Programming"
-            Section /o "GLSL (GLslang)"
+            Section "GLSL (GLslang)"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -530,7 +535,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "GLSL (GLslang)" 1
             SectionEnd
 
-            Section /o "nVidia Cg"
+            Section "nVidia Cg"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -539,7 +544,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "nVidia Cg" 1
             SectionEnd
 
-            Section /o "Ogre"
+            Section "Ogre"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -553,7 +558,7 @@ accessOK:
 
 
         SectionGroup "Embedded development"
-            Section /o "A68k Assembler"
+            Section "A68k Assembler"
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SectionIn 1 4
                 SetOverwrite on
@@ -562,7 +567,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "A68k Assembler" 1
             SectionEnd
 
-            Section /o "Hitachi Assembler"
+            Section "Hitachi Assembler"
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SectionIn 1 4
                 SetOverwrite on
@@ -571,7 +576,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "Hitachi Assembler" 1
             SectionEnd
 
-            Section /o "Verilog"
+            Section "Verilog"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -580,7 +585,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "Verilog" 1
             SectionEnd
 
-            Section /o "VHDL"
+            Section "VHDL"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -592,7 +597,7 @@ accessOK:
 
 
         SectionGroup "Shell / Binutils"
-            Section /o "bash script"
+            Section "bash script"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -601,7 +606,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "bash script" 1
             SectionEnd
 
-            Section /o "DOS batch files"
+            Section "DOS batch files"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -610,7 +615,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "DOS batch files" 1
             SectionEnd
 
-            Section /o "Cmake"
+            Section "Cmake"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -619,7 +624,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "Cmake" 1
             SectionEnd
 
-            Section /o "diff"
+            Section "diff"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -628,7 +633,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "diff" 1
             SectionEnd
 
-            Section /o "Makefile"
+            Section "Makefile"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -640,7 +645,7 @@ accessOK:
 
 
         SectionGroup "Others"
-            Section /o "MASM"
+            Section "MASM"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -649,7 +654,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "MASM" 1
             SectionEnd
 
-            Section /o "Matlab"
+            Section "Matlab"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -658,7 +663,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "Matlab" 1
             SectionEnd
 
-            Section /o "NSIS installer script"
+            Section "NSIS installer script"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -667,7 +672,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "NSIS installer script" 1
             SectionEnd
 
-            Section /o "Property file"
+            Section "Property file"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -676,7 +681,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "Property file" 1
             SectionEnd
 
-            Section /o "Sql"
+            Section "Sql"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -685,7 +690,7 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "Sql" 1
             SectionEnd
 
-            Section /o "XBase"
+            Section "XBase"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
                 SetOverwrite on
@@ -902,7 +907,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
 
     # C::B contrib plugins begin
 
-    Section /o "Auto Versioning plugin" SEC_AUTOVERSIONING
+    Section "Auto Versioning plugin" SEC_AUTOVERSIONING
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -912,7 +917,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "Auto Versioning plugin" 1
     SectionEnd
 
-    Section /o "Browse Tracker plugin" SEC_BROWSETRACKER
+    Section "Browse Tracker plugin" SEC_BROWSETRACKER
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -922,7 +927,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "Browse Tracker plugin" 1
     SectionEnd
 
-    Section /o "Byo Games plugin" SEC_BYOGAMES
+    Section "Byo Games plugin" SEC_BYOGAMES
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -932,7 +937,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "Byo Games plugin" 1
     SectionEnd
 
-    Section /o "Cccc plugin" SEC_CCCC
+    Section "Cccc plugin" SEC_CCCC
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -942,7 +947,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "Cccc plugin" 1
     SectionEnd
 
-    Section /o "Code Snippets plugin" SEC_CODESNIPPETS
+    Section "Code Snippets plugin" SEC_CODESNIPPETS
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -958,7 +963,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "Code Snippets plugin" 1
     SectionEnd
 
-    Section /o "Code Stat plugin" SEC_CODESTAT
+    Section "Code Stat plugin" SEC_CODESTAT
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -971,7 +976,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "Code Stat plugin" 1
     SectionEnd
 
-    Section /o "Copy Strings plugin" SEC_COPYSTRINGS
+    Section "Copy Strings plugin" SEC_COPYSTRINGS
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -981,7 +986,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "Copy Strings plugin" 1
     SectionEnd
 
-    Section /o "CppCheck plugin" SEC_CPPCHECK
+    Section "CppCheck plugin" SEC_CPPCHECK
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -991,7 +996,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "CppCheck plugin" 1
     SectionEnd
 
-    Section /o "Cscope plugin" SEC_CSCOPE
+    Section "Cscope plugin" SEC_CSCOPE
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -1001,7 +1006,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "Cscope plugin" 1
     SectionEnd
 
-    Section /o "DevPak plugin" SEC_DEVPAK
+    Section "DevPak plugin" SEC_DEVPAK
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -1011,7 +1016,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "DevPak plugin" 1
     SectionEnd
 
-    Section /o "DoxyBlocks plugin" SEC_DOXYBLOCKS
+    Section "DoxyBlocks plugin" SEC_DOXYBLOCKS
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -1041,7 +1046,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
     SectionEnd
 
 
-    Section /o "Drag Scroll plugin" SEC_DRAGSCROLL
+    Section "Drag Scroll plugin" SEC_DRAGSCROLL
         SectionIn 1 4
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -1054,7 +1059,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "Drag Scroll plugin" 1
     SectionEnd
 
-    Section /o "EditorConfig plugin" SEC_EDITORCONFIG
+    Section "EditorConfig plugin" SEC_EDITORCONFIG
         SectionIn 1 4
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -1064,7 +1069,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "EditorConfig plugin" 1
     SectionEnd
 
-    Section /o "Editor Tweaks plugin" SEC_EDITORTWEAKS
+    Section "Editor Tweaks plugin" SEC_EDITORTWEAKS
         SectionIn 1 4
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -1074,7 +1079,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "Editor tweaks plugin" 1
     SectionEnd
 
-    Section /o "EnvVars plugin" SEC_ENVVARS
+    Section "EnvVars plugin" SEC_ENVVARS
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -1087,7 +1092,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "EnvVars plugin" 1
     SectionEnd
 
-    Section /o "File Manager plugin" SEC_FILEMANAGER
+    Section "File Manager plugin" SEC_FILEMANAGER
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -1097,7 +1102,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "File Manager plugin" 1
     SectionEnd
 
-    Section /o "HeaderFixUp plugin" SEC_HEADERFIXUP
+    Section "HeaderFixUp plugin" SEC_HEADERFIXUP
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -1107,7 +1112,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "HeaderFixUp plugin" 1
     SectionEnd
 
-    Section /o "Help plugin" SEC_HELP
+    Section "Help plugin" SEC_HELP
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -1120,7 +1125,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "Help plugin" 1
     SectionEnd
 
-    Section /o "HexEditor plugin" SEC_HEXEDITOR
+    Section "HexEditor plugin" SEC_HEXEDITOR
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -1130,7 +1135,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "HexEditor plugin" 1
     SectionEnd
 
-    Section /o "IncrementalSearch plugin" SEC_INCREMENTALSEARCH
+    Section "IncrementalSearch plugin" SEC_INCREMENTALSEARCH
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -1140,7 +1145,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "IncrementalSearch plugin" 1
     SectionEnd
 
-    Section /o "Key Binder plugin" SEC_KEYBINDER
+    Section "Key Binder plugin" SEC_KEYBINDER
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -1153,7 +1158,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "Key Binder plugin" 1
     SectionEnd
 
-    Section /o "Koders plugin" SEC_KODERS
+    Section "Koders plugin" SEC_KODERS
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -1163,7 +1168,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "Koders plugin" 1
     SectionEnd
 
-    Section /o "Lib Finder plugin" SEC_LIBFINDER
+    Section "Lib Finder plugin" SEC_LIBFINDER
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -1175,7 +1180,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "Lib Finder plugin" 1
     SectionEnd
 
-    Section /o "MouseSap plugin" SEC_MOUSESAP
+    Section "MouseSap plugin" SEC_MOUSESAP
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -1185,7 +1190,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "MouseSap plugin" 1
     SectionEnd
 
-    Section /o "Nassi Shneiderman plugin" SEC_NASSI
+    Section "Nassi Shneiderman plugin" SEC_NASSI
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -1195,7 +1200,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "Nassi Shneiderman plugin" 1
     SectionEnd
 
-    Section /o "Tools+ plugin" SEC_TOOLSPLUS
+    Section "Tools+ plugin" SEC_TOOLSPLUS
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -1205,7 +1210,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "Tools+ plugin" 1
     SectionEnd
 
-    Section /o "Profiler plugin" SEC_PROFILER
+    Section "Profiler plugin" SEC_PROFILER
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -1218,7 +1223,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "Profiler plugin" 1
     SectionEnd
 
-    Section /o "RegEx Testbed plugin" SEC_REGEXTESTBED
+    Section "RegEx Testbed plugin" SEC_REGEXTESTBED
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -1228,7 +1233,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "RegEx Testbed plugin" 1
     SectionEnd
 
-    Section /o "Reopen Editor plugin" SEC_REOPEN
+    Section "Reopen Editor plugin" SEC_REOPEN
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -1238,7 +1243,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "Reopen Editor plugin" 1
     SectionEnd
 
-    Section /o "Exporter plugin" SEC_EXPORTER
+    Section "Exporter plugin" SEC_EXPORTER
         SectionIn 1 4
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -1248,7 +1253,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "Exporter plugin" 1
     SectionEnd
 
-    Section /o "SpellChecker plugin" SEC_SPELLCHECKER
+    Section "SpellChecker plugin" SEC_SPELLCHECKER
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -1268,7 +1273,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "SpellChecker plugin" 1
     SectionEnd
 
-    Section /o "SymTab plugin" SEC_SYMTAB
+    Section "SymTab plugin" SEC_SYMTAB
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -1278,7 +1283,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "SymTab plugin" 1
     SectionEnd
 
-    Section /o "ThreadSearch plugin" SEC_THREADSEARCH
+    Section "ThreadSearch plugin" SEC_THREADSEARCH
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -1330,7 +1335,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
 
 SectionGroupEnd
 
-Section /o "C::B Share Config" SEC_SHARECONFIG
+Section "C::B Share Config" SEC_SHARECONFIG
     SectionIn 1
     SetOutPath $INSTDIR
     SetOverwrite on
@@ -1341,7 +1346,7 @@ Section /o "C::B Share Config" SEC_SHARECONFIG
 SectionEnd
 
 !ifdef CB_LAUNCHER
-Section /o "C::B Launcher" SEC_LAUNCHER
+Section "C::B Launcher" SEC_LAUNCHER
     SectionIn 1
     SetOutPath $INSTDIR
     SetOverwrite on
@@ -1416,14 +1421,14 @@ SectionEnd
 !endif
 
 !ifdef CB_LAUNCHER
-Section /o "-un.C::B Launcher" UNSEC_LAUNCHER
+Section "-un.C::B Launcher" UNSEC_LAUNCHER
     Delete /REBOOTOK $INSTDIR\CbLauncher.exe
     Delete /REBOOTOK "$SMPROGRAMS\${CB_SM_GROUP}\$(^Name) (Launcher).lnk"
     DeleteRegValue HKCU "${REGKEY}\Components" "C::B Launcher"
 SectionEnd
 !endif
 
-Section /o "-un.C::B Share Config" UNSEC_SHARECONFIG
+Section "-un.C::B Share Config" UNSEC_SHARECONFIG
     Delete /REBOOTOK $INSTDIR\cb_share_config.exe
     Delete /REBOOTOK "$SMPROGRAMS\${CB_SM_GROUP}\CB Share Config.lnk"
     DeleteRegValue HKCU "${REGKEY}\Components" "C::B Share Config"
@@ -1431,31 +1436,31 @@ SectionEnd
 
 # C::B contrib plugins begin
 
-Section /o "-un.Auto Versioning plugin" UNSEC_AUTOVERSIONING
+Section "-un.Auto Versioning plugin" UNSEC_AUTOVERSIONING
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\AutoVersioning.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\AutoVersioning.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "Auto Versioning plugin"
 SectionEnd
 
-Section /o "-un.Browse Tracker plugin" UNSEC_BROWSETRACKER
+Section "-un.Browse Tracker plugin" UNSEC_BROWSETRACKER
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\BrowseTracker.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\BrowseTracker.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "Browse Tracker plugin"
 SectionEnd
 
-Section /o "-un.Byo Games plugin" UNSEC_BYOGAMES
+Section "-un.Byo Games plugin" UNSEC_BYOGAMES
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\byogames.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\byogames.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "Byo Games plugin"
 SectionEnd
 
-Section /o "-un.Cccc plugin" UNSEC_CCCC
+Section "-un.Cccc plugin" UNSEC_CCCC
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\Cccc.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\Cccc.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "Cccc plugin"
 SectionEnd
 
-Section /o "-un.Code Snippets plugin" UNSEC_CODESNIPPETS
+Section "-un.Code Snippets plugin" UNSEC_CODESNIPPETS
     Delete /REBOOTOK $INSTDIR${CB_IMAGES}\codesnippets\*.png
     RMDir  /REBOOTOK $INSTDIR${CB_IMAGES}\codesnippets
     Delete /REBOOTOK $INSTDIR\codesnippets.exe
@@ -1465,7 +1470,7 @@ Section /o "-un.Code Snippets plugin" UNSEC_CODESNIPPETS
     DeleteRegValue HKCU "${REGKEY}\Components" "Code Snippets plugin"
 SectionEnd
 
-Section /o "-un.Code Stat plugin" UNSEC_CODESTAT
+Section "-un.Code Stat plugin" UNSEC_CODESTAT
     Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\codestats-off.png
     Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\codestats.png
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\codestat.dll
@@ -1473,31 +1478,31 @@ Section /o "-un.Code Stat plugin" UNSEC_CODESTAT
     DeleteRegValue HKCU "${REGKEY}\Components" "Code Stat plugin"
 SectionEnd
 
-Section /o "-un.Copy Strings plugin" UNSEC_COPYSTRINGS
+Section "-un.Copy Strings plugin" UNSEC_COPYSTRINGS
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\copystrings.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\copystrings.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "Copy Strings plugin"
 SectionEnd
 
-Section /o "-un.CppCheck plugin" UNSEC_CPPCHECK
+Section "-un.CppCheck plugin" UNSEC_CPPCHECK
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\CppCheck.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\CppCheck.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "CppCheck plugin"
 SectionEnd
 
-Section /o "-un.Cscope plugin" UNSEC_CSCOPE
+Section "-un.Cscope plugin" UNSEC_CSCOPE
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\Cscope.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\Cscope.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "Cscope plugin"
 SectionEnd
 
-Section /o "-un.DevPak plugin" UNSEC_DEVPAK
+Section "-un.DevPak plugin" UNSEC_DEVPAK
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\devpakupdater.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\devpakupdater.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "DevPak plugin"
 SectionEnd
 
-Section /o "-un.DoxyBlocks plugin" UNSEC_DOXYBLOCKS
+Section "-un.DoxyBlocks plugin" UNSEC_DOXYBLOCKS
     Delete /REBOOTOK $INSTDIR${CB_IMAGES}\DoxyBlocks\16x16\*.png
     RMDir  /REBOOTOK $INSTDIR${CB_IMAGES}\DoxyBlocks\16x16
     Delete /REBOOTOK $INSTDIR${CB_IMAGES}\DoxyBlocks\*.png
@@ -1509,7 +1514,7 @@ Section /o "-un.DoxyBlocks plugin" UNSEC_DOXYBLOCKS
     DeleteRegValue HKCU "${REGKEY}\Components" "DoxyBlocks plugin"
 SectionEnd
 
-Section /o "-un.Drag Scroll plugin" UNSEC_DRAGSCROLL
+Section "-un.Drag Scroll plugin" UNSEC_DRAGSCROLL
     Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\dragscroll-off.png
     Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\dragscroll.png
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\DragScroll.dll
@@ -1517,19 +1522,19 @@ Section /o "-un.Drag Scroll plugin" UNSEC_DRAGSCROLL
     DeleteRegValue HKCU "${REGKEY}\Components" "Drag Scroll plugin"
 SectionEnd
 
-Section /o "-un.EditorConfig plugin" UNSEC_EDITORCONFIG
+Section "-un.EditorConfig plugin" UNSEC_EDITORCONFIG
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\EditorConfig.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\EditorConfig.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "EditorConfig plugin"
 SectionEnd
 
-Section /o "-un.Editor tweaks plugin" UNSEC_EDITORTWEAKS
+Section "-un.Editor tweaks plugin" UNSEC_EDITORTWEAKS
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\EditorTweaks.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\EditorTweaks.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "Editor tweaks plugin"
 SectionEnd
 
-Section /o "-un.EnvVars plugin" UNSEC_ENVVARS
+Section "-un.EnvVars plugin" UNSEC_ENVVARS
     Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\envvars-off.png
     Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\envvars.png
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\envvars.dll
@@ -1537,19 +1542,19 @@ Section /o "-un.EnvVars plugin" UNSEC_ENVVARS
     DeleteRegValue HKCU "${REGKEY}\Components" "EnvVars plugin"
 SectionEnd
 
-Section /o "-un.File Manager plugin" UNSEC_FILEMANAGER
+Section "-un.File Manager plugin" UNSEC_FILEMANAGER
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\FileManager.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\FileManager.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "File Manager plugin"
 SectionEnd
 
-Section /o "-un.HeaderFixUp plugin" UNSEC_HEADERFIXUP
+Section "-un.HeaderFixUp plugin" UNSEC_HEADERFIXUP
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\headerfixup.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\headerfixup.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "HeaderFixUp plugin"
 SectionEnd
 
-Section /o "-un.Help plugin" UNSEC_HELP
+Section "-un.Help plugin" UNSEC_HELP
     Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\help-plugin-off.png
     Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\help-plugin.png
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\help_plugin.dll
@@ -1557,19 +1562,19 @@ Section /o "-un.Help plugin" UNSEC_HELP
     DeleteRegValue HKCU "${REGKEY}\Components" "Help plugin"
 SectionEnd
 
-Section /o "-un.HexEditor plugin" UNSEC_HEXEDITOR
+Section "-un.HexEditor plugin" UNSEC_HEXEDITOR
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\HexEditor.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\HexEditor.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "HexEditor plugin"
 SectionEnd
 
-Section /o "-un.IncrementalSearch plugin" UNSEC_INCREMENTALSEARCH
+Section "-un.IncrementalSearch plugin" UNSEC_INCREMENTALSEARCH
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\IncrementalSearch.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\IncrementalSearch.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "IncrementalSearch plugin"
 SectionEnd
 
-Section /o "-un.Key Binder plugin" UNSEC_KEYBINDER
+Section "-un.Key Binder plugin" UNSEC_KEYBINDER
     Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\onekeytobindthem-off.png
     Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\onekeytobindthem.png
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\keybinder.dll
@@ -1577,13 +1582,13 @@ Section /o "-un.Key Binder plugin" UNSEC_KEYBINDER
     DeleteRegValue HKCU "${REGKEY}\Components" "Key Binder plugin"
 SectionEnd
 
-Section /o "-un.Koders plugin" UNSEC_KODERS
+Section "-un.Koders plugin" UNSEC_KODERS
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\cb_koders.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\cb_koders.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "Koders plugin"
 SectionEnd
 
-Section /o "-un.Lib Finder plugin" UNSEC_LIBFINDER
+Section "-un.Lib Finder plugin" UNSEC_LIBFINDER
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\lib_finder\*.xml
     RMDir  /REBOOTOK $INSTDIR${CB_SHARE_CB}\lib_finder
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\lib_finder.dll
@@ -1591,25 +1596,25 @@ Section /o "-un.Lib Finder plugin" UNSEC_LIBFINDER
     DeleteRegValue HKCU "${REGKEY}\Components" "Lib Finder plugin"
 SectionEnd
 
-Section /o "-un.MouseSap plugin" UNSEC_MOUSESAP
+Section "-un.MouseSap plugin" UNSEC_MOUSESAP
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\MouseSap.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\MouseSap.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "MouseSap plugin"
 SectionEnd
 
-Section /o "-un.Nassi Shneiderman plugin" UNSEC_NASSI
+Section "-un.Nassi Shneiderman plugin" UNSEC_NASSI
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\NassiShneiderman.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\NassiShneiderman.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "Nassi Shneiderman plugin"
 SectionEnd
 
-Section /o "-un.Tools+ plugin" UNSEC_TOOLSPLUS
+Section "-un.Tools+ plugin" UNSEC_TOOLSPLUS
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\ToolsPlus.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\ToolsPlus.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "Tools+ plugin"
 SectionEnd
 
-Section /o "-un.Profiler plugin" UNSEC_PROFILER
+Section "-un.Profiler plugin" UNSEC_PROFILER
     Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\profiler-off.png
     Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\profiler.png
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\Profiler.dll
@@ -1617,31 +1622,31 @@ Section /o "-un.Profiler plugin" UNSEC_PROFILER
     DeleteRegValue HKCU "${REGKEY}\Components" "Profiler plugin"
 SectionEnd
 
-Section /o "-un.RegEx Testbed plugin" UNSEC_REGEXTESTBED
+Section "-un.RegEx Testbed plugin" UNSEC_REGEXTESTBED
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\RegExTestbed.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\RegExTestbed.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "RegEx Testbed plugin"
 SectionEnd
 
-Section /o "-un.Reopen Editor plugin" UNSEC_REOPEN
+Section "-un.Reopen Editor plugin" UNSEC_REOPEN
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\ReopenEditor.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\ReopenEditor.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "Reopen Editor plugin"
 SectionEnd
 
-Section /o "-un.Exporter plugin" UNSEC_EXPORTER
+Section "-un.Exporter plugin" UNSEC_EXPORTER
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\Exporter.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\Exporter.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "Exporter plugin"
 SectionEnd
 
-Section /o "-un.SymTab plugin" UNSEC_SYMTAB
+Section "-un.SymTab plugin" UNSEC_SYMTAB
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\SymTab.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\SymTab.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "SymTab plugin"
 SectionEnd
 
-Section /o "-un.SpellChecker plugin" UNSEC_SPELLCHECKER
+Section "-un.SpellChecker plugin" UNSEC_SPELLCHECKER
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\SpellChecker\*.aff
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\SpellChecker\*.dic
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\SpellChecker\*.png
@@ -1654,7 +1659,7 @@ Section /o "-un.SpellChecker plugin" UNSEC_SPELLCHECKER
     DeleteRegValue HKCU "${REGKEY}\Components" "SpellChecker plugin"
 SectionEnd
 
-Section /o "-un.ThreadSearch plugin" UNSEC_THREADSEARCH
+Section "-un.ThreadSearch plugin" UNSEC_THREADSEARCH
     Delete /REBOOTOK $INSTDIR${CB_IMAGES}\ThreadSearch\22x22\*.png
     RMDir  /REBOOTOK $INSTDIR${CB_IMAGES}\ThreadSearch\22x22
     Delete /REBOOTOK $INSTDIR${CB_IMAGES}\ThreadSearch\16x16\*.png
@@ -1833,20 +1838,20 @@ Section "-un.C/C++" UNSEC_CPP
     DeleteRegValue HKCU "${REGKEY}\Components" "C/C++"
 SectionEnd
 
-Section /o "-un.Ada" UNSEC_ADA
+Section "-un.Ada" UNSEC_ADA
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_ada.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_ada.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "Ada"
 SectionEnd
 
 
-Section /o "-un.The D Language" UNSEC_D
+Section "-un.The D Language" UNSEC_D
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_d.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_d.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "The D Language"
 SectionEnd
 
-Section /o "-un.Fortran" UNSEC_F
+Section "-un.Fortran" UNSEC_F
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_f77.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_f77.sample
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_fortran.xml
@@ -1854,19 +1859,19 @@ Section /o "-un.Fortran" UNSEC_F
     DeleteRegValue HKCU "${REGKEY}\Components" "Fortran"
 SectionEnd
 
-Section /o "-un.Java" UNSEC_JAVA
+Section "-un.Java" UNSEC_JAVA
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_java.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_java.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "Java"
 SectionEnd
 
-Section /o "-un.Pascal" UNSEC_PASCAL
+Section "-un.Pascal" UNSEC_PASCAL
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_pascal.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_pascal.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "Pascal"
 SectionEnd
 
-Section /o "-un.Smalltalk" UNSEC_SMALLTALK
+Section "-un.Smalltalk" UNSEC_SMALLTALK
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_smalltalk.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_smalltalk.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "Smalltalk"
@@ -1874,61 +1879,61 @@ SectionEnd
 
 # "Script Languages"
 
-Section /o "-un.Angelscript" UNSEC_AS
+Section "-un.Angelscript" UNSEC_AS
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_angelscript.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_angelscript.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "Angelscript"
 SectionEnd
 
-Section /o "-un.Caml" UNSEC_CAML
+Section "-un.Caml" UNSEC_CAML
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_caml.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_caml.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "Caml"
 SectionEnd
 
-Section /o "-un.Game Monkey" UNSEC_GM
+Section "-un.Game Monkey" UNSEC_GM
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_gm.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_gm.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "Game Monkey"
 SectionEnd
 
-Section /o "-un.Haskell" UNSEC_HASKELL
+Section "-un.Haskell" UNSEC_HASKELL
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_haskell.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_haskell.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "Haskell"
 SectionEnd
 
-Section /o "-un.Lisp" UNSEC_LISP
+Section "-un.Lisp" UNSEC_LISP
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_lisp.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_lisp.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "Lisp"
 SectionEnd
 
-Section /o "-un.Lua" UNSEC_LUA
+Section "-un.Lua" UNSEC_LUA
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_lua.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_lua.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "Lua"
 SectionEnd
 
-Section /o "-un.Perl" UNSEC_PERL
+Section "-un.Perl" UNSEC_PERL
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_perl.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_perl.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "Perl"
 SectionEnd
 
-Section /o "-un.Postscript" UNSEC_POSTSCRIPT
+Section "-un.Postscript" UNSEC_POSTSCRIPT
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_postscript.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_postscript.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "Postscript"
 SectionEnd
 
-Section /o "-un.Python" UNSEC_PY
+Section "-un.Python" UNSEC_PY
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_python.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_python.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "Python"
 SectionEnd
 
-Section /o "-un.Ruby" UNSEC_RUBY
+Section "-un.Ruby" UNSEC_RUBY
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_ruby.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_ruby.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "Ruby"
@@ -1940,7 +1945,7 @@ Section "-un.Squirrel" UNSEC_SQ
     DeleteRegValue HKCU "${REGKEY}\Components" "Squirrel"
 SectionEnd
 
-Section /o "-un.VB Script" UNSEC_VB
+Section "-un.VB Script" UNSEC_VB
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_vbscript.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_vbscript.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "VB Script"
@@ -1948,31 +1953,31 @@ SectionEnd
 
 # "Shell / Binutils"
 
-Section /o "-un.bash script" UNSEC_BASH
+Section "-un.bash script" UNSEC_BASH
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_bash.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_bash.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "bash script"
 SectionEnd
 
-Section /o "-un.DOS batch files" UNSEC_DOS
+Section "-un.DOS batch files" UNSEC_DOS
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_batch.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_batch.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "DOS batch files"
 SectionEnd
 
-Section /o "-un.Cmake" UNSEC_CMAKE
+Section "-un.Cmake" UNSEC_CMAKE
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_cmake.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_cmake.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "Cmake"
 SectionEnd
 
-Section /o "-un.diff" UNSEC_DIFF
+Section "-un.diff" UNSEC_DIFF
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_diff.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_diff.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "diff"
 SectionEnd
 
-Section /o "-un.Makefile" UNSEC_MAKE
+Section "-un.Makefile" UNSEC_MAKE
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_make.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_make.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "Makefile"
@@ -1980,24 +1985,24 @@ SectionEnd
 
 # "Markup Languages"
 
-Section /o "-un.BiBTeX" UNSEC_BIBTEX
+Section "-un.BiBTeX" UNSEC_BIBTEX
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_bibtex.xml
     DeleteRegValue HKCU "${REGKEY}\Components" "BiBTeX"
 SectionEnd
 
-Section /o "-un.CSS" UNSEC_CSS
+Section "-un.CSS" UNSEC_CSS
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_css.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_css.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "CSS"
 SectionEnd
 
-Section /o "-un.HTML" UNSEC_HTML
+Section "-un.HTML" UNSEC_HTML
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_html.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_html.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "HTML"
 SectionEnd
 
-Section /o "-un.LaTeX" UNSEC_LATEX
+Section "-un.LaTeX" UNSEC_LATEX
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_latex.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_latex.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "LaTeX"
@@ -2011,19 +2016,19 @@ SectionEnd
 
 # "Graphics Programming"
 
-Section /o "-un.GLSL (GLslang)" UNSEC_GLSL
+Section "-un.GLSL (GLslang)" UNSEC_GLSL
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_glsl.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_glsl.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "GLSL (GLslang)"
 SectionEnd
 
-Section /o "-un.nVidia Cg" UNSEC_CG
+Section "-un.nVidia Cg" UNSEC_CG
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_cg.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_cg.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "nVidia Cg"
 SectionEnd
 
-Section /o "-un.Ogre" UNSEC_OGRE
+Section "-un.Ogre" UNSEC_OGRE
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_OgreMaterial.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_OgreMaterial.sample
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_OgreCompositor.xml
@@ -2033,25 +2038,25 @@ SectionEnd
 
 # "Embedded development"
 
-Section /o "-un.A68k Assembler" UNSEC_A68K
+Section "-un.A68k Assembler" UNSEC_A68K
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_A68k.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_A68k.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "A68k Assembler"
 SectionEnd
 
-Section /o "-un.Hitachi Assembler" UNSEC_HITACHI
+Section "-un.Hitachi Assembler" UNSEC_HITACHI
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_hitasm.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_hitasm.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "Hitachi Assembler"
 SectionEnd
 
-Section /o "-un.Verilog" UNSEC_VERILOG
+Section "-un.Verilog" UNSEC_VERILOG
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_verilog.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_verilog.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "Verilog"
 SectionEnd
 
-Section /o "-un.VHDL" UNSEC_VHDL
+Section "-un.VHDL" UNSEC_VHDL
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_vhdl.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_vhdl.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "VHDL"
@@ -2059,37 +2064,37 @@ SectionEnd
 
 # "Others"
 
-Section /o "-un.MASM" UNSEC_MASM
+Section "-un.MASM" UNSEC_MASM
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_masm.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_masm.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "MASM"
 SectionEnd
 
-Section /o "-un.Matlab" UNSEC_MATLAB
+Section "-un.Matlab" UNSEC_MATLAB
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_matlab.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_matlab.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "Matlab"
 SectionEnd
 
-Section /o "-un.NSIS installer script" UNSEC_NSIS
+Section "-un.NSIS installer script" UNSEC_NSIS
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_nsis.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_nsis.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "NSIS installer script"
 SectionEnd
 
-Section /o "-un.XBase" UNSEC_XBASE
+Section "-un.XBase" UNSEC_XBASE
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_prg.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_prg.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "XBase"
 SectionEnd
 
-Section /o "-un.Property file" UNSEC_PROP
+Section "-un.Property file" UNSEC_PROP
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_properties.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_properties.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "Property file"
 SectionEnd
 
-Section /o "-un.Sql" UNSEC_SQL
+Section "-un.Sql" UNSEC_SQL
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_sql.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_sql.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "Sql"
@@ -2099,24 +2104,24 @@ SectionEnd
 
 # C::B shortcuts begin
 
-Section /o "-un.Program Shortcut" UNSEC_PROGRAMSHORTCUT
+Section "-un.Program Shortcut" UNSEC_PROGRAMSHORTCUT
     Delete "$SMPROGRAMS\${CB_SM_GROUP}\$(^Name).lnk"
     DeleteRegValue HKCU "${REGKEY}\Components" "Program Shortcut"
 SectionEnd
 
-Section /o "-un.Program Shortcut All Users" UNSEC_PROGRAMSHORTCUT_ALL
+Section "-un.Program Shortcut All Users" UNSEC_PROGRAMSHORTCUT_ALL
     SetShellVarContext all
     Delete "$SMPROGRAMS\${CB_SM_GROUP}\$(^Name).lnk"
     SetShellVarContext current
     DeleteRegValue HKCU "${REGKEY}\Components" "Program Shortcut All Users"
 SectionEnd
 
-Section /o "-un.Desktop Shortcut" UNSEC_DESKTOPSHORTCUT
+Section "-un.Desktop Shortcut" UNSEC_DESKTOPSHORTCUT
     Delete /REBOOTOK "$DESKTOP\$(^Name).lnk"
     DeleteRegValue HKCU "${REGKEY}\Components" "Desktop Shortcut"
 SectionEnd
 
-Section /o "-un.Quick Launch Shortcut" UNSEC_QUICKLAUNCHSHORTCUT
+Section "-un.Quick Launch Shortcut" UNSEC_QUICKLAUNCHSHORTCUT
     Delete /REBOOTOK "$QUICKLAUNCH\$(^Name).lnk"
     DeleteRegValue HKCU "${REGKEY}\Components" "Quick Launch Shortcut"
 SectionEnd
