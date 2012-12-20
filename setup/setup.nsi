@@ -23,6 +23,7 @@
 #   (for the MinGW bundle version)                                  #
 # - enable the CB_LAUNCHER switch below and run again               #
 #   (to bundle the CBLauncher portable tool)                        #
+# - probably adjust "RequestExecutionLevel admin/user" -> see below #
 #####################################################################
 
 Name CodeBlocks
@@ -164,8 +165,14 @@ VIAddVersionKey   LegalCopyright  ""
 InstallDirRegKey  HKCU "${REGKEY}" Path
 ShowUninstDetails show
 
-# Required on Windows Vista/7/8: Start with user privileges by default.
-RequestExecutionLevel user
+# Specifies the requested execution level for Windows Vista and Windows 7.
+# The value is embedded in the installer and uninstaller's XML manifest
+# and tells Vista/7, and probably future versions of Windows, what privileges
+# level the installer requires.
+# -> user requests the a normal user's level with no administrative privileges
+# -> admin requests administrator level and will cause Windows to prompt the
+#    user to verify privilege escalation.
+RequestExecutionLevel admin
 
 ######################
 # Installer sections #
