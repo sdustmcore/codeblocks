@@ -4,7 +4,7 @@
 
 
 \begin{description}
-\item[Envrionment Variable] are set during the startup of \codeblocks. They can modify system environment variables such as \codeline{PATH}. This can be useful in cases where a defined environment is necessary for the creation of projects. The settings for environment variables in \codeblocks are made at \menu{Settings,Environment,Environment Variables}.
+\item[Environment Variable] are set during the startup of \codeblocks. They can modify system environment variables such as \codeline{PATH}. This can be useful in cases where a defined environment is necessary for the creation of projects. The settings for environment variables in \codeblocks are made at \menu{Settings,Environment,Environment Variables}.
 \item[Builtin Variables] are predefined in \codeblocks, and can be accessed via their names  (see \pxref{sec:builtin_variables} for details).
 \item[Command Macros] This type of variables is used for controlling the build process. For further information please refer to \pxref{sec:command_macros}.
 \item[Custom Variables] are user-defined variables which can be specified in the build options of a project. Here you can, for example define your derivative as a variable \codeline{MCU} and assign a corresponding value to it. Then set the compiler option \opt{-mcpu=\$(MCU)}, and \codeblocks will automatically replace the content. By this method, the settings for a project can be further parametrised.
