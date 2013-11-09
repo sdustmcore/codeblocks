@@ -31,8 +31,7 @@ Name CodeBlocks
 # Uncomment the following line to remove the
 # 'Nullsoft Install System vX.XX' String:
 #BrandingText " "
-# (Notice that this string contains a space character.)
-
+# (Note that this string contains a space character.)
 
 #########################################################
 # Room for adjustments of most important settings BEGIN #
@@ -60,7 +59,7 @@ Name CodeBlocks
 # Defines #
 ###########
 !define REGKEY           "SOFTWARE\$(^Name)"
-!define VERSION          12.11
+!define VERSION          13.12
 !define COMPANY          "The Code::Blocks Team"
 !define URL              http://www.codeblocks.org
 
@@ -69,10 +68,10 @@ Name CodeBlocks
 ###########
 # Possibly required to adjust manually:
 # (Folder with wxWidgets DLL - unicode, monolitic.)
-!define WX_BASE          C:\Devel\CodeBlocks\Releases\CodeBlocks_1211
+!define WX_BASE          C:\Devel\CodeBlocks\Releases\CodeBlocks_1312
 # Possibly required to adjust manually:
 # (CodeBlocks binary folder - the one where codeblocks.exe is.)
-!define CB_BASE          C:\Devel\CodeBlocks\Releases\CodeBlocks_1211
+!define CB_BASE          C:\Devel\CodeBlocks\Releases\CodeBlocks_1312
 !define CB_SHARE         \share
 !define CB_SHARE_CB      ${CB_SHARE}\CodeBlocks
 !define CB_DOCS          ${CB_SHARE_CB}\docs
@@ -84,6 +83,7 @@ Name CodeBlocks
 !define CB_IMAGES        ${CB_SHARE_CB}\images
 !define CB_IMG_16        ${CB_IMAGES}\16x16
 !define CB_IMG_SETTINGS  ${CB_IMAGES}\settings
+!define CB_XML_COMPILERS ${CB_SHARE_CB}\compilers
 # Possibly required to adjust manually:
 # (Folder with full MinGW/GCC installation, *including* debugger.)
 !define MINGW_BASE       C:\Devel\CodeBlocks\Releases\MinGW
@@ -122,9 +122,9 @@ Name CodeBlocks
 # Room for adjustments of most important settings END #
 #######################################################
 
-##################################################################################
-# Usually below here no changes are rquired unless adding new installer features #
-##################################################################################
+###################################################################################
+# Usually below here no changes are required unless adding new installer features #
+###################################################################################
 
 # Included files
 !include Sections.nsh
@@ -145,12 +145,13 @@ ReserveFile "${NSISDIR}\Plugins\AdvSplash.dll"
 !insertmacro MUI_UNPAGE_INSTFILES
 
 # Installer languages
-!insertmacro MUI_LANGUAGE English
+!insertmacro MUI_LANGUAGE "English" # first language is the default language
 
 # Installer attributes (usually these do not change)
-# Note: Not always we can use "Code::Blocks" as the "::" conflicts with the filesystem.
+# Note: We can't always use "Code::Blocks" as the "::" conflicts with the filesystem.
 OutFile           setup.exe
 InstallDir        $PROGRAMFILES\CodeBlocks
+Caption           "Code::Blocks Installation"
 CRCCheck          on
 XPStyle           on
 ShowInstDetails   show
@@ -163,6 +164,7 @@ VIAddVersionKey   FileVersion     "${VERSION}"
 VIAddVersionKey   FileDescription "Code::Blocks cross-platform IDE"
 VIAddVersionKey   LegalCopyright  ""
 InstallDirRegKey  HKCU "${REGKEY}" Path
+UninstallCaption  "Code::Blocks Uninstallation"
 ShowUninstDetails show
 
 # Specifies the requested execution level for Windows Vista and Windows 7.
@@ -178,14 +180,14 @@ RequestExecutionLevel admin
 # Installer sections #
 ######################
 
-# These are installer types.
+# These are the installer types.
 # They basically wrap different selections of components.
 # To use a component in section "Full" (=1) and "Edit" (=4) choose
 # "SectionIn 1 4" in the section(s) accordingly (see how it's done below).
-InstType "Full: All plugins, all tools, just everything"
-InstType "Standard: Core plugins, core tools, and core lexers"
-InstType "Minimal: Important plugins, important lexers"
-InstType "Editor: Code::Blocks as editor only (all lexers)"
+InstType "Full: All plugins, all tools, just everything"       # 1
+InstType "Standard: Core plugins, core tools, and core lexers" # 2
+InstType "Minimal: Important plugins, important lexers"        # 3
+InstType "Editor: Code::Blocks as editor only (all lexers)"    # 4
 
 # Now the installer sections and section groups start.
 # They basically define the tree of components available.
@@ -219,7 +221,7 @@ doInstall:
         # If not, issue an error message and abort installation
         IfErrors 0 accessOK
             MessageBox MB_OK|MB_ICONEXCLAMATION \
-                "Cannot create the target folder.$\r$\nInstallation cannot continue.$\r$\n(Probably missing access rights?)" \
+                "Cannot create the target folder.$\r$\nInstallation cannot continue.$\r$\nMake sure that you have the required file access permissions." \
                 /SD IDOK
             DetailPrint "Aborting installation."
             Abort
@@ -352,6 +354,15 @@ accessOK:
                 File ${CB_BASE}${CB_LEXERS}\lexer_java.sample
                 File ${CB_BASE}${CB_LEXERS}\lexer_java.xml
                 WriteRegStr HKCU "${REGKEY}\Components" "Java" 1
+            SectionEnd
+
+            Section "Objective-C"
+                SectionIn 1 4
+                SetOutPath $INSTDIR${CB_LEXERS}
+                SetOverwrite on
+                File ${CB_BASE}${CB_LEXERS}\lexer_objc.sample
+                File ${CB_BASE}${CB_LEXERS}\lexer_objc.xml
+                WriteRegStr HKCU "${REGKEY}\Components" "Objective-C" 1
             SectionEnd
 
             Section "Pascal"
@@ -773,6 +784,9 @@ accessOK:
             File ${CB_BASE}${CB_PLUGINS}\codecompletion.dll
             SetOutPath $INSTDIR${CB_IMAGES}\codecompletion
             File ${CB_BASE}${CB_IMAGES}\codecompletion\*.png
+            SetOutPath $INSTDIR${CB_IMG_SETTINGS}
+            File ${CB_BASE}${CB_IMG_SETTINGS}\codecompletion.png
+            File ${CB_BASE}${CB_IMG_SETTINGS}\codecompletion-off.png
             WriteRegStr HKCU "${REGKEY}\Components" "Code Completion plugin" 1
         SectionEnd
 
@@ -783,6 +797,8 @@ accessOK:
             File ${CB_BASE}${CB_SHARE_CB}\compiler.zip
             SetOutPath $INSTDIR${CB_PLUGINS}
             File ${CB_BASE}${CB_PLUGINS}\compiler.dll
+            SetOutPath $INSTDIR${CB_XML_COMPILERS}
+            File ${CB_BASE}${CB_XML_COMPILERS}\*.xml
             SetOutPath $INSTDIR${CB_IMAGES}
             File ${CB_BASE}${CB_IMAGES}\compile.png
             File ${CB_BASE}${CB_IMAGES}\compilerun.png
@@ -845,6 +861,16 @@ accessOK:
             SetOutPath $INSTDIR${CB_PLUGINS}
             File ${CB_BASE}${CB_PLUGINS}\projectsimporter.dll
             WriteRegStr HKCU "${REGKEY}\Components" "Projects Importer plugin" 1
+        SectionEnd
+
+        Section "RND Generator plugin" SEC_RNDGEN
+            SectionIn 1 2
+            SetOutPath $INSTDIR${CB_SHARE_CB}
+            SetOverwrite on
+            File ${CB_BASE}${CB_SHARE_CB}\rndgen.zip
+            SetOutPath $INSTDIR${CB_PLUGINS}
+            File ${CB_BASE}${CB_PLUGINS}\rndgen.dll
+            WriteRegStr HKCU "${REGKEY}\Components" "RND Generator plugin" 1
         SectionEnd
 
         Section "Scripted Wizard plugin" SEC_SCRIPTEDWIZARD
@@ -970,7 +996,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         WriteRegStr HKCU "${REGKEY}\Components" "Code Snippets plugin" 1
     SectionEnd
 
-    Section "Code Stat plugin" SEC_CODESTAT
+    Section "Code Statistics plugin" SEC_CODESTAT
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
         SetOverwrite on
@@ -980,7 +1006,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         SetOutPath $INSTDIR${CB_IMG_SETTINGS}
         File ${CB_BASE}${CB_IMG_SETTINGS}\codestats.png
         File ${CB_BASE}${CB_IMG_SETTINGS}\codestats-off.png
-        WriteRegStr HKCU "${REGKEY}\Components" "Code Stat plugin" 1
+        WriteRegStr HKCU "${REGKEY}\Components" "Code Statistics plugin" 1
     SectionEnd
 
     Section "Copy Strings plugin" SEC_COPYSTRINGS
@@ -1108,6 +1134,19 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         File ${CB_BASE}${CB_PLUGINS}\FileManager.dll
         WriteRegStr HKCU "${REGKEY}\Components" "File Manager plugin" 1
     SectionEnd
+	
+    Section "Fortran Project plugin" SEC_FORTRANPROJECT
+        SectionIn 1
+        SetOutPath $INSTDIR${CB_SHARE_CB}
+        SetOverwrite on
+        File ${CB_BASE}${CB_SHARE_CB}\FortranProject.zip
+        SetOutPath $INSTDIR${CB_PLUGINS}
+        File ${CB_BASE}${CB_PLUGINS}\FortranProject.dll
+        SetOutPath $INSTDIR${CB_IMAGES}\fortranproject
+        File ${CB_BASE}${CB_IMAGES}\fortranproject\*.f90
+        File ${CB_BASE}${CB_IMAGES}\fortranproject\*.png
+        WriteRegStr HKCU "${REGKEY}\Components" "Fortran Project plugin" 1
+    SectionEnd
 
     Section "HeaderFixUp plugin" SEC_HEADERFIXUP
         SectionIn 1
@@ -1205,6 +1244,16 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         SetOutPath $INSTDIR${CB_PLUGINS}
         File ${CB_BASE}${CB_PLUGINS}\NassiShneiderman.dll
         WriteRegStr HKCU "${REGKEY}\Components" "Nassi Shneiderman plugin" 1
+    SectionEnd
+
+    Section "Occurrences Highlighting plugin" SEC_OCC_HIGHLIGHTING
+        SectionIn 1
+        SetOutPath $INSTDIR${CB_SHARE_CB}
+        SetOverwrite on
+        File ${CB_BASE}${CB_SHARE_CB}\OccurrencesHighlighting.zip
+        SetOutPath $INSTDIR${CB_PLUGINS}
+        File ${CB_BASE}${CB_PLUGINS}\OccurrencesHighlighting.dll
+        WriteRegStr HKCU "${REGKEY}\Components" "Occurrences Highlighting plugin" 1
     SectionEnd
 
     Section "Tools+ plugin" SEC_TOOLSPLUS
@@ -1326,10 +1375,12 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         File ${CB_BASE}${CB_SHARE_CB}\wxsmith.zip
         File ${CB_BASE}${CB_SHARE_CB}\wxSmithAui.zip
         File ${CB_BASE}${CB_SHARE_CB}\wxSmithContribItems.zip
+        File ${CB_BASE}${CB_SHARE_CB}\wxSmithPlot.zip
         SetOutPath $INSTDIR${CB_PLUGINS}
         File ${CB_BASE}${CB_PLUGINS}\wxsmith.dll
         File ${CB_BASE}${CB_PLUGINS}\wxSmithAui.dll
         File ${CB_BASE}${CB_PLUGINS}\wxSmithContribItems.dll
+        File ${CB_BASE}${CB_PLUGINS}\wxSmithPlot.dll
         SetOutPath $INSTDIR${CB_IMG_SETTINGS}
         File ${CB_BASE}${CB_IMG_SETTINGS}\wxsmith.png
         File ${CB_BASE}${CB_IMG_SETTINGS}\wxsmith-off.png
@@ -1477,12 +1528,12 @@ Section "-un.Code Snippets plugin" UNSEC_CODESNIPPETS
     DeleteRegValue HKCU "${REGKEY}\Components" "Code Snippets plugin"
 SectionEnd
 
-Section "-un.Code Stat plugin" UNSEC_CODESTAT
+Section "-un.Code Statistics plugin" UNSEC_CODESTAT
     Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\codestats-off.png
     Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\codestats.png
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\codestat.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\codestat.zip
-    DeleteRegValue HKCU "${REGKEY}\Components" "Code Stat plugin"
+    DeleteRegValue HKCU "${REGKEY}\Components" "Code Statistics plugin"
 SectionEnd
 
 Section "-un.Copy Strings plugin" UNSEC_COPYSTRINGS
@@ -1555,7 +1606,16 @@ Section "-un.File Manager plugin" UNSEC_FILEMANAGER
     DeleteRegValue HKCU "${REGKEY}\Components" "File Manager plugin"
 SectionEnd
 
-Section "-un.HeaderFixUp plugin" UNSEC_HEADERFIXUP
+Section /o "-un.Fortran Project plugin" UNSEC_FORTRANPROJECT
+    Delete /REBOOTOK $INSTDIR${CB_IMAGES}\fortranproject\*.png
+    Delete /REBOOTOK $INSTDIR${CB_IMAGES}\fortranproject\*.f90
+    RMDir /REBOOTOK $INSTDIR${CB_IMAGES}\fortranproject
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\FortranProject.dll
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\FortranProject.zip
+    DeleteRegValue HKCU "${REGKEY}\Components" "Fortran Project plugin"
+SectionEnd
+
+Section /o "-un.HeaderFixUp plugin" UNSEC_HEADERFIXUP
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\headerfixup.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\headerfixup.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "HeaderFixUp plugin"
@@ -1613,6 +1673,12 @@ Section "-un.Nassi Shneiderman plugin" UNSEC_NASSI
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\NassiShneiderman.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\NassiShneiderman.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "Nassi Shneiderman plugin"
+SectionEnd
+
+Section "-un.Occurrences Highlighting plugin" UNSEC_OCC_HIGHLIGHTING
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\OccurrencesHighlighting.dll
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\OccurrencesHighlighting.zip
+    DeleteRegValue HKCU "${REGKEY}\Components" "Occurrences Highlighting plugin"
 SectionEnd
 
 Section "-un.Tools+ plugin" UNSEC_TOOLSPLUS
@@ -1688,6 +1754,7 @@ Section "-un.wxSmith plugin" UNSEC_WXSMITH
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\wxsmith.dll
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\wxSmithAui.dll
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\wxSmithContribItems.dll
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\wxSmithPlot.dll
     Delete /REBOOTOK $INSTDIR\wxtreelist.dll
     Delete /REBOOTOK $INSTDIR\wxspeedbutton.dll
     Delete /REBOOTOK $INSTDIR\wxled.dll
@@ -1699,6 +1766,7 @@ Section "-un.wxSmith plugin" UNSEC_WXSMITH
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\wxsmith.zip
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\wxSmithAui.zip
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\wxSmithContribItems.zip
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\wxSmithPlot.zip
     Delete /REBOOTOK $INSTDIR\wxsmithlib.dll
     DeleteRegValue HKCU "${REGKEY}\Components" "wxSmith plugin"
 SectionEnd
@@ -1738,6 +1806,8 @@ Section "-un.Class Wizard plugin" UNSEC_CLASSWIZARD
 SectionEnd
 
 Section "-un.Code Completion plugin" UNSEC_CODECOMPLETION
+    Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\codecompletion-off.png
+    Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\codecompletion.png
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\codecompletion.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\codecompletion.zip
     Delete /REBOOTOK $INSTDIR${CB_IMAGES}\codecompletion\*.png
@@ -1753,6 +1823,8 @@ Section "-un.Compiler plugin" UNSEC_COMPILER
     Delete /REBOOTOK $INSTDIR${CB_IMAGES}\rebuild.png
     Delete /REBOOTOK $INSTDIR${CB_IMAGES}\compilerun.png
     Delete /REBOOTOK $INSTDIR${CB_IMAGES}\compile.png
+    Delete /REBOOTOK $INSTDIR${CB_XML_COMPILERS}\*.xml
+    RMDir /r /REBOOTOK $INSTDIR${CB_XML_COMPILERS}
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\compiler.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\compiler.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "Compiler plugin"
@@ -1791,6 +1863,20 @@ Section "-un.Projects Importer plugin" UNSEC_PROJECTSIMPORTER
     DeleteRegValue HKCU "${REGKEY}\Components" "Projects Importer plugin"
 SectionEnd
 
+Section "-un.RND Generator plugin" UNSEC_RNDGEN
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\rndgen.dll
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\rndgen.zip
+    DeleteRegValue HKCU "${REGKEY}\Components" "RND Generator plugin"
+SectionEnd
+
+Section "-un.Scripted Wizard plugin" UNSEC_SCRIPTEDWIZARD
+    Delete /REBOOTOK $INSTDIR${CB_WIZARD}\*.*
+    RMDir  /r /REBOOTOK $INSTDIR${CB_WIZARD}
+    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\scriptedwizard.dll
+    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\scriptedwizard.zip
+    DeleteRegValue HKCU "${REGKEY}\Components" "Scripted Wizard plugin"
+SectionEnd
+
 Section "-un.SmartIndent plugin" UNSEC_SMARTINDENT
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\SmartIndentCpp.dll
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\SmartIndentFortran.dll
@@ -1807,14 +1893,6 @@ Section "-un.SmartIndent plugin" UNSEC_SMARTINDENT
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\SmartIndentPython.zip
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\SmartIndentXML.zip
     DeleteRegValue HKCU "${REGKEY}\Components" "SmartIndent plugin"
-SectionEnd
-
-Section "-un.Scripted Wizard plugin" UNSEC_SCRIPTEDWIZARD
-    Delete /REBOOTOK $INSTDIR${CB_WIZARD}\*.*
-    RMDir  /r /REBOOTOK $INSTDIR${CB_WIZARD}
-    Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\scriptedwizard.dll
-    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\scriptedwizard.zip
-    DeleteRegValue HKCU "${REGKEY}\Components" "Scripted Wizard plugin"
 SectionEnd
 
 Section "-un.ToDo List plugin" UNSEC_TODOLIST
@@ -1870,6 +1948,12 @@ Section "-un.Java" UNSEC_JAVA
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_java.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_java.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "Java"
+SectionEnd
+
+Section "-un.Objective-C" UNSEC_OBJECTIVE_C
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_objc.xml
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_objc.sample
+    DeleteRegValue HKCU "${REGKEY}\Components" "Objective-C"
 SectionEnd
 
 Section "-un.Pascal" UNSEC_PASCAL
@@ -2232,120 +2316,124 @@ FunctionEnd
 
 Function un.onInit
     ReadRegStr $INSTDIR HKCU "${REGKEY}" Path
-    !insertmacro SELECT_UNSECTION "Core Files (required)"      ${UNSEC_CORE}
+    !insertmacro SELECT_UNSECTION "Core Files (required)"             ${UNSEC_CORE}
 
-    !insertmacro SELECT_UNSECTION "Program Shortcut"           ${UNSEC_PROGRAMSHORTCUT}
-    !insertmacro SELECT_UNSECTION "Program Shortcut All Users" ${UNSEC_PROGRAMSHORTCUT_ALL}
-    !insertmacro SELECT_UNSECTION "Desktop Shortcut"           ${UNSEC_DESKTOPSHORTCUT}
-    !insertmacro SELECT_UNSECTION "Quick Launch Shortcut"      ${UNSEC_QUICKLAUNCHSHORTCUT}
+    !insertmacro SELECT_UNSECTION "Program Shortcut"                  ${UNSEC_PROGRAMSHORTCUT}
+    !insertmacro SELECT_UNSECTION "Program Shortcut All Users"        ${UNSEC_PROGRAMSHORTCUT_ALL}
+    !insertmacro SELECT_UNSECTION "Desktop Shortcut"                  ${UNSEC_DESKTOPSHORTCUT}
+    !insertmacro SELECT_UNSECTION "Quick Launch Shortcut"             ${UNSEC_QUICKLAUNCHSHORTCUT}
 
     # "Compiler Languages"
-    !insertmacro SELECT_UNSECTION "C/C++"                      ${UNSEC_CPP}
-    !insertmacro SELECT_UNSECTION "Ada"                        ${UNSEC_ADA}
-    !insertmacro SELECT_UNSECTION "The D Language"             ${UNSEC_D}
-    !insertmacro SELECT_UNSECTION "Fortran"                    ${UNSEC_F}
-    !insertmacro SELECT_UNSECTION "Java"                       ${UNSEC_JAVA}
-    !insertmacro SELECT_UNSECTION "Pascal"                     ${UNSEC_PASCAL}
-    !insertmacro SELECT_UNSECTION "Smalltalk"                  ${UNSEC_SMALLTALK}
+    !insertmacro SELECT_UNSECTION "C/C++"                             ${UNSEC_CPP}
+    !insertmacro SELECT_UNSECTION "Ada"                               ${UNSEC_ADA}
+    !insertmacro SELECT_UNSECTION "The D Language"                    ${UNSEC_D}
+    !insertmacro SELECT_UNSECTION "Fortran"                           ${UNSEC_F}
+    !insertmacro SELECT_UNSECTION "Java"                              ${UNSEC_JAVA}
+    !insertmacro SELECT_UNSECTION "Objective-C"                       ${UNSEC_OBJECTIVE_C}
+    !insertmacro SELECT_UNSECTION "Pascal"                            ${UNSEC_PASCAL}
+    !insertmacro SELECT_UNSECTION "Smalltalk"                         ${UNSEC_SMALLTALK}
     # "Script Languages"
-    !insertmacro SELECT_UNSECTION "Angelscript"                ${UNSEC_AS}
-    !insertmacro SELECT_UNSECTION "Caml"                       ${UNSEC_CAML}
-    !insertmacro SELECT_UNSECTION "Game Monkey"                ${UNSEC_GM}
-    !insertmacro SELECT_UNSECTION "Haskell"                    ${UNSEC_HASKELL}
-    !insertmacro SELECT_UNSECTION "Lisp"                       ${UNSEC_LISP}
-    !insertmacro SELECT_UNSECTION "Lua"                        ${UNSEC_LUA}
-    !insertmacro SELECT_UNSECTION "Perl"                       ${UNSEC_PERL}
-    !insertmacro SELECT_UNSECTION "Postscript"                 ${UNSEC_POSTSCRIPT}
-    !insertmacro SELECT_UNSECTION "Python"                     ${UNSEC_PY}
-    !insertmacro SELECT_UNSECTION "Ruby"                       ${UNSEC_RUBY}
-    !insertmacro SELECT_UNSECTION "Squirrel"                   ${UNSEC_SQ}
-    !insertmacro SELECT_UNSECTION "VB Script"                  ${UNSEC_VB}
+    !insertmacro SELECT_UNSECTION "Angelscript"                       ${UNSEC_AS}
+    !insertmacro SELECT_UNSECTION "Caml"                              ${UNSEC_CAML}
+    !insertmacro SELECT_UNSECTION "Game Monkey"                       ${UNSEC_GM}
+    !insertmacro SELECT_UNSECTION "Haskell"                           ${UNSEC_HASKELL}
+    !insertmacro SELECT_UNSECTION "Lisp"                              ${UNSEC_LISP}
+    !insertmacro SELECT_UNSECTION "Lua"                               ${UNSEC_LUA}
+    !insertmacro SELECT_UNSECTION "Perl"                              ${UNSEC_PERL}
+    !insertmacro SELECT_UNSECTION "Postscript"                        ${UNSEC_POSTSCRIPT}
+    !insertmacro SELECT_UNSECTION "Python"                            ${UNSEC_PY}
+    !insertmacro SELECT_UNSECTION "Ruby"                              ${UNSEC_RUBY}
+    !insertmacro SELECT_UNSECTION "Squirrel"                          ${UNSEC_SQ}
+    !insertmacro SELECT_UNSECTION "VB Script"                         ${UNSEC_VB}
     # "Markup Languages"
-    !insertmacro SELECT_UNSECTION "BiBTeX"                     ${UNSEC_BIBTEX}
-    !insertmacro SELECT_UNSECTION "CSS"                        ${UNSEC_CSS}
-    !insertmacro SELECT_UNSECTION "HTML"                       ${UNSEC_HTML}
-    !insertmacro SELECT_UNSECTION "LaTeX"                      ${UNSEC_LATEX}
-    !insertmacro SELECT_UNSECTION "XML"                        ${UNSEC_XML}
+    !insertmacro SELECT_UNSECTION "BiBTeX"                            ${UNSEC_BIBTEX}
+    !insertmacro SELECT_UNSECTION "CSS"                               ${UNSEC_CSS}
+    !insertmacro SELECT_UNSECTION "HTML"                              ${UNSEC_HTML}
+    !insertmacro SELECT_UNSECTION "LaTeX"                             ${UNSEC_LATEX}
+    !insertmacro SELECT_UNSECTION "XML"                               ${UNSEC_XML}
     # "Graphics Programming"
-    !insertmacro SELECT_UNSECTION "GLSL (GLSlang)"             ${UNSEC_GLSL}
-    !insertmacro SELECT_UNSECTION "nVidia Cg"                  ${UNSEC_CG}
-    !insertmacro SELECT_UNSECTION "Ogre"                       ${UNSEC_OGRE}
+    !insertmacro SELECT_UNSECTION "GLSL (GLSlang)"                    ${UNSEC_GLSL}
+    !insertmacro SELECT_UNSECTION "nVidia Cg"                         ${UNSEC_CG}
+    !insertmacro SELECT_UNSECTION "Ogre"                              ${UNSEC_OGRE}
     # "Embedded development"
-    !insertmacro SELECT_UNSECTION "A68k Assembler"             ${UNSEC_A68K}
-    !insertmacro SELECT_UNSECTION "Hitachi Assembler"          ${UNSEC_HITACHI}
-    !insertmacro SELECT_UNSECTION "Verilog"                    ${UNSEC_VERILOG}
-    !insertmacro SELECT_UNSECTION "VHDL"                       ${UNSEC_VHDL}
+    !insertmacro SELECT_UNSECTION "A68k Assembler"                    ${UNSEC_A68K}
+    !insertmacro SELECT_UNSECTION "Hitachi Assembler"                 ${UNSEC_HITACHI}
+    !insertmacro SELECT_UNSECTION "Verilog"                           ${UNSEC_VERILOG}
+    !insertmacro SELECT_UNSECTION "VHDL"                              ${UNSEC_VHDL}
     # "Shell / Binutils"
-    !insertmacro SELECT_UNSECTION "bash script"                ${UNSEC_BASH}
-    !insertmacro SELECT_UNSECTION "DOS batch files"            ${UNSEC_DOS}
-    !insertmacro SELECT_UNSECTION "Cmake"                      ${UNSEC_CMAKE}
-    !insertmacro SELECT_UNSECTION "diff"                       ${UNSEC_DIFF}
-    !insertmacro SELECT_UNSECTION "Makefile"                   ${UNSEC_MAKE}
+    !insertmacro SELECT_UNSECTION "bash script"                       ${UNSEC_BASH}
+    !insertmacro SELECT_UNSECTION "DOS batch files"                   ${UNSEC_DOS}
+    !insertmacro SELECT_UNSECTION "Cmake"                             ${UNSEC_CMAKE}
+    !insertmacro SELECT_UNSECTION "diff"                              ${UNSEC_DIFF}
+    !insertmacro SELECT_UNSECTION "Makefile"                          ${UNSEC_MAKE}
     # "Others"
-    !insertmacro SELECT_UNSECTION "MASM"                       ${UNSEC_MASM}
-    !insertmacro SELECT_UNSECTION "MATLAB"                     ${UNSEC_MATLAB}
-    !insertmacro SELECT_UNSECTION "NSIS installer script"      ${UNSEC_NSIS}
-    !insertmacro SELECT_UNSECTION "Property file"              ${UNSEC_PROP}
-    !insertmacro SELECT_UNSECTION "Sql"                        ${UNSEC_SQL}
-    !insertmacro SELECT_UNSECTION "XBase"                      ${UNSEC_XBASE}
+    !insertmacro SELECT_UNSECTION "MASM"                              ${UNSEC_MASM}
+    !insertmacro SELECT_UNSECTION "MATLAB"                            ${UNSEC_MATLAB}
+    !insertmacro SELECT_UNSECTION "NSIS installer script"             ${UNSEC_NSIS}
+    !insertmacro SELECT_UNSECTION "Property file"                     ${UNSEC_PROP}
+    !insertmacro SELECT_UNSECTION "Sql"                               ${UNSEC_SQL}
+    !insertmacro SELECT_UNSECTION "XBase"                             ${UNSEC_XBASE}
 
-    !insertmacro SELECT_UNSECTION "Abbreviations plugin"       ${UNSEC_ABBREV}
-    !insertmacro SELECT_UNSECTION "AStyle plugin"              ${UNSEC_ASTYLE}
-    !insertmacro SELECT_UNSECTION "Autosave plugin"            ${UNSEC_AUTOSAVE}
-    !insertmacro SELECT_UNSECTION "Class Wizard plugin"        ${UNSEC_CLASSWIZARD}
-    !insertmacro SELECT_UNSECTION "Code Completion plugin"     ${UNSEC_CODECOMPLETION}
-    !insertmacro SELECT_UNSECTION "Compiler plugin"            ${UNSEC_COMPILER}
-    !insertmacro SELECT_UNSECTION "Debugger plugin"            ${UNSEC_DEBUGGER}
-    !insertmacro SELECT_UNSECTION "MIME Handler plugin"        ${UNSEC_MIMEHANDLER}
-    !insertmacro SELECT_UNSECTION "Open Files List plugin"     ${UNSEC_OPENFILESLIST}
-    !insertmacro SELECT_UNSECTION "Projects Importer plugin"   ${UNSEC_PROJECTSIMPORTER}
-    !insertmacro SELECT_UNSECTION "SmartIndent plugin"         ${UNSEC_SMARTINDENT}
-    !insertmacro SELECT_UNSECTION "Scripted Wizard plugin"     ${UNSEC_SCRIPTEDWIZARD}
-    !insertmacro SELECT_UNSECTION "ToDo List plugin"           ${UNSEC_TODOLIST}
-    !insertmacro SELECT_UNSECTION "XP Look And Feel plugin"    ${UNSEC_XPLOOKANDFEEL}
+    !insertmacro SELECT_UNSECTION "Abbreviations plugin"              ${UNSEC_ABBREV}
+    !insertmacro SELECT_UNSECTION "AStyle plugin"                     ${UNSEC_ASTYLE}
+    !insertmacro SELECT_UNSECTION "Autosave plugin"                   ${UNSEC_AUTOSAVE}
+    !insertmacro SELECT_UNSECTION "Class Wizard plugin"               ${UNSEC_CLASSWIZARD}
+    !insertmacro SELECT_UNSECTION "Code Completion plugin"            ${UNSEC_CODECOMPLETION}
+    !insertmacro SELECT_UNSECTION "Compiler plugin"                   ${UNSEC_COMPILER}
+    !insertmacro SELECT_UNSECTION "Debugger plugin"                   ${UNSEC_DEBUGGER}
+    !insertmacro SELECT_UNSECTION "MIME Handler plugin"               ${UNSEC_MIMEHANDLER}
+    !insertmacro SELECT_UNSECTION "Open Files List plugin"            ${UNSEC_OPENFILESLIST}
+    !insertmacro SELECT_UNSECTION "Projects Importer plugin"          ${UNSEC_PROJECTSIMPORTER}
+    !insertmacro SELECT_UNSECTION "SmartIndent plugin"                ${UNSEC_SMARTINDENT}
+    !insertmacro SELECT_UNSECTION "Scripted Wizard plugin"            ${UNSEC_SCRIPTEDWIZARD}
+    !insertmacro SELECT_UNSECTION "RND Generator plugin"              ${UNSEC_RNDGEN}
+    !insertmacro SELECT_UNSECTION "ToDo List plugin"                  ${UNSEC_TODOLIST}
+    !insertmacro SELECT_UNSECTION "XP Look And Feel plugin"           ${UNSEC_XPLOOKANDFEEL}
 
-    !insertmacro SELECT_UNSECTION "Auto Versioning plugin"     ${UNSEC_AUTOVERSIONING}
-    !insertmacro SELECT_UNSECTION "Browse Tracker plugin"      ${UNSEC_BROWSETRACKER}
-    !insertmacro SELECT_UNSECTION "Byo Games plugin"           ${UNSEC_BYOGAMES}
-    !insertmacro SELECT_UNSECTION "Cccc plugin"                ${UNSEC_CCCC}
-    !insertmacro SELECT_UNSECTION "Code Snippets plugin"       ${UNSEC_CODESNIPPETS}
-    !insertmacro SELECT_UNSECTION "Code Stat plugin"           ${UNSEC_CODESTAT}
-    !insertmacro SELECT_UNSECTION "Copy Strings plugin"        ${UNSEC_COPYSTRINGS}
-    !insertmacro SELECT_UNSECTION "CppCheck plugin"            ${UNSEC_CPPCHECK}
-    !insertmacro SELECT_UNSECTION "Cscope plugin"              ${UNSEC_CSCOPE}
-    !insertmacro SELECT_UNSECTION "DevPak plugin"              ${UNSEC_DEVPAK}
-    !insertmacro SELECT_UNSECTION "DoxyBlocks plugin"          ${UNSEC_DOXYBLOCKS}
-    !insertmacro SELECT_UNSECTION "Drag Scroll plugin"         ${UNSEC_DRAGSCROLL}
-    !insertmacro SELECT_UNSECTION "EditorConfig plugin"        ${UNSEC_EDITORCONFIG}
-    !insertmacro SELECT_UNSECTION "Editor tweaks plugin"       ${UNSEC_EDITORTWEAKS}
-    !insertmacro SELECT_UNSECTION "EnvVars plugin"             ${UNSEC_ENVVARS}
-    !insertmacro SELECT_UNSECTION "File Manager plugin"        ${UNSEC_FILEMANAGER}
-    !insertmacro SELECT_UNSECTION "HeaderFixUp plugin"         ${UNSEC_HEADERFIXUP}
-    !insertmacro SELECT_UNSECTION "Help plugin"                ${UNSEC_HELP}
-    !insertmacro SELECT_UNSECTION "HexEditor plugin"           ${UNSEC_HEXEDITOR}
-    !insertmacro SELECT_UNSECTION "IncrementalSearch plugin"   ${UNSEC_INCREMENTALSEARCH}
-    !insertmacro SELECT_UNSECTION "Key Binder plugin"          ${UNSEC_KEYBINDER}
-    !insertmacro SELECT_UNSECTION "Koders plugin"              ${UNSEC_KODERS}
-    !insertmacro SELECT_UNSECTION "Lib Finder plugin"          ${UNSEC_LIBFINDER}
-    !insertmacro SELECT_UNSECTION "MouseSap plugin"            ${UNSEC_MOUSESAP}
-    !insertmacro SELECT_UNSECTION "Nassi Shneiderman plugin"   ${UNSEC_NASSI}
-    !insertmacro SELECT_UNSECTION "Tools+ plugin"              ${UNSEC_TOOLSPLUS}
-    !insertmacro SELECT_UNSECTION "Profiler plugin"            ${UNSEC_PROFILER}
-    !insertmacro SELECT_UNSECTION "RegEx Testbed plugin"       ${UNSEC_REGEXTESTBED}
-    !insertmacro SELECT_UNSECTION "ReOpen Editor plugin"       ${UNSEC_REOPEN}
-    !insertmacro SELECT_UNSECTION "Exporter plugin"            ${UNSEC_EXPORTER}
-    !insertmacro SELECT_UNSECTION "SpellChecker plugin"        ${UNSEC_SPELLCHECKER}
-    !insertmacro SELECT_UNSECTION "SymTab plugin"              ${UNSEC_SYMTAB}
-    !insertmacro SELECT_UNSECTION "ThreadSearch plugin"        ${UNSEC_THREADSEARCH}
-    !insertmacro SELECT_UNSECTION "wxSmith plugin"             ${UNSEC_WXSMITH}
+    !insertmacro SELECT_UNSECTION "Auto Versioning plugin"            ${UNSEC_AUTOVERSIONING}
+    !insertmacro SELECT_UNSECTION "Browse Tracker plugin"             ${UNSEC_BROWSETRACKER}
+    !insertmacro SELECT_UNSECTION "Byo Games plugin"                  ${UNSEC_BYOGAMES}
+    !insertmacro SELECT_UNSECTION "Cccc plugin"                       ${UNSEC_CCCC}
+    !insertmacro SELECT_UNSECTION "Code Snippets plugin"              ${UNSEC_CODESNIPPETS}
+    !insertmacro SELECT_UNSECTION "Code Statistics plugin"            ${UNSEC_CODESTAT}
+    !insertmacro SELECT_UNSECTION "Copy Strings plugin"               ${UNSEC_COPYSTRINGS}
+    !insertmacro SELECT_UNSECTION "CppCheck plugin"                   ${UNSEC_CPPCHECK}
+    !insertmacro SELECT_UNSECTION "Cscope plugin"                     ${UNSEC_CSCOPE}
+    !insertmacro SELECT_UNSECTION "DevPak plugin"                     ${UNSEC_DEVPAK}
+    !insertmacro SELECT_UNSECTION "DoxyBlocks plugin"                 ${UNSEC_DOXYBLOCKS}
+    !insertmacro SELECT_UNSECTION "Drag Scroll plugin"                ${UNSEC_DRAGSCROLL}
+    !insertmacro SELECT_UNSECTION "EditorConfig plugin"               ${UNSEC_EDITORCONFIG}
+    !insertmacro SELECT_UNSECTION "Editor tweaks plugin"              ${UNSEC_EDITORTWEAKS}
+    !insertmacro SELECT_UNSECTION "EnvVars plugin"                    ${UNSEC_ENVVARS}
+    !insertmacro SELECT_UNSECTION "File Manager plugin"               ${UNSEC_FILEMANAGER}
+    !insertmacro SELECT_UNSECTION "Fortran Project plugin"            ${UNSEC_FORTRANPROJECT}
+    !insertmacro SELECT_UNSECTION "HeaderFixUp plugin"                ${UNSEC_HEADERFIXUP}
+    !insertmacro SELECT_UNSECTION "Help plugin"                       ${UNSEC_HELP}
+    !insertmacro SELECT_UNSECTION "HexEditor plugin"                  ${UNSEC_HEXEDITOR}
+    !insertmacro SELECT_UNSECTION "IncrementalSearch plugin"          ${UNSEC_INCREMENTALSEARCH}
+    !insertmacro SELECT_UNSECTION "Key Binder plugin"                 ${UNSEC_KEYBINDER}
+    !insertmacro SELECT_UNSECTION "Koders plugin"                     ${UNSEC_KODERS}
+    !insertmacro SELECT_UNSECTION "Lib Finder plugin"                 ${UNSEC_LIBFINDER}
+    !insertmacro SELECT_UNSECTION "MouseSap plugin"                   ${UNSEC_MOUSESAP}
+    !insertmacro SELECT_UNSECTION "Nassi Shneiderman plugin"          ${UNSEC_NASSI}
+    !insertmacro SELECT_UNSECTION "Occurrences Highlighting plugin"   ${UNSEC_OCC_HIGHLIGHTING}
+    !insertmacro SELECT_UNSECTION "Tools+ plugin"                     ${UNSEC_TOOLSPLUS}
+    !insertmacro SELECT_UNSECTION "Profiler plugin"                   ${UNSEC_PROFILER}
+    !insertmacro SELECT_UNSECTION "RegEx Testbed plugin"              ${UNSEC_REGEXTESTBED}
+    !insertmacro SELECT_UNSECTION "ReOpen Editor plugin"              ${UNSEC_REOPEN}
+    !insertmacro SELECT_UNSECTION "Exporter plugin"                   ${UNSEC_EXPORTER}
+    !insertmacro SELECT_UNSECTION "SpellChecker plugin"               ${UNSEC_SPELLCHECKER}
+    !insertmacro SELECT_UNSECTION "SymTab plugin"                     ${UNSEC_SYMTAB}
+    !insertmacro SELECT_UNSECTION "ThreadSearch plugin"               ${UNSEC_THREADSEARCH}
+    !insertmacro SELECT_UNSECTION "wxSmith plugin"                    ${UNSEC_WXSMITH}
 
-    !insertmacro SELECT_UNSECTION "C::B Share Config"          ${UNSEC_SHARECONFIG}
+    !insertmacro SELECT_UNSECTION "C::B Share Config"                 ${UNSEC_SHARECONFIG}
 
 !ifdef CB_LAUNCHER
-    !insertmacro SELECT_UNSECTION "C::B Launcher"              ${UNSEC_LAUNCHER}
+    !insertmacro SELECT_UNSECTION "C::B Launcher"                     ${UNSEC_LAUNCHER}
 !endif
 !ifdef MINGW_BUNDLE
-    !insertmacro SELECT_UNSECTION "MinGW Compiler Suite"       ${UNSEC_MINGW}
+    !insertmacro SELECT_UNSECTION "MinGW Compiler Suite"              ${UNSEC_MINGW}
 !endif
 FunctionEnd
 
@@ -2377,6 +2465,7 @@ FunctionEnd
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_MIMEHANDLER}         "Provides a (default) files extension handler."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_OPENFILESLIST}       "Shows all currently open files (editors) in a list."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_PROJECTSIMPORTER}    "Imports foreign projects/workspaces (Dev-C++, MSVC6, MSVS7, MSVS8, MSVC10)."
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_RNDGEN}              "Provides a random number generator to be used for developing applications with intensive use of random numbers."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_SCRIPTEDWIZARD}      "Provides a generic platform for creating project wizards (already includes a lot of wizards)."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_SMARTINDENT}         "Provided smart indention options for several languages (C++, Fortran, HDL, Lua, Pascal, Python, XML)."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_TODOLIST}            "Provides a To-Do list and collects items accoringly from source files of a file/project/workspace."
@@ -2399,6 +2488,7 @@ FunctionEnd
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_DRAGSCROLL}          "Mouse drag and scroll using right or middle mouse key."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_ENVVARS}             "Sets up environment variables within the focus of Code::Blocks."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_FILEMANAGER}         "Browses folders and files directly inside Code::Blocks (Explorer-like)."
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_FORTRANPROJECT}      "Extension for Code::blocks to deveoop Fortran based application (compiler, CodeCompletion...)."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_HEADERFIXUP}         "Provides analysis of header files according a customisable setup. C::B and wxWidgets are included by default."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_HELP}                "Add a list of help/MAN files to the help menu so you can have them handy to launch."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_HEXEDITOR}           "Provides an embedded very powerful hex editor to Code::Blocks (supports large binary files, too)."
@@ -2408,6 +2498,7 @@ FunctionEnd
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_LIBFINDER}           "Tool which automatically searches for installed libraries and adds them to global variables and projects."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_MOUSESAP}            "Plugin to provide middle mouse select and paste functionality."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_NASSI}               "Generate and use source code with Nassi Shneiderman diagrams."
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_OCC_HIGHLIGHTING}    "Highlight occurrences of specific characters, words or phrases accross documents."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_TOOLSPLUS}           "Provides a refined Code::Blocks Tools menu."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_PROFILER}            "Provides a simple graphical interface to the GNU GProf profiler."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_REGEXTESTBED}        "Provides a regular expressions testbed."
