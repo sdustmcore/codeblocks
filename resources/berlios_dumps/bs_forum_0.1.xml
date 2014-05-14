@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE bs_forum SYSTEM "http://developer.berlios.de/exports/bs_forum_0.1.dtd">
+<group name="Code::Blocks IDE">
+ <forum name="Open Discussion">
+  <nitf version="XMLNews/DTD XMLNEWS-STORY 1.8//EN">
+   <head>
+    <title>Welcome to Open Discussion</title>
+   </head>
+   <body><body.content><block>
+Welcome to Open Discussion   </block></body.content></body>
+  </nitf>
+ </forum>
+ <forum name="Help">
+  <nitf version="XMLNews/DTD XMLNEWS-STORY 1.8//EN">
+   <head>
+    <title>Welcome to Help</title>
+   </head>
+   <body><body.content><block>
+Welcome to Help   </block></body.content></body>
+  </nitf>
+ </forum>
+ <forum name="Developers">
+  <nitf version="XMLNews/DTD XMLNEWS-STORY 1.8//EN">
+   <head>
+    <title>Welcome to Developers</title>
+   </head>
+   <body><body.content><block>
+Welcome to Developers   </block></body.content></body>
+  </nitf>
+ </forum>
+ </group>
