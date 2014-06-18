@@ -9,7 +9,7 @@
 #include <wx/string.h>
 #include <wx/intl.h>
 
-//#define RELEASE "13.12"
+#define RELEASE "12.11"
 
 #ifndef RELEASE
     #define RELEASE "svn"
@@ -33,6 +33,6 @@ namespace appglobals
     extern const wxString AppBuildTimestamp;
 
     extern const wxString DefaultBatchBuildArgs;
-}
+};
 
 #endif // APPGLOBALS_H

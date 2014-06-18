@@ -1,4 +1,4 @@
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+INCLUDES = $(WX_CXXFLAGS) \
 		-I$(top_srcdir)/src/include \
 		-I$(top_srcdir)/src/sdk/wxscintilla/include \
 		$(WXPROPGRID_INCLUDE)
@@ -200,4 +200,3 @@ noinst_HEADERS = \
 ./wxsrichtextstylelistctrl.h
 
 
-EXTRA_DIST = $(srcdir)/wxsmediactrl.*

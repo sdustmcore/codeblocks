@@ -55,23 +55,21 @@ bool nsHeaderFixUp::IsInsideString(wxString& Line)
 
 // ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
-bool nsHeaderFixUp::IsNextChar(const wxChar&   NextCharInLine,
-                               const wxChar&   ThisChar,
+bool nsHeaderFixUp::IsNextChar(const wxString& ThisChar,
+                               const wxChar&   NextCharInLine,
                                const wxString& RemainingLine)
 {
-  wxString s_ChNext = NextCharInLine; // conversion for using Trim() and IsSameAs()
-  wxString s_ChComp = ThisChar;       // conversion for using Trim() and IsSameAs()
-
-  // in case of in-equality AND if NextCharInLine is a space, trim spaces and try again...
-  // (but NOT, if we are actually looking for a space!)
-  if ( !s_ChNext.IsSameAs(s_ChComp) && !s_ChNext.Trim().IsEmpty() )
+  wxString s_Ch = NextCharInLine;
+  if ( !s_Ch.IsSameAs(ThisChar) && !s_Ch.Trim().IsEmpty() )
   {
-    // remove leading spaces from remaining line so we get the
-    // next proper character not being space
-    wxString TrimmedLine(RemainingLine); TrimmedLine.Trim(false);
+    wxString TrimmedLine(RemainingLine);
+    TrimmedLine.Trim(false);
     if ( !TrimmedLine.IsEmpty() )
-      s_ChNext = TrimmedLine.GetChar(0); // first non-space
+      wxString s_Ch = TrimmedLine.GetChar(0);
   }
 
-  return ( s_ChNext.IsSameAs(s_ChComp) );
+  if ( s_Ch.IsSameAs(ThisChar) )
+    return true;
+
+  return false;
 }

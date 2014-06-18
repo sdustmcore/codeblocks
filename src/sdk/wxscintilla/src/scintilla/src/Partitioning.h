@@ -12,17 +12,13 @@
 #include "SplitVector.h"
 /* C::B end */
 
-#ifdef SCI_NAMESPACE
-namespace Scintilla {
-#endif
-
 /// A split vector of integers with a method for adding a value to all elements
 /// in a range.
 /// Used by the Partitioning class.
 
 class SplitVectorWithRangeAdd : public SplitVector<int> {
 public:
-	explicit SplitVectorWithRangeAdd(int growSize_) {
+	SplitVectorWithRangeAdd(int growSize_) {
 		SetGrowSize(growSize_);
 		ReAllocate(growSize_);
 	}
@@ -92,7 +88,7 @@ private:
 	}
 
 public:
-	explicit Partitioning(int growSize) {
+	Partitioning(int growSize) {
 		Allocate(growSize);
 	}
 
@@ -193,10 +189,5 @@ public:
 		Allocate(growSize);
 	}
 };
-
-
-#ifdef SCI_NAMESPACE
-}
-#endif
 
 #endif

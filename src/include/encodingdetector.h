@@ -23,6 +23,7 @@ class DLLIMPORT EncodingDetector : public nsUniversalDetector
         EncodingDetector(const EncodingDetector& rhs, bool useLog=true);
         ~EncodingDetector();
 
+        const wxString& DoIt(const char* aBuf, PRUint32 aLen);
         /** @return True if file was read, false if not. */
         bool IsOK() const;
         /** @return True if the file contains a BOM (Byte Order Mark), false if not. */
@@ -47,7 +48,7 @@ class DLLIMPORT EncodingDetector : public nsUniversalDetector
     private:
         bool ConvertToWxString(const wxByte* buffer, size_t size);
 
-        wxString m_MozillaResult;
+        wxString mResult;
         wxString m_ConvStr;
 };
 

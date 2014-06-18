@@ -2,16 +2,16 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="Tools Plus Plugin (Unix)" />
+		<Option title="Tools Plus Plugin (unix)" />
 		<Option pch_mode="0" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="default">
-				<Option output="../../../devel/share/codeblocks/plugins/libToolsPlus" prefix_auto="0" extension_auto="1" />
+				<Option output="../../../devel/share/codeblocks/plugins/ToolsPlus" prefix_auto="1" extension_auto="1" />
 				<Option object_output="../../../.objs/plugins/contrib/ToolsPlus" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --multiple-instance -ns -ni -p debug" />
+				<Option parameters="--debug-log --multiple-instance -ns -ni" />
 				<Option host_application="../../../devel/codeblocks" />
 				<Option run_host_application_in_terminal="0" />
 				<Compiler>
@@ -32,7 +32,8 @@
 			<Add option="-Wswitch-default" />
 			<Add option="-Wextra" />
 			<Add option="-Wall" />
-			<Add option="-ansi" />
+			<Add option="-Ulinux" />
+			<Add option="-Uunix" />
 			<Add option="`wx-config --cflags`" />
 			<Add option="-Winvalid-pch" />
 			<Add option="-fmessage-length=0" />
@@ -44,16 +45,11 @@
 			<Add directory="../../../sdk" />
 			<Add directory="../../../sdk/wxscintilla/include" />
 			<Add directory="../../../include/mozilla_chardet" />
-			<Add directory="../../../include/mozilla_chardet/mfbt" />
-			<Add directory="../../../include/mozilla_chardet/nsprpub/pr/include" />
-			<Add directory="../../../include/mozilla_chardet/xpcom" />
-			<Add directory="../../../include/mozilla_chardet/xpcom/base" />
-			<Add directory="../../../include/mozilla_chardet/xpcom/glue" />
 		</Compiler>
 		<Linker>
 			<Add option="`wx-config --libs`" />
-			<Add option="-Wl,--no-undefined" />
-			<Add library="libcodeblocks.a" />
+			<Add library="codeblocks" />
+			<Add library="wxscintilla_cb" />
 			<Add directory="../../../devel" />
 		</Linker>
 		<ExtraCommands>

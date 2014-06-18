@@ -16,6 +16,9 @@
 
 
 OnlineSpellChecker::OnlineSpellChecker(wxSpellCheckEngineInterface *pSpellChecker, SpellCheckHelper *pSpellHelper):
+//OnlineSpellChecker::OnlineSpellChecker():
+    //EditorHooks::HookFunctorBase
+    HookFunctorBase(),
     alreadychecked(false),
     oldctrl(NULL),
     m_pSpellChecker(pSpellChecker),
@@ -48,13 +51,13 @@ void OnlineSpellChecker::Call(cbEditor* ctrl, wxScintillaEvent &event) const
     }
 }
 
-void OnlineSpellChecker::OnEditorChange(cb_unused cbEditor* ctrl) const
+void OnlineSpellChecker::OnEditorChange(cbEditor* ctrl) const
 {
     // clear internal states to force a refresh at next UpdateUI;
     alreadychecked = false;
 }
 
-int OnlineSpellChecker::GetIndicator()const
+const int OnlineSpellChecker::GetIndicator()const
 {
     const int theIndicator = 11;
     return theIndicator;
@@ -139,33 +142,26 @@ void OnlineSpellChecker::DoSetIndications(cbEditor* ctrl)const
         m_invalidatedRangesEnd.Add(stc->GetLength());
     }
     alreadychecked = true;
+    oldctrl = ctrl;
 
     // Set Styling:
     stc->SetIndicatorCurrent(GetIndicator());
-    if (oldctrl != ctrl)
-    {
-        stc->IndicatorSetStyle(GetIndicator(), wxSCI_INDIC_SQUIGGLE);
-        stc->IndicatorSetForeground(GetIndicator(), GetIndicatorColor() );
+    stc->IndicatorSetStyle(GetIndicator(), wxSCI_INDIC_SQUIGGLE);
+    stc->IndicatorSetForeground(GetIndicator(), GetIndicatorColor() );
 #ifndef wxHAVE_RAW_BITMAP
-        // If wxWidgets is build without rawbitmap-support, the indicators become opaque
-        // and hide the text, so we show them under the text.
-        // Not enabled as default, because the readability is a little bit worse.
-        stc->IndicatorSetUnder(GetIndicator(),true);
+    // If wxWidgets is build without rawbitmap-support, the indicators become opaque
+    // and hide the text, so we show them under the text.
+    // Not enabled as default, because the readability is a little bit worse.
+    stc->IndicatorSetUnder(GetIndicator(),true);
 #endif
-    }
     if ( stcr )
     {
-        if (oldctrl != ctrl)
-        {
-            stcr->IndicatorSetStyle(GetIndicator(), wxSCI_INDIC_SQUIGGLE);
-            stcr->IndicatorSetForeground(GetIndicator(), GetIndicatorColor() );
+        stcr->IndicatorSetStyle(GetIndicator(), wxSCI_INDIC_SQUIGGLE);
+        stcr->IndicatorSetForeground(GetIndicator(), GetIndicatorColor() );
 #ifndef wxHAVE_RAW_BITMAP
-            stcr->IndicatorSetUnder(GetIndicator(),true);
+        stcr->IndicatorSetUnder(GetIndicator(),true);
 #endif
-        }
     }
-
-    oldctrl = ctrl;
 
     // Manager::Get()->GetLogManager()->Log(wxT("OSC: update regions"));
 
@@ -224,7 +220,6 @@ void OnlineSpellChecker::DoSetIndications(cbEditor* ctrl)const
 void OnlineSpellChecker::DissectWordAndCheck(cbStyledTextCtrl *stc, int wordstart, int wordend)const
 {
     wxString word = stc->GetTextRange(wordstart, wordend);
-    const bool isMultibyte = ((int)word.Length() != wordend - wordstart);
     //Manager::Get()->GetLogManager()->Log(wxT("dissecting: \"") + word + wxT("\""));
     //and now decide whether the word is an abbreviation and split words when case changes to uppercase
     bool upper = wxIsupper(word[0]) != 0;
@@ -254,17 +249,7 @@ void OnlineSpellChecker::DissectWordAndCheck(cbStyledTextCtrl *stc, int wordstar
                 //check the word:
                 //Manager::Get()->GetLogManager()->Log(wxT("checking: \"") + word.Mid(a, b - a) + wxT("\""));
                 if ( !m_pSpellChecker->IsWordInDictionary(word.Mid(a, b - a)) )
-                {
-                    if (isMultibyte) // not perfect, so only try if necessary
-                    {
-                        int len = 0;
-                        const int startPos = stc->FindText(wordstart + a, wordend, word.Mid(a, b - a), wxSCI_FIND_MATCHCASE, &len);
-                        if (startPos != wxNOT_FOUND)
-                            stc->IndicatorFillRange(startPos, len);
-                    }
-                    else
-                        stc->IndicatorFillRange(wordstart + a, b - a);
-                }
+                    stc->IndicatorFillRange(wordstart + a, b - a);
                 //next:
                 a = c;
                 c++;
@@ -278,17 +263,7 @@ void OnlineSpellChecker::DissectWordAndCheck(cbStyledTextCtrl *stc, int wordstar
         //check the word:
         //Manager::Get()->GetLogManager()->Log(wxT("checking: \"") + word.Mid(a, b - a) + wxT("\""));
         if ( !m_pSpellChecker->IsWordInDictionary(word.Mid(a, b - a)) )
-        {
-            if (isMultibyte) // not perfect, so only try if necessary
-            {
-                int len = 0;
-                const int startPos = stc->FindText(wordstart + a, wordend, word.Mid(a, b - a), wxSCI_FIND_MATCHCASE, &len);
-                if (startPos != wxNOT_FOUND)
-                    stc->IndicatorFillRange(startPos, len);
-            }
-            else
-                stc->IndicatorFillRange(wordstart + a, b - a);
-        }
+            stc->IndicatorFillRange(wordstart + a, b - a);
     }
 }
 

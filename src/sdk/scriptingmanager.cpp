@@ -11,15 +11,15 @@
 
 #ifndef CB_PRECOMP
     #include "scriptingmanager.h"
-    #include "cbeditor.h"
     #include "cbexception.h"
-    #include "configmanager.h"
-    #include "editormanager.h"
-    #include "globals.h"
-    #include "logmanager.h"
     #include "manager.h"
-
+    #include "editormanager.h"
+    #include "logmanager.h"
+    #include "configmanager.h"
+    #include "cbeditor.h"
     #include <settings.h>
+    #include "globals.h"
+
     #include <wx/msgdlg.h>
     #include <wx/file.h>
     #include <wx/filename.h>
@@ -34,7 +34,7 @@
 #include "sc_plugin.h"
 #include "sqstdstring.h"
 
-template<> ScriptingManager* Mgr<ScriptingManager>::instance = nullptr;
+template<> ScriptingManager* Mgr<ScriptingManager>::instance = 0;
 template<> bool  Mgr<ScriptingManager>::isShutdown = false;
 
 static wxString s_ScriptErrors;
@@ -61,7 +61,7 @@ static void CaptureScriptOutput(HSQUIRRELVM /*v*/, const SQChar * s, ...)
     scvsprintf(temp,s,vl);
     ::capture.append(cbC2U(temp));
     va_end(vl);
-}
+};
 
 BEGIN_EVENT_TABLE(ScriptingManager, wxEvtHandler)
 //
@@ -280,8 +280,7 @@ bool ScriptingManager::RegisterScriptMenu(const wxString& menuPath, const wxStri
     }
 
     int id = wxNewId();
-    id = m_MenuItemsManager.CreateFromString(menuPath, id);
-    wxMenuItem* item = Manager::Get()->GetAppFrame()->GetMenuBar()->FindItem(id);
+    wxMenuItem* item = m_MenuItemsManager.CreateFromString(menuPath, id);
     if (item)
     {
         if (!isFunction)

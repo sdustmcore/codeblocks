@@ -46,7 +46,7 @@ namespace
     const long idEnable = wxNewId();
     const long idDisable = wxNewId();
     const long idShowTemp = wxNewId();
-}
+};
 
 BEGIN_EVENT_TABLE(BreakpointsDlg, wxPanel)
     EVT_MENU(idRemove, BreakpointsDlg::OnRemove)
@@ -103,6 +103,8 @@ BreakpointsDlg::BreakpointsDlg() :
     Connect(idList, -1, wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK,
             (wxObjectEventFunction) (wxEventFunction) (wxListEventFunction)
             &BreakpointsDlg::OnRightClick);
+
+    typedef cbEventFunctor<BreakpointsDlg, CodeBlocksEvent> CBEvent;
 
     Reload();
 }

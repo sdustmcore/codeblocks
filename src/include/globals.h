@@ -8,6 +8,7 @@
 
 #include <vector>
 
+#include "settings.h"
 #include <wx/string.h>
 #include <wx/treectrl.h>
 #include <wx/file.h>
@@ -15,8 +16,6 @@
 #include <wx/intl.h>
 #include <wx/msgdlg.h>
 #include <wx/bitmap.h>
-
-#include "settings.h"
 
 class TiXmlDocument;
 
@@ -108,25 +107,6 @@ enum FileVisualState
     fvsLast
 };
 
-class DLLIMPORT cbProjectTreeImages
-{
-    public:
-        static wxImageList* MakeImageList();
-
-        /** @return The workspace icon index in the image list.
-            @param  read_only Return the read-only icon for a workspace?
-         */
-        static int WorkspaceIconIndex(bool read_only = false);
-        /** @return The project icon index in the image list.
-            @param  read_only Return the read-only icon for a project?
-         */
-        static int ProjectIconIndex(bool read_only = false);
-        /** @return The folder icon index in the image list. */
-        static int FolderIconIndex();
-        /** @return The virtual folder icon index in the image list. */
-        static int VirtualFolderIconIndex();
-};
-
 /** These are valid values for the visual style of the project tree.
     They can be OR'ed to modify the representation of the project tree.
 */
@@ -199,17 +179,14 @@ extern DLLIMPORT wxString GetStringFromPlatforms(int platforms, bool forceSepara
 // see globals.cpp for info on the third argument (bool SeparatorAtEnd)
 extern DLLIMPORT wxString GetStringFromArray(const wxArrayString& array, const wxString& separator = DEFAULT_ARRAY_SEP, bool SeparatorAtEnd = true);
 extern DLLIMPORT wxArrayString GetArrayFromString(const wxString& text, const wxString& separator = DEFAULT_ARRAY_SEP, bool trimSpaces = true);
-typedef std::vector<wxString> wxStringVec;
-extern DLLIMPORT wxStringVec GetVectorFromString(const wxString& text,
-                                                 const wxString& separator = DEFAULT_ARRAY_SEP,
-                                                 bool trimSpaces = true);
+extern DLLIMPORT std::vector<wxString> GetVectorFromString(const wxString& text,
+                                                           const wxString& separator = DEFAULT_ARRAY_SEP,
+                                                           bool trimSpaces = true);
 extern DLLIMPORT wxArrayString MakeUniqueArray(const wxArrayString& array, bool caseSens);
-extern DLLIMPORT wxString MakeUniqueString(const wxString& text,  const wxString& separator = DEFAULT_ARRAY_SEP, bool caseSens = true);
 extern DLLIMPORT void AppendArray(const wxArrayString& from, wxArrayString& to);
 
 extern DLLIMPORT wxString UnixFilename(const wxString& filename, wxPathFormat format = wxPATH_NATIVE);
 extern DLLIMPORT void QuoteStringIfNeeded(wxString& str);
-extern DLLIMPORT bool NeedQuotes(const wxString &str);
 
 /// Escapes spaces and tabs (NOT quoting the string)
 extern DLLIMPORT wxString EscapeSpaces(const wxString& str);
@@ -231,12 +208,6 @@ extern DLLIMPORT wxString ChooseDirectory(wxWindow* parent,
 
 extern DLLIMPORT bool NormalizePath(wxFileName& f,const wxString& base);
 extern DLLIMPORT bool IsSuffixOfPath(wxFileName const & suffix, wxFileName const & path);
-
-/** Reads settings if eolMode is -1
-  * Expected input (defined in sdk/wxscintilla/include/wx/wxscintilla.h) is:
-  * wxSCI_EOL_CRLF=0, wxSCI_EOL_CR=1, or wxSCI_EOL_LF=2
-  */
-extern DLLIMPORT wxString GetEOLStr(int eolMode = -1);
 
 extern DLLIMPORT wxString URLEncode(const wxString &str);
 
@@ -292,15 +263,10 @@ class wxListCtrl;
   * @param style The style to use.
   */
 extern DLLIMPORT void SetSettingsIconsStyle(wxListCtrl* lc, SettingsIconsStyle style);
-/** Get the icons style set in environment-dialog.
-  * This version is left for backwardscompatibility.
+/** Get the icons style for the supplied list control.
   * @return The icons style.
   */
 extern DLLIMPORT SettingsIconsStyle GetSettingsIconsStyle(wxListCtrl* lc);
-/** Get the icons style set in environment-dialog.
-  * @return The icons style.
-  */
-extern DLLIMPORT SettingsIconsStyle GetSettingsIconsStyle();
 
 class wxWindow;
 

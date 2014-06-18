@@ -1,21 +1,16 @@
 //////////////////////////////////////////////////////////////////////////////
 // Name:        filedlgg.cpp
-// Purpose:     wxGenericFileDialog stub to include the wxWidget's source file by the same name
-// Author:      John Labenski
+// Purpose:     wxGenericFileDialog stub to include the source
+// Author:      John Labenski, Robert Roebling
 // Modified by:
 // Created:     12/12/98
 // RCS-ID:
-// Copyright:   (c) John Labenski
+// Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-// wxWidgets does not compile wxWidgets/src/generic/filedlgg.cpp into the
-// library in MSW. In Linux/OSX wxWidgets does use the generic filedialog.
-// This file will include the source in wxWidgets/src/generic/filedlgg.cpp
-// only on platforms that do not already have it compiled into the wxWidgets lib.
-
-// NOTE: MSVC cannot use environment var $(WXWIN)/src/generic/filedlgg.cpp in
-// their project files to allow you to compile the generic file dialog.
+// MSVC cannot use environment var $(WXWIN)/src/generic/filedlgg.cpp in their
+// project files to allow you to compile the generic file dialog.
 // You have to specify the relative or absolute path to the wxWidgets
 // distribution which is annoying since everyone will probably have it in a
 // different place. By #including the source from this file we can avoid this
@@ -26,15 +21,16 @@
 #include "wx/things/thingdef.h"
 
 #include <wx/defs.h>
-#include <wx/filedlg.h>          // Will include "wx/generic/filedlgg.h" on platforms that use it
+#include <wx/filedlg.h>
 #include <wx/volume.h>           // wxFSVolumeBase
 #include "wx/generic/dirctrlg.h" // wxFileIconsTable
-
-// We don't need to #include this file here
 //#include "wx/generic/filedlgg.h"
-// and if we didn't include the generic filedlgg.h then include the source here
 
-#ifndef _WX_FILEDLGG_H_ // header guard of "wx/generic/filedlgg.h" 
+// If we didn't include the generic filedlgg then include the source here
+// NOTE: There may be special cases where more sophisticated tests may be
+//       required.
+
+#ifndef _WX_FILEDLGG_H_
 
     // Typically we have $(WXWIN)/include in the search path so this should
     // find the path to filedlgg correctly.

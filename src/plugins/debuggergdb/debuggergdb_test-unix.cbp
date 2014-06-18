@@ -18,16 +18,17 @@
 		</VirtualTargets>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add option="-ansi" />
 			<Add option="$(#CB_RELEASE_TYPE)" />
 			<Add option="`wx-config --cflags`" />
 			<Add option="-pipe" />
 			<Add option="-fmessage-length=0" />
 			<Add option="-fexceptions" />
+			<Add option="-Ulinux" />
+			<Add option="-Uunix" />
 			<Add option="-fPIC" />
 			<Add option="-DcbDEBUG" />
 			<Add option="-DCB_TEST_PROJECT" />
-			<Add directory="$(#unittest_pp.include)" />
+			<Add directory="$(#unittest_pp)/src" />
 			<Add directory="." />
 			<Add directory="../../include" />
 			<Add directory="../../include/scripting/include" />
@@ -38,7 +39,7 @@
 			<Add option="-z defs" />
 			<Add library="codeblocks" />
 			<Add library="UnitTest++" />
-			<Add directory="$(#unittest_pp.lib)/" />
+			<Add directory="$(#unittest_pp)/" />
 			<Add directory="../../devel" />
 		</Linker>
 		<ExtraCommands>
@@ -51,7 +52,6 @@
 		<Unit filename="debuggergdb_test_common.h" />
 		<Unit filename="debuggergdb_test_defs.cpp" />
 		<Unit filename="debuggergdb_test_main.cpp" />
-		<Unit filename="debuggergdb_test_parse_locals.cpp" />
 		<Unit filename="debuggergdb_test_parser.cpp" />
 		<Unit filename="debuggergdb_test_parser_cdb.cpp" />
 		<Unit filename="debuggeroptionsprjdlg.h" />

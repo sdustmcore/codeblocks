@@ -106,7 +106,7 @@ namespace ScriptBindings
         int paramCount = sa.GetParamCount();
         if (paramCount == 2)
         {
-            cbEditor* ed = nullptr;
+            cbEditor* ed = 0;
             if (sa.GetType(2) == OT_INTEGER)
                 ed = Manager::Get()->GetEditorManager()->GetBuiltinEditor(sa.GetInt(2));
             else
@@ -179,7 +179,7 @@ namespace ScriptBindings
             bool b1 = paramCount >= 4 ? sa.GetBool(4) : true;
             bool b2 = paramCount >= 5 ? sa.GetBool(5) : true;
             int i = paramCount == 6 ? sa.GetInt(6) : 50;
-            ProjectFile* pf = nullptr;
+            ProjectFile* pf = 0;
             if (sa.GetType(2) == OT_INTEGER)
                 pf = prj->AddFile(sa.GetInt(2), str, b1, b2, i);
             else
@@ -196,7 +196,7 @@ namespace ScriptBindings
         if (paramCount == 2)
         {
             cbProject* prj = SqPlus::GetInstance<cbProject,false>(v, 1);
-            ProjectBuildTarget* bt = nullptr;
+            ProjectBuildTarget* bt = 0;
             if (sa.GetType(2) == OT_INTEGER)
                 bt = prj->GetBuildTarget(sa.GetInt(2));
             else
@@ -227,7 +227,7 @@ namespace ScriptBindings
         if (paramCount == 3)
         {
             cbProject* prj = SqPlus::GetInstance<cbProject,false>(v, 1);
-            ProjectBuildTarget* bt = nullptr;
+            ProjectBuildTarget* bt = 0;
             if (sa.GetType(2) == OT_INTEGER)
                 bt = prj->DuplicateBuildTarget(sa.GetInt(2), *SqPlus::GetInstance<wxString,false>(v, 3));
             else
@@ -317,22 +317,6 @@ namespace ScriptBindings
             }
         }
     }
-    SQInteger ProjectManager_RebuildTree(HSQUIRRELVM v)
-    {
-        StackHandler sa(v);
-        int paramCount = sa.GetParamCount();
-        if (paramCount == 1)
-        {
-            ProjectManager *manager = SqPlus::GetInstance<ProjectManager, false>(v, 1);
-            if (manager)
-            {
-                manager->GetUI().RebuildTree();
-                return sa.Return();
-            }
-            return sa.ThrowError("'this' is NULL!?! (type of ProjectManager*)");
-        }
-        return sa.ThrowError("Invalid arguments to \"ProjectManager::RebuildTree\"");
-    }
 
     SQInteger cbEditor_SetText(HSQUIRRELVM v)
     {
@@ -396,7 +380,6 @@ namespace ScriptBindings
                 func(&ProjectFile::AddBuildTarget, "AddBuildTarget").
                 func(&ProjectFile::RenameBuildTarget, "RenameBuildTarget").
                 func(&ProjectFile::RemoveBuildTarget, "RemoveBuildTarget").
-                func(&ProjectFile::GetBuildTargets, "GetBuildTargets").
                 func(&ProjectFile::GetBaseName, "GetBaseName").
                 func(&ProjectFile::GetObjName, "GetObjName").
                 func(&ProjectFile::SetObjName, "SetObjName").
@@ -530,7 +513,7 @@ namespace ScriptBindings
 //                func(&cbProject::SaveAs, "SaveAs"). // *UNSAFE*
                 func(&cbProject::SaveLayout, "SaveLayout").
                 func(&cbProject::LoadLayout, "LoadLayout").
-//                func(&cbProject::ShowOptions, "ShowOptions").
+                func(&cbProject::ShowOptions, "ShowOptions").
                 func(&cbProject::GetCommonTopLevelPath, "GetCommonTopLevelPath").
                 func(&cbProject::GetFilesCount, "GetFilesCount").
                 func(&cbProject::GetFile, "GetFile").
@@ -596,14 +579,14 @@ namespace ScriptBindings
                 func(&ProjectManager::CloseAllProjects, "CloseAllProjects").
                 func(&ProjectManager::NewProject, "NewProject").
                 staticFuncVarArgs(&ProjectManager_AddFileToProject, "AddFileToProject", "*").
-//                func(&ProjectManager::AskForBuildTargetIndex, "AskForBuildTargetIndex").
+                func(&ProjectManager::AskForBuildTargetIndex, "AskForBuildTargetIndex").
+                func(&ProjectManager::RebuildTree, "RebuildTree").
                 func(&ProjectManager::AddProjectDependency, "AddProjectDependency").
                 func(&ProjectManager::RemoveProjectDependency, "RemoveProjectDependency").
                 func(&ProjectManager::ClearProjectDependencies, "ClearProjectDependencies").
                 func(&ProjectManager::RemoveProjectFromAllDependencies, "RemoveProjectFromAllDependencies").
                 func(&ProjectManager::GetDependenciesForProject, "GetDependenciesForProject").
-//                func(&ProjectManager::ConfigureProjectDependencies, "ConfigureProjectDependencies");
-                staticFuncVarArgs(&ProjectManager_RebuildTree, "RebuildTree", "*");
+                func(&ProjectManager::ConfigureProjectDependencies, "ConfigureProjectDependencies");
 
         SqPlus::SQClassDef<EditorBase>("EditorBase").
                 func(&EditorBase::GetFilename, "GetFilename").
@@ -662,6 +645,7 @@ namespace ScriptBindings
                 staticFuncVarArgs(&cbEditor_GetText, "GetText", "*");
 
         SqPlus::SQClassDef<EditorManager>("EditorManager").
+                func(&EditorManager::Configure, "Configure").
                 func(&EditorManager::New, "New").
                 staticFuncVarArgs(&EditorManager_Open, "Open").
                 func(&EditorManager::IsBuiltinOpen, "IsBuiltinOpen").
@@ -678,8 +662,8 @@ namespace ScriptBindings
                 func(&EditorManager::SaveActive, "SaveActive").
                 func(&EditorManager::SaveAs, "SaveAs").
                 func(&EditorManager::SaveActiveAs, "SaveActiveAs").
-                func(&EditorManager::SaveAll, "SaveAll");
-        //        func(&EditorManager::ShowFindDialog, "ShowFindDialog");
+                func(&EditorManager::SaveAll, "SaveAll").
+                func(&EditorManager::ShowFindDialog, "ShowFindDialog");
 
         SqPlus::SQClassDef<UserVariableManager>("UserVariableManager").
                 func(&UserVariableManager::Exists, "Exists");

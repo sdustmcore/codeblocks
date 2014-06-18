@@ -14,7 +14,6 @@
 #include <wx/string.h>
 //*)
 
-#include <algorithm>
 #include <sdk.h>
 #include <manager.h>
 #include <configmanager.h>
@@ -91,6 +90,7 @@ END_EVENT_TABLE()
 
 LibrariesDlg::LibrariesDlg(wxWindow* parent, TypedResults& knownLibraries)
     : m_KnownLibraries(knownLibraries)
+    , m_WorkingCopy(knownLibraries)
     , m_SelectedConfig(0)
     , m_WhileUpdating(false)
 {
@@ -123,8 +123,6 @@ LibrariesDlg::LibrariesDlg(wxWindow* parent, TypedResults& knownLibraries)
     wxFlexGridSizer* FlexGridSizer1;
     wxBoxSizer* BoxSizer3;
     wxStdDialogButtonSizer* StdDialogButtonSizer1;
-
-    std::copy(m_KnownLibraries, m_KnownLibraries+sizeof(m_WorkingCopy)/sizeof(m_WorkingCopy[0]), m_WorkingCopy);
 
     Create(parent, wxID_ANY, _("Registered libraries"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
     BoxSizer1 = new wxBoxSizer(wxVERTICAL);

@@ -28,8 +28,6 @@ class WatchesDlg : public wxPanel, public cbWatchesDlg
 
         void UpdateWatches();
         void AddWatch(cb::shared_ptr<cbWatch> watch);
-        void AddSpecialWatch(cb::shared_ptr<cbWatch> watch, bool readonly);
-        void RemoveWatch(cb::shared_ptr<cbWatch> watch);
         void RenameWatch(wxObject *prop, const wxString &newSymbol);
         void RefreshUI();
     private:
@@ -49,8 +47,6 @@ class WatchesDlg : public wxPanel, public cbWatchesDlg
         void OnMenuDelete(wxCommandEvent &event);
         void OnMenuDeleteAll(wxCommandEvent &event);
         void OnMenuAddDataBreak(wxCommandEvent &event);
-        void OnMenuAutoUpdate(wxCommandEvent &event);
-        void OnMenuUpdate(wxCommandEvent &event);
 
         DECLARE_EVENT_TABLE()
 
@@ -58,15 +54,9 @@ class WatchesDlg : public wxPanel, public cbWatchesDlg
 
         struct WatchItem
         {
-            WatchItem() : readonly(false), special(false) {}
-
             cb::shared_ptr<cbWatch> watch;
-            WatchesProperty *property;
-            bool readonly;
-            bool special;
+            wxPGProperty *property;
         };
-        struct WatchItemPredicate;
-
         typedef std::vector<WatchItem> WatchItems;
 
         wxPropertyGrid *m_grid;

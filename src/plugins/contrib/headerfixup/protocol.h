@@ -35,6 +35,7 @@ public:
   void SetProtocol(const wxArrayString& Protocol);
 
   //(*Identifiers(Protocol)
+  static const long ID_LBL_PROTOCOL;
   static const long ID_TXT_PROTOCOL;
   //*)
 
@@ -45,7 +46,11 @@ protected:
   //*)
 
   //(*Declarations(Protocol)
+  wxBoxSizer* sizMain;
   wxTextCtrl* m_Protocol;
+  wxStaticBoxSizer* sizProtocol;
+  wxStaticText* lblProtocol;
+  wxButton* m_OK;
   //*)
 
 private:

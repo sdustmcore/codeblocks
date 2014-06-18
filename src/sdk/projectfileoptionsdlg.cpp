@@ -13,7 +13,6 @@
     #include "cbproject.h"
     #include "compilerfactory.h"
     #include "editormanager.h"
-    #include "editorcolourset.h"
     #include "logmanager.h"
     #include "projectmanager.h"
     #include <wx/xrc/xmlres.h>
@@ -29,7 +28,7 @@
     #include <wx/sizer.h>
 #endif
 
-#ifdef __WXMSW__
+#if (__WXMSW__)
 // TODO: equivalent??? -> #include <errno.h>
 #else
 #include <errno.h>
@@ -41,14 +40,20 @@
 #include <wx/textfile.h>
 
 BEGIN_EVENT_TABLE(ProjectFileOptionsDlg, wxScrollingDialog)
-    EVT_CHECKBOX (XRCID("chkReadOnly"), ProjectFileOptionsDlg::OnReadOnlyCheck)
-    EVT_CHOICE   (XRCID("cmbBuildStageCompiler"), ProjectFileOptionsDlg::OnCompilerCombo)
+    EVT_CHECKBOX (-1, ProjectFileOptionsDlg::OnReadOnlyCheck)
+    EVT_CHOICE   (-1, ProjectFileOptionsDlg::OnCompilerCombo)
     EVT_UPDATE_UI(-1, ProjectFileOptionsDlg::OnUpdateUI)
 END_EVENT_TABLE()
 
-// some help functions (copied and adapted from the codestat plug-in)
+// some help functions and type (copied and adapted from the codestat plug-in)
+struct SLanguageDef
+{
+    wxArrayString ext;
+    wxString      single_line_comment;
+    wxString      multiple_line_comment[2];
+};
 
-inline void AnalyseLine(const CommentToken &language, wxString line, bool &comment, bool &code, bool &multi_line_comment)
+void AnalyseLine(const SLanguageDef &language, wxString line, bool &comment, bool &code, bool &multi_line_comment)
 {
     int first_single_line_comment, first_multi_line_comment_begin, first_multi_line_comment_end;
 
@@ -60,14 +65,14 @@ inline void AnalyseLine(const CommentToken &language, wxString line, bool &comme
         return;
 
     // Searching for single and multi-lines comment signs
-    if (language.lineComment.Length() > 0)
-        first_single_line_comment = line.Find(language.lineComment);
+    if (language.single_line_comment.Length() > 0)
+        first_single_line_comment = line.Find(language.single_line_comment);
     else first_single_line_comment = -1;
-    if (language.streamCommentStart.Length() > 0)
-        first_multi_line_comment_begin = line.Find(language.streamCommentStart);
+    if (language.multiple_line_comment[0].Length() > 0)
+        first_multi_line_comment_begin = line.Find(language.multiple_line_comment[0]);
     else first_multi_line_comment_begin = -1;
-    if (language.streamCommentEnd.Length() > 0)
-        first_multi_line_comment_end = line.Find(language.streamCommentEnd);
+    if (language.multiple_line_comment[1].Length() > 0)
+        first_multi_line_comment_end = line.Find(language.multiple_line_comment[1]);
     else first_multi_line_comment_end = -1;
 
     // We are in a multiple line comment => finding the "end of multiple line comment" sign
@@ -77,8 +82,8 @@ inline void AnalyseLine(const CommentToken &language, wxString line, bool &comme
         if (first_multi_line_comment_end > -1)
         {
             multi_line_comment = false;
-            if (first_multi_line_comment_end+language.streamCommentEnd.Length() < line.Length())
-                AnalyseLine(language, line.Mid(first_multi_line_comment_end+language.streamCommentEnd.Length()), comment, code, multi_line_comment);
+            if (first_multi_line_comment_end+language.multiple_line_comment[1].Length() < line.Length())
+                AnalyseLine(language, line.Mid(first_multi_line_comment_end+language.multiple_line_comment[1].Length()), comment, code, multi_line_comment);
         }
     }
     // We are not in a multiple line comment
@@ -99,8 +104,8 @@ inline void AnalyseLine(const CommentToken &language, wxString line, bool &comme
             comment = true;
             if (first_multi_line_comment_begin > 0)
                 code = true;
-            if (first_multi_line_comment_begin+language.streamCommentStart.Length() < line.Length())
-                AnalyseLine(language, line.Mid(first_multi_line_comment_begin+language.streamCommentStart.Length()), comment, code, multi_line_comment);
+            if (first_multi_line_comment_begin+language.multiple_line_comment[0].Length() < line.Length())
+                AnalyseLine(language, line.Mid(first_multi_line_comment_begin+language.multiple_line_comment[0].Length()), comment, code, multi_line_comment);
         }
         else
         {
@@ -109,10 +114,9 @@ inline void AnalyseLine(const CommentToken &language, wxString line, bool &comme
     }
 }
 
-inline void CountLines(wxFileName filename, const CommentToken &language,
-                       long int &code_lines, long int &codecomments_lines,
-                       long int &comment_lines, long int &empty_lines,
-                       long int &total_lines)
+void CountLines(wxFileName filename, const SLanguageDef &language,
+                long int &code_lines, long int &codecomments_lines,
+                long int &comment_lines, long int &empty_lines, long int &total_lines)
 {
     wxTextFile file;
     if (file.Open(filename.GetFullPath(), wxConvFile))
@@ -194,7 +198,7 @@ ProjectFileOptionsDlg::ProjectFileOptionsDlg(wxWindow* parent, ProjectFile* pf) 
 }
 
 ProjectFileOptionsDlg::ProjectFileOptionsDlg(wxWindow* parent, const wxString& fileName) :
-    m_ProjectFile(nullptr),
+    m_ProjectFile(0),
     m_FileNameStr(fileName),
     m_FileName(),
     m_LastBuildStageCompilerSel(-1)
@@ -274,7 +278,7 @@ void ProjectFileOptionsDlg::EndModal(int retCode)
     if (retCode == wxID_OK && m_ProjectFile)
     {
         wxCheckListBox *list = XRCCTRL(*this, "lstTargets", wxCheckListBox);
-        for (size_t i = 0; i < list->GetCount(); i++)
+        for (int i = 0; i < (int)list->GetCount(); i++)
         {
             if (list->IsChecked(i))
                 m_ProjectFile->AddBuildTarget(list->GetString(i));
@@ -295,7 +299,7 @@ void ProjectFileOptionsDlg::EndModal(int retCode)
 
         cbProject* prj = m_ProjectFile->GetParentProject();
         prj->SetModified(true);
-        Manager::Get()->GetProjectManager()->GetUI().RebuildTree();
+        Manager::Get()->GetProjectManager()->RebuildTree();
     }
 
     wxScrollingDialog::EndModal(retCode);
@@ -303,20 +307,42 @@ void ProjectFileOptionsDlg::EndModal(int retCode)
 
 void ProjectFileOptionsDlg::FillGeneralProperties()
 {
-    // count some statistics of the file
+    // count some statistics of the file (only c/c++ files for the moment)
+    SLanguageDef langCPP;
+    langCPP.ext.Add(_T("c"));
+    langCPP.ext.Add(_T("cc"));
+    langCPP.ext.Add(_T("cxx"));
+    langCPP.ext.Add(_T("cpp"));
+    langCPP.ext.Add(_T("c++"));
+    langCPP.ext.Add(_T("h"));
+    langCPP.ext.Add(_T("hh"));
+    langCPP.ext.Add(_T("hxx"));
+    langCPP.ext.Add(_T("hpp"));
+    langCPP.ext.Add(_T("h++"));
+    langCPP.single_line_comment = _T("//");
+    langCPP.multiple_line_comment[0] = _T("/*");
+    langCPP.multiple_line_comment[1] = _T("*/");
+
     m_FileName.Assign(m_FileNameStr);
     if (m_FileName.FileExists())
     {
-        EditorColourSet* colourSet = Manager::Get()->GetEditorManager()->GetColourSet();
-        const HighlightLanguage& lang = colourSet->GetLanguageForFilename(m_FileNameStr);
-        if (lang != HL_NONE)
+        bool bExtOk = false;
+        for (int j = 0; j < (int) langCPP.ext.Count(); ++j)
+        {
+            if (m_FileName.GetExt() == langCPP.ext[j])
+            {
+                bExtOk = true;
+                break;
+            }
+        }
+        if (bExtOk)
         {
             long int total_lines = 0;
             long int code_lines = 0;
             long int empty_lines = 0;
             long int comment_lines = 0;
             long int codecomments_lines = 0;
-            CountLines(m_FileName, colourSet->GetCommentToken(lang), code_lines, codecomments_lines, comment_lines, empty_lines, total_lines);
+            CountLines(m_FileName, langCPP, code_lines, codecomments_lines, comment_lines, empty_lines, total_lines);
             XRCCTRL(*this, "staticTotalLines",   wxStaticText)->SetLabel(wxString::Format(_T("%ld"), total_lines));
             XRCCTRL(*this, "staticEmptyLines",   wxStaticText)->SetLabel(wxString::Format(_T("%ld"), empty_lines));
             XRCCTRL(*this, "staticActualLines",  wxStaticText)->SetLabel(wxString::Format(_T("%ld"), code_lines + codecomments_lines));
@@ -389,7 +415,7 @@ void ProjectFileOptionsDlg::SaveBuildCommandSelection()
 
 bool ProjectFileOptionsDlg::ToggleFileReadOnly(bool setReadOnly)
 {
-#ifdef __WXMSW__
+#if (__WXMSW__)
     // Check for failure
     const int MS_MODE_MASK = 0x0000ffff; // low word
     int mask = setReadOnly ? _S_IREAD : ( _S_IREAD | _S_IWRITE );

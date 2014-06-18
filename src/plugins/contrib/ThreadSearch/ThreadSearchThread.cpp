@@ -94,21 +94,8 @@ void *ThreadSearchThread::Entry()
         int flags = wxDIR_FILES | wxDIR_DIRS | wxDIR_DOTDOT;
         flags    |= m_FindData.GetHiddenSearch() ? wxDIR_HIDDEN : 0;
 
-        const wxString &path = m_FindData.GetSearchPath(true);
-        if (!wxDir::Exists(path))
-        {
-            ThreadSearchEvent event(wxEVT_THREAD_SEARCH_ERROR, -1);
-            event.SetString(_("Cannot open folder ") + path);
-
-            // Using wxPostEvent, we avoid multi-threaded memory violation.
-            wxPostEvent(m_pThreadSearchView,event);
-            return 0;
-        }
-        else
-        {
-            wxDir Dir(path);
-            Dir.Traverse(*(static_cast<wxDirTraverser*>(this)), wxEmptyString, flags);
-        }
+        wxDir Dir(m_FindData.GetSearchPath(true));
+        Dir.Traverse(*(static_cast<wxDirTraverser*>(this)), wxEmptyString, flags);
 
         // Tests thread stop (cancel search, app shutdown)
         if ( TestDestroy() == true ) return 0;
@@ -118,9 +105,9 @@ void *ThreadSearchThread::Entry()
     if ( m_FindData.MustSearchInWorkspace() == true )
     {
         ProjectsArray* pProjectsArray = Manager::Get()->GetProjectManager()->GetProjects();
-        for ( size_t j=0; j < pProjectsArray->GetCount(); ++j )
+        for ( size_t i=0; i < pProjectsArray->GetCount(); ++i )
         {
-            AddProjectFiles(m_FilePaths, *pProjectsArray->Item(j));
+            AddProjectFiles(m_FilePaths, *pProjectsArray->Item(i));
             if ( TestDestroy() == true ) return 0;
         }
     }

@@ -25,7 +25,6 @@
     #include "cbeditor.h"
     #include "configmanager.h"
     #include "editorcolourset.h"
-    #include "infowindow.h"
     #include "logmanager.h"
 #endif
 
@@ -53,12 +52,21 @@ const          int TIMER_PERIOD        = 100;
 ThreadSearchView::ThreadSearchView(ThreadSearch& threadSearchPlugin)
                  :wxPanel(Manager::Get()->GetAppWindow())
                  ,m_ThreadSearchPlugin(threadSearchPlugin)
-                 ,m_Timer(this, controlIDs.Get(ControlIDs::idTmrListCtrlUpdate))
+                 ,m_Timer(this, idTmrListCtrlUpdate)
                  ,m_StoppingThread(0)
 {
     m_pFindThread = NULL;
     m_pToolBar    = NULL;
-    const wxString &prefix = GetImagePrefix();
+    wxString prefix;
+    ConfigManager *cfg = Manager::Get()->GetConfigManager(_T("app"));
+    if (cfg->ReadBool(_T("/environment/toolbar_size"),true))
+    {
+        prefix = ConfigManager::GetDataFolder() + _T("/images/ThreadSearch/16x16/");
+    }
+    else
+    {
+        prefix = ConfigManager::GetDataFolder() + _T("/images/ThreadSearch/22x22/");
+    }
 
     // begin wxGlade: ThreadSearchView::ThreadSearchView
     m_pSplitter = new wxSplitterWindow(this, -1, wxDefaultPosition, wxSize(1,1), wxSP_3D|wxSP_BORDER|wxSP_PERMIT_UNSPLIT);
@@ -68,29 +76,21 @@ ThreadSearchView::ThreadSearchView(ThreadSearch& threadSearchPlugin)
     const wxString m_pCboSearchExpr_choices[] = {
 
     };
-    m_pCboSearchExpr = new wxComboBox(this, controlIDs.Get(ControlIDs::idCboSearchExpr), wxEmptyString,
-                                      wxDefaultPosition, wxDefaultSize, 0, m_pCboSearchExpr_choices,
-                                      wxCB_DROPDOWN|wxTE_PROCESS_ENTER);
-    m_pBtnSearch = new wxBitmapButton(this, controlIDs.Get(ControlIDs::idBtnSearch),
-                                      wxBitmap(prefix + wxT("findf.png"), wxBITMAP_TYPE_PNG),
-                                      wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW);
-    m_pBtnOptions = new wxBitmapButton(this, controlIDs.Get(ControlIDs::idBtnOptions),
-                                       wxBitmap(prefix + wxT("options.png"), wxBITMAP_TYPE_PNG),
-                                       wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW);
+    m_pCboSearchExpr = new wxComboBox(this, idCboSearchExpr, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, m_pCboSearchExpr_choices, wxCB_DROPDOWN|wxTE_PROCESS_ENTER);
+    m_pBtnSearch = new wxBitmapButton(this, idBtnSearch, wxBitmap(prefix + wxT("findf.png"), wxBITMAP_TYPE_PNG), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW);
+    m_pBtnOptions = new wxBitmapButton(this, idBtnOptions, wxBitmap(prefix + wxT("options.png"), wxBITMAP_TYPE_PNG), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW);//wxT("Options"));
     m_pStaticLine1 = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_VERTICAL);
     m_pStaTxtSearchIn = new wxStaticText(this, -1, _("Search in "));
     m_pPnlSearchIn = new SearchInPanel(this, -1);
     m_pStaticLine2 = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_VERTICAL);
-    m_pBtnShowDirItems = new wxBitmapButton(this, controlIDs.Get(ControlIDs::idBtnShowDirItemsClick),
-                                            wxBitmap(prefix + wxT("showdir.png"), wxBITMAP_TYPE_PNG),
-                                            wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW);
-    m_pPnlDirParams = new DirectoryParamsPanel(&threadSearchPlugin.GetFindData(), this, -1);
+    m_pBtnShowDirItems = new wxBitmapButton(this, idBtnShowDirItemsClick, wxBitmap(prefix + wxT("showdir.png"), wxBITMAP_TYPE_PNG), wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW);
+    m_pPnlDirParams = new DirectoryParamsPanel(this, -1);
     m_pSearchPreview = new cbStyledTextCtrl(m_pPnlPreview, wxID_ANY, wxDefaultPosition, wxSize(1,1));
     m_pLogger = ThreadSearchLoggerBase::BuildThreadSearchLoggerBase(*this, m_ThreadSearchPlugin,
                                                                     m_ThreadSearchPlugin.GetLoggerType(),
                                                                     m_ThreadSearchPlugin.GetFileSorting(),
                                                                     m_pPnlListLog,
-                                                                    controlIDs.Get(ControlIDs::idWndLogger));
+                                                                    idWndLogger);
 
     set_properties();
     do_layout();
@@ -107,6 +107,13 @@ ThreadSearchView::ThreadSearchView(ThreadSearch& threadSearchPlugin)
             (wxObjectEventFunction) (wxEventFunction) (wxContextMenuEventFunction)
             &ThreadSearchView::OnContextMenu);
 
+    Connect(idTxtSearchDirPath, wxEVT_COMMAND_TEXT_UPDATED,
+            (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction)
+            &ThreadSearchView::OnTxtSearchDirPathTextEvent);
+
+    Connect(idTxtSearchMask, wxEVT_COMMAND_TEXT_UPDATED,
+            (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction)
+            &ThreadSearchView::OnTxtSearchMaskTextEvent);
     Connect(wxEVT_THREAD_SEARCH_ERROR,
             (wxObjectEventFunction)&ThreadSearchView::OnThreadSearchErrorEvent);
 }
@@ -130,6 +137,13 @@ ThreadSearchView::~ThreadSearchView()
             (wxObjectEventFunction) (wxEventFunction) (wxContextMenuEventFunction)
             &ThreadSearchView::OnContextMenu);
 
+    Disconnect(idTxtSearchDirPath, wxEVT_COMMAND_TEXT_UPDATED,
+            (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction)
+            &ThreadSearchView::OnTxtSearchDirPathTextEvent);
+
+    Disconnect(idTxtSearchMask, wxEVT_COMMAND_TEXT_UPDATED,
+            (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction)
+            &ThreadSearchView::OnTxtSearchMaskTextEvent);
     Disconnect(wxEVT_THREAD_SEARCH_ERROR,
             (wxObjectEventFunction)&ThreadSearchView::OnThreadSearchErrorEvent);
 
@@ -143,41 +157,42 @@ ThreadSearchView::~ThreadSearchView()
 // events are managed by parent ie this ThreadSearchView class.
 BEGIN_EVENT_TABLE(ThreadSearchView, wxPanel)
     // begin wxGlade: ThreadSearchView::event_table
-    EVT_TEXT_ENTER(controlIDs.Get(ControlIDs::idCboSearchExpr), ThreadSearchView::OnCboSearchExprEnter)
-    EVT_TEXT_ENTER(controlIDs.Get(ControlIDs::idSearchDirPath), ThreadSearchView::OnCboSearchExprEnter)
-    EVT_TEXT_ENTER(controlIDs.Get(ControlIDs::idSearchMask), ThreadSearchView::OnCboSearchExprEnter)
-    EVT_BUTTON(controlIDs.Get(ControlIDs::idBtnSearch), ThreadSearchView::OnBtnSearchClick)
-    EVT_BUTTON(controlIDs.Get(ControlIDs::idBtnOptions), ThreadSearchView::OnBtnOptionsClick)
+    EVT_TEXT_ENTER(idCboSearchExpr, ThreadSearchView::OnCboSearchExprEnter)
+    EVT_TEXT_ENTER(idTxtSearchDirPath, ThreadSearchView::OnCboSearchExprEnter)
+    EVT_TEXT_ENTER(idTxtSearchMask, ThreadSearchView::OnCboSearchExprEnter)
+    EVT_BUTTON(idBtnSearch, ThreadSearchView::OnBtnSearchClick)
+    EVT_BUTTON(idBtnOptions, ThreadSearchView::OnBtnOptionsClick)
 
-    EVT_MENU(controlIDs.Get(ControlIDs::idOptionDialog), ThreadSearchView::OnShowOptionsDialog)
-    EVT_MENU(controlIDs.Get(ControlIDs::idOptionWholeWord), ThreadSearchView::OnQuickOptions)
-    EVT_MENU(controlIDs.Get(ControlIDs::idOptionStartWord), ThreadSearchView::OnQuickOptions)
-    EVT_MENU(controlIDs.Get(ControlIDs::idOptionMatchCase), ThreadSearchView::OnQuickOptions)
-    EVT_MENU(controlIDs.Get(ControlIDs::idOptionRegEx), ThreadSearchView::OnQuickOptions)
+    EVT_MENU(idOptionDialog, ThreadSearchView::OnShowOptionsDialog)
+    EVT_MENU(idOptionWholeWord, ThreadSearchView::OnQuickOptions)
+    EVT_MENU(idOptionStartWord, ThreadSearchView::OnQuickOptions)
+    EVT_MENU(idOptionMatchCase, ThreadSearchView::OnQuickOptions)
+    EVT_MENU(idOptionRegEx, ThreadSearchView::OnQuickOptions)
 
-    EVT_UPDATE_UI(controlIDs.Get(ControlIDs::idOptionWholeWord), ThreadSearchView::OnQuickOptionsUpdateUI)
-    EVT_UPDATE_UI(controlIDs.Get(ControlIDs::idOptionStartWord), ThreadSearchView::OnQuickOptionsUpdateUI)
-    EVT_UPDATE_UI(controlIDs.Get(ControlIDs::idOptionMatchCase), ThreadSearchView::OnQuickOptionsUpdateUI)
-    EVT_UPDATE_UI(controlIDs.Get(ControlIDs::idOptionRegEx), ThreadSearchView::OnQuickOptionsUpdateUI)
+    EVT_UPDATE_UI(idOptionWholeWord, ThreadSearchView::OnQuickOptionsUpdateUI)
+    EVT_UPDATE_UI(idOptionStartWord, ThreadSearchView::OnQuickOptionsUpdateUI)
+    EVT_UPDATE_UI(idOptionMatchCase, ThreadSearchView::OnQuickOptionsUpdateUI)
+    EVT_UPDATE_UI(idOptionRegEx, ThreadSearchView::OnQuickOptionsUpdateUI)
 
-    EVT_BUTTON(controlIDs.Get(ControlIDs::idBtnShowDirItemsClick), ThreadSearchView::OnBtnShowDirItemsClick)
+    EVT_BUTTON(idBtnShowDirItemsClick, ThreadSearchView::OnBtnShowDirItemsClick)
     EVT_SPLITTER_DCLICK(-1, ThreadSearchView::OnSplitterDoubleClick)
     // end wxGlade
 
-    EVT_TOGGLEBUTTON(controlIDs.Get(ControlIDs::idBtnSearchOpenFiles),      ThreadSearchView::OnBtnSearchOpenFiles)
-    EVT_TOGGLEBUTTON(controlIDs.Get(ControlIDs::idBtnSearchTargetFiles),    ThreadSearchView::OnBtnSearchTargetFiles)
-    EVT_TOGGLEBUTTON(controlIDs.Get(ControlIDs::idBtnSearchProjectFiles),   ThreadSearchView::OnBtnSearchProjectFiles)
-    EVT_TOGGLEBUTTON(controlIDs.Get(ControlIDs::idBtnSearchWorkspaceFiles), ThreadSearchView::OnBtnSearchWorkspaceFiles)
-    EVT_TOGGLEBUTTON(controlIDs.Get(ControlIDs::idBtnSearchDirectoryFiles), ThreadSearchView::OnBtnSearchDirectoryFiles)
+    EVT_TOGGLEBUTTON(idBtnSearchOpenFiles,      ThreadSearchView::OnBtnSearchOpenFiles)
+    EVT_TOGGLEBUTTON(idBtnSearchTargetFiles,    ThreadSearchView::OnBtnSearchTargetFiles)
+    EVT_TOGGLEBUTTON(idBtnSearchProjectFiles,   ThreadSearchView::OnBtnSearchProjectFiles)
+    EVT_TOGGLEBUTTON(idBtnSearchWorkspaceFiles, ThreadSearchView::OnBtnSearchWorkspaceFiles)
+    EVT_TOGGLEBUTTON(idBtnSearchDirectoryFiles, ThreadSearchView::OnBtnSearchDirectoryFiles)
+    EVT_CHECKBOX(idChkSearchDirRecurse,   ThreadSearchView::OnChkSearchDirRecurse)
+    EVT_CHECKBOX(idChkSearchDirHidden,    ThreadSearchView::OnChkSearchDirHidden)
 
-    EVT_TIMER(controlIDs.Get(ControlIDs::idTmrListCtrlUpdate),          ThreadSearchView::OnTmrListCtrlUpdate)
+    EVT_TIMER(idTmrListCtrlUpdate,          ThreadSearchView::OnTmrListCtrlUpdate)
 END_EVENT_TABLE();
 
 
 void ThreadSearchView::OnThreadSearchErrorEvent(const ThreadSearchEvent& event)
 {
     Manager::Get()->GetLogManager()->Log(F(_T("ThreadSearch: %s"), event.GetString().wx_str()));
-    InfoWindow::Display(_("Thread Search Error"), event.GetString());
 }
 
 void ThreadSearchView::OnCboSearchExprEnter(wxCommandEvent &/*event*/)
@@ -232,15 +247,12 @@ void ThreadSearchView::OnBtnSearchClick(wxCommandEvent &/*event*/)
 void ThreadSearchView::OnBtnOptionsClick(wxCommandEvent &/*event*/)
 {
     wxMenu menu;
-    menu.Append(controlIDs.Get(ControlIDs::idOptionDialog), _("Options"), _("Shows the options dialog"));
+    menu.Append(idOptionDialog, _("Options"), _("Shows the options dialog"));
     menu.AppendSeparator();
-    menu.AppendCheckItem(controlIDs.Get(ControlIDs::idOptionWholeWord),
-                         _("Whole word"), _("Search text matches only whole words"));
-    menu.AppendCheckItem(controlIDs.Get(ControlIDs::idOptionStartWord),
-                         _("Start word"), _("Matches only word starting with search expression"));
-    menu.AppendCheckItem(controlIDs.Get(ControlIDs::idOptionMatchCase), _("Match case"), _("Case sensitive search."));
-    menu.AppendCheckItem(controlIDs.Get(ControlIDs::idOptionRegEx),
-                         _("Regular expression"), _("Search expression is a regular expression"));
+    menu.AppendCheckItem(idOptionWholeWord, _("Whole word"), _("Search text matches only whole words"));
+    menu.AppendCheckItem(idOptionStartWord, _("Start word"), _("Matches only word starting with search expression"));
+    menu.AppendCheckItem(idOptionMatchCase, _("Match case"), _("Case sensitive search."));
+    menu.AppendCheckItem(idOptionRegEx, _("Regular expression"), _("Search expression is a regular expression"));
 
     PopupMenu(&menu);
 }
@@ -262,54 +274,45 @@ void ThreadSearchView::OnShowOptionsDialog(wxCommandEvent &/*event*/)
 void ThreadSearchView::OnQuickOptions(wxCommandEvent &event)
 {
     ThreadSearchFindData findData = m_ThreadSearchPlugin.GetFindData();
-    bool hasChange = false;
-    if (event.GetId() == controlIDs.Get(ControlIDs::idOptionWholeWord))
+    switch (event.GetId())
     {
+    case idOptionWholeWord:
         findData.SetMatchWord(event.IsChecked());
-        hasChange = true;
-    }
-    else if (event.GetId() == controlIDs.Get(ControlIDs::idOptionStartWord))
-    {
-        findData.SetStartWord(event.IsChecked());
-        hasChange = true;
-    }
-    else if (event.GetId() == controlIDs.Get(ControlIDs::idOptionMatchCase))
-    {
-        findData.SetMatchCase(event.IsChecked());
-        hasChange = true;
-    }
-    else if (event.GetId() == controlIDs.Get(ControlIDs::idOptionRegEx))
-    {
-        findData.SetRegEx(event.IsChecked());
-        hasChange = true;
-    }
-    if (hasChange)
-    {
         m_ThreadSearchPlugin.SetFindData(findData);
-        UpdateOptionsButtonImage(findData);
+        break;
+    case idOptionStartWord:
+        findData.SetStartWord(event.IsChecked());
+        m_ThreadSearchPlugin.SetFindData(findData);
+        break;
+    case idOptionMatchCase:
+        findData.SetMatchCase(event.IsChecked());
+        m_ThreadSearchPlugin.SetFindData(findData);
+        break;
+    case idOptionRegEx:
+        findData.SetRegEx(event.IsChecked());
+        m_ThreadSearchPlugin.SetFindData(findData);
+        break;
     }
-}
-
-void ThreadSearchView::UpdateOptionsButtonImage(const ThreadSearchFindData &findData)
-{
-    wxString name = (findData.IsOptionEnabled() ? wxT("optionsactive.png") : wxT("options.png"));
-    wxBitmap bitmap(GetImagePrefix() + name, wxBITMAP_TYPE_PNG);
-    m_pBtnOptions->SetBitmapLabel(bitmap);
-    if (m_pToolBar)
-        m_pToolBar->SetToolNormalBitmap(controlIDs.Get(ControlIDs::idBtnOptions), bitmap);
 }
 
 void ThreadSearchView::OnQuickOptionsUpdateUI(wxUpdateUIEvent &event)
 {
     ThreadSearchFindData &findData = m_ThreadSearchPlugin.GetFindData();
-    if (event.GetId() == controlIDs.Get(ControlIDs::idOptionWholeWord))
+    switch (event.GetId())
+    {
+    case idOptionWholeWord:
         event.Check(findData.GetMatchWord());
-    else if (event.GetId() == controlIDs.Get(ControlIDs::idOptionStartWord))
+        break;
+    case idOptionStartWord:
         event.Check(findData.GetStartWord());
-    else if (event.GetId() == controlIDs.Get(ControlIDs::idOptionMatchCase))
+        break;
+    case idOptionMatchCase:
         event.Check(findData.GetMatchCase());
-    else if (event.GetId() == controlIDs.Get(ControlIDs::idOptionRegEx))
+        break;
+    case idOptionRegEx:
         event.Check(findData.GetRegEx());
+        break;
+    }
 }
 
 void ThreadSearchView::OnBtnShowDirItemsClick(wxCommandEvent& WXUNUSED(event))
@@ -349,8 +352,16 @@ void ThreadSearchView::OnSplitterDoubleClick(wxSplitterEvent &/*event*/)
 
 void ThreadSearchView::set_properties()
 {
-    const wxString &prefix = GetImagePrefix();
-
+    wxString prefix;
+    ConfigManager *cfg = Manager::Get()->GetConfigManager(_T("app"));
+    if (cfg->ReadBool(_T("/environment/toolbar_size"),true))
+    {
+        prefix = ConfigManager::GetDataFolder() + _T("/images/ThreadSearch/16x16/");
+    }
+    else
+    {
+        prefix = ConfigManager::GetDataFolder() + _T("/images/ThreadSearch/22x22/");
+    }
     // begin wxGlade: ThreadSearchView::set_properties
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     m_pCboSearchExpr->SetMinSize(wxSize(180, -1));
@@ -381,8 +392,6 @@ void ThreadSearchView::set_properties()
     m_pPnlSearchIn->SetSearchInProjectFiles(findData.MustSearchInProject());
     m_pPnlSearchIn->SetSearchInWorkspaceFiles(findData.MustSearchInWorkspace());
     m_pPnlSearchIn->SetSearchInDirectory(findData.MustSearchInDirectory());
-
-    UpdateOptionsButtonImage(findData);
 }
 
 
@@ -471,8 +480,7 @@ void ThreadSearchView::ThreadedSearch(const ThreadSearchFindData& aFindData)
                 else
                 {
                     // Update combo box search history
-                    AddExpressionToSearchCombos(findData.GetFindText(), findData.GetSearchPath(),
-                                                findData.GetSearchMask());
+                    AddExpressionToSearchCombos(findData.GetFindText());
                     UpdateSearchButtons(true, cancel);
                     EnableControls(false);
 
@@ -642,13 +650,12 @@ void ThreadSearchView::OnContextMenu(wxContextMenuEvent& event)
 }
 
 
-void ThreadSearchView::AddExpressionToSearchCombos(const wxString& expression, const wxString& path, const wxString& mask)
+void ThreadSearchView::AddExpressionToSearchCombos(const wxString& expression)
 {
     // We perform tests on view combo and don't check toolbar one
     // because their contents are identical
     // Gets toolbar combo pointer
-    const long id = controlIDs.Get(ControlIDs::idCboSearchExpr);
-    wxComboBox* pToolBarCombo = static_cast<wxComboBox*>(m_pToolBar->FindControl(id));
+    wxComboBox* pToolBarCombo = static_cast<wxComboBox*>(m_pToolBar->FindControl(idCboSearchExpr));
 
     // Updates combos box with new item
     // Search item index
@@ -666,7 +673,7 @@ void ThreadSearchView::AddExpressionToSearchCombos(const wxString& expression, c
     {
         // Removes last one
         m_pCboSearchExpr->Delete(m_pCboSearchExpr->GetCount()-1);
-        pToolBarCombo->Delete(pToolBarCombo->GetCount()-1);
+        pToolBarCombo->Delete(m_pCboSearchExpr->GetCount()-1);
     }
 
     // Adds it to combos
@@ -674,8 +681,6 @@ void ThreadSearchView::AddExpressionToSearchCombos(const wxString& expression, c
     m_pCboSearchExpr->SetSelection(0);
     pToolBarCombo->Insert(expression, 0);
     pToolBarCombo->SetSelection(0);
-
-    m_pPnlDirParams->AddExpressionToCombos(path, mask);
 }
 
 
@@ -752,32 +757,60 @@ void ThreadSearchView::OnBtnSearchDirectoryFiles(wxCommandEvent &event)
 }
 
 
+void ThreadSearchView::OnChkSearchDirRecurse(wxCommandEvent &event)
+{
+    m_ThreadSearchPlugin.GetFindData().SetRecursiveSearch(event.IsChecked());
+    event.Skip();
+}
+
+
+void ThreadSearchView::OnChkSearchDirHidden(wxCommandEvent &event)
+{
+    m_ThreadSearchPlugin.GetFindData().SetHiddenSearch(event.IsChecked());
+    event.Skip();
+}
+
+
+void ThreadSearchView::OnTxtSearchMaskTextEvent(wxCommandEvent &event)
+{
+    m_ThreadSearchPlugin.GetFindData().SetSearchMask(event.GetString());
+    event.Skip();
+}
+
+
+void ThreadSearchView::OnTxtSearchDirPathTextEvent(wxCommandEvent &event)
+{
+    m_ThreadSearchPlugin.GetFindData().SetSearchPath(event.GetString());
+    event.Skip();
+}
+
+
 void ThreadSearchView::EnableControls(bool enable)
 {
     // Used to disable search parameters controls during
     // threaded search in notebook panel and toolbar.
-    ControlIDs::IDs idsArray[] = {
-        ControlIDs::idBtnDirSelectClick,
-        ControlIDs::idBtnOptions,
-        ControlIDs::idCboSearchExpr,
-        ControlIDs::idChkSearchDirRecurse,
-        ControlIDs::idChkSearchDirHidden,
-        ControlIDs::idBtnSearchOpenFiles,
-        ControlIDs::idBtnSearchTargetFiles,
-        ControlIDs::idBtnSearchProjectFiles,
-        ControlIDs::idBtnSearchWorkspaceFiles,
-        ControlIDs::idBtnSearchDirectoryFiles,
-        ControlIDs::idSearchDirPath,
-        ControlIDs::idSearchMask
+    long idsArray[] = {
+        idBtnDirSelectClick,
+        idBtnOptions,
+        idCboSearchExpr,
+        idChkSearchDirRecurse,
+        idChkSearchDirHidden,
+        idBtnSearchOpenFiles,
+        idBtnSearchTargetFiles,
+        idBtnSearchProjectFiles,
+        idBtnSearchWorkspaceFiles,
+        idBtnSearchDirectoryFiles,
+        idTxtSearchDirPath,
+        idTxtSearchMask
     };
 
-    ControlIDs::IDs toolBarIdsArray[] = {
-        ControlIDs::idCboSearchExpr
+    long toolBarIdsArray[] = {
+        idCboSearchExpr
     };
 
     for ( unsigned int i = 0; i < sizeof(idsArray)/sizeof(idsArray[0]); ++i )
     {
-        wxWindow* pWnd = wxWindow::FindWindow(controlIDs.Get(idsArray[i]));
+        wxWindow* pWnd = wxWindow::FindWindow(idsArray[i]);
         if ( pWnd != 0 )
         {
             pWnd->Enable(enable);
@@ -791,10 +824,10 @@ void ThreadSearchView::EnableControls(bool enable)
 
     for ( unsigned int i = 0; i < sizeof(toolBarIdsArray)/sizeof(toolBarIdsArray[0]); ++i )
     {
-        m_pToolBar->FindControl(controlIDs.Get(toolBarIdsArray[i]))->Enable(enable);
+        m_pToolBar->FindControl(toolBarIdsArray[i])->Enable(enable);
     }
 
-    m_pToolBar->EnableTool(controlIDs.Get(ControlIDs::idBtnOptions), enable);
+    m_pToolBar->EnableTool(idBtnOptions,enable);
     m_pToolBar->Update();
 }
 
@@ -936,26 +969,16 @@ void ThreadSearchView::UpdateSearchButtons(bool enable, eSearchButtonLabel label
         m_pBtnSearch->SetBitmapLabel   (wxBitmap(searchButtonPathsEnabled [label], wxBITMAP_TYPE_PNG));
         m_pBtnSearch->SetBitmapDisabled(wxBitmap(searchButtonPathsDisabled[label], wxBITMAP_TYPE_PNG));
         //{ Toolbar buttons
-        m_pToolBar->SetToolNormalBitmap(controlIDs.Get(ControlIDs::idBtnSearch),
-                                        wxBitmap(searchButtonPathsEnabled [label], wxBITMAP_TYPE_PNG));
-        m_pToolBar->SetToolDisabledBitmap(controlIDs.Get(ControlIDs::idBtnSearch),
-                                          wxBitmap(searchButtonPathsDisabled[label], wxBITMAP_TYPE_PNG));
+        m_pToolBar->SetToolNormalBitmap(idBtnSearch,wxBitmap(searchButtonPathsEnabled [label], wxBITMAP_TYPE_PNG));
+        m_pToolBar->SetToolDisabledBitmap(idBtnSearch,wxBitmap(searchButtonPathsDisabled[label], wxBITMAP_TYPE_PNG));
         //}
     }
 
     // Sets enable state
     m_pBtnSearch->Enable(enable);
-    m_pToolBar->EnableTool(controlIDs.Get(ControlIDs::idBtnSearch), enable);
+    m_pToolBar->EnableTool(idBtnSearch,enable);
 }
 
-wxString ThreadSearchView::GetImagePrefix() const
-{
-    ConfigManager *cfg = Manager::Get()->GetConfigManager(wxT("app"));
-    if (cfg->ReadBool(wxT("/environment/toolbar_size"), true))
-        return ConfigManager::GetDataFolder() + wxT("/images/ThreadSearch/16x16/");
-    else
-        return ConfigManager::GetDataFolder() + wxT("/images/ThreadSearch/22x22/");
-}
 
 void ThreadSearchView::ShowSearchControls(bool show)
 {
@@ -1030,7 +1053,7 @@ void ThreadSearchView::SetLoggerType(ThreadSearchLoggerBase::eLoggerTypes lgrTyp
                                                                        , lgrType
                                                                        , m_ThreadSearchPlugin.GetFileSorting()
                                                                        , m_pPnlListLog
-                                                                       , controlIDs.Get(ControlIDs::idWndLogger));
+                                                                       , idWndLogger);
         m_pPnlListLog->GetSizer()->Add(m_pLogger->GetWindow(), 1, wxEXPAND|wxFIXED_MINSIZE, 0);
         wxSizer* pTopSizer = m_pPnlListLog->GetSizer();
         pTopSizer->Layout();
@@ -1050,15 +1073,13 @@ int ThreadSearchView::GetSashPosition() const
 }
 
 
-void ThreadSearchView::SetSearchHistory(const wxArrayString& searchPatterns, const wxArrayString& searchDirs,
-                                        const wxArrayString& searchMasks)
+void ThreadSearchView::SetSearchHistory(const wxArrayString& searchPatterns)
 {
     m_pCboSearchExpr->Append(searchPatterns);
     if ( searchPatterns.GetCount() > 0 )
     {
         m_pCboSearchExpr->SetSelection(0);
     }
-    m_pPnlDirParams->SetSearchHistory(searchDirs, searchMasks);
 }
 
 
@@ -1067,15 +1088,6 @@ wxArrayString ThreadSearchView::GetSearchHistory() const
     return m_pCboSearchExpr->GetStrings();
 }
 
-wxArrayString ThreadSearchView::GetSearchDirsHistory() const
-{
-    return m_pPnlDirParams->GetSearchDirsHistory();
-}
-
-wxArrayString ThreadSearchView::GetSearchMasksHistory() const
-{
-    return m_pPnlDirParams->GetSearchMasksHistory();
-}
 
 // BEGIN Duplicated from cbeditor.cpp to apply folding options
 void ThreadSearchView::SetMarkerStyle(int marker, int markerType, wxColor fore, wxColor back)

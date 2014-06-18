@@ -1401,10 +1401,7 @@ int AffixMgr::defcpd_check(hentry *** words, short wnum, hentry * rv, hentry ** 
   for (i = 0; i < numdefcpd; i++) {
     for (j = 0; j < defcpdtable[i].len; j++) {
        if (defcpdtable[i].def[j] != '*' && defcpdtable[i].def[j] != '?' &&
-          TESTAFF(rv->astr, defcpdtable[i].def[j], rv->alen)) {
-         ok = 1;
-         break;
-       }
+          TESTAFF(rv->astr, defcpdtable[i].def[j], rv->alen)) ok = 1;
     }
   }
   if (ok == 0) {

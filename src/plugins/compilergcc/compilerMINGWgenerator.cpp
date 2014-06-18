@@ -36,7 +36,7 @@ wxString CompilerMINGWGenerator::SetupIncludeDirs(Compiler* compiler, ProjectBui
     wxString result = CompilerCommandGenerator::SetupIncludeDirs(compiler, target);
     m_VerStr = compiler->GetVersionString();
     wxString pch_prepend = wxEmptyString;
-    bool IsGcc4 = m_VerStr.IsEmpty() || m_VerStr.Left(1).IsSameAs(_T("4"));
+    bool IsGcc4 = m_VerStr.Left(1).IsSameAs(_T("4"));
     bool HasPCH = false; // We don't know yet if there are any header files to be compiled...
 
     // for PCH to work, the very first include dir *must* be the object output dir
@@ -55,7 +55,7 @@ wxString CompilerMINGWGenerator::SetupIncludeDirs(Compiler* compiler, ProjectBui
             {
                 // it is a PCH; add it's object dir to includes
                 wxFileName fn(f->GetObjName());
-                wxString objName = (compiler->GetSwitches().UseFlatObjects) ? fn.GetFullName() : fn.GetFullPath();
+                wxString objName = (compiler->GetSwitches().UseFlatObjects)?fn.GetFullName():fn.GetFullPath();
                 wxString dir = wxFileName(target->GetObjectOutput() + sep + objName).GetPath();
                 if (includedDirs.Index(dir) == wxNOT_FOUND)
                 {

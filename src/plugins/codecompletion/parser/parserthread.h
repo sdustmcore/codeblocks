@@ -23,12 +23,13 @@
 #include "token.h"
 #include "tokentree.h"
 
+extern const wxString g_UnnamedSymbol;
 
 struct NameSpace
 {
-    wxString Name;  // namespace's name
-    int StartLine;  // namespace start line (the line contains openbrace)
-    int EndLine;    // namespace end line (the line contains closebrace)
+    wxString Name;
+    int StartLine;
+    int EndLine;
 };
 
 typedef std::vector<NameSpace> NameSpaceVec;
@@ -58,8 +59,6 @@ struct ParserThreadOptions
         handleEnums(true),
         handleTypedefs(true),
 
-        storeDocumentation(false),
-
         loader(nullptr)
         {}
 
@@ -86,14 +85,12 @@ struct ParserThreadOptions
     bool        handleEnums;
     bool        handleTypedefs;
 
-    bool        storeDocumentation;
-
     LoaderBase* loader; // if not NULL, load through filemanager (using threads)
 };
 
-/** @brief A parser threaded task, which can be assigned to the thread task pool, and run there
+/** @brief A parser thread
   *
-  * This class represents a worker threaded task for the Code Completion plug-in, the main task is doing the syntax
+  * This class represents a worker thread for the Code Completion plug-in, the main task is doing the syntax
   * analysis and add every token to the token tree. The Token tree (sometimes, we call it TokenTree ) is a
   * Patricia tree structure, more details can be seen in token.h and token.cpp. The buffer can  either be loaded
   * from a local file or directly used of a wxString.
@@ -136,8 +133,6 @@ public:
       * @param result the wxArrayString contains all the namespace names.
       */
     bool ParseBufferForUsingNamespace(const wxString& buffer, wxArrayString& result);
-
-    wxString GetFilename() { return m_Buffer; } // used in TRACE for debug only
 
 protected:
     /** specify which "class like type" we are handling: struct or class or union*/
@@ -203,21 +198,8 @@ protected:
       */
     void HandleFunction(const wxString& name, bool isOperator = false);
 
-    /** parse for loop arguments:
-      * for(int X; ... ; ...)
-      */
-    void HandleForLoopArguments();
-
-    /** parse arguments like:
-      * if(int X = getNumber())
-      */
-    void HandleConditionalArguments();
-
     /** handle enum declaration */
     void HandleEnum();
-
-    /** calculate the value assigned to enumerator */
-    bool CalcEnumExpression(Token* tokenParent, long& result, wxString& peek);
 
     /** handle typedef directive */
     void HandleTypedef();
@@ -324,47 +306,24 @@ private:
     wxArrayString GetTemplateArgArray(const wxString& templateArgs, bool remove_gt_lt, bool add_last);
 
     /** Split formal template argument list*/
-    void SplitTemplateFormalParameters(const wxString& templateArgs, wxArrayString& formals);
+    void ResolveTemplateFormalArgs(const wxString& templateArgs, wxArrayString& formals);
 
     /** Split actual template argument list*/
-    void SplitTemplateActualParameters(const wxString& templateArgs, wxArrayString& actuals);
+    void ResolveTemplateActualArgs(const wxString& templateArgs, wxArrayString& actuals);
 
     /** associate formal argument with actual template argument*/
     bool ResolveTemplateMap(const wxString& typeStr, const wxArrayString& actuals,
                             std::map<wxString, wxString>& results);
 
-    /** remove template arguments from an expression
-      * example: 'std::list<string>' will be separated into 'std::list' and '<string>'
-      * @param expr Complete expression with template arguments
-      * @param expNoArgs Returned expression without template arguments
-      * @param templateArgs The removed template arguments
-    */
-    void RemoveTemplateArgs(const wxString& expr, wxString &expNoArgs, wxString &templateArgs);
-
     /** Only for debug */
     bool IsStillAlive(const wxString& funcInfo);
-
-    /** change an anonymous(unnamed) token's name to a human readable name, the m_Str is expect to
-     *  store the unnamed token name, for example, for parsing the code
-     *  struct
-     *  {
-     *      int x;
-     *      float y;
-     *  } abc;
-     *  when we first find an anonymous token, which is named _UnnamedStruct1_2, after this function
-     *  call, the anonymous token name will becomes struct1_abc, and m_Str will changed from
-     *  _UnnamedStruct1_2 to struct1_abc.
-     */
-    void  RefineAnonymousTypeToken(short int typeMask, wxString alise);
 
     /** if we regard the parserThread class as a syntax analyzer, then the Tokenizer class is
       * regard as the lexer, which always feeds a wxString by calling m_Tokenizer.GetToken()
       */
     Tokenizer            m_Tokenizer;
 
-    /** a pointer to its parent Parser object, the Parserthread class has two place to communicate
-     * with Parser class. m_Parent->ParseFile() when it see an include directive.
-     */
+    /** a pointer to its parent Parser object */
     ParserBase*          m_Parent;
 
     /** a pointer to the token tree, all the tokens will be added to that tree structure */
@@ -419,11 +378,6 @@ private:
       */
     std::queue<wxString> m_EncounteredTypeNamespaces;
 
-    /** globally included namespaces
-     *  by "using namespace" statement
-     */
-    TokenIdxSet          m_UsedNamespacesIds;
-
     /** TODO: describe me here*/
     wxString             m_LastUnnamedTokenName;
 
@@ -441,10 +395,6 @@ private:
 
     /** holds current template argument(s) when a template occurs */
     wxString             m_TemplateArgument;
-
-    size_t               m_StructUnionUnnamedCount;
-
-    size_t               m_EnumUnnamedCount;
 };
 
 #endif // PARSERTHREAD_H

@@ -12,14 +12,14 @@ from DLLs. Instead, we build "sdk" as a static library
 */
 #if defined(__WXMSW__)
 	#ifndef DLLIMPORT
-		#if defined(EXPORT_LIB)
+		#if EXPORT_LIB
 			#define DLLIMPORT __declspec (dllexport)
 		#else
 			#define DLLIMPORT __declspec (dllimport)
 		#endif // EXPORT_LIB
 	#endif // DLLIMPORT
 	#ifndef EVTIMPORT
-		#if defined(EXPORT_EVENTS)
+		#if EXPORT_EVENTS
 			#define EVTIMPORT __declspec (dllexport)
 		#else
 			#define EVTIMPORT __declspec (dllimport)

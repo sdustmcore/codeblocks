@@ -19,8 +19,8 @@ cmake_minimum_required( VERSION 2.8 )
 # ---------------------------------------------------------------------------
 # Setup the CMake environment
 
-include( build/CMakeProject.cmake )
 include( build/CMakewxAppLib.cmake )
+include( build/CMakeFunctions.txt )
 
 # Specify what wxWidgets libs we need to link to. Note: 'core' must be before 'base'.
 # If you call this CMakeLists.txt from another one you may have already called FIND_WXWIDGETS()
@@ -98,7 +98,7 @@ endif()
 # For MSW DLLs we need to replace WXDLLEXPORT with WXDLLIMPEXP_THINGS in
 # wx/include/wx/generic/filedlgg.h
 
-if (BUILD_SHARED_LIBS_WIN_DLLS)
+if (BUILDING_DLLS)
 
     # Use configure since it'll create the dirs for us too.
     configure_file(${wxWidgets_ROOT_DIR}/include/wx/generic/filedlgg.h
@@ -151,7 +151,7 @@ endif()
 # and paste it into our code to get it.
 # If this breaks we can resort to some other means, but this works for wx 2.8 and 2.9
 
-if (BUILD_SHARED_LIBS_WIN_DLLS)
+if (BUILDING_DLLS)
 
     file(READ ${wxWidgets_ROOT_DIR}/src/generic/dirctrlg.cpp WXDIRCTRLG_CPP_STRING)
 
@@ -206,11 +206,6 @@ configure_file(${wxThings_ROOT_DIR}/src/precomp.h
 
 # ---------------------------------------------------------------------------
 
-set( WXTHINGS_PROPERTIES_DEFINE_SYMBOL )
-if ( BUILD_SHARED_LIBS_WIN_DLLS )
-    set( WXTHINGS_PROPERTIES_DEFINE_SYMBOL PROPERTIES DEFINE_SYMBOL WXMAKINGDLL_THINGS)
-endif()
-
 ADD_LIBRARY_FULL(wxThingsLib
     HEADERS
         ${wxThings_ROOT_DIR}/include/wx/things/block.h
@@ -253,7 +248,7 @@ ADD_LIBRARY_FULL(wxThingsLib
     PRECOMPILED_SOURCE  ${wxThings_ROOT_DIR}/src/precomp.cpp
     LINK_LIBRARIES
         ${wxWidgets_LIBRARIES}
-    ${WXTHINGS_PROPERTIES_DEFINE_SYMBOL}
+    PROPERTIES DEFINE_SYMBOL "WXMAKINGDLL_THINGS"
     PROPERTIES FOLDER "wxThings")
 
 ADD_TARGET_INCLUDE_PATHS(wxThingsLib ${CMAKE_CURRENT_BINARY_DIR}/include/)

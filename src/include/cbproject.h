@@ -51,7 +51,7 @@ class DLLIMPORT FileTreeData : public MiscTreeItemData
         FileTreeData(cbProject* project, FileTreeDataKind kind = ftdkUndefined)
             : m_Index(-1),
             m_Project(project),
-            m_file(nullptr),
+            m_file(0),
             m_kind(kind)
         {}
 
@@ -103,6 +103,14 @@ class DLLIMPORT cbProject : public CompileTargetBase
 
         /** @return True if the project fully loaded, false if not. */
         bool IsLoaded() const { return m_Loaded; }
+
+        /** (Re)build the project tree.
+          * @param tree The wxTreeCtrl to use.
+          * @param root The tree item to use as root. The project is built as a child of this item.
+          * @param ptvs The visual style of the project tree
+          * @param fgam If not NULL, use these file groups and masks for virtual folders.
+          */
+        void BuildTree(cbTreeCtrl* tree, const wxTreeItemId& root, int ptvs, FilesGroupsAndMasks* fgam = 0L);
 
         /** This resets the project to a clear state. Like it's just been new'ed. */
         void ClearAllProperties();
@@ -310,9 +318,6 @@ class DLLIMPORT cbProject : public CompileTargetBase
         /** @return The root item of this project in the project manager's tree. */
         wxTreeItemId GetProjectNode(){ return m_ProjectNode; }
 
-        /** Sets the root item of this item, should not be called by user's code! */
-        void SetProjectNode(wxTreeItemId node) { m_ProjectNode = node; }
-
         /** Act like closing all project files, but don't do it.
           * Used to check if any of the project files need saving.
           * @return True if even one project file needs to be saved, false if not.
@@ -439,6 +444,11 @@ class DLLIMPORT cbProject : public CompileTargetBase
         */
         std::vector<Glob> GetGlobs() const;
 
+        /** Display the project options dialog.
+          * @return True if the dialog was closed with "OK", false if closed with "Cancel".
+          */
+        bool ShowOptions();
+
         /** Convenience function for remembering the project's tree state when refreshing it.
           * @return An array of strings containing the tree-path names of expanded nodes.
           */
@@ -470,6 +480,12 @@ class DLLIMPORT cbProject : public CompileTargetBase
           * @return The target's index that the user selected or -1 if the dialog was cancelled.
           */
         int SelectTarget(int initial = -1, bool evenIfOne = false);
+
+        /** Rename the project's title in the tree.
+          * @param newname The new title for the project.
+          * @note This does *not* actually alter the project's title. It just changes it on the tree.
+          */
+        void RenameInTree(const wxString &newname);
 
         /** Get a pointer to the currently compiling target.
           * @return While the project is being built, this function returns the currently building
@@ -548,22 +564,36 @@ class DLLIMPORT cbProject : public CompileTargetBase
           */
         bool CanAddToVirtualBuildTarget(const wxString& alias, const wxString& target);
 
+        /** Request if a specific tree node can be dragged.
+          *
+          * @note Called by ProjectManager.
+          * @return True if it is allowed to drag this node, false not.
+          */
+        bool CanDragNode(wxTreeCtrl* tree, wxTreeItemId node);
+
+        /** Notify that an array of tree nodes has been dragged.
+          *
+          * @note Called by ProjectManager.
+          * @return True if succeeded, false if not.
+          */
+        bool NodeDragged(wxTreeCtrl* tree, wxArrayTreeItemIds& fromArray, wxTreeItemId to);
+
+        /** Notify that a virtual folder has been added.
+          * @return True if it is allowed, false if not. */
+        bool VirtualFolderAdded(wxTreeCtrl* tree, wxTreeItemId parent_node, const wxString& virtual_folder);
+
+        /** Notify that a virtual folder has been deleted. */
+        void VirtualFolderDeleted(wxTreeCtrl* tree, wxTreeItemId node);
+
+        /** Notify that a virtual folder has been renamed.
+          * @return True if the renaming is allowed, false if not. */
+        bool VirtualFolderRenamed(wxTreeCtrl* tree, wxTreeItemId node, const wxString& new_name);
+
         /** Get a list of the virtual folders. Normally used by the project loader only.*/
         const wxArrayString& GetVirtualFolders() const;
 
         /** Set the virtual folders list. Normally used by the project loader only. */
         void SetVirtualFolders(const wxArrayString& folders);
-
-        /** Appends a new virtual folder to the end of the list only if it doesn't exists.
-          * @return True if folder has been appended, false if not. */
-        bool AppendUniqueVirtualFolder(const wxString &folder);
-
-        /** Remove all virtual folders starting with folder. */
-        void RemoveVirtualFolders(const wxString &folder);
-
-        /** Replaced the oldFolder with newFolder or appends newFolder to the end of the list
-          * if oldFolder is not found.*/
-        void ReplaceVirtualFolder(const wxString &oldFolder, const wxString &newFolder);
 
         /** Returns the last modification time for the file. Used to detect modifications outside the Program. */
         wxDateTime GetLastModificationTime() const { return m_LastModified; }
@@ -675,10 +705,15 @@ class DLLIMPORT cbProject : public CompileTargetBase
     private:
         void Open();
         void ExpandVirtualBuildTargetGroup(const wxString& alias, wxArrayString& result) const;
+        wxTreeItemId AddTreeNode(wxTreeCtrl* tree, const wxString& text, const wxTreeItemId& parent, bool useFolders, FileTreeData::FileTreeDataKind folders_kind, bool compiles, int image, FileTreeData* data = 0L);
+        wxTreeItemId FindNodeToInsertAfter(wxTreeCtrl* tree, const wxString& text, const wxTreeItemId& parent, bool in_folders); // alphabetical sorting
         ProjectBuildTarget* AddDefaultBuildTarget();
         int IndexOfBuildTargetName(const wxString& targetName) const;
         wxString CreateUniqueFilename();
         void NotifyPlugins(wxEventType type, const wxString& targetName = wxEmptyString, const wxString& oldTargetName = wxEmptyString);
+        void CopyTreeNodeRecursively(wxTreeCtrl* tree, const wxTreeItemId& item, const wxTreeItemId& new_parent);
+        bool VirtualFolderDragged(wxTreeCtrl* tree, wxTreeItemId from, wxTreeItemId to);
+        void SortChildrenRecursive(cbTreeCtrl* tree, const wxTreeItemId& parent);
 
         // properties
         VirtualBuildTargetsMap m_VirtualTargets;
@@ -720,11 +755,6 @@ class DLLIMPORT cbProject : public CompileTargetBase
         // so that the contents are not lost
         TiXmlElement* m_pExtensionsElement;
 };
-
-/// Returns a string valid to be used as LD_LIBRARY_PATH (or equivalent).
-wxString cbGetDynamicLinkerPathForTarget(cbProject *project, ProjectBuildTarget* target);
-/// Merges to LD_LIBRARY_PATH/PATH strings together to form a new valid string.
-wxString cbMergeLibPaths(const wxString &oldPath, const wxString &newPath);
 
 #endif // CBPROJECT_H
 

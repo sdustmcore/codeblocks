@@ -14,63 +14,49 @@
 
 #include <wx/defs.h>
 
-
-struct ControlIDs
+enum eControlIds
 {
-    enum IDs
-    {
-
-        idBtnDirSelectClick = 0,
-        idBtnShowDirItemsClick,
-        idBtnSearch,
-        idBtnOptions,
-        idOptionDialog,
-        idOptionWholeWord,
-        idOptionStartWord,
-        idOptionMatchCase,
-        idOptionRegEx,
-        idMenuViewThreadSearch,
-        idMenuViewFocusThreadSearch,
-        idMenuSearchThreadSearch,
-        idMenuCtxThreadSearch,
-        idMenuCtxDeleteItem,
-        idMenuCtxDeleteAllItems,
-        idCboSearchExpr,
-        idChkSearchDirRecurse,
-        idChkSearchDirHidden,
-        idBtnSearchOpenFiles,
-        idBtnSearchTargetFiles,
-        idBtnSearchProjectFiles,
-        idBtnSearchWorkspaceFiles,
-        idBtnSearchDirectoryFiles,
-        idChkWholeWord,
-        idChkStartWord,
-        idChkMatchCase,
-        idChkRegularExpression,
-        idChkUseDefaultOptionsOnThreadSearch,
-        idChkDisplayLogHeaders,
-        idChkDrawLogLines,
-        idChkViewThreadSearchToolBar,
-        idChkShowCodePreview,
-        idChkShowThreadSearchWidgets,
-        idChkThreadSearchEnable,
-        idSearchDirPath,
-        idSearchMask,
-        idTmrListCtrlUpdate,
-        idWndLogger,
-        idChkShowMissingFilesError,
-        idChkShowCantOpenFileError,
-        idChkChkDeletePreviousResults,
-
-        lastValue
-    };
-
-    long Get(IDs id);
-private:
-    long ids[lastValue];
-    bool initialized;
+    idBtnDirSelectClick = wxID_HIGHEST,
+    idBtnShowDirItemsClick,
+    idBtnSearch,
+    idBtnOptions,
+    idOptionDialog,
+    idOptionWholeWord,
+    idOptionStartWord,
+    idOptionMatchCase,
+    idOptionRegEx,
+    idMenuViewThreadSearch,
+    idMenuViewFocusThreadSearch,
+    idMenuSearchThreadSearch,
+    idMenuCtxThreadSearch,
+    idMenuCtxDeleteItem,
+    idMenuCtxDeleteAllItems,
+    idCboSearchExpr,
+    idChkSearchDirRecurse,
+    idChkSearchDirHidden,
+    idBtnSearchOpenFiles,
+    idBtnSearchTargetFiles,
+    idBtnSearchProjectFiles,
+    idBtnSearchWorkspaceFiles,
+    idBtnSearchDirectoryFiles,
+    idChkWholeWord,
+    idChkStartWord,
+    idChkMatchCase,
+    idChkRegularExpression,
+    idChkUseDefaultOptionsOnThreadSearch,
+    idChkDisplayLogHeaders,
+    idChkDrawLogLines,
+    idChkViewThreadSearchToolBar,
+    idChkShowCodePreview,
+    idChkShowThreadSearchWidgets,
+    idChkThreadSearchEnable,
+    idTxtSearchDirPath,
+    idTxtSearchMask,
+    idTmrListCtrlUpdate,
+    idWndLogger,
+    idChkShowMissingFilesError,
+    idChkShowCantOpenFileError,
+    idChkChkDeletePreviousResults
 };
-
-extern ControlIDs controlIDs;
 
 #endif // THREAD_SEARCH_CONTROL_IDS_H

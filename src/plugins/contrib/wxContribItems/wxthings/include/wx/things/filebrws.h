@@ -16,12 +16,7 @@
 #include <wx/dirctrl.h>
 #include <wx/filedlg.h>
 #include <wx/textdlg.h>
-
-#if wxCHECK_VERSION(2, 9, 0)
-    #include <wx/generic/filectrlg.h>
-#else // 2.8
-    #include <wx/generic/filedlgg.h>
-#endif
+#include <wx/generic/filedlgg.h>
 
 class WXDLLIMPEXP_FWD_BASE wxConfigBase;
 class WXDLLIMPEXP_FWD_CORE wxCheckBox;
@@ -123,12 +118,8 @@ enum wxFileBrowserStyles_Type
     wxFILEBROWSER_SHOW_FOLDERS = wxLC_NO_SORT_HEADER, // when showing listview also show
                                                       // the folders in the treectrl
 
-    wxFILEBROWSER_SINGLE_SELECTION = wxLC_SINGLE_SEL, // Single file/dir selection (as opposed to multiple)
-
-    wxFILEBROWSER_RENAME_INPLACE   = wxLC_EDIT_LABELS, // Allow user to slow double-click to rename in listctrl.
-
     wxFILEBROWSER_VIEW_MASK = wxFILEBROWSER_TREE|wxFILEBROWSER_LIST|wxFILEBROWSER_DETAILS|wxFILEBROWSER_SMALL_ICON|wxFILEBROWSER_LARGE_ICON|wxFILEBROWSER_PREVIEW,
-    wxFILEBROWSER_STYLE_MASK = wxFILEBROWSER_VIEW_MASK|wxFILEBROWSER_SPLIT_VERTICAL|wxFILEBROWSER_SHOW_FOLDERS|wxFILEBROWSER_SINGLE_SELECTION|wxFILEBROWSER_RENAME_INPLACE
+    wxFILEBROWSER_STYLE_MASK = wxFILEBROWSER_VIEW_MASK|wxFILEBROWSER_SPLIT_VERTICAL|wxFILEBROWSER_SHOW_FOLDERS
 };
 
 class WXDLLIMPEXP_THINGS wxFileBrowser : public wxControl
@@ -140,7 +131,7 @@ public :
                    const wxString& dir = wxDirDialogDefaultFolderStr,
                    const wxPoint& pos = wxDefaultPosition,
                    const wxSize& size = wxDefaultSize,
-                   long style = wxFILEBROWSER_DETAILS|wxFILEBROWSER_RENAME_INPLACE, //|wxFILEBROWSER_SINGLE_SELECTION,
+                   long style = wxFILEBROWSER_DETAILS,
                    const wxString& filter = wxFileSelectorDefaultWildcardStr,
                    int defaultFilter = 0,
                    const wxString& name = wxT("wxFileBrowser")) : wxControl()
@@ -155,7 +146,7 @@ public :
                  const wxString& dir = wxDirDialogDefaultFolderStr,
                  const wxPoint& pos = wxDefaultPosition,
                  const wxSize& size = wxDefaultSize,
-                 long style = wxFILEBROWSER_DETAILS|wxFILEBROWSER_RENAME_INPLACE, //|wxFILEBROWSER_SINGLE_SELECTION,
+                 long style = wxFILEBROWSER_DETAILS,
                  const wxString& filter = wxFileSelectorDefaultWildcardStr,
                  int defaultFilter = 0,
                  const wxString& name = wxT("wxFileBrowser") );
@@ -163,33 +154,16 @@ public :
     // Get the current dir (not file), optionally add a trailing platform dependent '/' or '\'
     wxString GetPath(bool add_wxFILE_SEP_PATH = false) const;
     // Go to a directory, returns success
-    bool SetPath(const wxString &dirName, bool refresh = false);
+    bool SetPath(const wxString &dirName);
 
     // go to a dir or send an EVT_FILEBROWSER_FILE_ACTIVATED if a filename
-    bool OpenFilePath(const wxString &filePath, bool send_event = true);
+    bool OpenFilePath(const wxString &filePath);
 
-    // Get the currently selected file, else empty string if none selected.
-    wxString GetCurrentFile() const;
-
-    // Get the first file shown in list to the user.
-    // Returns an empty string if no file selected or no first file.
-    wxString GetFirstFile() const;
-    // Get the previous file shown in the list to the user.
-    // Returns an empty string if no file selected or no previous file.
-    wxString GetPreviousFile() const;
-    // Get the next file shown in the list to the user.
-    // Returns an empty string if no file selected or no next file.
-    wxString GetNextFile() const;
-    // Get the last file shown in the list to the user.
-    // Returns an empty string if no file selected or no last file.
-    wxString GetLastFile() const;
-
-    // Returns true if there is a higher level directory.
+    // Go to a higher directory, returns success
     bool CanGoUpDir() const;
-    // Go to a higher directory, returns success.
     bool GoUpDir();
 
-    // Go to your "Home" folder "~/" in unix, "My Documents" in WinXP, "C:\Users\name" in Win7
+    // Go to your "Home" folder "~/" in unix, "My Documents" in MSW
     bool GoToHomeDir();
 
     // Go forwards and backwards through the recent dir history
@@ -252,6 +226,9 @@ public :
     // Create a wxFileData from a wxFileName
     wxFileData CreateFileData(const wxFileName& fileName) const;
 
+    // Get the last or currently focused path + filename
+    wxString GetLastFocusedFilePath();
+
     // Show a simple dialog that contains the properties of the file/dir
     void ShowPropertiesDialog(const wxFileData &fileData) const;
 
@@ -310,7 +287,6 @@ protected :
     void OnListItemActivated(wxListEvent &event);
     void OnListItemSelected(wxListEvent &event);
     void OnListRightClick(wxListEvent &event);
-    void OnListEndLabelEdit(wxListEvent& event);
 
     void OnTreeMenu(wxCommandEvent &event);
     void OnListMenu(wxCommandEvent &event);

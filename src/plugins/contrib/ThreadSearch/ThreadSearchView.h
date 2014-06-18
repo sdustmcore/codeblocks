@@ -101,11 +101,8 @@ public:
     int  GetSashPosition() const;
 
     /** Sets/gets the search history */
-    void          SetSearchHistory(const wxArrayString& searchPatterns, const wxArrayString& searchDirs,
-                                   const wxArrayString& searchMasks);
+    void          SetSearchHistory(const wxArrayString& searchPatterns);
     wxArrayString GetSearchHistory() const;
-    wxArrayString GetSearchDirsHistory() const;
-    wxArrayString GetSearchMasksHistory() const;
 
     /** SetLoggerType
       * Sets the logger type. If value is different from current one,
@@ -125,15 +122,6 @@ public:
       * during init. This instance is referenced in ThreadSearchView by m_pToolBar.
       */
     void SetToolBar(wxToolBar* pToolBar) {m_pToolBar = pToolBar;}
-
-
-    /** @return A string with the path to the icon images, it takes into account the size of the images.
-      */
-    wxString GetImagePrefix() const;
-
-    /** Set the proper image depending if there are any enabled options in the popup menu.
-      */
-    void UpdateOptionsButtonImage(const ThreadSearchFindData &findData);
 
     /** This method shows/hide the search graphical controls.
       * @param show : show = true/hide = false toolbar
@@ -212,10 +200,8 @@ protected:
       * If expression is already listed, it is removed before insertion.
       * Used to keep the search history in the combo box.
       * @param expression : searched text.
-      * @param path : searched path.
-      * @param mask : searched mask.
       */
-    void AddExpressionToSearchCombos(const wxString& expression, const wxString& path, const wxString& mask);
+    void AddExpressionToSearchCombos(const wxString& expression);
 
     /// enum defining the possible labels to update Search buttons (view and toolbars)
     /// Undefined can be used to skip label update
@@ -262,6 +248,11 @@ public:
     void OnBtnSearchProjectFiles(wxCommandEvent &event);
     void OnBtnSearchWorkspaceFiles(wxCommandEvent &event);
     void OnBtnSearchDirectoryFiles(wxCommandEvent &event);
+    void OnChkSearchDirRecurse(wxCommandEvent &event);
+    void OnChkSearchDirHidden(wxCommandEvent &event);
+
+    void OnTxtSearchMaskTextEvent(wxCommandEvent &event);
+    void OnTxtSearchDirPathTextEvent(wxCommandEvent &event);
 
     void OnTmrListCtrlUpdate(wxTimerEvent& event);
 }; // wxGlade: end class

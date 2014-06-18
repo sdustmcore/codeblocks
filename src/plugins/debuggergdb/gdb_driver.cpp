@@ -22,7 +22,7 @@
 
 #ifdef __WXMSW__
 // for Registry detection of Cygwin
-#include "wx/msw/wrapwin.h"     // Wraps windows.h
+#include <windows.h>
 #endif
 
 #include <wx/arrimpl.cpp> // this is a magic incantation which must be done!
@@ -34,20 +34,18 @@ WX_DEFINE_OBJARRAY(TypesArray);
 // we allow for a few characters to be "eaten" this way and still get our
 // expected prompt back.
 #define GDB_PROMPT _T("cb_gdb:")
-#define FULL_GDB_PROMPT _T(">>>>>>") GDB_PROMPT
+#define FULL_GDB_PROMPT _T(">>>>>>") + GDB_PROMPT
 
 //[Switching to thread 2 (Thread 1082132832 (LWP 12298))]#0  0x00002aaaac5a2aca in pthread_cond_wait@@GLIBC_2.3.2 () from /lib/libpthread.so.0
 static wxRegEx reThreadSwitch(_T("^\\[Switching to thread .*\\]#0[ \t]+(0x[A-Fa-f0-9]+) in (.*) from (.*)"));
 static wxRegEx reThreadSwitch2(_T("^\\[Switching to thread .*\\]#0[ \t]+(0x[A-Fa-f0-9]+) in (.*) from (.*):([0-9]+)"));
-
-// Regular expresion for breakpoint. wxRegEx don't want to recognize '?' command, so a bit more general rule is used
-// here.
-//  ([A-Za-z]*[:]*) corresponds to windows disk name. Under linux it can be none empty in crosscompiling sessions;
-//  ([^:]+) corresponds to the path in linux or to the path within windows disk in windows to current file;
-//  ([0-9]+) corresponds to line number in current file;
-//  (0x[0-9A-Fa-f]+) correponds to current memory address.
-static wxRegEx reBreak(_T("\032*([A-Za-z]*[:]*)([^:]+):([0-9]+):[0-9]+:[begmidl]+:(0x[0-9A-Fa-f]+)"));
-
+#ifdef __WXMSW__
+    static wxRegEx reBreak(_T("([A-Za-z]*[:]*)([^:]+):([0-9]+):[0-9]+:[begmidl]+:(0x[0-9A-Fa-f]+)"));
+    static wxRegEx reBreak_or32(_T("\032\032([A-Za-z]:)([^:]+):([0-9]+):[0-9]+:[begmidl]+:(0x[0-9A-z]+)"));
+#else
+    static wxRegEx reBreak(_T("\032\032([^:]+):([0-9]+):[0-9]+:[begmidl]+:(0x[0-9A-Fa-f]+)"));
+    static wxRegEx reBreak_or32(_T("")); // not used on linux, but make sure it exists otherwise compilation fails on linux (if (platform::windows) blabla)
+#endif
 static wxRegEx reBreak2(_T("^(0x[A-Fa-f0-9]+) in (.*) from (.*)"));
 static wxRegEx reBreak3(_T("^(0x[A-Fa-f0-9]+) in (.*)"));
 // Catchpoint 1 (exception thrown), 0x00007ffff7b982b0 in __cxa_throw () from /usr/lib/gcc/x86_64-pc-linux-gnu/4.4.4/libstdc++.so.6
@@ -265,8 +263,12 @@ void GDB_driver::Prepare(bool isConsole, int printElements)
     Manager::Get()->GetMacrosManager()->ReplaceMacros(init);
     // commands are passed in one go, in case the user defines functions in there
     // or else it would lock up...
-    if (!init.empty())
-        QueueCommand(new DebuggerCmd(this, init));
+    QueueCommand(new DebuggerCmd(this, init));
+//    wxArrayString initCmds = GetArrayFromString(init, _T('\n'));
+//    for (unsigned int i = 0; i < initCmds.GetCount(); ++i)
+//    {
+//        QueueCommand(new DebuggerCmd(this, initCmds[i]));
+//    }
 
     // add search dirs
     for (unsigned int i = 0; i < m_Dirs.GetCount(); ++i)
@@ -690,47 +692,21 @@ void GDB_driver::EvaluateSymbol(const wxString& symbol, const wxRect& tipRect)
     QueueCommand(new GdbCmd_FindTooltipType(this, symbol, tipRect));
 }
 
-void GDB_driver::UpdateWatches(cb::shared_ptr<GDBWatch> localsWatch, cb::shared_ptr<GDBWatch> funcArgsWatch,
-                               WatchesContainer &watches)
+void GDB_driver::UpdateWatches(cb_unused bool doLocals, cb_unused bool doArgs, WatchesContainer &watches)
 {
-    bool updateWatches = false;
-    if (localsWatch && localsWatch->IsAutoUpdateEnabled())
-    {
-        QueueCommand(new GdbCmd_LocalsFuncArgs(this, localsWatch, true));
-        updateWatches = true;
-    }
-    if (funcArgsWatch && funcArgsWatch->IsAutoUpdateEnabled())
-    {
-        QueueCommand(new GdbCmd_LocalsFuncArgs(this, funcArgsWatch, false));
-        updateWatches = true;
-    }
+    // FIXME (obfuscated#): add local and argument watches
+    // FIXME : remove cb_unused from params when that's done
 
     for (WatchesContainer::iterator it = watches.begin(); it != watches.end(); ++it)
-    {
-        WatchesContainer::reference watch = *it;
-        if (watch->IsAutoUpdateEnabled())
-        {
-            QueueCommand(new GdbCmd_FindWatchType(this, watch));
-            updateWatches = true;
-        }
-    }
+        QueueCommand(new GdbCmd_FindWatchType(this, *it));
 
-    if (updateWatches)
-    {
-        // run this action-only command to update the tree
-        QueueCommand(new DbgCmd_UpdateWatchesTree(this));
-    }
+    // run this action-only command to update the tree
+    QueueCommand(new DbgCmd_UpdateWatchesTree(this));
 }
 
 void GDB_driver::UpdateWatch(const cb::shared_ptr<GDBWatch> &watch)
 {
     QueueCommand(new GdbCmd_FindWatchType(this, watch));
-    QueueCommand(new DbgCmd_UpdateWatchesTree(this));
-}
-
-void GDB_driver::UpdateWatchLocalsArgs(cb::shared_ptr<GDBWatch> const &watch, bool locals)
-{
-    QueueCommand(new GdbCmd_LocalsFuncArgs(this, watch, locals));
     QueueCommand(new DbgCmd_UpdateWatchesTree(this));
 }
 
@@ -790,8 +766,7 @@ void GDB_driver::ParseOutput(const wxString& output)
     m_pDBG->DebugLog(output);
 
     int idx = buffer.First(GDB_PROMPT);
-    const bool foundPrompt = (idx != wxNOT_FOUND);
-    if (!foundPrompt)
+    if (idx == wxNOT_FOUND)
     {
         // don't uncomment the following line
         // m_ProgramIsStopped is set to false in DebuggerDriver::RunQueue()
@@ -809,9 +784,9 @@ void GDB_driver::ParseOutput(const wxString& output)
         buffer.Remove(idx);
         // remove the '>>>>>>' part of the prompt (or what's left of it)
         int cnt = 6; // max 6 '>'
-        while (!buffer.empty() && buffer.Last() == _T('>') && cnt--)
+        while (buffer.Last() == _T('>') && cnt--)
             buffer.RemoveLast();
-        if (!buffer.empty() && buffer.Last() == _T('\n'))
+        if (buffer.Last() == _T('\n'))
             buffer.RemoveLast();
         cmd->ParseOutput(buffer.Left(idx));
 
@@ -1050,8 +1025,12 @@ void GDB_driver::ParseOutput(const wxString& output)
             //^Z^ZC:\dev\wxwidgets\wxWidgets-2.8.10\build\msw/../../src/common/imagall.cpp:29:961:beg:0x6f826722
             //>>>>>>cb_gdb:
 
-            HandleMainBreakPoint(reBreak, lines[i]);
+            if (platform::windows && flavour.IsSameAs(_T("set disassembly-flavor or32")))
+                HandleMainBreakPoint(reBreak_or32, lines[i]);
+            else
+                HandleMainBreakPoint(reBreak, lines[i]);
         }
+
         else
         {
             // other break info, e.g.
@@ -1113,12 +1092,6 @@ void GDB_driver::ParseOutput(const wxString& output)
     }
     buffer.Clear();
 
-    if (foundPrompt && m_DCmds.empty() && !m_ProgramIsStopped && !m_Cursor.changed)
-    {
-        QueueCommand(new GdbCmd_FindCursor(this));
-        m_ProgramIsStopped = true;
-    }
-
     // if program is stopped, update various states
     if (m_needsUpdate)
     {
@@ -1155,20 +1128,18 @@ void GDB_driver::HandleMainBreakPoint(const wxRegEx& reBreak_in, wxString line)
         {
             m_ManualBreakOnEntry = false;
             wxString lineStr;
-
             if (platform::windows)
             {
                 m_Cursor.file = reBreak_in.GetMatch(line, 1) + reBreak_in.GetMatch(line, 2);
+                lineStr = reBreak_in.GetMatch(line, 3);
+                m_Cursor.address = reBreak_in.GetMatch(line, 4);
             }
             else
             {
-                // For debuging of usual linux application 'GetMatch(line, 1)' is empty.
-                // While for debuging of application under wine the name of the disk is useless.
-                m_Cursor.file = reBreak_in.GetMatch( line, 2);
+                m_Cursor.file = reBreak_in.GetMatch( line, 1);
+                lineStr = reBreak_in.GetMatch(line, 2);
+                m_Cursor.address = reBreak_in.GetMatch( line, 3);
             }
-
-            lineStr = reBreak_in.GetMatch(line, 3);
-            m_Cursor.address = reBreak_in.GetMatch(line, 4);
 
             lineStr.ToLong(&m_Cursor.line);
             m_Cursor.changed = true;

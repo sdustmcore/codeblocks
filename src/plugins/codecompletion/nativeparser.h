@@ -18,13 +18,13 @@
 /** debug only variable, used to print the AI match related log message*/
 extern bool s_DebugSmartSense;
 
+extern const wxString g_StartHereTitle;
 extern const int g_EditorActivatedDelay;
 
 // forward declaration
 class cbEditor;
 class EditorBase;
 class cbProject;
-class cbStyledTextCtrl;
 class ClassBrowser;
 class Compiler;
 class Token;
@@ -34,7 +34,6 @@ WX_DECLARE_HASH_MAP(cbProject*, wxString, wxPointerHash, wxPointerEqual, Parsers
 
 typedef std::map<cbProject*, wxArrayString> ProjectSearchDirsMap;
 
-// TODO (ollydbg#1#), this class is dirty, I'm going to change its name like CursorLocation
 /** Search location combination, a pointer to cbStyledTextCtrl and a filename is enough */
 struct ccSearchData
 {
@@ -96,7 +95,7 @@ public:
     cbProject* GetProjectByFilename(const wxString& filename);
 
     /** return the C::B project containing the cbEditor pointer
-     * @param editor Any valid cbEditor pointer
+     * @param editor Any vaild cbEditor pointer
      * @return project pointer
      */
     cbProject* GetProjectByEditor(cbEditor* editor);
@@ -107,7 +106,7 @@ public:
     /** Return true if use one Parser per whole workspace */
     bool IsParserPerWorkspace() const { return m_ParserPerWorkspace; }
 
-    /** Return true if all the parser's batch-parse stages are finished, otherwise return false*/
+    /** Return true if all the parser's batch-parse stages finished, otherwise return false*/
     bool Done();
 
     /** Used to support Symbol browser and codecompletion UI
@@ -128,7 +127,7 @@ public:
     wxArrayString GetAllPathsByFilename(const wxString& filename);
 
     /** Add the paths to path array, and this will be used in GetAllPathsByFilename() function.
-     *  internally, all the folder paths were recorded in UNIX format.
+     *  internally, all the folder path was recorded in UNIX format.
      */
     void AddPaths(wxArrayString& dirs, const wxString& path, bool hasExt);
 
@@ -199,11 +198,11 @@ public:
      * the prototypes information of the current function,
      * the type information of the variable...
      *
+     * @param chars_per_line specify the char number per one line of the call-tip window, so it can restrict the width.
      * @param items array to store result in.
      * @param typedCommas how much comma characters the user has typed in the current line before the cursor.
-     * @return position index of the start of the arguments
      */
-    int GetCallTips(wxArrayString& items, int& typedCommas, cbEditor* ed, int pos = wxNOT_FOUND);
+    void GetCallTips(int chars_per_line, wxArrayString& items, int &typedCommas, int pos = wxNOT_FOUND);
 
     /** Word start position in the editor
      * @return position index
@@ -245,7 +244,6 @@ protected:
      * Set the active parser pointer (m_Parser member variable)
      * update the ClassBrowser's Parser pointer
      * re-fresh the symbol browser tree.
-     * if we did switch the parser, we also need to remove the temporary tokens of the old parser.
      */
     void SetParser(ParserBase* parser);
 
@@ -274,12 +272,7 @@ protected:
 private:
     friend class CodeCompletion;
 
-    /** Read or Write project' CC options when a C::B project is loading or saving
-     * user can set those settings in Menu->Project->Properties->C/C++ parser options panel
-     * @param project which project we are handling
-     * @param elem parent node of the project xml file (cbp) containing addtinal information
-     * @param loading true if the project is loading
-     */
+    /** Read project CC options when a C::B project is loading */
     void OnProjectLoadingHook(cbProject* project, TiXmlElement* elem, bool loading);
 
     /** Start an Artificial Intelligence search algorithm to gather all the matching tokens.
@@ -343,13 +336,6 @@ private:
      */
     bool ParseUsingNamespace(ccSearchData* searchData, TokenIdxSet& search_scope, int caretPos = -1);
 
-    /** collect the using namespace directive in the buffer specified by searchData
-     * @param buffer code to parse
-     * @param search_scope resulting tokens collection
-     * @param bufferSkipBlocks skip brace sets { }
-     */
-    bool ParseBufferForUsingNamespace(const wxString& buffer, TokenIdxSet& search_scope, bool bufferSkipBlocks = true);
-
     /** collect function argument, add them to the token tree (as temporary tokens)
      * @param searchData search location
      * @param caretPos caret position, if not specified, we use the current caret position
@@ -358,41 +344,23 @@ private:
 
     /** parses from the start of function up to the cursor, this is used to collect local variables.
      * @param searchData search location
-     * @param search_scope resulting tokens collection of local using namespace
      * @param caretPos caret position, if not specified, we use the current caret position
      */
-    bool ParseLocalBlock(ccSearchData* searchData, TokenIdxSet& search_scope, int caretPos = -1);
+    bool ParseLocalBlock(ccSearchData* searchData, int caretPos = -1);
 
-    /** collect the header file search directories, those dirs include:
-     *  1, project's base dir, e.g. if you cbp file was c:/bbb/aaa.cbp, then c:/bbb is added.
-     *  2, project's setting search dirs, for a wx project, then c:/wxWidgets2.8.12/include is added.
-     *  3, a project may has some targets, so add search dirs for those targets
-     *  4, compiler's own search path, like: c:/mingw/include
-     */
+    /** collect the compiler default header file search directories */
     bool AddCompilerDirs(cbProject* project, ParserBase* parser);
 
-    /** collect compiler specific predefined preprocessor definition, this is usually run a special
-     * compiler command, like GCC -dM for gcc.
-     * @return true if there are some macro definition added, else it is false
-     */
+    /** collect compiler specific predefined preprocessor definition */
     bool AddCompilerPredefinedMacros(cbProject* project, ParserBase* parser);
 
     /** collect GCC compiler predefined preprocessor definition */
     bool AddCompilerPredefinedMacrosGCC(const wxString& compilerId, cbProject* project, wxString& defs);
 
-    /** lookup GCC compiler -std=XXX option */
-    wxString GetCompilerStandardGCC(Compiler* compiler, cbProject* project);
-
-    /** lookup GCC compiler -std=XXX option for specific GCC options*/
-    wxString GetCompilerUsingStandardGCC(const wxArrayString& compilerOptions);
-
     /** collect VC compiler predefined preprocessor definition */
     bool AddCompilerPredefinedMacrosVC(const wxString& compilerId, wxString& defs);
 
-    /** collect project (user) defined preprocessor definition, such as for wxWidgets project, the
-     * macro may have "#define wxUSE_UNICODE" defined in its project file.
-     * @return true if there are some macro definition added, else it is false
-     */
+    /** collect project (user) defined preprocessor definition */
     bool AddProjectDefinedMacros(cbProject* project, ParserBase* parser);
 
     /** Collect the default compiler include file search paths. called by AddCompilerDirs() function*/
@@ -400,9 +368,6 @@ private:
 
     /** Add the collected default GCC compiler include file search paths to a parser */
     void AddGCCCompilerDirs(const wxString& masterPath, const wxString& compilerCpp, ParserBase* parser);
-
-    /** Add a list of directories to the parser's search directories, normalise to "base" path, if "base" is not empty. Replaces macros. */
-    void AddIncludeDirsToParser(const wxArrayString& dirs, const wxString& base, ParserBase* parser);
 
     /** Event handler when the batch parse starts, print some log information */
     void OnParserStart(wxCommandEvent& event);
@@ -425,54 +390,33 @@ private:
     /** Init cc search member variables */
     void InitCCSearchVariables();
 
-    /** Add one project to the common parser in one parser for the whole workspace mode
-     * @return true means there are some thing (macro and files) need to parse, otherwise it is false
-     */
-    bool AddProjectToParser(cbProject* project);
+    /** Add all project files to parser */
+    void AddProjectToParser(cbProject* project);
 
-    /** Remove cbp from the common parser, this only happens in one parser for whole workspace mode
-     * when a parser is removed from the workspace, we should remove the project from the parser
-     */
+    /** Remove all project files from parser */
     bool RemoveProjectFromParser(cbProject* project);
 
 private:
     typedef std::pair<cbProject*, ParserBase*> ProjectParserPair;
     typedef std::list<ProjectParserPair>       ParserList;
 
-    /** a list holing all the cbp->parser pairs, if in one parser per project mode, there are many
-     * many pairs in this list. In one parser per workspace mode, there is only one pair, and the
-     * m_ParserList.begin()->second is the common parser for all the projects in workspace.
-     */
     ParserList                   m_ParserList;
-    /** a temp parser object pointer*/
     ParserBase*                  m_TempParser;
-    /** active parser object pointer*/
     ParserBase*                  m_Parser;
 
-    /** a delay timer to parser every project in sequence*/
     wxTimer                      m_TimerParsingOneByOne;
-    /** symbol browser window*/
     ClassBrowser*                m_ClassBrowser;
-    /** if true, which means m_ClassBrowser is floating (not docked)*/
     bool                         m_ClassBrowserIsFloating;
-
-    /** a map: project pointer -> C/C++ parser search paths for this project, this is the
-     * per-project code completion search-dirs.
-     */
     ProjectSearchDirsMap         m_ProjectSearchDirsMap;
     int                          m_HookId;    //!< project loader hook ID
     wxImageList*                 m_ImageList; //!< Images for class browser
 
-    /// all the files which opened, but does not belong to any cbp
     wxArrayString                m_StandaloneFiles;
-    /**  if true, which means the parser hold tokens of the whole workspace's project, if false
-     * then one parser per a cbp
-     */
     bool                         m_ParserPerWorkspace;
-    /// only used when m_ParserPerWorkspace is true, and holds all the cbps for the common parser
     std::set<cbProject*>         m_ParsedProjects;
 
     /* CC Search Member Variables => START */
+    wxString          m_CCItems;
     int               m_EditorStartWord;
     int               m_EditorEndWord;
     wxString          m_LastAIGlobalSearch;    //!< same case like above, it holds the search string

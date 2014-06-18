@@ -12,7 +12,6 @@
 #include <wx/string.h>
 #include <wx/filename.h>
 #include <wx/dynarray.h>
-#include <wx/regex.h>
 #include "compileoptionsbase.h"
 #include "compileroptions.h"
 
@@ -20,7 +19,6 @@ class CompilerCommandGenerator;
 class cbProject;
 class ProjectBuildTarget;
 class ProjectFile;
-class wxXmlNode;
 
 /*
     Macros used in command specs:
@@ -69,13 +67,11 @@ struct RegExStruct
         : desc(_("Unknown")), lt(cltError), regex(_T("")), filename(0), line(0)
     {
         memset(msg, 0, sizeof(msg));
-        CompileRegEx();
     }
     RegExStruct(const RegExStruct& rhs)
         : desc(rhs.desc), lt(rhs.lt), regex(rhs.regex), filename(rhs.filename), line(rhs.line)
     {
         memcpy(msg, rhs.msg, sizeof(msg));
-        CompileRegEx();
     }
     RegExStruct(const wxString&  _desc,
                 CompilerLineType _lt,
@@ -90,21 +86,7 @@ struct RegExStruct
         msg[0] = _msg;
         msg[1] = _msg2;
         msg[2] = _msg3;
-        CompileRegEx();
     }
-    RegExStruct& operator=(RegExStruct &obj)
-    {
-        desc=obj.desc;
-        lt=obj.lt;
-        regex=obj.regex;
-        filename=obj.filename;
-        line=obj.line;
-        memcpy(msg, obj.msg, sizeof(msg));
-
-        CompileRegEx();
-        return *this;
-    }
-
     bool operator!=(const RegExStruct& other)
     {
         return !(*this == other);
@@ -120,15 +102,6 @@ struct RegExStruct
                 && filename == other.filename
                 && line     == other.line );
     }
-
-    void CompileRegEx()
-    {
-        if (!regex.empty())
-            regexObject.Compile(regex);
-    }
-
-    const wxRegEx& GetRegEx() const { return regexObject; }
-
     wxString         desc;     // title of this regex
     CompilerLineType lt;       // classify the line, if regex matches
     wxString         regex;    // the regex to match
@@ -138,8 +111,6 @@ struct RegExStruct
     // if more than one sub-expressions are entered for msg,
     // they are appended to each other, with one space in between.
     // Appending takes place in the same order...
-private:
-    wxRegEx regexObject;
 };
 WX_DECLARE_OBJARRAY(RegExStruct, RegExArray);
 
@@ -183,6 +154,7 @@ struct CompilerPrograms
     wxString LIB;       // static libs linker
     wxString WINDRES;   // resource compiler
     wxString MAKE;      // make
+    wxString DBG;       // debugger
     wxString DBGconfig; // debugger config name = "debugger_settings_name:config_name"
 };
 
@@ -205,7 +177,6 @@ struct CompilerSwitches
     wxString libExtension;        // a
     bool linkerNeedsLibPrefix;    // when adding a link library, linker needs prefix?
     bool linkerNeedsLibExtension; // when adding a link library, linker needs extension?
-    bool linkerNeedsPathResolved; // linker does not support libDirs; C::B must resolve file paths
     bool supportsPCH;             // supports pre-compiled headers?
     wxString PCHExtension;        // pre-compiled headers extension
     bool UseFlatObjects;          // Use Flat object file names (no extra subdirs)?
@@ -218,10 +189,6 @@ struct CompilerSwitches
                                   // therefore use 8.3 notation without spaces on Windows.
                                   // However, this will apply to all include path's as other tools might have the
                                   // same issue and it won't hurt to apply it to all include directories, if enabled.
-    wxChar includeDirSeparator;   // space
-    wxChar libDirSeparator;       // space
-    wxChar objectSeparator;       // space
-    int statusSuccess;            // 0    - treat exit-codes >= 0 and <= statusSuccess as success (do not set negative!)
 
     CompilerSwitches(); // constructor initializing the members, specific compilers should overrule if needed
 };
@@ -231,8 +198,8 @@ struct CompilerTool
 {
     // extensions string will be converted to array by GetArrayFromString using DEFAULT_ARRAY_SEP (;)
     // as separator
-    CompilerTool(const wxString& command_in = wxEmptyString, const wxString& extensions_in = wxEmptyString, const wxString& generatedFiles_in = wxEmptyString)
-        : command(command_in), extensions(GetArrayFromString(extensions_in)), generatedFiles(GetArrayFromString(generatedFiles_in))
+    CompilerTool(const wxString& command_in = wxEmptyString, const wxString& extensions_in = wxEmptyString)
+        : command(command_in), extensions(GetArrayFromString(extensions_in))
     {}
     CompilerTool(const CompilerTool& rhs)
         : command(rhs.command), extensions(rhs.extensions), generatedFiles(rhs.generatedFiles)
@@ -256,7 +223,7 @@ class DLLIMPORT Compiler : public CompileOptionsBase
 {
     public:
         static const wxString FilePathWithSpaces;
-        Compiler(const wxString& name, const wxString& ID, const wxString& parentID = wxEmptyString, int weight = 50);
+        Compiler(const wxString& name, const wxString& ID, const wxString& parentID = wxEmptyString);
         virtual ~Compiler();
 
         /** @brief Check if the compiler is actually valid (installed). */
@@ -288,13 +255,13 @@ class DLLIMPORT Compiler : public CompileOptionsBase
           */
         virtual const wxString& GetCommand(CommandType ct, const wxString& fileExtension = wxEmptyString) const;
         /** @brief Get a compiler tool based on CommandType */
-        virtual const CompilerTool* GetCompilerTool(CommandType ct, const wxString& fileExtension = wxEmptyString) const;
+        virtual const CompilerTool& GetCompilerTool(CommandType ct, const wxString& fileExtension = wxEmptyString) const;
         /** @brief Get a command tool vector based on CommandType (used by advanced compiler dialog) */
         virtual CompilerToolsVector& GetCommandToolsVector(CommandType ct) { return m_Commands[ct]; }
         /** @brief Get the array of regexes used in errors/warnings recognition */
         virtual const RegExArray& GetRegExArray(){ return m_RegExes; }
         /** @brief Load the default (preset) array of regexes used in errors/warnings recognition */
-        virtual void LoadDefaultRegExArray(bool globalPrecedence = false);
+        virtual void LoadDefaultRegExArray() = 0;
 
         /** @brief Set the compiler's name */
         virtual void SetName(const wxString& name){ m_Name = name; }
@@ -309,22 +276,16 @@ class DLLIMPORT Compiler : public CompileOptionsBase
         /** @brief Set the compiler's options */
         virtual void SetOptions(const CompilerOptions& options){ m_Options = options; }
         /** @brief Set the array of regexes used in errors/warnings recognition */
-        virtual void SetRegExArray(const RegExArray& regexes) { m_RegExes = regexes; CompileRegExArray(); }
-
+        virtual void SetRegExArray(const RegExArray& regexes){ m_RegExes = regexes; }
 
         /** @brief Save settings */
         virtual void SaveSettings(const wxString& baseKey);
         /** @brief Load settings */
         virtual void LoadSettings(const wxString& baseKey);
         /** @brief Reset settings to defaults.
-          * Put initialization code here or leave blank for standard XML loading.
-          * Call this from the default constructor.
+          * Put initialization code here and call this from the default constructor.
           */
-        virtual void Reset();
-        /** @brief Reload option flags (for copied compilers).
-          * Override if not using standard XML loading.
-          */
-        virtual void ReloadOptions();
+        virtual void Reset() = 0;
         /** @brief Try to auto-detect the compiler's installation directory */
         virtual AutoDetectResult AutoDetectInstallationDir() = 0;
 
@@ -349,13 +310,6 @@ class DLLIMPORT Compiler : public CompileOptionsBase
           * command line generation.
           */
         virtual CompilerCommandGenerator* GetCommandGenerator(cbProject *project);
-
-        void SetCOnlyFlags(const wxString& flags)   { m_SortOptions[0] = flags; };
-        void SetCPPOnlyFlags(const wxString& flags) { m_SortOptions[1] = flags; };
-
-        const wxString& GetCOnlyFlags()   { return m_SortOptions[0]; };
-        const wxString& GetCPPOnlyFlags() { return m_SortOptions[1]; };
-
     protected:
         friend class CompilerFactory;
         Compiler(const Compiler& other); // copy ctor to copy everything but update m_ID
@@ -368,18 +322,8 @@ class DLLIMPORT Compiler : public CompileOptionsBase
         // converts, if needed, m_ID to something that is valid
         void MakeValidID();
 
-        // load options from the corresponding options_<name>.xml
-        void LoadDefaultOptions(const wxString& name, int recursion = 0);
-        // load array of regexes from the corresponding options_<name>.xml
-        void LoadRegExArray(const wxString& name, bool globalPrecedence = false, int recursion = 0);
-
-        bool EvalXMLCondition(const wxXmlNode* node);
-        wxString GetExecName(const wxString& name);
-
         // keeps a copy of current settings (works only the first time it's called)
         void MirrorCurrentSettings();
-
-        void CompileRegExArray();
 
         // set the following members in your class
         wxString            m_Name;
@@ -394,9 +338,6 @@ class DLLIMPORT Compiler : public CompileOptionsBase
         wxString            m_ErrorLine;
         wxString            m_Error;
         wxString            m_VersionString;
-        wxString            m_SortOptions[2]; // m_SortOptions[0] == C-only flags; m_SortOptions[1] == C++-only flags
-
-        int m_Weight; // lower means listed sooner (try to keep between 0 and 100)
     private:
         wxString m_ID;
         wxString m_ParentID; // -1 for builtin compilers, the builtin compiler's ID to derive from for user compilers...
@@ -427,8 +368,6 @@ class DLLIMPORT Compiler : public CompileOptionsBase
             CompilerSwitches    Switches;
             CompilerOptions     Options;
             RegExArray          RegExes;
-
-            wxString SortOptions[2];
         };
         MirrorSettings m_Mirror;
         bool           m_Mirrored; // flag to only mirror the settings once

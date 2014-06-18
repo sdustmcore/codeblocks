@@ -1,6 +1,6 @@
 EXTRA_DIST = 	$(srcdir)/doc/* \
 		$(srcdir)/icons/* \
-		$(srcdir)/*.cbp \
+		CbLauncher.cbp \
 		icon.rc \
 		mainpage.h \
 		launcher.cpp

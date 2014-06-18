@@ -26,8 +26,8 @@
 #include <wx/filedlg.h>
 
 //(*InternalHeaders(wxsBitmapIconEditorDlg)
-#include <wx/string.h>
 #include <wx/intl.h>
+#include <wx/string.h>
 //*)
 
 #define TIMER_DELAY    250
@@ -127,19 +127,19 @@ wxsBitmapIconEditorDlg::wxsBitmapIconEditorDlg(wxWindow* parent,wxsBitmapIconDat
     Data(_Data)
 {
     //(*Initialize(wxsBitmapIconEditorDlg)
-    wxBoxSizer* BoxSizer3;
+    wxBoxSizer* BoxSizer4;
+    wxBoxSizer* BoxSizer5;
     wxBoxSizer* BoxSizer7;
     wxBoxSizer* BoxSizer2;
-    wxBoxSizer* BoxSizer4;
     wxBoxSizer* BoxSizer1;
-    wxBoxSizer* BoxSizer5;
+    wxBoxSizer* BoxSizer3;
 
     Create(parent, wxID_ANY, _("Image editor"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
     BoxSizer1 = new wxBoxSizer(wxVERTICAL);
     BoxSizer5 = new wxBoxSizer(wxHORIZONTAL);
     StaticBoxSizer1 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Image options"));
     FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
-    FlexGridSizer1->AddGrowableCol(0);
+    FlexGridSizer1->AddGrowableCol(1);
     NoImage = new wxRadioButton(this, ID_RADIOBUTTON1, _("No image"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON1"));
     FlexGridSizer1->Add(NoImage, 0, wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     ImageFile = new wxRadioButton(this, ID_RADIOBUTTON2, _("Image From File:"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_RADIOBUTTON2"));
@@ -234,6 +234,7 @@ void wxsBitmapIconEditorDlg::OnTimer(wxTimerEvent& event)
     wxSize PrevSize = Preview->GetSize();
     wxBitmap Tmp(PrevSize.GetWidth(),PrevSize.GetHeight());
     wxBitmap PreviewBmp = PreviewData.GetPreview(wxDefaultSize,DefaultClient);
+    wxSize BmpSize(PreviewBmp.GetWidth(),PreviewBmp.GetHeight());
     wxMemoryDC DC;
     DC.SelectObject(Tmp);
     DC.SetBrush(wxColour(0xC0,0xC0,0xC0));
@@ -242,7 +243,6 @@ void wxsBitmapIconEditorDlg::OnTimer(wxTimerEvent& event)
 
     if ( PreviewBmp.Ok() )
     {
-        wxSize BmpSize(PreviewBmp.GetWidth(),PreviewBmp.GetHeight());
         int X = (PrevSize.GetWidth()  - BmpSize.GetWidth() ) / 2;
         int Y = (PrevSize.GetHeight() - BmpSize.GetHeight()) / 2;
         if ( X < 0 ) X = 0;

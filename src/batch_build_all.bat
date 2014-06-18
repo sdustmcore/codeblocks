@@ -2,13 +2,11 @@
 rem ----------------------------------------
 rem Setup C::B root folder of *binaries* (!)
 rem ----------------------------------------
-if not defined CB_ROOT set CB_ROOT=C:\Devel\CodeBlocks
+set CB_ROOT=C:\Devel\CodeBlocks
 rem ------------------------------------------
 rem Setup GCC root folder with "bin" subfolder
 rem ------------------------------------------
-if not defined GCC_ROOT set GCC_ROOT=C:\Devel\GCC46TDM
-rem change this name to suit your needs
-rem if not defined CB_RUN_UPDATE_BAT set CB_RUN_UPDATE_BAT=0
+set GCC_ROOT=%CB_ROOT%\MinGW
 
 rem -------------------------------------------
 rem Usually below here no changes are required.
@@ -23,12 +21,12 @@ if "%1"=="-r"       set BUILD_TYPE=--rebuild
 if "%1"=="rebuild"  set BUILD_TYPE=--rebuild
 if "%1"=="-rebuild" set BUILD_TYPE=--rebuild
 
-if not defined START_CMD set START_CMD=start "Code::Blocks Build (wx2.8.x)" /D"%~dp0" /min /b
+set START_CMD=start "Code::Blocks Build" /D"%~dp0" /min /b
 set CB_EXE="%CB_ROOT%\codeblocks.exe"
-if not defined CB_PARAMS set CB_PARAMS=--batch-build-notify --no-batch-window-close
+set CB_PARAMS=--batch-build-notify --no-batch-window-close
 set CB_CMD=%BUILD_TYPE% "%~dp0CodeBlocks.workspace"
 
-if not defined CB_TARGET set CB_TARGET=--target=All
+set CB_TARGET=--target=All
 %START_CMD% %CB_EXE% %CB_PARAMS% %CB_TARGET% %CB_CMD%
 echo Do not forget to run "update.bat" after successful build!
 goto TheEnd

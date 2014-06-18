@@ -68,6 +68,7 @@
 #if defined(CB_PRECOMP)
 #include "sdk.h"
 #else
+    #include "sdk_common.h"
 	#include "sdk_events.h"
 	#include "manager.h"
 	#include "editormanager.h"
@@ -318,8 +319,6 @@ void BrowseTracker::OnAttach()
             gBrowse_MarkerStyle  = BROWSETRACKER_HIDDEN_STYLE;
             break;
         }
-        default:
-            break;
     }//switch
 
 	// Hook to plugin events

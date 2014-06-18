@@ -33,8 +33,6 @@
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/manager.h>
 
-#include <prep.h>
-
 #if wxCHECK_VERSION(2, 9, 0)
 #define wxPGId wxPGProperty*
 #endif
@@ -88,7 +86,7 @@ class wxsPropertyGridManager: public wxPropertyGridManager
          * \param NewContainer new container associated with this manager,
          *        if 0, container has been unbinded and manager must be cleared.
          */
-        virtual void OnContainerChanged(cb_unused wxsPropertyContainer* NewContainer) {}
+        virtual void OnContainerChanged(wxsPropertyContainer* NewContainer) {}
 
     private:
 
@@ -176,7 +174,7 @@ class wxsPropertyGridManager: public wxPropertyGridManager
         WX_DECLARE_HASH_SET(wxsPropertyContainer*,wxPointerHash,wxPointerEqual,wxSetCont);
 
         wxArrayPGId  PGIDs;                         ///< \brief Array of property identifiers
-        wxArrayProps PGEntries;                     ///< \brief Array mapping entries in grid to properties
+        wxArrayProps PGEnteries;                    ///< \brief Array mapping entries in grid to properties
         wxArrayLong  PGIndexes;                     ///< \brief Array of internal property indexes used inside wxsProperty
         wxArrayCont  PGContainers;                  ///< \brief Array of container objects associated with properties
         wxSetCont    PGContainersSet;               ///< \brief Set of used containers, will be used to quickly determine if given container is used in manager

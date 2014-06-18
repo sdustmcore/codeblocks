@@ -289,7 +289,7 @@ FileExplorer::FileExplorer(wxWindow *parent,wxWindowID id,
     bshloc->Add(m_Loc, 1, wxEXPAND);
     bshloc->Add(m_UpButton, 0, wxEXPAND);
     bs->Add(bshloc, 0, wxEXPAND);
-    bsh->Add(new wxStaticText(this,wxID_ANY,_("Mask: ")),0,wxALIGN_CENTRE);
+    bsh->Add(new wxStaticText(this,wxID_ANY,_T("Mask: ")),0,wxALIGN_CENTRE);
     bsh->Add(m_WildCards,1);
     bs->Add(bsh, 0, wxEXPAND);
     bs->Add(m_Tree, 1, wxEXPAND | wxALL);
@@ -751,7 +751,52 @@ bool FileExplorer::AddTreeItems(const wxTreeItemId &ti)
 
 void FileExplorer::SetImages()
 {
-    wxImageList *m_pImages = cbProjectTreeImages::MakeImageList();
+    static const wxString imgs[] = {
+
+        // NOTE: Keep in sync with FileVisualState in globals.h!
+
+        // The following are related to (editable, source-) file states
+        _T("file.png"),                  // fvsNormal
+        _T("file-missing.png"),          // fvsMissing,
+        _T("file-modified.png"),         // fvsModified,
+        _T("file-readonly.png"),         // fvsReadOnly,
+
+        // The following are related to version control systems (vc)
+        _T("rc-file-added.png"),         // fvsVcAdded,
+        _T("rc-file-conflict.png"),      // fvsVcConflict,
+        _T("rc-file-missing.png"),       // fvsVcMissing,
+        _T("rc-file-modified.png"),      // fvsVcModified,
+        _T("rc-file-outofdate.png"),     // fvsVcOutOfDate,
+        _T("rc-file-uptodate.png"),      // fvsVcUpToDate,
+        _T("rc-file-requireslock.png"),  // fvsVcRequiresLock,
+        _T("rc-file-external.png"),      // fvsVcExternal,
+        _T("rc-file-gotlock.png"),       // fvsVcGotLock,
+        _T("rc-file-lockstolen.png"),    // fvsVcLockStolen,
+        _T("rc-file-mismatch.png"),      // fvsVcMismatch,
+        _T("rc-file-noncontrolled.png"), // fvsVcNonControlled,
+
+        // The following are related to C::B workspace/project/folder/virtual
+        _T("workspace.png"),             // fvsWorkspace,         WorkspaceIconIndex()
+        _T("workspace-readonly.png"),    // fvsWorkspaceReadOnly, WorkspaceIconIndex(true)
+        _T("project.png"),               // fvsProject,           ProjectIconIndex()
+        _T("project-readonly.png"),      // fvsProjectReadOnly,   ProjectIconIndex(true)
+        _T("folder_open.png"),           // fvsFolder,            FolderIconIndex()
+        _T("vfolder_open.png"),          // fvsVirtualFolder,     VirtualFolderIconIndex()
+
+        wxEmptyString
+    };
+    wxBitmap bmp;
+    wxImageList *m_pImages = new wxImageList(16, 16);
+    wxString prefix = ConfigManager::ReadDataPath() + _T("/images/");
+
+    int i = 0;
+    while (!imgs[i].IsEmpty())
+    {
+//        cbMessageBox(wxString::Format(_T("%d: %s"), i, wxString(prefix + imgs[i]).c_str()));
+        bmp = cbLoadBitmap(prefix + imgs[i], wxBITMAP_TYPE_PNG); // workspace
+        m_pImages->Add(bmp);
+        ++i;
+    }
     m_Tree->SetImageList(m_pImages);
 
 //    // make sure tree is not "frozen"
@@ -1084,38 +1129,38 @@ void FileExplorer::OnRightClick(wxTreeEvent &event)
             if(img==fvsFolder)
             {
                 ftd->SetKind(FileTreeData::ftdkFolder);
-                Popup->Append(ID_SETLOC,_("Make roo&t"));
-                Popup->Append(ID_FILEEXPANDALL,_("Expand All Children")); //TODO: check availability in wx2.8 for win32 (not avail wx2.6)
-                Popup->Append(ID_FILECOLLAPSEALL,_("Collapse All Children")); //TODO: check availability in wx2.8 for win32 (not avail wx2.6)
-                Popup->Append(ID_FILEMAKEFAV,_("Add to Favorites"));
-                Popup->Append(ID_FILENEWFILE,_("New File..."));
-                Popup->Append(ID_FILENEWFOLDER,_("New Directory..."));
-                Popup->Append(ID_FILERENAME,_("&Rename..."));
+                Popup->Append(ID_SETLOC,_T("Make roo&t"));
+                Popup->Append(ID_FILEEXPANDALL,_T("Expand All Children")); //TODO: check availability in wx2.8 for win32 (not avail wx2.6)
+                Popup->Append(ID_FILECOLLAPSEALL,_T("Collapse All Children")); //TODO: check availability in wx2.8 for win32 (not avail wx2.6)
+                Popup->Append(ID_FILEMAKEFAV,_T("Add to Favorites"));
+                Popup->Append(ID_FILENEWFILE,_T("New File..."));
+                Popup->Append(ID_FILENEWFOLDER,_T("New Directory..."));
+                Popup->Append(ID_FILERENAME,_T("&Rename..."));
             } else
             {
-                Popup->Append(ID_FILERENAME,_("&Rename..."));
+                Popup->Append(ID_FILERENAME,_T("&Rename..."));
             }
         }
         if(IsFilesOnly(m_selectti))
         {
-            Popup->Append(ID_OPENINED,_("&Open in CB Editor"));
+            Popup->Append(ID_OPENINED,_T("&Open in CB Editor"));
             if(Manager::Get()->GetProjectManager()->GetActiveProject())
-                Popup->Append(ID_FILEADDTOPROJECT,_("&Add to Active Project..."));
+                Popup->Append(ID_FILEADDTOPROJECT,_T("&Add to Active Project..."));
         }
-        Popup->Append(ID_FILEDUP,_("&Duplicate"));
-        Popup->Append(ID_FILECOPY,_("&Copy To..."));
-        Popup->Append(ID_FILEMOVE,_("&Move To..."));
-        Popup->Append(ID_FILEDELETE,_("D&elete"));
+        Popup->Append(ID_FILEDUP,_T("&Duplicate"));
+        Popup->Append(ID_FILECOPY,_T("&Copy To..."));
+        Popup->Append(ID_FILEMOVE,_T("&Move To..."));
+        Popup->Append(ID_FILEDELETE,_T("D&elete"));
     }
     wxMenu *viewpop=new wxMenu();
-    viewpop->Append(ID_FILESETTINGS,_("Favorite Directories..."));
-    viewpop->AppendCheckItem(ID_FILESHOWHIDDEN,_("Show &Hidden Files"))->Check(m_show_hidden);
-    viewpop->AppendCheckItem(ID_FILEPARSECVS,_("CVS Decorators"))->Check(m_parse_cvs);
-    viewpop->AppendCheckItem(ID_FILEPARSESVN,_("SVN Decorators"))->Check(m_parse_svn);
-    viewpop->AppendCheckItem(ID_FILEPARSEHG,_("Hg Decorators"))->Check(m_parse_hg);
-    viewpop->AppendCheckItem(ID_FILEPARSEBZR,_("Bzr Decorators"))->Check(m_parse_bzr);
-    Popup->AppendSubMenu(viewpop,_("&View"));
-    Popup->Append(ID_FILEREFRESH,_("Re&fresh"));
+    viewpop->Append(ID_FILESETTINGS,_T("Favorite Directories..."));
+    viewpop->AppendCheckItem(ID_FILESHOWHIDDEN,_T("Show &Hidden Files"))->Check(m_show_hidden);
+    viewpop->AppendCheckItem(ID_FILEPARSECVS,_T("CVS Decorators"))->Check(m_parse_cvs);
+    viewpop->AppendCheckItem(ID_FILEPARSESVN,_T("SVN Decorators"))->Check(m_parse_svn);
+    viewpop->AppendCheckItem(ID_FILEPARSEHG,_T("Hg Decorators"))->Check(m_parse_hg);
+    viewpop->AppendCheckItem(ID_FILEPARSEBZR,_T("Bzr Decorators"))->Check(m_parse_bzr);
+    Popup->AppendSubMenu(viewpop,_T("&View"));
+    Popup->Append(ID_FILEREFRESH,_T("Re&fresh"));
     if(m_ticount>1)
     {
         ftd->SetKind(FileTreeData::ftdkVirtualGroup);
@@ -1136,7 +1181,7 @@ void FileExplorer::OnRightClick(wxTreeEvent &event)
 void FileExplorer::OnNewFile(wxCommandEvent &/*event*/)
 {
     wxString workingdir=GetFullPath(m_selectti[0]); //SINGLE: m_Tree->GetSelection()
-    wxTextEntryDialog te(this,_("Name Your New File: "));
+    wxTextEntryDialog te(this,_T("Name Your New File: "));
     if(te.ShowModal()!=wxID_OK)
         return;
     wxString name=te.GetValue();
@@ -1152,10 +1197,10 @@ void FileExplorer::OnNewFile(wxCommandEvent &/*event*/)
             Refresh(m_selectti[0]); //SINGLE: m_Tree->GetSelection()
         }
         else
-            cbMessageBox(_("File Creation Failed"),_("Error"));
+            cbMessageBox(_T("File Creation Failed"),_T("Error"));
     }
     else
-        cbMessageBox(_("File/Directory Already Exists with Name ")+name, _("Error"));
+        cbMessageBox(_T("File/Directory Already Exists with Name ")+name, _T("Error"));
 }
 
 void FileExplorer::OnAddFavorite(wxCommandEvent &/*event*/)
@@ -1164,7 +1209,7 @@ void FileExplorer::OnAddFavorite(wxCommandEvent &/*event*/)
     fav.path=GetFullPath(m_selectti[0]);
     if(fav.path[fav.path.Len()-1]!=wxFileName::GetPathSeparator())
         fav.path=fav.path+wxFileName::GetPathSeparator();
-    wxTextEntryDialog ted(NULL,_("Enter an alias for this directory:"),_("Add Favorite Directory"),fav.path);
+    wxTextEntryDialog ted(NULL,_T("Enter an alias for this directory:"),_T("Add Favorite Directory"),fav.path);
     if(ted.ShowModal()!=wxID_OK)
         return;
     wxString name=ted.GetValue();
@@ -1176,7 +1221,7 @@ void FileExplorer::OnAddFavorite(wxCommandEvent &/*event*/)
 void FileExplorer::OnNewFolder(wxCommandEvent &/*event*/)
 {
     wxString workingdir=GetFullPath(m_selectti[0]); //SINGLE: m_Tree->GetSelection()
-    wxTextEntryDialog te(this,_("New Directory Name: "));
+    wxTextEntryDialog te(this,_T("New Directory Name: "));
     if(te.ShowModal()!=wxID_OK)
         return;
     wxString name=te.GetValue();
@@ -1189,7 +1234,7 @@ void FileExplorer::OnNewFolder(wxCommandEvent &/*event*/)
         Refresh(m_selectti[0]); //SINGLE: m_Tree->GetSelection()
     }
     else
-        cbMessageBox(_("File/Directory Already Exists with Name ")+name);
+        cbMessageBox(_T("File/Directory Already Exists with Name ")+name);
 }
 
 void FileExplorer::OnDuplicate(wxCommandEvent &/*event*/)
@@ -1200,7 +1245,7 @@ void FileExplorer::OnDuplicate(wxCommandEvent &/*event*/)
         wxFileName path(GetFullPath(m_selectti[i]));  //SINGLE: m_Tree->GetSelection()
         if(wxFileName::FileExists(path.GetFullPath())||wxFileName::DirExists(path.GetFullPath()))
         {
-            if(!PromptSaveOpenFile(_("File is modified, press Yes to save before duplication, No to copy unsaved file or Cancel to skip file"),wxFileName(path)))
+            if(!PromptSaveOpenFile(_T("File is modified, press Yes to save before duplication, No to copy unsaved file or Cancel to skip file"),wxFileName(path)))
                 continue;
             int j=1;
             wxString destpath(path.GetPathWithSep()+path.GetName()+wxString::Format(_T("(%i)"),j));
@@ -1215,7 +1260,7 @@ void FileExplorer::OnDuplicate(wxCommandEvent &/*event*/)
             }
             if(j==100)
             {
-                cbMessageBox(_("Too many copies of file or directory"));
+                cbMessageBox(_T("Too many copies of file or directory"));
                 continue;
             }
 
@@ -1232,7 +1277,7 @@ void FileExplorer::OnDuplicate(wxCommandEvent &/*event*/)
             int hresult=::wxExecute(cmdline,wxEXEC_SYNC);
 #endif
             if(hresult)
-                MessageBox(m_Tree,_("Command '")+cmdline+_("' failed with error ")+wxString::Format(_T("%i"),hresult));
+                MessageBox(m_Tree,_T("Command '")+cmdline+_T("' failed with error ")+wxString::Format(_T("%i"),hresult));
         }
     }
     Refresh(m_Tree->GetRootItem()); //TODO: Can probably be more efficient than this
@@ -1251,7 +1296,7 @@ void FileExplorer::CopyFiles(const wxString &destination, const wxArrayString &s
             continue;
         if(wxFileName::FileExists(path)||wxFileName::DirExists(path))
         {
-            if(!PromptSaveOpenFile(_("File is modified, press Yes to save before duplication, No to copy unsaved file or Cancel to skip file"),wxFileName(path)))
+            if(!PromptSaveOpenFile(_T("File is modified, press Yes to save before duplication, No to copy unsaved file or Cancel to skip file"),wxFileName(path)))
                 continue;
 #ifdef __WXMSW__
             wxArrayString output;
@@ -1265,14 +1310,14 @@ void FileExplorer::CopyFiles(const wxString &destination, const wxArrayString &s
             int hresult=::wxExecute(_T("/bin/cp -r -b \"")+path+_T("\" \"")+destpath.GetFullPath()+_T("\""),wxEXEC_SYNC);
 #endif
             if(hresult)
-                MessageBox(m_Tree,_("Copying '")+path+_("' failed with error ")+wxString::Format(_T("%i"),hresult));
+                MessageBox(m_Tree,_T("Copying '")+path+_T("' failed with error ")+wxString::Format(_T("%i"),hresult));
         }
     }
 }
 
 void FileExplorer::OnCopy(wxCommandEvent &/*event*/)
 {
-    wxDirDialog dd(this,_("Copy to"));
+    wxDirDialog dd(this,_T("Copy to"));
     dd.SetPath(GetFullPath(m_Tree->GetRootItem()));
     wxArrayString selectedfiles;
     m_ticount=m_Tree->GetSelections(m_selectti);
@@ -1305,14 +1350,14 @@ void FileExplorer::MoveFiles(const wxString &destination, const wxArrayString &s
             int hresult=::wxExecute(_T("/bin/mv -b \"")+path+_T("\" \"")+destpath.GetFullPath()+_T("\""),wxEXEC_SYNC);
 #endif
             if(hresult)
-                MessageBox(m_Tree,_("Moving '")+path+_("' failed with error ")+wxString::Format(_T("%i"),hresult));
+                MessageBox(m_Tree,_T("Moving '")+path+_T("' failed with error ")+wxString::Format(_T("%i"),hresult));
         }
     }
 }
 
 void FileExplorer::OnMove(wxCommandEvent &/*event*/)
 {
-    wxDirDialog dd(this,_("Move to"));
+    wxDirDialog dd(this,_T("Move to"));
     wxArrayString selectedfiles;
     m_ticount=m_Tree->GetSelections(m_selectti);
     for(int i=0;i<m_ticount;i++)
@@ -1343,8 +1388,8 @@ void FileExplorer::OnDelete(wxCommandEvent &/*event*/)
     wxString prompt=_("Your are about to delete\n\n");
     for(unsigned int i=0;i<as.Count();i++)
         prompt+=as[i]+_("\n");
-    prompt+=_("\nAre you sure?");
-    if(MessageBox(m_Tree,prompt,_("Delete"),wxYES_NO)!=wxID_YES)
+    prompt+=_T("\nAre you sure?");
+    if(MessageBox(m_Tree,prompt,_T("Delete"),wxYES_NO)!=wxID_YES)
         return;
     for(unsigned int i=0;i<as.Count();i++)
     {
@@ -1354,11 +1399,11 @@ void FileExplorer::OnDelete(wxCommandEvent &/*event*/)
             //        EditorManager* em = Manager::Get()->GetEditorManager();
             //        if(em->IsOpen(path))
             //        {
-            //            cbMessageBox(_("Close file ")+path.GetFullPath()+_(" first"));
+            //            cbMessageBox(_T("Close file ")+path.GetFullPath()+_T(" first"));
             //            return;
             //        }
             if(!::wxRemoveFile(path))
-                MessageBox(m_Tree,_("Delete file '")+path+_("' failed"));
+                MessageBox(m_Tree,_T("Delete file '")+path+_T("' failed"));
         } else
         if(wxFileName::DirExists(path))
         {
@@ -1369,7 +1414,7 @@ void FileExplorer::OnDelete(wxCommandEvent &/*event*/)
             int hresult=::wxExecute(_T("/bin/rm -r -f \"")+path+_T("\""),wxEXEC_SYNC);
 #endif
             if(hresult)
-                MessageBox(m_Tree,_("Delete directory '")+path+_("' failed with error ")+wxString::Format(_T("%i"),hresult));
+                MessageBox(m_Tree,_T("Delete directory '")+path+_T("' failed with error ")+wxString::Format(_T("%i"),hresult));
         }
     }
     Refresh(m_Tree->GetRootItem());
@@ -1383,20 +1428,20 @@ void FileExplorer::OnRename(wxCommandEvent &/*event*/)
         EditorManager* em = Manager::Get()->GetEditorManager();
         if(em->IsOpen(path))
         {
-            cbMessageBox(_("Close file first"));
+            cbMessageBox(_T("Close file first"));
             return;
         }
-        wxTextEntryDialog te(this,_("New name:"),_("Rename File"),wxFileName(path).GetFullName());
+        wxTextEntryDialog te(this,_T("New name:"),_T("Rename File"),wxFileName(path).GetFullName());
         if(te.ShowModal()==wxID_CANCEL)
             return;
         wxFileName destpath(path);
         destpath.SetFullName(te.GetValue());
         if(!::wxRenameFile(path,destpath.GetFullPath()))
-            cbMessageBox(_("Rename failed"));
+            cbMessageBox(_T("Rename failed"));
     }
     if(wxFileName::DirExists(path))
     {
-        wxTextEntryDialog te(this,_("New name:"),_("Rename File"),wxFileName(path).GetFullName());
+        wxTextEntryDialog te(this,_T("New name:"),_T("Rename File"),wxFileName(path).GetFullName());
         if(te.ShowModal()==wxID_CANCEL)
             return;
         wxFileName destpath(path);
@@ -1408,7 +1453,7 @@ void FileExplorer::OnRename(wxCommandEvent &/*event*/)
         int hresult=::wxExecute(_T("/bin/mv \"")+path+_T("\" \"")+destpath.GetFullPath()+_T("\""),wxEXEC_SYNC);
 #endif
         if(hresult)
-            MessageBox(m_Tree,_("Rename directory '")+path+_("' failed with error ")+wxString::Format(_T("%i"),hresult));
+            MessageBox(m_Tree,_T("Rename directory '")+path+_T("' failed with error ")+wxString::Format(_T("%i"),hresult));
     }
     Refresh(m_Tree->GetItemParent(m_selectti[0])); //SINGLE: m_Tree->GetSelection()
 }
@@ -1525,7 +1570,7 @@ void FileExplorer::OnEndDragTreeItem(wxTreeEvent &event)
             if(!::wxGetKeyState(WXK_CONTROL))
             {
                 if(wxFileName::FileExists(path))
-                    if(!PromptSaveOpenFile(_("File is modified, press Yes to save before move, No to move unsaved file or Cancel to skip file"),wxFileName(path)))
+                    if(!PromptSaveOpenFile(_T("File is modified, press Yes to save before move, No to move unsaved file or Cancel to skip file"),wxFileName(path)))
                         continue;
 #ifdef __WXMSW__
                 wxArrayString output;
@@ -1534,11 +1579,11 @@ void FileExplorer::OnEndDragTreeItem(wxTreeEvent &event)
                 int hresult=::wxExecute(_T("/bin/mv -b \"")+path+_T("\" \"")+destpath.GetFullPath()+_T("\""),wxEXEC_SYNC);
 #endif
                 if(hresult)
-                    MessageBox(m_Tree,_("Move directory '")+path+_("' failed with error ")+wxString::Format(_T("%i"),hresult));
+                    MessageBox(m_Tree,_T("Move directory '")+path+_T("' failed with error ")+wxString::Format(_T("%i"),hresult));
             } else
             {
                 if(wxFileName::FileExists(path))
-                    if(!PromptSaveOpenFile(_("File is modified, press Yes to save before copy, No to copy unsaved file or Cancel to skip file"),wxFileName(path)))
+                    if(!PromptSaveOpenFile(_T("File is modified, press Yes to save before copy, No to copy unsaved file or Cancel to skip file"),wxFileName(path)))
                         continue;
 #ifdef __WXMSW__
                 wxArrayString output;
@@ -1552,7 +1597,7 @@ void FileExplorer::OnEndDragTreeItem(wxTreeEvent &event)
                 int hresult=::wxExecute(_T("/bin/cp -r -b \"")+path+_T("\" \"")+destpath.GetFullPath()+_T("\""),wxEXEC_SYNC);
 #endif
                 if(hresult)
-                    MessageBox(m_Tree,_("Copy directory '")+path+_("' failed with error ")+wxString::Format(_T("%i"),hresult));
+                    MessageBox(m_Tree,_T("Copy directory '")+path+_T("' failed with error ")+wxString::Format(_T("%i"),hresult));
             }
         }
 //        if(!PromptSaveOpenFile(_T("File is modified, press \"Yes\" to save before move/copy, \"No\" to move/copy unsaved file or \"Cancel\" to abort the operation"),path)) //TODO: specify move or copy depending on whether CTRL held down
@@ -1573,7 +1618,7 @@ void FileExplorer::OnAddToProject(wxCommandEvent &/*event*/)
     }
     wxArrayInt prompt;
     Manager::Get()->GetProjectManager()->AddMultipleFilesToProject(files, NULL, prompt);
-    Manager::Get()->GetProjectManager()->GetUI().RebuildTree();
+    Manager::Get()->GetProjectManager()->RebuildTree();
 }
 
 bool FileExplorer::IsFilesOnly(wxArrayTreeItemIds tis)

@@ -264,23 +264,12 @@ void CDB_driver::EvaluateSymbol(const wxString& symbol, const wxRect& tipRect)
     QueueCommand(new CdbCmd_TooltipEvaluation(this, symbol, tipRect));
 }
 
-void CDB_driver::UpdateWatches(cb_unused cb::shared_ptr<GDBWatch> localsWatch,
-                               cb_unused cb::shared_ptr<GDBWatch> funcArgsWatch,
-                               WatchesContainer &watches)
+void CDB_driver::UpdateWatches(cb_unused bool doLocals, cb_unused bool doArgs, WatchesContainer &watches) // TODO: check whether params intentionally unused
 {
-    bool updateWatches = false;
     for (WatchesContainer::iterator it = watches.begin(); it != watches.end(); ++it)
-    {
-        WatchesContainer::reference watch = *it;
-        if (watch->IsAutoUpdateEnabled())
-        {
-            QueueCommand(new CdbCmd_Watch(this, *it));
-            updateWatches = true;
-        }
-    }
+        QueueCommand(new CdbCmd_Watch(this, *it));
 
-    if (updateWatches)
-        QueueCommand(new DbgCmd_UpdateWatchesTree(this));
+    QueueCommand(new DbgCmd_UpdateWatchesTree(this));
 
     // FIXME (obfuscated#): reimplement this code
 //    // start updating watches tree
@@ -305,11 +294,6 @@ void CDB_driver::UpdateWatch(const cb::shared_ptr<GDBWatch> &watch)
 {
     QueueCommand(new CdbCmd_Watch(this, watch));
     QueueCommand(new DbgCmd_UpdateWatchesTree(this));
-}
-
-void CDB_driver::UpdateWatchLocalsArgs(cb::shared_ptr<GDBWatch> const &watch, bool locals)
-{
-    // FIXME (obfuscated#): implement this
 }
 
 void CDB_driver::Attach(cb_unused int pid)

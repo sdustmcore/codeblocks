@@ -41,6 +41,8 @@
 #include "wx/pdffontparser.h"
 #include "wx/pdfutility.h"
 
+//#include "vld.h"
+
 #if WXPDFDOC_INHERIT_WXOBJECT
 IMPLEMENT_DYNAMIC_CLASS(wxPdfDocument, wxObject)
 #endif
@@ -1653,7 +1655,7 @@ wxPdfDocument::Image(const wxString& file, double x, double y, double w, double 
 
 bool
 wxPdfDocument::Image(const wxString& name, const wxImage& img, double x, double y, double w, double h,
-                     const wxPdfLink& link, int maskImage, bool jpegFormat, int jpegQuality)
+                     const wxPdfLink& link, int maskImage)
 {
   bool isValid = false;
   if (img.Ok())
@@ -1685,12 +1687,8 @@ wxPdfDocument::Image(const wxString& name, const wxImage& img, double x, double 
       }
       // First use of image, get info
       tempImage.SetMask(false);
-      if (jpegFormat)
-      {
-        tempImage.SetOption(wxIMAGE_OPTION_QUALITY, jpegQuality);
-      }
       int i = (int) (*m_images).size() + 1;
-      currentImage = new wxPdfImage(this, i, name, tempImage, jpegFormat);
+      currentImage = new wxPdfImage(this, i, name, tempImage);
       if (!currentImage->Parse())
       {
         delete currentImage;

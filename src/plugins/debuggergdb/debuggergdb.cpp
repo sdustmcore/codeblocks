@@ -22,7 +22,6 @@
     #include "cbproject.h"
     #include "manager.h"
     #include "configmanager.h"
-    #include "logmanager.h" // for F
     #include "projectmanager.h"
     #include "pluginmanager.h"
     #include "editormanager.h"
@@ -58,7 +57,7 @@
 #define implement_debugger_toolbar
 
 // function pointer to DebugBreakProcess under windows (XP+)
-#if defined(_WIN32_WINNT) && (_WIN32_WINNT >= 0x0501)
+#if (_WIN32_WINNT >= 0x0501)
 #include "Tlhelp32.h"
 typedef BOOL WINAPI   (*DebugBreakProcessApiCall)       (HANDLE);
 typedef HANDLE WINAPI (*CreateToolhelp32SnapshotApiCall)(DWORD  dwFlags,   DWORD             th32ProcessID);
@@ -96,7 +95,7 @@ enum DebugCommandConst
     CMD_DISASSEMBLE,
     CMD_REGISTERS,
     CMD_MEMORYDUMP,
-    CMD_RUNNINGTHREADS
+    CMD_RUNNINGTHREADS,
 };
 
 const wxString g_EscapeChar = wxChar(26);
@@ -179,7 +178,7 @@ DebuggerGDB::DebuggerGDB() :
     }
 
     // get a function pointer to DebugBreakProcess under windows (XP+)
-    #if defined(_WIN32_WINNT) && (_WIN32_WINNT >= 0x0501)
+    #if (_WIN32_WINNT >= 0x0501)
     kernelLib = LoadLibrary(TEXT("kernel32.dll"));
     if (kernelLib)
     {
@@ -194,7 +193,7 @@ DebuggerGDB::DebuggerGDB() :
 
 DebuggerGDB::~DebuggerGDB()
 {
-    #if defined(_WIN32_WINNT) && (_WIN32_WINNT >= 0x0501)
+    #if (_WIN32_WINNT >= 0x0501)
     if (kernelLib)
         FreeLibrary(kernelLib);
     #endif
@@ -291,37 +290,6 @@ cbConfigurationPanel* DebuggerGDB::GetProjectConfigurationPanel(wxWindow* parent
 
 void DebuggerGDB::OnConfigurationChange(cb_unused bool isActive)
 {
-    DebuggerConfiguration &config = GetActiveConfigEx();
-    bool locals = config.GetFlag(DebuggerConfiguration::WatchLocals);
-    bool funcArgs = config.GetFlag(DebuggerConfiguration::WatchFuncArgs);
-
-    cbWatchesDlg *watchesDialog = Manager::Get()->GetDebuggerManager()->GetWatchesDialog();
-    bool update = false;
-
-    if (!locals)
-    {
-        if (m_localsWatch)
-        {
-            watchesDialog->RemoveWatch(m_localsWatch);
-            m_localsWatch = cb::shared_ptr<GDBWatch>();
-        }
-    }
-    else if (!m_localsWatch)
-        update = true;
-
-    if (!funcArgs)
-    {
-        if (m_funcArgsWatch)
-        {
-            watchesDialog->RemoveWatch(m_funcArgsWatch);
-            m_funcArgsWatch = cb::shared_ptr<GDBWatch>();
-        }
-    }
-    else if (!m_funcArgsWatch)
-        update = true;
-
-    if (update)
-        RequestUpdate(cbDebuggerPlugin::Watches);
 }
 
 wxArrayString& DebuggerGDB::GetSearchDirs(cbProject* prj)
@@ -492,36 +460,9 @@ void DebuggerGDB::DoWatches()
         return;
 
     DebuggerConfiguration &config = GetActiveConfigEx();
-
-    bool locals = config.GetFlag(DebuggerConfiguration::WatchLocals);
-    bool funcArgs = config.GetFlag(DebuggerConfiguration::WatchFuncArgs);
-
-
-    if (locals)
-    {
-        if (m_localsWatch == nullptr)
-        {
-            m_localsWatch = cb::shared_ptr<GDBWatch>(new GDBWatch(wxT("Locals")));
-            m_localsWatch->Expand(true);
-            m_localsWatch->MarkAsChanged(false);
-            cbWatchesDlg *watchesDialog = Manager::Get()->GetDebuggerManager()->GetWatchesDialog();
-            watchesDialog->AddSpecialWatch(m_localsWatch, true);
-        }
-    }
-
-    if (funcArgs)
-    {
-        if (m_funcArgsWatch == nullptr)
-        {
-            m_funcArgsWatch = cb::shared_ptr<GDBWatch>(new GDBWatch(wxT("Function arguments")));
-            m_funcArgsWatch->Expand(true);
-            m_funcArgsWatch->MarkAsChanged(false);
-            cbWatchesDlg *watchesDialog = Manager::Get()->GetDebuggerManager()->GetWatchesDialog();
-            watchesDialog->AddSpecialWatch(m_funcArgsWatch, true);
-        }
-    }
-
-    m_State.GetDriver()->UpdateWatches(m_localsWatch, m_funcArgsWatch, m_watches);
+    m_State.GetDriver()->UpdateWatches(config.GetFlag(DebuggerConfiguration::WatchLocals),
+                                       config.GetFlag(DebuggerConfiguration::WatchFuncArgs),
+                                       m_watches);
 }
 
 int DebuggerGDB::LaunchProcess(const wxString& cmd, const wxString& cwd)
@@ -1578,7 +1519,7 @@ void DebuggerGDB::DoBreak(bool temporary)
     #ifndef __WXMSW__
         if (pid > 0 && !wxProcess::Exists(pid))
         {
-            DebugLog(wxString::Format(_("Child process (pid:%ld) doesn't exists"), pid), Logger::warning);
+            DebugLog(wxString::Format(_("Child process (pid:%ld) doesn't exists"), pid));
             pid = 0;
         }
         if (pid <= 0)
@@ -1589,10 +1530,10 @@ void DebuggerGDB::DoBreak(bool temporary)
         else
         {
             if (!wxProcess::Exists(pid))
-                DebugLog(wxString::Format(_("GDB process (pid:%ld) doesn't exists"), pid), Logger::error);
+                DebugLog(wxString::Format(_("GDB process (pid:%ld) doesn't exists"), pid));
 
-            Log(F(_("Trying to interrupt process with pid: %ld; child pid: %ld gdb pid: %ld"),
-                  pid, childPid, static_cast<long>(m_Pid)));
+            DebugLog(wxString::Format(_("Code::Blocks is trying to interrupt process with pid: %ld; child pid: %ld gdb pid: %ld"),
+                                      pid, childPid, m_Pid));
             wxKillError error;
             if (wxKill(pid, wxSIGINT, &error) != 0)
                 DebugLog(wxString::Format(_("Can't kill process (%ld) %d"), pid, (int)(error)));
@@ -1615,7 +1556,6 @@ void DebuggerGDB::DoBreak(bool temporary)
                     if (static_cast<int>(lppe.th32ParentProcessID) == m_Pid) // Have my Child...
                     {
                         pid = lppe.th32ProcessID;
-                        DebugLog(F(_("Found child: %ld"),  pid));
                     }
                     lppe.dwSize = sizeof(PROCESSENTRY32);
                     ok = Process32NextFunc(snap, &lppe);
@@ -1623,17 +1563,16 @@ void DebuggerGDB::DoBreak(bool temporary)
                 CloseHandle(snap);
             }
             else
-                Log(_("No handle created. Trying to pause directly with cbd.exe..."), Logger::warning);
+                Log(_("No handle created. Trying to pause directly with cbd.exe..."));
         }
 
         if (m_State.GetDriver()->UseDebugBreakProcess())
         {
             if (!DebugBreakProcessFunc)
-                Log(_("DebugBreakProcess is not supported, you need Windows XP or newer..."), Logger::error);
+                Log(_("DebugBreakProcess is not supported, you need Windows XP or newer..."));
             else if (pid > 0)
             {
-                Log(F(_("Trying to interrupt process with pid: %ld; child pid: %ld gdb pid: %ld"),
-                      pid, childPid, static_cast<long>(m_Pid)));
+                Log(_("Trying to pause the running process..."));
                 HANDLE proc = OpenProcess(PROCESS_ALL_ACCESS, FALSE, (DWORD)pid);
                 if (proc)
                 {
@@ -1641,17 +1580,17 @@ void DebuggerGDB::DoBreak(bool temporary)
                     CloseHandle(proc);
                 }
                 else
-                    Log(wxT("Interrupting debugger failed :("), Logger::error);
+                    Log(_("Failed."));
             }
         }
         else
         {
             if (m_Pid > 0)
             {
-                Log(_("Trying to interrupt the process by sending CTRL-C event to the console!"));
                 if (GenerateConsoleCtrlEvent(CTRL_C_EVENT, 0) == 0)
                 {
-                    Log(wxT("Interrupting debugger failed :("), Logger::error);
+                    Log(wxT("Interupting debugger failed :("));
+                    DebugLog(wxT("GenerateConsoleCtrlEvent failed :("));
                     return;
                 }
             }
@@ -1904,8 +1843,10 @@ void DebuggerGDB::CheckIfConsoleIsClosed()
         AnnoyingDialog dialog(_("Terminal/Console closed"),
                               _("Detected that the Terminal/Console has been closed. "
                                 "Do you want to stop the debugging session?"),
-                              wxART_QUESTION);
-        if (dialog.ShowModal() == AnnoyingDialog::rtNO)
+                              wxART_QUESTION,
+                              AnnoyingDialog::YES_NO,
+                              wxID_YES);
+        if (dialog.ShowModal() == wxID_NO)
             m_stopDebuggerConsoleClosed = false;
         else
         {
@@ -1926,11 +1867,8 @@ bool DebuggerGDB::ShowValueTooltip(int style)
 
     if (!GetActiveConfigEx().GetFlag(DebuggerConfiguration::EvalExpression))
         return false;
-    if (style != wxSCI_C_DEFAULT && style != wxSCI_C_OPERATOR && style != wxSCI_C_IDENTIFIER &&
-        style != wxSCI_C_WORD2 && style != wxSCI_C_GLOBALCLASS)
-    {
+    if (style != wxSCI_C_DEFAULT && style != wxSCI_C_OPERATOR && style != wxSCI_C_IDENTIFIER && style != wxSCI_C_WORD2)
         return false;
-    }
     return true;
 }
 
@@ -2070,18 +2008,12 @@ void DebuggerGDB::AddWatchNoUpdate(const cb::shared_ptr<GDBWatch> &watch)
 
 void DebuggerGDB::DeleteWatch(cb::shared_ptr<cbWatch> watch)
 {
-    WatchesContainer::iterator it = std::find(m_watches.begin(), m_watches.end(), watch);
-    if (it != m_watches.end())
-        m_watches.erase(it);
+    m_watches.erase(std::find(m_watches.begin(), m_watches.end(), watch));
 }
 
 bool DebuggerGDB::HasWatch(cb::shared_ptr<cbWatch> watch)
 {
-    WatchesContainer::iterator it = std::find(m_watches.begin(), m_watches.end(), watch);
-    if (it != m_watches.end())
-        return true;
-    else
-        return watch == m_localsWatch || watch == m_funcArgsWatch;
+    return std::find(m_watches.begin(), m_watches.end(), watch) != m_watches.end();
 }
 
 void DebuggerGDB::ShowWatchProperties(cb::shared_ptr<cbWatch> watch)
@@ -2135,29 +2067,8 @@ void DebuggerGDB::CollapseWatch(cb_unused cb::shared_ptr<cbWatch> watch)
 {
 }
 
-void DebuggerGDB::UpdateWatch(cb::shared_ptr<cbWatch> watch)
-{
-    if (!HasWatch(watch))
-        return;
-
-    if (!m_State.HasDriver())
-        return;
-    cb::shared_ptr<GDBWatch> real_watch = cb::static_pointer_cast<GDBWatch>(watch);
-    if (real_watch == m_localsWatch)
-        m_State.GetDriver()->UpdateWatchLocalsArgs(real_watch, true);
-    else if (real_watch == m_funcArgsWatch)
-        m_State.GetDriver()->UpdateWatchLocalsArgs(real_watch, false);
-    else
-        m_State.GetDriver()->UpdateWatch(real_watch);
-}
-
 void DebuggerGDB::MarkAllWatchesAsUnchanged()
 {
-    if (m_localsWatch)
-        m_localsWatch->MarkAsChangedRecursive(false);
-    if (m_funcArgsWatch)
-        m_funcArgsWatch->MarkAsChangedRecursive(false);
-
     for (WatchesContainer::iterator it = m_watches.begin(); it != m_watches.end(); ++it)
         (*it)->MarkAsChangedRecursive(false);
 }

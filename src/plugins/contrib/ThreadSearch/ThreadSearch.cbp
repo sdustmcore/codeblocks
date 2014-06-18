@@ -11,7 +11,7 @@
 				<Option external_deps="..\..\..\devel\wxcustombutton.dll;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --multiple-instance -na -ns -nd -p debug" />
+				<Option parameters="--debug-log --multiple-instance -na -ns -nd" />
 				<Option host_application="..\..\..\devel\codeblocks.exe" />
 				<Compiler>
 					<Add option="$(#CB_RELEASE_TYPE)" />
@@ -38,7 +38,6 @@
 			<Add option="-mthreads" />
 			<Add option="-fmessage-length=0" />
 			<Add option="-fexceptions" />
-			<Add option="-fpermissive" />
 			<Add option="-Winvalid-pch" />
 			<Add option="-DWXUSINGDLL" />
 			<Add option="-DHAVE_W32API_H" />
@@ -52,11 +51,6 @@
 			<Add directory="..\..\..\include" />
 			<Add directory="..\..\..\sdk\wxscintilla\include" />
 			<Add directory="..\..\..\include\mozilla_chardet" />
-			<Add directory="..\..\..\include\mozilla_chardet\mfbt" />
-			<Add directory="..\..\..\include\mozilla_chardet\nsprpub\pr\include" />
-			<Add directory="..\..\..\include\mozilla_chardet\xpcom" />
-			<Add directory="..\..\..\include\mozilla_chardet\xpcom\base" />
-			<Add directory="..\..\..\include\mozilla_chardet\xpcom\glue" />
 			<Add directory="$(#wx.include)" />
 			<Add directory="$(#wx.lib)\gcc_dll$(WX_CFG)\msw$(WX_SUFFIX)" />
 			<Add directory="..\wxContribItems\wxthings\include" />
@@ -85,7 +79,6 @@
 		<Unit filename="ThreadSearch.h" />
 		<Unit filename="ThreadSearchConfPanel.cpp" />
 		<Unit filename="ThreadSearchConfPanel.h" />
-		<Unit filename="ThreadSearchControlIds.cpp" />
 		<Unit filename="ThreadSearchControlIds.h" />
 		<Unit filename="ThreadSearchEvent.cpp" />
 		<Unit filename="ThreadSearchEvent.h" />

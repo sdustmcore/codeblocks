@@ -1,14 +1,9 @@
 SUBDIRS = resources
 
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+INCLUDES = $(WX_CXXFLAGS) \
 		-I$(top_srcdir)/src/include \
 		-I$(top_srcdir)/src/sdk/wxscintilla/include \
-			-I$(top_srcdir)/src/include/mozilla_chardet \
-			-I$(top_srcdir)/src/include/mozilla_chardet/mfbt \
-			-I$(top_srcdir)/src/include/mozilla_chardet/nsprpub/pr/include \
-			-I$(top_srcdir)/src/include/mozilla_chardet/xpcom \
-			-I$(top_srcdir)/src/include/mozilla_chardet/xpcom/base \
-			-I$(top_srcdir)/src/include/mozilla_chardet/xpcom/glue
+		-I$(top_srcdir)/src/include/mozilla_chardet
 
 pluginlibdir = $(pkglibdir)/plugins
 
@@ -16,7 +11,7 @@ pluginlib_LTLIBRARIES = libcodecompletion.la
 
 libcodecompletion_la_LDFLAGS = -module -version-info 0:1:0 -shared -no-undefined -avoid-version
 
-libcodecompletion_la_LIBADD = ../../sdk/libcodeblocks.la $(WX_LIBS)
+libcodecompletion_la_LIBADD = $(PLUGIN_WX_LIBS) ../../sdk/libcodeblocks.la
 
 libcodecompletion_la_SOURCES = ccoptionsdlg.cpp \
 			ccoptionsprjdlg.cpp \
@@ -25,7 +20,6 @@ libcodecompletion_la_SOURCES = ccoptionsdlg.cpp \
 			classbrowserbuilderthread.cpp \
 			codecompletion.cpp \
 			coderefactoring.cpp \
-			doxygen_parser.cpp \
 			insertclassmethoddlg.cpp \
 			nativeparser.cpp \
 			nativeparser_base.cpp \
@@ -50,7 +44,6 @@ noinst_HEADERS = ccoptionsdlg.h \
 			classbrowserbuilderthread.h \
 			codecompletion.h \
 			coderefactoring.h \
-			doxygen_parser.h \
 			insertclassmethoddlg.h \
 			nativeparser.h \
 			nativeparser_base.h \
@@ -67,8 +60,3 @@ noinst_HEADERS = ccoptionsdlg.h \
 			parser/tokentree.h \
 			parser/searchtree.h \
 			parser/expression.h
-
-EXTRA_DIST = $(srcdir)/*.cbp \
-		cctest \
-		testing \
-		wxsmith

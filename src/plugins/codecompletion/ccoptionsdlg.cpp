@@ -33,10 +33,8 @@
 
 #include <editpairdlg.h>
 
-#include "cbcolourmanager.h"
 #include "ccoptionsdlg.h"
 #include "codecompletion.h"
-#include "doxygen_parser.h" // For DocumentationHelper
 
 static const wxString g_SampleClasses =
     _T("class A_class"
@@ -84,16 +82,12 @@ BEGIN_EVENT_TABLE(CCOptionsDlg, wxPanel)
     EVT_BUTTON(XRCID("btnDelRepl"),         CCOptionsDlg::OnDelRepl)
     EVT_BUTTON(XRCID("btnColour"),          CCOptionsDlg::OnChooseColour)
     EVT_COMMAND_SCROLL(XRCID("sldCCDelay"), CCOptionsDlg::OnCCDelayScroll)
-    EVT_BUTTON(XRCID("btnDocBgColor"),      CCOptionsDlg::OnChooseColour)
-    EVT_BUTTON(XRCID("btnDocTextColor"),    CCOptionsDlg::OnChooseColour)
-    EVT_BUTTON(XRCID("btnDocLinkColor"),    CCOptionsDlg::OnChooseColour)
 END_EVENT_TABLE()
 
-CCOptionsDlg::CCOptionsDlg(wxWindow* parent, NativeParser* np, CodeCompletion* cc, DocumentationHelper* dh) :
+CCOptionsDlg::CCOptionsDlg(wxWindow* parent, NativeParser* np, CodeCompletion* cc) :
     m_NativeParser(np),
     m_CodeCompletion(cc),
-    m_Parser(np->GetParser()),
-    m_Documentation(dh)
+    m_Parser(np->GetParser())
 {
     ConfigManager* cfg = Manager::Get()->GetConfigManager(_T("code_completion"));
 
@@ -105,11 +99,9 @@ CCOptionsDlg::CCOptionsDlg(wxWindow* parent, NativeParser* np, CodeCompletion* c
 
     // Page "Code Completion"
     XRCCTRL(*this, "chkNoCC",               wxCheckBox)->SetValue(!cfg->ReadBool(_T("/use_code_completion"), true));
-    XRCCTRL(*this, "chkNoSemantic",         wxCheckBox)->SetValue(!cfg->ReadBool(_T("/semantic_keywords"),   false));
     XRCCTRL(*this, "chkEvalTooltip",        wxCheckBox)->SetValue(cfg->ReadBool(_T("/eval_tooltip"),         true));
     XRCCTRL(*this, "chkAutoSelectOne",      wxCheckBox)->SetValue(cfg->ReadBool(_T("/auto_select_one"),      false));
     XRCCTRL(*this, "chkAutoAddParentheses", wxCheckBox)->SetValue(cfg->ReadBool(_T("/auto_add_parentheses"), true));
-    XRCCTRL(*this, "chkDetectImpl",         wxCheckBox)->SetValue(cfg->ReadBool(_T("/detect_implementation"),false));
     XRCCTRL(*this, "chkAddDoxgenComment",   wxCheckBox)->SetValue(cfg->ReadBool(_T("/add_doxgen_comment"),   false));
     XRCCTRL(*this, "chkEnableHeaders",      wxCheckBox)->SetValue(cfg->ReadBool(_T("/enable_headers"),       true));
     XRCCTRL(*this, "chkAutoLaunch",         wxCheckBox)->SetValue(cfg->ReadBool(_T("/auto_launch"),          true));
@@ -130,6 +122,11 @@ CCOptionsDlg::CCOptionsDlg(wxWindow* parent, NativeParser* np, CodeCompletion* c
 
     // Page "C / C++ parser"
     // NOTE (Morten#1#): Keep this in sync with files in the XRC file (settings.xrc) and nativeparser.cpp
+    XRCCTRL(*this, "txtPriorityHeaders",       wxTextCtrl)->SetValue(cfg->Read(_T("/priority_headers"),
+        _T("<cstddef>, <w32api.h>, ")
+        _T("<wx/defs.h>, <wx/dlimpexp.h>, <wx/toplevel.h>, ")
+        _T("<boost/config.hpp>, <boost/filesystem/config.hpp>, ")
+        _T("\"pch.h\", \"sdk.h\", \"stdafx.h\"")));
     XRCCTRL(*this, "spnThreadsNum",            wxSpinCtrl)->SetValue(cfg->ReadInt(_T("/max_threads"), 1));
     XRCCTRL(*this, "spnThreadsNum",            wxSpinCtrl)->Enable(false);
     XRCCTRL(*this, "spnParsersNum",            wxSpinCtrl)->SetValue(cfg->ReadInt(_T("/max_parsers"), 5));
@@ -176,14 +173,6 @@ CCOptionsDlg::CCOptionsDlg(wxWindow* parent, NativeParser* np, CodeCompletion* c
     XRCCTRL(*this, "chkExpandNS",           wxCheckBox)->SetValue(m_Parser.ClassBrowserOptions().expandNS);
     XRCCTRL(*this, "chkTreeMembers",        wxCheckBox)->SetValue(m_Parser.ClassBrowserOptions().treeMembers);
 
-    // Page Documentation
-    XRCCTRL(*this, "chkDocumentation",      wxCheckBox)->SetValue(m_Documentation->IsEnabled());
-
-    ColourManager *colours = Manager::Get()->GetColourManager();
-    XRCCTRL(*this, "btnDocBgColor",         wxButton)->SetBackgroundColour(colours->GetColour(wxT("cc_docs_back")));
-    XRCCTRL(*this, "btnDocTextColor",       wxButton)->SetBackgroundColour(colours->GetColour(wxT("cc_docs_fore")));
-    XRCCTRL(*this, "btnDocLinkColor",       wxButton)->SetBackgroundColour(colours->GetColour(wxT("cc_docs_link")));
-
 //    m_Parser.ParseBuffer(g_SampleClasses, true);
 //    m_Parser.BuildTree(*XRCCTRL(*this, "treeClasses", wxTreeCtrl));
 }
@@ -202,14 +191,12 @@ void CCOptionsDlg::OnApply()
 
     // Page "Code Completion"
     cfg->Write(_T("/use_code_completion"),  (bool)!XRCCTRL(*this, "chkNoCC",               wxCheckBox)->GetValue());
-    cfg->Write(_T("/semantic_keywords"),    (bool)!XRCCTRL(*this, "chkNoSemantic",         wxCheckBox)->GetValue());
     cfg->Write(_T("/use_SmartSense"),       (bool) XRCCTRL(*this, "chkUseSmartSense",      wxCheckBox)->GetValue());
     cfg->Write(_T("/while_typing"),         (bool) XRCCTRL(*this, "chkWhileTyping",        wxCheckBox)->GetValue());
     cfg->Write(_T("/case_sensitive"),       (bool) XRCCTRL(*this, "chkCaseSensitive",      wxCheckBox)->GetValue());
     cfg->Write(_T("/eval_tooltip"),         (bool) XRCCTRL(*this, "chkEvalTooltip",        wxCheckBox)->GetValue());
     cfg->Write(_T("/auto_select_one"),      (bool) XRCCTRL(*this, "chkAutoSelectOne",      wxCheckBox)->GetValue());
     cfg->Write(_T("/auto_add_parentheses"), (bool) XRCCTRL(*this, "chkAutoAddParentheses", wxCheckBox)->GetValue());
-    cfg->Write(_T("/detect_implementation"),(bool) XRCCTRL(*this, "chkDetectImpl",         wxCheckBox)->GetValue());
     cfg->Write(_T("/add_doxgen_comment"),   (bool) XRCCTRL(*this, "chkAddDoxgenComment",   wxCheckBox)->GetValue());
     cfg->Write(_T("/enable_headers"),       (bool) XRCCTRL(*this, "chkEnableHeaders",      wxCheckBox)->GetValue());
     cfg->Write(_T("/auto_launch"),          (bool) XRCCTRL(*this, "chkAutoLaunch",         wxCheckBox)->GetValue());
@@ -232,6 +219,7 @@ void CCOptionsDlg::OnApply()
     cfg->Write(_T("/parser_follow_global_includes"), (bool) XRCCTRL(*this, "chkGlobals",               wxCheckBox)->GetValue());
     cfg->Write(_T("/want_preprocessor"),             (bool) XRCCTRL(*this, "chkPreprocessor",          wxCheckBox)->GetValue());
     cfg->Write(_T("/parse_complex_macros"),          (bool) XRCCTRL(*this, "chkComplexMacros",         wxCheckBox)->GetValue());
+    cfg->Write(_T("/priority_headers"),                     XRCCTRL(*this, "txtPriorityHeaders",       wxTextCtrl)->GetValue());
     cfg->Write(_T("/max_threads"),                   (int)  XRCCTRL(*this, "spnThreadsNum",            wxSpinCtrl)->GetValue());
     cfg->Write(_T("/parser_per_workspace"),          (bool) XRCCTRL(*this, "rdoOneParserPerWorkspace", wxRadioButton)->GetValue());
     cfg->Write(_T("/max_parsers"),                   (int)  XRCCTRL(*this, "spnParsersNum",            wxSpinCtrl)->GetValue());
@@ -249,11 +237,6 @@ void CCOptionsDlg::OnApply()
     cfg->Write(_T("/browser_tree_members"),     (bool) XRCCTRL(*this, "chkTreeMembers", wxCheckBox)->GetValue());
     cfg->Write(_T("/scope_filter"),             (bool) XRCCTRL(*this, "chkScopeFilter", wxCheckBox)->GetValue());
 
-    // Page "Documentation"
-    cfg->Write(_T("/use_documentation_helper"), (bool) XRCCTRL(*this, "chkDocumentation", wxCheckBox)->GetValue());
-    cfg->Write(_T("/documentation_helper_background_color"), (wxColour) XRCCTRL(*this, "btnDocBgColor",   wxButton)->GetBackgroundColour());
-    cfg->Write(_T("/documentation_helper_text_color"),       (wxColour) XRCCTRL(*this, "btnDocTextColor", wxButton)->GetBackgroundColour());
-    cfg->Write(_T("/documentation_helper_link_color"),       (wxColour) XRCCTRL(*this, "btnDocLinkColor", wxButton)->GetBackgroundColour());
     // -----------------------------------------------------------------------
     // Handle all options that are being be read by m_Parser.ReadOptions():
     // -----------------------------------------------------------------------
@@ -278,24 +261,9 @@ void CCOptionsDlg::OnApply()
     m_Parser.ClassBrowserOptions().expandNS        = XRCCTRL(*this, "chkExpandNS",    wxCheckBox)->GetValue();
     m_Parser.ClassBrowserOptions().treeMembers     = XRCCTRL(*this, "chkTreeMembers", wxCheckBox)->GetValue();
 
-    // Page "Documentation"
-    m_Documentation->RereadOptions(cfg);
-
-    m_Parser.Options().storeDocumentation    = XRCCTRL(*this, "chkDocumentation",  wxCheckBox)->GetValue();
-    m_Documentation->SetEnabled(               XRCCTRL(*this, "chkDocumentation",  wxCheckBox)->GetValue() );
-
-    ColourManager *colours = Manager::Get()->GetColourManager();
-    wxColor colour = XRCCTRL(*this, "btnDocBgColor",   wxButton)->GetBackgroundColour();
-    colours->SetColour(wxT("cc_docs_back"), colour);
-    colour = XRCCTRL(*this, "btnDocTextColor",   wxButton)->GetBackgroundColour();
-    colours->SetColour(wxT("cc_docs_text"), colour);
-    colour = XRCCTRL(*this, "btnDocLinkColor",   wxButton)->GetBackgroundColour();
-    colours->SetColour(wxT("cc_docs_link"), colour);
-
     // Now write the parser options and re-read them again to make sure they are up-to-date
     m_Parser.WriteOptions();
     m_NativeParser->RereadParserOptions();
-    m_Documentation->WriteOptions(cfg);
     m_CodeCompletion->RereadOptions();
 }
 
@@ -380,9 +348,8 @@ void CCOptionsDlg::OnCCDelayScroll(cb_unused wxScrollEvent& event)
 
 void CCOptionsDlg::OnUpdateUI(cb_unused wxUpdateUIEvent& event)
 {
-    bool en = !XRCCTRL(*this, "chkNoCC",               wxCheckBox)->GetValue();
-    bool al =  XRCCTRL(*this, "chkAutoLaunch",         wxCheckBox)->GetValue();
-    bool aap = XRCCTRL(*this, "chkAutoAddParentheses", wxCheckBox)->GetValue();
+    bool en = !XRCCTRL(*this, "chkNoCC",            wxCheckBox)->GetValue();
+    bool al =  XRCCTRL(*this, "chkAutoLaunch",      wxCheckBox)->GetValue();
 
     // Page "Code Completion"
     XRCCTRL(*this, "chkUseSmartSense",              wxCheckBox)->Enable(en);
@@ -391,10 +358,8 @@ void CCOptionsDlg::OnUpdateUI(cb_unused wxUpdateUIEvent& event)
     XRCCTRL(*this, "chkEvalTooltip",                wxCheckBox)->Enable(en);
     XRCCTRL(*this, "chkAutoSelectOne",              wxCheckBox)->Enable(en);
     XRCCTRL(*this, "chkAutoAddParentheses",         wxCheckBox)->Enable(en);
-    XRCCTRL(*this, "chkDetectImpl",                 wxCheckBox)->Enable(en && aap);
     XRCCTRL(*this, "chkAddDoxgenComment",           wxCheckBox)->Enable(en);
     XRCCTRL(*this, "chkEnableHeaders",              wxCheckBox)->Enable(en);
-    XRCCTRL(*this, "chkNoSemantic",                 wxCheckBox)->Enable(en);
     XRCCTRL(*this, "chkAutoLaunch",                 wxCheckBox)->Enable(en);
     XRCCTRL(*this, "spnAutoLaunchChars",            wxSpinCtrl)->Enable(en && al);
     XRCCTRL(*this, "lblMaxMatches",                 wxStaticText)->Enable(en);
@@ -409,6 +374,7 @@ void CCOptionsDlg::OnUpdateUI(cb_unused wxUpdateUIEvent& event)
     XRCCTRL(*this, "chkPreprocessor",               wxCheckBox)->Enable(en);
     XRCCTRL(*this, "chkComplexMacros",              wxCheckBox)->Enable(en);
 
+    XRCCTRL(*this, "txtPriorityHeaders",            wxTextCtrl)->Enable(en);
     en = XRCCTRL(*this, "rdoOneParserPerWorkspace", wxRadioButton)->GetValue();
     XRCCTRL(*this, "lblParsersNum",                 wxStaticText)->Enable(!en);
     XRCCTRL(*this, "spnParsersNum",                 wxSpinCtrl)->Enable(!en);
@@ -440,12 +406,6 @@ void CCOptionsDlg::OnUpdateUI(cb_unused wxUpdateUIEvent& event)
     XRCCTRL(*this, "chkFloatCB",              wxCheckBox)->Enable(en);
     XRCCTRL(*this, "chkTreeMembers",          wxCheckBox)->Enable(en);
     XRCCTRL(*this, "chkScopeFilter",          wxCheckBox)->Enable(en);
-
-    // Page "Documentation"
-    en = XRCCTRL(*this, "chkDocumentation",   wxCheckBox)->GetValue();
-    XRCCTRL(*this, "btnDocBgColor",           wxButton)->Enable(en);
-    XRCCTRL(*this, "btnDocTextColor",         wxButton)->Enable(en);
-    XRCCTRL(*this, "btnDocLinkColor",         wxButton)->Enable(en);
 }
 
 void CCOptionsDlg::UpdateCCDelayLabel()

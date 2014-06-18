@@ -132,38 +132,55 @@ static void ColouriseLuaDoc(
 		if (sc.state == SCE_LUA_OPERATOR) {
 			if (sc.ch == ':' && sc.chPrev == ':') {	// :: <label> :: forward scan
 				sc.Forward();
-				int ln = 0;
-				while (IsASpaceOrTab(sc.GetRelative(ln)))	// skip over spaces/tabs
+				int ln = 0, maxln = startPos + length - sc.currentPos;
+				int c;
+				while (ln < maxln) {		// determine line extent
+					c = sc.GetRelative(ln);
+					if (c == '\r' || c == '\n')
+						break;
 					ln++;
+				}
+				maxln = ln; ln = 0;
+				while (ln < maxln) {		// skip over spaces/tabs
+					if (!IsASpaceOrTab(sc.GetRelative(ln)))
+						break;
+					ln++;
+				}
 				int ws1 = ln;
 				if (setWordStart.Contains(sc.GetRelative(ln))) {
-					int c, i = 0;
+					int i = 0;
 					char s[100];
-					while (setWord.Contains(c = sc.GetRelative(ln))) {	// get potential label
+					while (ln < maxln) {	// get potential label
+						c = sc.GetRelative(ln);
+						if (!setWord.Contains(c))
+							break;
 						if (i < 90)
-							s[i++] = static_cast<char>(c);
+							s[i++] = c;
 						ln++;
 					}
 					s[i] = '\0'; int lbl = ln;
 					if (!keywords.InList(s)) {
-						while (IsASpaceOrTab(sc.GetRelative(ln)))	// skip over spaces/tabs
+						while (ln < maxln) {		// skip over spaces/tabs
+							if (!IsASpaceOrTab(sc.GetRelative(ln)))
+								break;
 							ln++;
+						}
 						int ws2 = ln - lbl;
 						if (sc.GetRelative(ln) == ':' && sc.GetRelative(ln + 1) == ':') {
 							// final :: found, complete valid label construct
 							sc.ChangeState(SCE_LUA_LABEL);
 							if (ws1) {
 								sc.SetState(SCE_LUA_DEFAULT);
-								sc.ForwardBytes(ws1);
+								sc.Forward(ws1);
 							}
 							sc.SetState(SCE_LUA_LABEL);
-							sc.ForwardBytes(lbl - ws1);
+							sc.Forward(lbl - ws1);
 							if (ws2) {
 								sc.SetState(SCE_LUA_DEFAULT);
-								sc.ForwardBytes(ws2);
+								sc.Forward(ws2);
 							}
 							sc.SetState(SCE_LUA_LABEL);
-							sc.ForwardBytes(2);
+							sc.Forward(2);
 						}
 					}
 				}

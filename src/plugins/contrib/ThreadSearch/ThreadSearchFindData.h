@@ -25,6 +25,7 @@ enum eSearchScope
     ScopeTargetFiles    = 16
 };
 
+
 // No comments, basic class
 class ThreadSearchFindData
 {
@@ -34,7 +35,6 @@ public:
     ThreadSearchFindData& operator= (const ThreadSearchFindData& findData);
 
     ~ThreadSearchFindData() {}
-
     void UpdateSearchScope(eSearchScope scope, bool bValue);
     bool MustSearchInOpenFiles() {return (m_Scope & ScopeOpenFiles)      != 0;}
     bool MustSearchInProject  () {return (m_Scope & ScopeProjectFiles)   != 0;}
@@ -54,19 +54,17 @@ public:
     void SetRecursiveSearch(bool recursiveSearch)       {m_RecursiveSearch = recursiveSearch;}
     void SetHiddenSearch   (bool hiddenSearch)          {m_HiddenSearch    = hiddenSearch;}
 
-    wxString GetFindText()        const {return m_FindText;}
-    bool     GetMatchWord()       const {return m_MatchWord;}
-    bool     GetStartWord()       const {return m_StartWord;}
-    bool     GetMatchCase()       const {return m_MatchCase;}
-    bool     GetRegEx()           const {return m_RegEx;}
-    int      GetScope()           const {return m_Scope;}
-    wxString GetSearchMask()      const {return m_SearchMask;}
-    bool     GetRecursiveSearch() const {return m_RecursiveSearch;}
-    bool     GetHiddenSearch()    const {return m_HiddenSearch;}
+    wxString GetFindText()    const {return m_FindText;}
+    bool GetMatchWord()       const {return m_MatchWord;}
+    bool GetStartWord()       const {return m_StartWord;}
+    bool GetMatchCase()       const {return m_MatchCase;}
+    bool GetRegEx()           const {return m_RegEx;}
+    int GetScope()            const {return m_Scope;}
+    wxString GetSearchMask()  const {return m_SearchMask;}
+    bool GetRecursiveSearch() const {return m_RecursiveSearch;}
+    bool GetHiddenSearch()    const {return m_HiddenSearch;}
+    wxString GetSearchPath(bool expanded = false)  const;
 
-    wxString GetSearchPath(bool bExpanded = false) const;
-
-    bool IsOptionEnabled() const;
 
 private:
     wxString m_FindText;
@@ -80,5 +78,6 @@ private:
     bool     m_RecursiveSearch;
     bool     m_HiddenSearch;
 };
+
 
 #endif // THREAD_SEARCH_FIND_DATA_H

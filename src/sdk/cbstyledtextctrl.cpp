@@ -20,10 +20,9 @@
     #include <wx/timer.h>
 
     #include "editorbase.h" // DisplayContextMenu
-    #include "editormanager.h"
+    #include "prep.h" // platform::gtk
     #include "pluginmanager.h"
 #endif
-#include <wx/textfile.h> // for wxTextBuffer::Translate()
 
 #include "cbdebugger_interfaces.h"
 #include "debuggermanager.h"
@@ -41,7 +40,6 @@ BEGIN_EVENT_TABLE(cbStyledTextCtrl, wxScintilla)
     EVT_CONTEXT_MENU(cbStyledTextCtrl::OnContextMenu)
     EVT_KILL_FOCUS  (cbStyledTextCtrl::OnKillFocus)
     EVT_MIDDLE_DOWN (cbStyledTextCtrl::OnMouseMiddleDown)
-    EVT_MIDDLE_UP   (cbStyledTextCtrl::OnMouseMiddleClick)
     EVT_SET_FOCUS   (cbStyledTextCtrl::OnSetFocus)
     EVT_KEY_DOWN    (cbStyledTextCtrl::OnKeyDown)
     EVT_KEY_UP      (cbStyledTextCtrl::OnKeyUp)
@@ -54,7 +52,6 @@ cbStyledTextCtrl::cbStyledTextCtrl(wxWindow* pParent, int id, const wxPoint& pos
     m_lastFocusTime(0L),
     m_bracePosition(wxSCI_INVALID_POSITION),
     m_lastPosition(wxSCI_INVALID_POSITION),
-    m_middleClickPos(wxSCI_INVALID_POSITION),
     m_tabSmartJump(false)
 {
     //ctor
@@ -71,12 +68,6 @@ cbStyledTextCtrl::~cbStyledTextCtrl()
     // Doing this here should not harm.
     while(GetEventHandler() != this)
         RemoveEventHandler(GetEventHandler());
-}
-
-// Script binding support
-void cbStyledTextCtrl::operator=(const cbStyledTextCtrl& /*rhs*/)
-{
-    cbThrow(_T("Can't assign an cbStyledTextCtrl* !!!"));
 }
 
 // events
@@ -118,40 +109,27 @@ void cbStyledTextCtrl::OnContextMenu(wxContextMenuEvent& event)
 
 void cbStyledTextCtrl::OnMouseMiddleDown(wxMouseEvent& event)
 {
-    m_middleClickPos = PositionFromPoint(wxPoint(event.GetX(), event.GetY()));
-    event.Skip();
-}
-
-void cbStyledTextCtrl::OnMouseMiddleClick(wxMouseEvent& event)
-{
-    event.Skip();
-    // emulate middle mouse paste under all systems due to buggy wxClipboard
-    const int pos = PositionFromPoint(wxPoint(event.GetX(), event.GetY()));
-    if (pos == wxSCI_INVALID_POSITION || pos != m_middleClickPos)
-        return;
-    GotoPos(pos);
-    if (GetReadOnly())
-        return;
-    wxTextFileType type;
-    switch (GetEOLMode())
+    if (platform::gtk == false) // only if OnMouseMiddleDown is not already implemented by the OS
     {
-        case wxSCI_EOL_CRLF:
-            type = wxTextFileType_Dos;
-            break;
+        int pos = PositionFromPoint(wxPoint(event.GetX(), event.GetY()));
 
-        case wxSCI_EOL_CR:
-            type = wxTextFileType_Mac;
-            break;
+        if (pos == wxSCI_INVALID_POSITION)
+            return;
 
-        case wxSCI_EOL_LF:
-            type = wxTextFileType_Unix;
-            break;
+        int start = GetSelectionStart();
+        int end   = GetSelectionEnd();
 
-        default:
-            type = wxTextBuffer::typeDefault;
-            break;
+        const wxString s = GetSelectedText();
+
+        if (pos < GetCurrentPos())
+        {
+            start += s.length();
+            end += s.length();
+        }
+
+        InsertText(pos, s);
+        SetSelectionVoid(start, end);
     }
-    AddText(wxTextBuffer::Translate(Manager::Get()->GetEditorManager()->GetSelectionClipboard(), type));
 }
 
 void cbStyledTextCtrl::OnKeyDown(wxKeyEvent& event)
@@ -159,7 +137,7 @@ void cbStyledTextCtrl::OnKeyDown(wxKeyEvent& event)
     m_lastSelectedText = GetSelectedText();
     bool emulateDwellStart = false;
 
-    switch ( event.GetKeyCode() )
+    switch (event.GetKeyCode())
     {
         case _T('I'):
         {
@@ -226,7 +204,6 @@ void cbStyledTextCtrl::OnKeyDown(wxKeyEvent& event)
             emulateDwellStart = true;
         }
         break;
-        default: break;
     }
 
     if (event.ControlDown() && !emulateDwellStart)
@@ -248,7 +225,7 @@ void cbStyledTextCtrl::OnKeyUp(wxKeyEvent& event)
         case _T('('):   // ( for wxGTK
 #endif
         {
-            if ( !AllowTabSmartJump() )
+            if (!AllowTabSmartJump())
                 break;
 
             wxChar ch = keyCode;
@@ -291,7 +268,6 @@ void cbStyledTextCtrl::OnKeyUp(wxKeyEvent& event)
             m_tabSmartJump = false;
         }
         break;
-        default: break;
     }
 
     HighlightRightBrace();
@@ -430,8 +406,7 @@ void cbStyledTextCtrl::HighlightRightBrace()
     if (m_tabSmartJump && (curLine == LineFromPosition(m_bracePosition)))
     {
         SetIndicatorCurrent(s_indicHighlight);
-        const int indPos = GetLineIndentPosition(curLine);
-        IndicatorClearRange(indPos, GetLineEndPosition(curLine)-indPos);
+        IndicatorClearRange(GetLineIndentPosition(curLine), GetLineEndPosition(curLine));
         do
         {
             if (pos >= len)
@@ -522,13 +497,4 @@ std::map<int, std::set<int> > &cbStyledTextCtrl::GetPreprocessorLexerStyles()
 std::map<int, std::set<int> > &cbStyledTextCtrl::GetCommentLexerStyles()
 {
     return CommentLexerStyles;
-}
-
-void cbStyledTextCtrl::MakeNearbyLinesVisible(int line)
-{
-    const int dist = VisibleFromDocLine(line) - GetFirstVisibleLine();
-    if (dist >= 0 && dist < 2)
-        LineScroll(0, dist - 2);
-    else if (dist >= LinesOnScreen() - 2)
-        LineScroll(0, 3 + dist - LinesOnScreen());
 }

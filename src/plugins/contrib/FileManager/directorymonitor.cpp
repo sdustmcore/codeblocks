@@ -20,7 +20,7 @@ wxDirectoryMonitorEvent::wxDirectoryMonitorEvent(const wxDirectoryMonitorEvent& 
     m_info_uri=wxString(c.m_info_uri.c_str());
 }
 
-#if defined(__WXGTK__) || defined(__WXMAC__)
+#ifdef __WXGTK__
 
 #include <map>
 
@@ -473,8 +473,6 @@ public:
                 case FILE_ACTION_MODIFIED:
                     action=MONITOR_FILE_CHANGED;
                     break;
-                default:
-                  break;
             }
             if(action&m_notifyfilter)
             {

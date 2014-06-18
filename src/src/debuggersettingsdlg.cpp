@@ -3,8 +3,8 @@
 
 #ifndef CB_PRECOMP
 	//(*InternalHeadersPCH(DebuggerSettingsDlg)
-	#include <wx/string.h>
 	#include <wx/intl.h>
+	#include <wx/string.h>
 	//*)
 
     #include <wx/choicdlg.h>
@@ -13,8 +13,8 @@
     #include "cbplugin.h"
 #endif
 //(*InternalHeaders(DebuggerSettingsDlg)
-#include <wx/button.h>
 #include <wx/font.h>
+#include <wx/button.h>
 //*)
 
 #include "debuggermanager.h"
@@ -36,9 +36,9 @@ DebuggerSettingsDlg::DebuggerSettingsDlg(wxWindow* parent)
 {
 	//(*Initialize(DebuggerSettingsDlg)
 	wxStaticLine* staticLine;
+	wxStdDialogButtonSizer* stdDialogButtons;
 	wxBoxSizer* headerSizer;
 	wxBoxSizer* mainSizer;
-	wxStdDialogButtonSizer* stdDialogButtons;
 	wxPanel* header;
 
 	Create(parent, wxID_ANY, _("Debugger settings"), wxDefaultPosition, wxDefaultSize, wxCAPTION|wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxCLOSE_BOX|wxMAXIMIZE_BOX|wxMINIMIZE_BOX, _T("wxID_ANY"));
@@ -57,6 +57,7 @@ DebuggerSettingsDlg::DebuggerSettingsDlg(wxWindow* parent)
 	headerSizer->SetSizeHints(header);
 	mainSizer->Add(header, 0, wxEXPAND|wxALIGN_RIGHT|wxALIGN_BOTTOM, 5);
 	m_treebook = new wxTreebook(this, ID_TREEBOOK, wxDefaultPosition, wxDefaultSize, wxBK_DEFAULT, _T("ID_TREEBOOK"));
+	m_treebook->SetMinSize(wxSize(600,440));
 	mainSizer->Add(m_treebook, 1, wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
 	staticLine = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxSize(10,-1), wxLI_HORIZONTAL, _T("wxID_ANY"));
 	mainSizer->Add(staticLine, 0, wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
@@ -76,13 +77,13 @@ DebuggerSettingsDlg::DebuggerSettingsDlg(wxWindow* parent)
     m_commonPanel = new DebuggerSettingsCommonPanel(m_treebook);
     m_treebook->AddPage(m_commonPanel, _("Common"));
 
-    const DebuggerManager::RegisteredPlugins &plugins = Manager::Get()->GetDebuggerManager()->GetAllDebuggers();
-    for (DebuggerManager::RegisteredPlugins::const_iterator it = plugins.begin(); it != plugins.end(); ++it)
+    DebuggerManager::RegisteredPlugins &plugins = Manager::Get()->GetDebuggerManager()->GetAllDebuggers();
+    for (DebuggerManager::RegisteredPlugins::iterator it = plugins.begin(); it != plugins.end(); ++it)
     {
-        const DebuggerManager::PluginData &data = it->second;
+        DebuggerManager::PluginData &data = it->second;
         m_treebook->AddPage(new DebuggerSettingsPanel(m_treebook, this, it->first), it->first->GetGUIName());
 
-        for (DebuggerManager::ConfigurationVector::const_iterator itConfig = data.GetConfigurations().begin();
+        for (DebuggerManager::ConfigurationVector::iterator itConfig = data.GetConfigurations().begin();
              itConfig != data.GetConfigurations().end();
              ++itConfig)
         {
@@ -100,7 +101,6 @@ DebuggerSettingsDlg::DebuggerSettingsDlg(wxWindow* parent)
     for (size_t ii = 0; ii < m_treebook->GetPageCount(); ++ii)
         m_treebook->ExpandNode(ii);
 
-    mainSizer->SetSizeHints(this);
     CentreOnParent();
 }
 
@@ -122,10 +122,10 @@ void DebuggerSettingsDlg::OnOK(cb_unused wxCommandEvent &event)
 
     DebuggerManager *dbgManager = Manager::Get()->GetDebuggerManager();
 
-    const DebuggerManager::RegisteredPlugins &plugins = dbgManager->GetAllDebuggers();
+    DebuggerManager::RegisteredPlugins &plugins = dbgManager->GetAllDebuggers();
     ConfigManager *mainConfig = Manager::Get()->GetConfigManager(wxT("debugger_common"));
 
-    for (DebuggerManager::RegisteredPlugins::const_iterator it = plugins.begin(); it != plugins.end(); ++it)
+    for (DebuggerManager::RegisteredPlugins::iterator it = plugins.begin(); it != plugins.end(); ++it)
     {
         wxString path(wxT("/sets/"));
         path << it->first->GetSettingsName();
@@ -160,7 +160,7 @@ void DebuggerSettingsDlg::OnOK(cb_unused wxCommandEvent &event)
     dbgManager->GetLogger(normalIndex);
 
     cbDebuggerPlugin *activePlugin = dbgManager->GetActiveDebugger();
-    for (DebuggerManager::RegisteredPlugins::const_iterator it = plugins.begin(); it != plugins.end(); ++it)
+    for (DebuggerManager::RegisteredPlugins::iterator it = plugins.begin(); it != plugins.end(); ++it)
     {
         it->first->SetupLog(normalIndex);
         it->first->OnConfigurationChange(activePlugin == it->first);
@@ -171,7 +171,7 @@ void DebuggerSettingsDlg::OnOK(cb_unused wxCommandEvent &event)
     EndModal(wxID_OK);
 }
 
-inline size_t FindPageIndex(wxTreebook *treebook, wxWindow *page)
+size_t FindPageIndex(wxTreebook *treebook, wxWindow *page)
 {
     size_t pageIndex = treebook->GetPageCount();
     for (size_t p = 0; p < treebook->GetPageCount(); ++p)

@@ -36,6 +36,8 @@ class wxButton;
 class wxTreeCtrl;
 class wxCommandEvent;
 class wxTreeEvent;
+class ThreadSearchFrame;
+class CodeSnippetsEvent;
 
 // ----------------------------------------------------------------------------
 class CodeSnippetsWindow : public wxPanel
@@ -43,6 +45,7 @@ class CodeSnippetsWindow : public wxPanel
 {
 	// Ugly as hell but this how it needs to be done
 	friend class SnippetsDropTarget;
+	friend class CodeSnippetsAppFrame;
 	friend class CodeSnippets;
 
 	public:
@@ -67,10 +70,10 @@ class CodeSnippetsWindow : public wxPanel
         bool SetFileChanged( bool truefalse )
             {return GetSnippetsTreeCtrl()->SetFileChanged(truefalse);}
 
-        wxString GetSnippetString() { return GetSnippetsTreeCtrl()->GetSnippetString();}
-        wxString GetSnippetString( wxTreeItemId itemId ) { return GetSnippetsTreeCtrl()->GetSnippetString(itemId);}
+        wxString GetSnippet() { return GetSnippetsTreeCtrl()->GetSnippet();}
+        wxString GetSnippet( wxTreeItemId itemId ) { return GetSnippetsTreeCtrl()->GetSnippet(itemId);}
         wxTreeItemId GetAssociatedItemID(){return GetSnippetsTreeCtrl()->GetAssociatedItemID();}
-        void SetAssociatedItemID(wxTreeItemId id){GetSnippetsTreeCtrl()->SetAssociatedItemID(id);}
+        void CloseThreadSearchFrame();
 
         bool IsEditingLabel() {return m_bIsEditingLabel;}
         void IsEditingLabel( bool trueorfalse) { m_bIsEditingLabel = trueorfalse;}
@@ -141,6 +144,8 @@ class CodeSnippetsWindow : public wxPanel
         void OnMnuSearchExtended(wxCommandEvent& event);
         void OnLeaveWindow (wxMouseEvent &event);
         void OnEnterWindow (wxMouseEvent &event);
+
+        void OnCodeSnippetsNewIndex(CodeSnippetsEvent& event);
 
 		DECLARE_EVENT_TABLE()
 };

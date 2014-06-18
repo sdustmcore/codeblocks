@@ -1,7 +1,7 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *   astyle_main.h
  *
- *   Copyright (C) 2006-2013 by Jim Pattee <jimp03@email.com>
+ *   Copyright (C) 2006-2011 by Jim Pattee <jimp03@email.com>
  *   Copyright (C) 1998-2002 by Tal Davidson
  *   <http://www.gnu.org/licenses/lgpl-3.0.html>
  *
@@ -32,22 +32,9 @@
 // headers
 //----------------------------------------------------------------------------
 
-// use this to test the Linux compile with MinGW
-#ifdef MINGW_LINUX
-#undef _WIN32
-#endif
-
-#include "astyle.h"
-
 #include <sstream>
 #include <ctime>
-
-#ifdef __BORLANDC__
-// Embarcadero needs this for the following utime.h
-// otherwise "struct utimbuf" gets an error on time_t
-// can maybe be removed in the future
-using std::time_t;
-#endif
+#include "astyle.h"
 
 #if defined(_MSC_VER) || defined(__DMC__)
 #include <sys/utime.h>
@@ -64,18 +51,11 @@ using std::time_t;
 #endif
 #endif  //  ASTYLE_JNI
 
-#ifdef ASTYLE_LIB
-// define utf-16 bit text for the platform
-#ifdef _WIN32
-typedef wchar_t utf16_t;
-#else
-typedef unsigned short utf16_t;
-#endif	// _WIN32
-#else
 // for console build only
+#ifndef ASTYLE_LIB
 #include "ASLocalizer.h"
 #define _(a) localizer.settext(a)
-#endif	// ASTYLE_LIB
+#endif
 
 // for G++ implementation of string.compare:
 #if defined(__GNUC__) && __GNUC__ < 3
@@ -88,14 +68,15 @@ typedef unsigned short utf16_t;
 #endif
 
 // for mingw BOM, UTF-16, and Unicode functions
-#if defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
+#if defined(__MINGW32__)
 #if (__MINGW32_MAJOR_VERSION > 3)  || ((__MINGW32_MAJOR_VERSION == 3) && (__MINGW32_MINOR_VERSION < 16))
 #error - Use MinGW compiler version 4 or higher
 #endif
 #endif
 
 
-namespace astyle {
+namespace astyle
+{
 
 //----------------------------------------------------------------------------
 // ASStreamIterator class
@@ -139,33 +120,6 @@ class ASStreamIterator : public ASSourceIterator
 };
 
 //----------------------------------------------------------------------------
-// Utf8_16 class for utf8/16 conversions
-//----------------------------------------------------------------------------
-
-class Utf8_16
-{
-	public:
-		bool   getBigEndian() const;
-		int    swap16bit(int value) const;
-		size_t Utf8LengthFromUtf16(const char* utf16In, size_t inLen, bool isBigEndian) const;
-		size_t Utf8ToUtf16(char* utf8In, size_t inLen, bool isBigEndian, char* utf16Out) const;
-		size_t Utf16LengthFromUtf8(const char* utf8In, size_t inLen) const;
-		size_t Utf16ToUtf8(char* utf16In, size_t inLen, bool isBigEndian,
-		                   bool firstBlock, char* utf8Out) const;
-
-	private:
-		typedef unsigned short utf16; // 16 bits
-		typedef unsigned char utf8;   // 8 bits
-		typedef unsigned char ubyte;  // 8 bits
-		enum { SURROGATE_LEAD_FIRST = 0xD800 };
-		enum { SURROGATE_LEAD_LAST = 0xDBFF };
-		enum { SURROGATE_TRAIL_FIRST = 0xDC00 };
-		enum { SURROGATE_TRAIL_LAST = 0xDFFF };
-		enum { SURROGATE_FIRST_VALUE = 0x10000 };
-		enum eState { eStart, eSecondOf4Bytes, ePenultimate, eFinal };
-};
-
-//----------------------------------------------------------------------------
 // ASOptions class for options processing
 // used by both console and library builds
 //----------------------------------------------------------------------------
@@ -187,7 +141,7 @@ class ASOptions
 		ASOptions &operator=(ASOptions &);         // not to be implemented
 		string getParam(const string &arg, const char* op);
 		string getParam(const string &arg, const char* op1, const char* op2);
-		bool isOption(const string &arg, const char* op);
+		bool isOption(const string arg, const char* op);
 		bool isOption(const string &arg, const char* op1, const char* op2);
 		void isOptionError(const string &arg, const string &errorInfo);
 		bool isParamOption(const string &arg, const char* option);
@@ -203,9 +157,9 @@ class ASOptions
 
 class ASConsole
 {
-	private:    // variables
-		ASFormatter &formatter;             // reference to the ASFormatter object
-		ASLocalizer localizer;              // ASLocalizer object
+	private:	// variables
+		ASFormatter &formatter;				// reference to the ASFormatter object
+		ASLocalizer localizer;				// ASLocalizer object
 		// command line options
 		bool isRecursive;                   // recursive option
 		string origSuffix;                  // suffix= option
@@ -219,31 +173,28 @@ class ASConsole
 		bool optionsFileRequired;           // options= option
 		bool useAscii;                      // ascii option
 		// other variables
-		bool bypassBrowserOpen;             // don't open the browser on html options
 		bool hasWildcard;                   // file name includes a wildcard
 		size_t mainDirectoryLength;         // directory length to be excluded in displays
-		bool filesAreIdentical;             // input and output files are identical
+		bool filesAreIdentical;				// input and output files are identical
+		bool lineEndsMixed;					// output has mixed line ends
+		int  linesOut;                      // number of output lines
 		int  filesFormatted;                // number of files formatted
 		int  filesUnchanged;                // number of files unchanged
-		bool lineEndsMixed;                 // output has mixed line ends
-		int  linesOut;                      // number of output lines
-		char outputEOL[4];                  // current line end
-		char prevEOL[4];                    // previous line end
-
-		Utf8_16 utf8_16;                    // utf8/16 conversion methods
+		char outputEOL[4];					// current line end
+		char prevEOL[4];					// previous line end
 
 		string optionsFileName;             // file path and name of the options file to use
 		string targetDirectory;             // path to the directory being processed
 		string targetFilename;              // file name being processed
 
 		vector<string> excludeVector;       // exclude from wildcard hits
-		vector<bool>   excludeHitsVector;   // exclude flags for error reporting
+		vector<bool>   excludeHitsVector;   // exclude flags for eror reporting
 		vector<string> fileNameVector;      // file paths and names from the command line
 		vector<string> optionsVector;       // options from the command line
 		vector<string> fileOptionsVector;   // options from the options file
 		vector<string> fileName;            // files to be processed including path
 
-	public:     // variables
+	public:
 		ASConsole(ASFormatter &formatterArg) : formatter(formatterArg) {
 			// command line options
 			isRecursive = false;
@@ -258,7 +209,6 @@ class ASConsole
 			optionsFileRequired = false;
 			useAscii = false;
 			// other variables
-			bypassBrowserOpen = false;
 			hasWildcard = false;
 			filesAreIdentical = true;
 			lineEndsMixed = false;
@@ -270,7 +220,7 @@ class ASConsole
 			linesOut = 0;
 		}
 
-	public:     // functions
+		// functions
 		void convertLineEnds(ostringstream &out, int lineEnd);
 		FileEncoding detectEncoding(const char* data, size_t dataSize) const;
 		void error() const;
@@ -279,6 +229,7 @@ class ASConsole
 		vector<string> getArgvOptions(int argc, char** argv) const;
 		bool fileNameVectorIsEmpty();
 		int  getFilesFormatted();
+		int  getFilesUnchanged();
 		bool getIgnoreExcludeErrors();
 		bool getIgnoreExcludeErrorsDisplay();
 		bool getIsFormattedOnly();
@@ -288,14 +239,14 @@ class ASConsole
 		bool getLineEndsMixed();
 		bool getNoBackup();
 		string getLanguageID() const;
-		string getNumberFormat(int num, size_t = 0) const;
+		string getNumberFormat(int num, size_t=0) const ;
 		string getNumberFormat(int num, const char* groupingArg, const char* separator) const;
 		string getOptionsFileName();
+		bool getOptionsFileRequired();
 		string getOrigSuffix();
 		bool getPreserveDate();
 		void processFiles();
-		void processOptions(vector<string> &argvOptions);
-		void setBypassBrowserOpen(bool state);
+		void processOptions(vector<string>& argvOptions);
 		void setIgnoreExcludeErrors(bool state);
 		void setIgnoreExcludeErrorsAndDisplay(bool state);
 		void setIsFormattedOnly(bool state);
@@ -304,11 +255,18 @@ class ASConsole
 		void setIsVerbose(bool state);
 		void setNoBackup(bool state);
 		void setOptionsFileName(string name);
+		void setOptionsFileRequired(bool state);
 		void setOrigSuffix(string suffix);
 		void setPreserveDate(bool state);
-		void standardizePath(string &path, bool removeBeginningSeparator = false) const;
+		void setProgramLocale();
+		void standardizePath(string &path, bool removeBeginningSeparator=false) const;
 		bool stringEndsWith(const string &str, const string &suffix) const;
 		void updateExcludeVector(string suffixParam);
+		size_t Utf8Length(const char* data, size_t len, FileEncoding encoding) const;
+		size_t Utf8ToUtf16(char* utf8In, size_t inLen, FileEncoding encoding, char* utf16Out) const;
+		size_t Utf16Length(const char* data, size_t len) const;
+		size_t Utf16ToUtf8(char* utf16In, size_t inLen, FileEncoding encoding, bool firstBlock, char* utf8Out) const;
+		void verifyCinPeek() const;
 
 		// for unit testing
 		vector<string> getExcludeVector();
@@ -318,7 +276,7 @@ class ASConsole
 		vector<string> getFileOptionsVector();
 		vector<string> getFileName();
 
-	private:	// functions
+	private:
 		ASConsole &operator=(ASConsole &);         // not to be implemented
 		void correctMixedLineEnds(ostringstream &out);
 		void formatFile(const string &fileName_);
@@ -331,7 +289,6 @@ class ASConsole
 		bool isOption(const string &arg, const char* op1, const char* op2);
 		bool isParamOption(const string &arg, const char* option);
 		bool isPathExclued(const string &subPath);
-		void launchDefaultBrowser(const char* filePathIn = NULL) const;
 		void printHelp() const;
 		void printMsg(const char* msg, const string &data) const;
 		void printSeparatingLine() const;
@@ -342,6 +299,8 @@ class ASConsole
 		void renameFile(const char* oldFileName, const char* newFileName, const char* errMsg) const;
 		void setOutputEOL(LineEndFormat lineEndFormat, const char* currentEOL);
 		void sleep(int seconds) const;
+		int  swap8to16bit(int value) const;
+		int  swap16bit(int value) const;
 		int  waitForRemove(const char* oldFileName) const;
 		int  wildcmp(const char* wild, const char* data) const;
 		void writeFile(const string &fileName_, FileEncoding encoding, ostringstream &out) const;
@@ -349,34 +308,7 @@ class ASConsole
 		void displayLastError();
 #endif
 };
-#else	// ASTYLE_LIB
-
-//----------------------------------------------------------------------------
-// ASLibrary class for library build
-//----------------------------------------------------------------------------
-
-class ASLibrary
-{
-	public:
-		ASLibrary() {}
-		virtual ~ASLibrary() {}
-		// virtual functions are mocked in testing
-		utf16_t* formatUtf16(const utf16_t*, const utf16_t*, fpError, fpAlloc) const;
-		virtual utf16_t* convertUtf8ToUtf16(const char* utf8In, fpAlloc fpMemoryAlloc) const;
-		virtual char* convertUtf16ToUtf8(const utf16_t* pSourceIn) const;
-
-	private:
-		bool getBigEndian() const;
-		int swap16bit(int value) const;
-		static char* STDCALL tempMemoryAllocation(unsigned long memoryNeeded);
-		size_t utf16len(const utf16_t* utf16In) const;
-		size_t Utf8LengthFromUtf16(const char* data, size_t tlen, bool isBigEndian) const;
-		size_t Utf16LengthFromUtf8(const char* data, size_t len) const;
-};
-
 #endif	// ASTYLE_LIB
-
-//----------------------------------------------------------------------------
 
 }   // end of namespace astyle
 
@@ -384,6 +316,7 @@ class ASLibrary
 // declarations for java native interface (JNI) build
 // global because they are called externally and are NOT part of the namespace
 //----------------------------------------------------------------------------
+
 #ifdef ASTYLE_JNI
 void  STDCALL javaErrorHandler(int errorNumber, const char* errorMessage);
 char* STDCALL javaMemoryAlloc(unsigned long memoryNeeded);
@@ -395,14 +328,5 @@ jstring STDCALL Java_AStyleInterface_AStyleMain
 (JNIEnv* env, jobject obj, jstring textInJava, jstring optionsJava);
 #endif //  ASTYLE_JNI
 
-//----------------------------------------------------------------------------
-// declarations for UTF-16 interface
-// global because they are called externally
-//----------------------------------------------------------------------------
-#ifdef ASTYLE_LIB
-extern "C"
-EXPORT utf16_t* STDCALL AStyleMainUtf16
-(const utf16_t* pSourceIn, const utf16_t* pOptions, fpError fpErrorHandler, fpAlloc fpMemoryAlloc);
-#endif	// ASTYLE_LIB
 
 #endif // closes ASTYLE_MAIN_H

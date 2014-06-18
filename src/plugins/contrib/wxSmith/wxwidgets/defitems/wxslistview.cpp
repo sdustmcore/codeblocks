@@ -20,8 +20,6 @@
 #include "wxslistview.h"
 #include <wx/listctrl.h>
 
-#include <prep.h>
-
 namespace
 {
     wxsRegisterItem<wxsListView> Reg(_T("ListView"),wxsTWidget,_T("Standard"),220);
@@ -102,7 +100,6 @@ void wxsListView::OnBuildCreatingCode()
             return;
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsListView::OnBuildCreatingCode"),GetLanguage());
@@ -129,6 +126,6 @@ wxObject* wxsListView::OnBuildPreview(wxWindow* Parent,long Flags)
  * \return void
  *
  */
-void wxsListView::OnEnumWidgetProperties(cb_unused long Flags)
+void wxsListView::OnEnumWidgetProperties(long Flags)
 {
 }

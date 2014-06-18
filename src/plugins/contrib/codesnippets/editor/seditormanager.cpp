@@ -13,17 +13,16 @@
 //#endif
 #undef CB_PRECOMP
 #ifndef CB_PRECOMP
-    #include <wx/dir.h>
-    #include <wx/file.h>
-    #include <wx/imaglist.h>
-    #include <wx/listctrl.h>
-    #include <wx/menu.h>
     #include <wx/notebook.h>
-    #include <wx/regex.h>
+    #include <wx/menu.h>
     #include <wx/splitter.h>
+    #include <wx/imaglist.h>
+    #include <wx/regex.h>
+    #include <wx/listctrl.h>
 
     #include "seditormanager.h" // class's header file
     #include "configmanager.h"
+    #include <wx/xrc/xmlres.h>
     #include "infowindow.h"
     #include "logmanager.h"
     #include "projectmanager.h"
@@ -37,6 +36,8 @@
     #include "scbeditor.h"
     #include "globals.h"
     #include "sdk_events.h"
+    #include <wx/file.h>
+    #include <wx/dir.h>
 #endif
 #include "cbstyledtextctrl.h"
 
@@ -285,7 +286,7 @@ void SEditorManager::CreateSearchLog()
     wxString prefix = ConfigManager::GetDataFolder() + _T("/images/16x16/");
     wxBitmap * bmp = new wxBitmap(cbLoadBitmap(prefix + _T("filefind.png"), wxBITMAP_TYPE_PNG));
 
-    m_pSearchLog = new cbSearchResultsLog(titles, widths);
+    m_pSearchLog = new SearchResultsLog(titles, widths);
     CodeBlocksLogEvent evt(cbEVT_ADD_LOG_WINDOW, m_pSearchLog, _("Search results"), bmp);
     Manager::Get()->ProcessEvent(evt);
 }
@@ -1470,7 +1471,7 @@ bool SEditorManager::SwapActiveHeaderSource()
                 {
                     ProjectFile* pf = project->GetFileByFilename(newEd->GetFilename(), false);
                     newEd->SetProjectFile(pf);
-                    Manager::Get()->GetProjectManager()->GetUI().RebuildTree();
+                    Manager::Get()->GetProjectManager()->RebuildTree();
                 }
             }
         }
@@ -2151,10 +2152,10 @@ int SEditorManager::ReplaceInFiles(cbFindReplaceData* data)
                         text=text.Mid(1);
                         if(re.Matches(text))
                         {
-                            size_t start2,len2;
-                            re.GetMatch(&start2,&len2,0);
-                            pos=start2+data->start+1;
-                            lengthFound=len2;
+                            size_t start,len;
+                            re.GetMatch(&start,&len,0);
+                            pos=start+data->start+1;
+                            lengthFound=len;
                         } else
                             pos=-1;
                     }
@@ -2369,10 +2370,10 @@ int SEditorManager::Find(cbStyledTextCtrl* control, cbFindReplaceData* data)
                     text=text.Mid(1);
                     if(re.Matches(text))
                     {
-                        size_t start2,len2;
-                        re.GetMatch(&start2,&len2,0);
-                        pos=start2+data->start+1;
-                        lengthFound=len2;
+                        size_t start,len;
+                        re.GetMatch(&start,&len,0);
+                        pos=start+data->start+1;
+                        lengthFound=len;
                     } else
                         pos=-1;
                 }
@@ -2676,7 +2677,7 @@ int SEditorManager::FindInFiles(cbFindReplaceData* data)
 
     if (count > 0)
     {
-        static_cast<cbSearchResultsLog*>(m_pSearchLog)->SetBasePath(data->searchPath);
+        static_cast<SearchResultsLog*>(m_pSearchLog)->SetBasePath(data->searchPath);
         if (Manager::Get()->GetConfigManager(_T("message_manager"))->ReadBool(_T("/auto_show_search"), true))
         {
             CodeBlocksLogEvent evtSwitch(cbEVT_SWITCH_TO_LOG_WINDOW, m_pSearchLog);
@@ -2685,7 +2686,7 @@ int SEditorManager::FindInFiles(cbFindReplaceData* data)
             Manager::Get()->ProcessEvent(evtSwitch);
             Manager::Get()->ProcessEvent(evtShow);
         }
-        static_cast<cbSearchResultsLog*>(m_pSearchLog)->FocusEntry(oldcount);
+        static_cast<SearchResultsLog*>(m_pSearchLog)->FocusEntry(oldcount);
     }
     else
     {
@@ -2703,7 +2704,7 @@ int SEditorManager::FindInFiles(cbFindReplaceData* data)
         {
             msg.Printf(_("not found in %d files"), filesList.GetCount());
             LogSearch(_T(""), -1, msg );
-            static_cast<cbSearchResultsLog*>(m_pSearchLog)->FocusEntry(oldcount);
+            static_cast<SearchResultsLog*>(m_pSearchLog)->FocusEntry(oldcount);
         }
     }
 
@@ -2848,8 +2849,8 @@ void SEditorManager::OnTabRightUp(wxAuiNotebookEvent& event)
 
     for(int i = 0; i < GetEditorsCount(); ++i)
     {
-        SEditorBase* ed2 = GetEditor(i);
-        if (ed2 && ed2->GetModified())
+        SEditorBase* ed = GetEditor(i);
+        if (ed && ed->GetModified())
         {
             any_modified = true;
             break;
@@ -2863,37 +2864,37 @@ void SEditorManager::OnTabRightUp(wxAuiNotebookEvent& event)
     delete pop;
 }
 
-void SEditorManager::OnClose(cb_unused wxCommandEvent& event)
+void SEditorManager::OnClose(wxCommandEvent& event)
 {
     //-GetConfig()->GetEditorManager()->Close(GetActiveEditor());
     Close(GetActiveEditor());
 }
 
-void SEditorManager::OnCloseAll(cb_unused wxCommandEvent& event)
+void SEditorManager::OnCloseAll(wxCommandEvent& event)
 {
     //-GetConfig()->GetEditorManager()->CloseAll();
     CloseAll();
 }
 
-void SEditorManager::OnCloseAllOthers(cb_unused wxCommandEvent& event)
+void SEditorManager::OnCloseAllOthers(wxCommandEvent& event)
 {
     //-GetConfig()->GetEditorManager()->CloseAllExcept(GetActiveEditor());
     CloseAllExcept(GetActiveEditor());
 }
 
-void SEditorManager::OnSave(cb_unused wxCommandEvent& event)
+void SEditorManager::OnSave(wxCommandEvent& event)
 {
     //-GetConfig()->GetEditorManager()->Save(m_pNotebook->GetSelection());
     Save(m_pNotebook->GetSelection());
 }
 
-void SEditorManager::OnSaveAll(cb_unused wxCommandEvent& event)
+void SEditorManager::OnSaveAll(wxCommandEvent& event)
 {
     //-GetConfig()->GetEditorManager()->SaveAll();
     SaveAll();
 }
 
-void SEditorManager::OnSwapHeaderSource(cb_unused wxCommandEvent& event)
+void SEditorManager::OnSwapHeaderSource(wxCommandEvent& event)
 {
     //-GetConfig()->GetEditorManager()->SwapActiveHeaderSource();
     SwapActiveHeaderSource();
@@ -2911,7 +2912,7 @@ void SEditorManager::OnTabPosition(wxCommandEvent& event)
     Manager::Get()->GetConfigManager(_T("app"))->Write(_T("/environment/editor_tabs_bottom"), (bool)(style & wxAUI_NB_BOTTOM));
 }
 
-void SEditorManager::OnProperties(cb_unused wxCommandEvent& event)
+void SEditorManager::OnProperties(wxCommandEvent& event)
 {
     ScbEditor* ed = GetBuiltinActiveEditor();
     ProjectFile* pf = 0;
@@ -2938,7 +2939,7 @@ void SEditorManager::OnAppStartShutdown(wxCommandEvent& event)
     event.Skip(); // allow others to process it too
 }
 
-void SEditorManager::OnCheckForModifiedFiles(cb_unused wxCommandEvent& event)
+void SEditorManager::OnCheckForModifiedFiles(wxCommandEvent& event)
 {
     CheckForExternallyModifiedFiles();
 }

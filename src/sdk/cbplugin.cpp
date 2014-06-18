@@ -12,7 +12,6 @@
 #ifndef CB_PRECOMP
     #include <wx/frame.h> // wxFrame
     #include <wx/menu.h>
-    #include <wx/process.h>
 
     #include "cbeditor.h"
     #include "cbplugin.h"
@@ -36,7 +35,6 @@
 #include "annoyingdialog.h"
 #include "cbdebugger_interfaces.h"
 #include "cbstyledtextctrl.h"
-#include "ccmanager.h"
 #include "debuggermanager.h"
 #include "editor_hooks.h"
 #include "loggers.h"
@@ -125,8 +123,8 @@ cbCompilerPlugin::cbCompilerPlugin()
 /////
 
 cbDebuggerPlugin::cbDebuggerPlugin(const wxString &guiName, const wxString &settingsName) :
-    m_toolbar(nullptr),
-    m_pCompiler(nullptr),
+    m_toolbar(NULL),
+    m_pCompiler(NULL),
     m_WaitingCompilerToFinish(false),
     m_EditorHookId(-1),
     m_StartType(StartTypeUnknown),
@@ -207,11 +205,13 @@ wxString cbDebuggerPlugin::GetEditorWordAtCaret(const wxPoint* mousePosition)
         if (mousePosition)
         {
             int startPos = stc->GetSelectionStart();
-            int endPos = stc->GetSelectionEnd();
-            int mousePos = stc->PositionFromPointClose(mousePosition->x, mousePosition->y);
-            if (mousePos == wxSCI_INVALID_POSITION)
-                return wxEmptyString;
-            else if (startPos <= mousePos && mousePos <= endPos)
+            int endPos   = stc->GetSelectionEnd();
+            wxPoint startPoint = stc->PointFromPosition(startPos);
+            wxPoint endPoint   = stc->PointFromPosition(endPos);
+            int endLine = stc->LineFromPosition(endPos);
+            int textHeight = stc->TextHeight(endLine);
+            endPoint.y += textHeight;
+            if (wxRect(startPoint, endPoint).Contains(*mousePosition))
                 return selected_text;
             else
                 return wxEmptyString;
@@ -332,7 +332,7 @@ cbDebuggerPlugin::SyncEditorResult cbDebuggerPlugin::SyncEditor(const wxString& 
     }
 
     cbProject* project = Manager::Get()->GetProjectManager()->GetActiveProject();
-    ProjectFile* f = project ? project->GetFileByFilename(filename, false, true) : nullptr;
+    ProjectFile* f = project ? project->GetFileByFilename(filename, false, true) : 0;
 
     wxString unixfilename = UnixFilename(filename);
     wxFileName fname(unixfilename);
@@ -364,7 +364,7 @@ cbDebuggerPlugin::SyncEditorResult cbDebuggerPlugin::SyncEditor(const wxString& 
     }
 }
 
-inline bool HasBreakpoint(cbDebuggerPlugin &plugin, wxString const &filename, int line)
+bool HasBreakpoint(cbDebuggerPlugin &plugin, wxString const &filename, int line)
 {
     int count = plugin.GetBreakpointsCount();
     for (int ii = 0; ii < count; ++ii)
@@ -508,7 +508,7 @@ void cbDebuggerPlugin::OnProjectClosed(CodeBlocksEvent& event)
                            _("The project you were debugging has closed.\n"
                              "(The application most likely just finished.)\n"
                              "The debugging session will terminate immediately."),
-                            wxART_WARNING, AnnoyingDialog::OK);
+                            wxART_WARNING, AnnoyingDialog::OK, wxID_OK);
         dlg.ShowModal();
         Stop();
         ResetProject();
@@ -662,7 +662,6 @@ bool cbDebuggerPlugin::GetDebuggee(wxString &pathToDebuggee, wxString &workingDi
             ConvertDirectory(out);
             break;
 
-        case ttCommandsOnly: // fall through:
         default:
             Log(_("Unsupported target type (Project -> Properties -> Build Targets -> Type)"), Logger::error);
             return false;
@@ -696,7 +695,7 @@ bool cbDebuggerPlugin::EnsureBuildUpToDate(StartType startType)
         if (!cbDebuggerCommonConfig::GetFlag(cbDebuggerCommonConfig::AutoBuild))
         {
             m_WaitingCompilerToFinish = false;
-            m_pCompiler = nullptr;
+            m_pCompiler = NULL;
             return true;
         }
 
@@ -705,7 +704,7 @@ bool cbDebuggerPlugin::EnsureBuildUpToDate(StartType startType)
         if (plugins.GetCount())
             m_pCompiler = (cbCompilerPlugin*)plugins[0];
         else
-            m_pCompiler = nullptr;
+            m_pCompiler = NULL;
         if (m_pCompiler)
         {
             // is the compiler already running?
@@ -737,12 +736,12 @@ void cbDebuggerPlugin::OnCompilerFinished(cb_unused CodeBlocksEvent& event)
         if (m_pCompiler && m_pCompiler->GetExitCode() != 0)
         {
             AnnoyingDialog dlg(_("Debug anyway?"), _("Build failed, do you want to debug the program?"),
-                               wxART_QUESTION, AnnoyingDialog::YES_NO, AnnoyingDialog::rtNO);
-            if (dlg.ShowModal() != AnnoyingDialog::rtYES)
+                               wxART_QUESTION, AnnoyingDialog::YES_NO, wxID_NO);
+            if (dlg.ShowModal() != wxID_YES)
             {
                 ProjectManager *manager = Manager::Get()->GetProjectManager();
                 if (manager->GetIsRunning() && manager->GetIsRunning() == this)
-                    manager->SetIsRunning(nullptr);
+                    manager->SetIsRunning(NULL);
                 compilerFailed = true;
             }
         }
@@ -751,7 +750,7 @@ void cbDebuggerPlugin::OnCompilerFinished(cb_unused CodeBlocksEvent& event)
         {
             ProjectManager *manager = Manager::Get()->GetProjectManager();
             if (manager->GetIsRunning() && manager->GetIsRunning() == this)
-                manager->SetIsRunning(nullptr);
+                manager->SetIsRunning(NULL);
         }
     }
 }
@@ -763,36 +762,103 @@ wxString MakeSleepCommand()
 {
     return wxString::Format(wxT("sleep %lu"), 80000000 + ::wxGetProcessId());
 }
+}
+#endif
 
-struct ConsoleInfo
+int cbDebuggerPlugin::RunNixConsole(wxString &consoleTty)
 {
-    ConsoleInfo(const wxString &path = wxEmptyString, int pid = -1) : ttyPath(path), sleepPID(pid) {}
+    consoleTty = wxEmptyString;
+#ifndef __WXMSW__
 
-    bool IsValid() const { return !ttyPath.empty() && sleepPID > 0; }
+    // start the xterm and put the shell to sleep with -e sleep 80000
+    // fetch the xterm tty so we can issue to gdb a "tty /dev/pts/#"
+    // redirecting program stdin/stdout/stderr to the xterm console.
 
-    wxString ttyPath;
-    int sleepPID;
-};
+    wxString cmd;
+    wxString title = wxT("Program Console");
+    int consolePid = 0;
+    // for non-win platforms, use m_ConsoleTerm to run the console app
+    wxString term = Manager::Get()->GetConfigManager(_T("app"))->Read(_T("/console_terminal"), DEFAULT_CONSOLE_TERM);
+    term.Replace(_T("$TITLE"), _T("'") + title + _T("'"));
+    cmd << term << _T(" ");
+    cmd << MakeSleepCommand();
 
-ConsoleInfo GetConsoleTty(int consolePID)
+    Manager::Get()->GetMacrosManager()->ReplaceEnvVars(cmd);
+//    DebugLog(wxString::Format( _("Executing: %s"), cmd.c_str()) );
+    //start xterm -e sleep {some unique # of seconds}
+    consolePid = wxExecute(cmd, wxEXEC_ASYNC);
+    if (consolePid <= 0) return -1;
+
+    // Issue the PS command to get the /dev/tty device name
+    // First, wait for the xterm to settle down, else PS won't see the sleep task
+    for (int ii = 0; ii < 100; ++ii)
+    {
+        Manager::Yield();
+        ::wxMilliSleep(200);
+
+        // For some reason wxExecute returns PID>0, when the command cannot be launched.
+        // Here we check if the process is alive and the PID is really a valid one.
+        if (kill(consolePid, 0) == -1 && errno == ESRCH) {
+            Log(wxString::Format(_("Can't launch console (%s)"), cmd.c_str()), Logger::error);
+            break;
+        }
+
+        int localConsolePid = consolePid;
+        consoleTty = GetConsoleTty(localConsolePid);
+        if (!consoleTty.IsEmpty() )
+        {
+            // show what we found as tty
+            return localConsolePid;
+        }
+    }
+    // failed to find the console tty
+    if (consolePid != 0)
+        ::wxKill(consolePid);
+    consolePid = 0;
+#endif // !__WWXMSW__
+    return -1;
+}
+
+void cbDebuggerPlugin::MarkAsStopped()
 {
+    Manager::Get()->GetProjectManager()->SetIsRunning(NULL);
+}
+
+wxString cbDebuggerPlugin::GetConsoleTty(cb_unused int ConsolePid)
+{
+#ifndef __WXMSW__
+
     // execute the ps x -o command  and read PS output to get the /dev/tty field
+
+    unsigned long ConsPid = ConsolePid;
+    wxString psCmd;
     wxArrayString psOutput;
     wxArrayString psErrors;
 
-    int result = wxExecute(wxT("ps x -o tty,pid,command"), psOutput, psErrors, wxEXEC_SYNC);
+    psCmd << wxT("ps x -o tty,pid,command");
+//    DebugLog(wxString::Format( _("Executing: %s"), psCmd.c_str()) );
+    int result = wxExecute(psCmd, psOutput, psErrors, wxEXEC_SYNC);
+    psCmd.Clear();
     if (result != 0)
-        return ConsoleInfo();
-
-    // find task with our unique sleep time
-    const wxString &uniqueSleepTimeStr = MakeSleepCommand();
-
-    // search the output of "ps pid" command
-    int count = psOutput.GetCount();
-    for (int i = count - 1; i > -1; --i)
     {
+        psCmd << wxT("Result of ps x:") << result;
+//        DebugLog(wxString::Format( _("Execution Error:"), psCmd.c_str()) );
+        return wxEmptyString;
+    }
+
+    wxString ConsTtyStr;
+    wxString ConsPidStr;
+    ConsPidStr << ConsPid;
+    //find task with our unique sleep time
+    const wxString &uniqueSleepTimeStr = MakeSleepCommand();
+    // search the output of "ps pid" command
+    int knt = psOutput.GetCount();
+    for (int i=knt-1; i>-1; --i)
+    {
+        psCmd = psOutput.Item(i);
+//        DebugLog(wxString::Format( _("PS result: %s"), psCmd.c_str()) );
         // find the pts/# or tty/# or whatever it's called
-        // by searching the output of "ps x -o tty,pid,command" command.
+        // by seaching the output of "ps x -o tty,pid,command" command.
         // The output of ps looks like:
         // TT       PID   COMMAND
         // pts/0    13342 /bin/sh ./run.sh
@@ -803,128 +869,24 @@ ConsoleInfo GetConsoleTty(int consolePID)
         // ?        13365 /home/pecan/proj/conio/conio
         // pts/1    13370 ps x -o tty,pid,command
 
-        const wxString &psCmd = psOutput.Item(i);
         if (psCmd.Contains(uniqueSleepTimeStr))
+        do
         {
-            // Extract the pid for the line
-            long pidForLine;
-            if (psCmd.AfterFirst(' ').Trim(false).BeforeFirst(' ').Trim(true).ToLong(&pidForLine))
-            {
-                // Check if we are at the correct line. It is possible that there are two lines which contain the
-                // "sleep" string. One for the sleep process and one for the terminal process. We want to skip the
-                // line for the terminal process.
-                if (pidForLine != consolePID)
-                    return ConsoleInfo(wxT("/dev/") + psCmd.BeforeFirst(' '), pidForLine);
-            }
-        }
-    }
-    return ConsoleInfo();
-}
+            // check for correct "sleep" line
+            if (psCmd.Find(ConsPidStr) != wxNOT_FOUND)
+                break; //error;wrong sleep line.
+            // found "sleep 93343" string, extract tty field
+            ConsTtyStr = wxT("/dev/") + psCmd.BeforeFirst(' ');
+//            DebugLog(wxString::Format( _("TTY is[%s]"), ConsTtyStr.c_str()) );
+            return ConsTtyStr;
+        } while(0);//if do
+    }//for
 
-struct ConsoleProcessTerminationInfo
-{
-    ConsoleProcessTerminationInfo() : status(-1), terminated(false) {}
-
-    bool FailedToStart() const { return terminated && status != 0; }
-
-    int status;
-    bool terminated;
-};
-
-struct ConsoleProcess : wxProcess
-{
-    ConsoleProcess(cb::shared_ptr<ConsoleProcessTerminationInfo> cptInfo) : info(cptInfo) {}
-    virtual void OnTerminate(int pid, int status)
-    {
-        info->terminated = true;
-        info->status = status;
-    }
-    cb::shared_ptr<ConsoleProcessTerminationInfo> info;
-};
-
-} // namespace
-#endif
-
-int cbDebuggerPlugin::RunNixConsole(wxString &consoleTty)
-{
-    consoleTty = wxEmptyString;
-#ifndef __WXMSW__
-    // Start a terminal and put the shell to sleep with -e sleep 80000.
-    // Fetch the terminal's tty, so we can tell the debugger what TTY to use,
-    // thus redirecting program's stdin/stdout/stderr to the terminal.
-
-    wxString cmd;
-    int consolePid = 0;
-    // Use the terminal specified by the user in the Settings -> Environment.
-    wxString term = Manager::Get()->GetConfigManager(_T("app"))->Read(_T("/console_terminal"), DEFAULT_CONSOLE_TERM);
-
-    term.Replace(_T("$TITLE"), wxString(wxT("'"))+_("Program Console")+wxT("'"));
-    cmd << term << _T(" ");
-
-    const wxString &sleepCommand = MakeSleepCommand();
-    cmd << sleepCommand;
-
-    Manager::Get()->GetMacrosManager()->ReplaceEnvVars(cmd);
-
-    // The lifetime of wxProcess objects is very uncertain, so we are using a shared pointer to
-    // prevent us accessing deleted objects.
-    cb::shared_ptr<ConsoleProcessTerminationInfo> processInfo(new ConsoleProcessTerminationInfo);
-    ConsoleProcess *process = new ConsoleProcess(processInfo);
-    consolePid = wxExecute(cmd, wxEXEC_ASYNC, process);
-    if (consolePid <= 0)
-        return -1;
-
-    // Try to find the TTY. We're using a loop, because some slow machines might make the check fail due
-    // to a slow starting terminal.
-    for (int ii = 0; ii < 100; ++ii)
-    {
-        // First, wait for the terminal to settle down, else PS won't see the sleep task
-        Manager::Yield();
-        ::wxMilliSleep(200);
-
-        // Try to detect if the terminal command is present or its parameters are valid.
-        if (processInfo->FailedToStart() /*&& ii > 0*/)
-        {
-            Log(F(wxT("Failed to execute terminal command: '%s' (exit code: %d)"),
-                  cmd.wx_str(), processInfo->status), Logger::error);
-            break;
-        }
-
-        // Try to find tty path and pid for the sleep command we've just executed.
-        const ConsoleInfo &info = GetConsoleTty(consolePid);
-
-        // If there is no sleep command yet, do another iteration after a small delay.
-        if (!info.IsValid())
-            continue;
-
-        // Try to find if the console window is still alive. Newer terminals like gnome-terminal
-        // try to be easier on resources and use a shared server process. For these terminals the
-        // spawned terminal process exits immediately, but the sleep command is still executed.
-        // If we detect such case we will return the PID for the sleep command instead of the PID
-        // for the terminal.
-        if (kill(consolePid, 0) == -1 && errno == ESRCH) {
-            DebugLog(F(wxT("Using sleep command's PID as console PID %d, TTY %s"),
-                       info.sleepPID, info.ttyPath.wx_str()));
-            consoleTty = info.ttyPath;
-            return info.sleepPID;
-        }
-        else
-        {
-            DebugLog(F(wxT("Using terminal's PID as console PID %d, TTY %s"), info.sleepPID, info.ttyPath.wx_str()));
-            consoleTty = info.ttyPath;
-            return consolePid;
-        }
-    }
-    // failed to find the console tty
-    if (consolePid != 0)
-        ::wxKill(consolePid);
-#endif // !__WWXMSW__
-    return -1;
-}
-
-void cbDebuggerPlugin::MarkAsStopped()
-{
-    Manager::Get()->GetProjectManager()->SetIsRunning(nullptr);
+    knt = psErrors.GetCount();
+//    for (int i=0; i<knt; ++i)
+//        DebugLog(wxString::Format( _("PS Error:%s"), psErrors.Item(i).c_str()) );
+#endif // !__WXMSW__
+    return wxEmptyString;
 }
 
 void cbDebuggerPlugin::BringCBToFront()
@@ -968,7 +930,7 @@ void cbDebuggerPlugin::ProcessValueTooltip(CodeBlocksEvent& event)
         return;
 
     EditorBase* base = event.GetEditor();
-    cbEditor* ed = base && base->IsBuiltinEditor() ? static_cast<cbEditor*>(base) : nullptr;
+    cbEditor* ed = base && base->IsBuiltinEditor() ? static_cast<cbEditor*>(base) : 0;
     if (!ed)
         return;
 
@@ -1021,21 +983,6 @@ cbMimePlugin::cbMimePlugin()
 cbCodeCompletionPlugin::cbCodeCompletionPlugin()
 {
     m_Type = ptCodeCompletion;
-}
-
-void cbCodeCompletionPlugin::DoAutocomplete(cb_unused const CCToken& token, cb_unused cbEditor* ed)
-{
-    // do nothing: allow (wx)Scintilla to handle the insert
-}
-
-void cbCodeCompletionPlugin::DoAutocomplete(const wxString& token, cbEditor* ed)
-{
-    DoAutocomplete(CCToken(-1, token), ed);
-}
-
-bool cbCodeCompletionPlugin::IsProviderFor(cbEditor* ed)
-{
-    return (Manager::Get()->GetCCManager()->GetProviderFor(ed) == this);
 }
 
 /////

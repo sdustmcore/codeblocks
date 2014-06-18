@@ -37,7 +37,7 @@
 
 #include <ctype.h>
 
-template<> UserVariableManager* Mgr<UserVariableManager>::instance   = nullptr;
+template<> UserVariableManager* Mgr<UserVariableManager>::instance   = 0;
 template<> bool                 Mgr<UserVariableManager>::isShutdown = false;
 
 const wxString cBase     (_T("base"));
@@ -47,7 +47,6 @@ const wxString cSlashBase(_T("/base"));
 const wxString cInclude  (_T("include"));
 const wxString cLib      (_T("lib"));
 const wxString cObj      (_T("obj"));
-const wxString cBin      (_T("bin"));
 const wxString cCflags   (_T("cflags"));
 const wxString cLflags   (_T("lflags"));
 const wxString cSets     (_T("/sets/"));
@@ -58,11 +57,10 @@ const wxChar *bim[] =
     _T("include"),
     _T("lib"),
     _T("obj"),
-    _T("bin"),
     _T("cflags"),
     _T("lflags")
 };
-const wxArrayString builtinMembers((size_t) 7, bim);
+const wxArrayString builtinMembers((size_t) 6, bim);
 
 class UsrGlblMgrEditDialog : public wxScrollingDialog
 {
@@ -77,7 +75,6 @@ class UsrGlblMgrEditDialog : public wxScrollingDialog
     wxTextCtrl *m_Include;
     wxTextCtrl *m_Lib;
     wxTextCtrl *m_Obj;
-    wxTextCtrl *m_Bin;
 
     wxTextCtrl *m_Name[7];
     wxTextCtrl *m_Value[7];
@@ -96,7 +93,7 @@ class UsrGlblMgrEditDialog : public wxScrollingDialog
     void NewSet(wxCommandEvent&    event);
     void DeleteVar(wxCommandEvent& event);
     void DeleteSet(wxCommandEvent& event);
-    // handler for the folder selection button
+
     void OnFS(wxCommandEvent& event);
 
     void SelectSet(wxCommandEvent& event);
@@ -158,7 +155,7 @@ wxString UserVariableManager::Replace(const wxString& variable)
     if (member.IsEmpty() || member.IsSameAs(cBase))
         return base;
 
-    if (member.IsSameAs(cInclude) || member.IsSameAs(cLib) || member.IsSameAs(cObj) || member.IsSameAs(cBin))
+    if (member.IsSameAs(cInclude) || member.IsSameAs(cLib) || member.IsSameAs(cObj))
     {
         wxString ret = m_CfgMan->Read(path + member);
         if (ret.IsEmpty())
@@ -277,7 +274,6 @@ BEGIN_EVENT_TABLE(UsrGlblMgrEditDialog, wxScrollingDialog)
     EVT_BUTTON(XRCID("fs2"), UsrGlblMgrEditDialog::OnFS)
     EVT_BUTTON(XRCID("fs3"), UsrGlblMgrEditDialog::OnFS)
     EVT_BUTTON(XRCID("fs4"), UsrGlblMgrEditDialog::OnFS)
-    EVT_BUTTON(XRCID("fs5"), UsrGlblMgrEditDialog::OnFS)
 
     EVT_CHOICE(XRCID("selSet"), UsrGlblMgrEditDialog::SelectSet)
     EVT_CHOICE(XRCID("selVar"), UsrGlblMgrEditDialog::SelectVar)
@@ -296,7 +292,6 @@ UsrGlblMgrEditDialog::UsrGlblMgrEditDialog(const wxString& var) :
     m_Include = XRCCTRL(*this, "include", wxTextCtrl);
     m_Lib     = XRCCTRL(*this, "lib",     wxTextCtrl);
     m_Obj     = XRCCTRL(*this, "obj",     wxTextCtrl);
-    m_Bin     = XRCCTRL(*this, "bin",     wxTextCtrl);
 
     wxSplitterWindow *splitter = XRCCTRL(*this, "splitter", wxSplitterWindow);
     if (splitter)
@@ -413,7 +408,7 @@ void UsrGlblMgrEditDialog::DeleteVar(cb_unused wxCommandEvent& event)
     msg.Printf(_("Delete the global compiler variable \"%s\" from this set?"), m_CurrentVar.c_str());
     AnnoyingDialog d(_("Delete Global Variable"), msg, wxART_QUESTION);
     PlaceWindow(&d);
-    if (d.ShowModal() == AnnoyingDialog::rtYES)
+    if (d.ShowModal() == wxID_YES)
     {
         m_CfgMan->DeleteSubPath(cSets + m_CurrentSet + _T('/') + m_CurrentVar + _T('/'));
         m_CurrentVar = wxEmptyString;
@@ -428,7 +423,7 @@ void UsrGlblMgrEditDialog::DeleteSet(cb_unused wxCommandEvent& event)
     msg.Printf(_("Do you really want to delete\nthe entire global compiler variable set \"%s\"?\n\nThis cannot be undone."), m_CurrentSet.c_str());
     AnnoyingDialog d(_("Delete Global Variable Set"), msg, wxART_QUESTION);
     PlaceWindow(&d);
-    if (d.ShowModal() == AnnoyingDialog::rtYES)
+    if (d.ShowModal() == wxID_YES)
     {
         m_CfgMan->DeleteSubPath(cSets + m_CurrentSet + _T('/'));
         m_CurrentSet = wxEmptyString;
@@ -623,7 +618,7 @@ void UsrGlblMgrEditDialog::UpdateChoices()
 
 void UsrGlblMgrEditDialog::OnFS(wxCommandEvent& event)
 {
-    wxTextCtrl* c = nullptr;
+    wxTextCtrl* c = 0;
     int id = event.GetId();
 
     if      (id == XRCID("fs1"))
@@ -634,8 +629,6 @@ void UsrGlblMgrEditDialog::OnFS(wxCommandEvent& event)
         c = m_Lib;
     else if (id == XRCID("fs4"))
         c = m_Obj;
-    else if (id == XRCID("fs5"))
-        c = m_Bin;
     else
         cbThrow(_T("Encountered invalid button ID"));
 

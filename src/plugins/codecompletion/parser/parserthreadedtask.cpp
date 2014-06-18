@@ -63,34 +63,42 @@ ParserThreadedTask::ParserThreadedTask(Parser* parser, wxMutex& parserMTX) :
 
 int ParserThreadedTask::Execute()
 {
-    TRACE(_T("ParserThreadedTask::Execute(): Enter"));
-    if (!m_Parser) return 0;
-
     CC_LOCKER_TRACK_P_MTX_LOCK(m_ParserMutex)
 
     wxString   preDefs(m_Parser->m_PredefinedMacros);
-
+    StringList priorityHeaders(m_Parser->m_PriorityHeaders);
     StringList batchFiles(m_Parser->m_BatchParseFiles);
 
     CC_LOCKER_TRACK_P_MTX_UNLOCK(m_ParserMutex);
 
-    TRACE(_T("ParserThreadedTask::Execute(): Parse predefined macros(in buffer)"));
     if (!preDefs.IsEmpty())
         m_Parser->ParseBuffer(preDefs, false, false);
 
     CC_LOCKER_TRACK_P_MTX_LOCK(m_ParserMutex)
 
     m_Parser->m_PredefinedMacros.Clear();
+    m_Parser->m_IsPriority = true;
 
     CC_LOCKER_TRACK_P_MTX_UNLOCK(m_ParserMutex);
+
+    while (!priorityHeaders.empty())
+    {
+        m_Parser->Parse(priorityHeaders.front());
+        priorityHeaders.pop_front();
+    }
+
+    CC_LOCKER_TRACK_P_MTX_LOCK(m_ParserMutex)
+
+    m_Parser->m_PriorityHeaders.clear();
+    m_Parser->m_IsPriority = false;
 
     if (m_Parser->m_IgnoreThreadEvents)
         m_Parser->m_IsFirstBatch = true;
 
-    TRACE(_T("ParserThreadedTask::Execute(): Parse source files"));
+    CC_LOCKER_TRACK_P_MTX_UNLOCK(m_ParserMutex);
+
     while (!batchFiles.empty())
     {
-        TRACE(_T("-ParserThreadedTask::Execute(): Parse %s"), batchFiles.front().wx_str());
         m_Parser->Parse(batchFiles.front());
         batchFiles.pop_front();
     }
@@ -101,12 +109,11 @@ int ParserThreadedTask::Execute()
 
     if (m_Parser->m_IgnoreThreadEvents)
     {
-        m_Parser->m_IgnoreThreadEvents = false; // we need to hear the pool finish event
+        m_Parser->m_IgnoreThreadEvents = false;
         m_Parser->m_IsParsing = true;
     }
 
     CC_LOCKER_TRACK_P_MTX_UNLOCK(m_ParserMutex);
-    TRACE(_T("ParserThreadedTask::Execute(): Leave"));
 
     return 0;
 }
@@ -120,10 +127,6 @@ MarkFileAsLocalThreadedTask::MarkFileAsLocalThreadedTask(Parser* parser, cbProje
 
 int MarkFileAsLocalThreadedTask::Execute()
 {
-    TRACE(_T("MarkFileAsLocalThreadedTask::Execute()"));
-    if (!m_Project) return 0;
-    if (!m_Parser)  return 0;
-
     // mark all project files as local
     for (FilesList::const_iterator it  = m_Project->GetFilesList().begin();
                                    it != m_Project->GetFilesList().end(); ++it)

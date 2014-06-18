@@ -205,7 +205,7 @@ ProjectConfigurationPanel::~ProjectConfigurationPanel()
 
 wxString ProjectConfigurationPanel::GetTitle() const
 {
-    return _("Libraries");
+    return _T("Libraries");
 }
 
 wxString ProjectConfigurationPanel::GetBitmapBaseName() const

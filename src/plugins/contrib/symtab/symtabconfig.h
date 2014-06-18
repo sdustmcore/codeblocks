@@ -16,8 +16,8 @@ class SymTabConfigDlg : public wxScrollingDialog
 /* ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- */
 public:
 /* ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- */
-           SymTabConfigDlg(wxWindow* parent_in) :
-             parent(parent_in), SymTabConfigDlgLoaded(false) {}
+           SymTabConfigDlg(wxWindow* parent) :
+             parent(parent), SymTabConfigDlgLoaded(false) {}
   virtual ~SymTabConfigDlg();
 
   int      Execute();

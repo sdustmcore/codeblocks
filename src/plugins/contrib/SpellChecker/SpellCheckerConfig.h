@@ -62,8 +62,6 @@ class SpellCheckerConfig
         const wxString GetRawBitmapPath()const;
         void ScanForDictionaries(const wxString &path);
         void PopulateLanguageNamesMap();
-        void DetectDictionaryPath();
-        void DetectThesaurusPath();
     protected:
     private:
         wxString m_DictPath;

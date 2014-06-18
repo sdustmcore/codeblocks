@@ -28,12 +28,10 @@ GenericMultiLineNotesDlg::GenericMultiLineNotesDlg(wxWindow* parent, const wxStr
     wxXmlResource::Get()->LoadObject(this, parent, _T("dlgGenericMultiLineNotes"),_T("wxScrollingDialog"));
     SetTitle(caption);
 
-    wxTextCtrl *notesCtrl = XRCCTRL(*this, "txtNotes", wxTextCtrl);
-
-    notesCtrl->SetValue(m_Notes);
+    XRCCTRL(*this, "txtNotes", wxTextCtrl)->SetValue(m_Notes);
     if (m_ReadOnly)
     {
-        notesCtrl->SetEditable(false);
+        XRCCTRL(*this, "txtNotes", wxTextCtrl)->Disable();
         if (wxWindow* win = FindWindowById(wxID_CANCEL, this))
         {
             win->Enable(false);

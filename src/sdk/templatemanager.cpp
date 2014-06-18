@@ -33,7 +33,7 @@
 #include "filefilters.h"
 #include "newfromtemplatedlg.h"
 
-template<> TemplateManager* Mgr<TemplateManager>::instance = nullptr;
+template<> TemplateManager* Mgr<TemplateManager>::instance = 0;
 template<> bool  Mgr<TemplateManager>::isShutdown = false;
 
 TemplateManager::TemplateManager()
@@ -110,10 +110,6 @@ cbProject* TemplateManager::NewFromTemplate(NewFromTemplateDlg& dlg, wxString* p
         switch (wiz->GetOutputType(dlg.GetWizardIndex()))
         {
             case totProject: prj = dynamic_cast<cbProject*>(ret); break;
-            case totTarget: // fall-though
-            case totFiles:  // fall-though
-            case totCustom: // fall-though
-            case totUser:   // fall-though
             default: break;
         }
     }
@@ -132,7 +128,7 @@ cbProject* TemplateManager::NewProjectFromUserTemplate(NewFromTemplateDlg& dlg, 
     wxString path = Manager::Get()->GetConfigManager(_T("template_manager"))->Read(_T("/projects_path"));
     wxString sep = wxFileName::GetPathSeparator();
     // select directory to copy user template files
-    path = ChooseDirectory(nullptr, _("Choose a directory to create the new project"),
+    path = ChooseDirectory(0, _("Choose a directory to create the new project"),
                         path, _T(""), false, true);
     if (path.IsEmpty())
         return NULL;
@@ -150,7 +146,7 @@ cbProject* TemplateManager::NewProjectFromUserTemplate(NewFromTemplateDlg& dlg, 
                                       "Are you sure you want to continue?"),
                                     _("Files exist in directory"), wxICON_EXCLAMATION | wxYES_NO | wxNO_DEFAULT) != wxID_YES)
             {
-                return nullptr;
+                return 0;
             }
         }
     }
@@ -231,7 +227,7 @@ cbProject* TemplateManager::NewProjectFromUserTemplate(NewFromTemplateDlg& dlg, 
                     outFname.SetName(newname);
                     bt->SetOutputFilename(outFname.GetFullPath());
                 }
-                Manager::Get()->GetProjectManager()->GetUI().RebuildTree(); // so the tree shows the new name
+                Manager::Get()->GetProjectManager()->RebuildTree(); // so the tree shows the new name
                 CodeBlocksEvent evt(cbEVT_PROJECT_OPEN, 0, prj);
                 Manager::Get()->ProcessEvent(evt);
             }
@@ -268,7 +264,7 @@ void TemplateManager::SaveUserTemplate(cbProject* prj)
     while (true)
     {
         // ask for template title (unique)
-        wxTextEntryDialog dlg(nullptr, _("Enter a title for this template"), _("Enter title"), title);
+        wxTextEntryDialog dlg(0, _("Enter a title for this template"), _("Enter title"), title);
         PlaceWindow(&dlg);
         if (dlg.ShowModal() != wxID_OK)
             return;

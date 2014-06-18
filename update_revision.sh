@@ -23,31 +23,22 @@ else
 fi
 
 if svn --xml info >/dev/null 2>&1; then
-	echo "Using 'svn --xml info' to get the revision"
 	REV=`svn --xml info | tr -d '\r\n' | sed -e 's/.*<commit.*revision="\([0-9]*\)".*<\/commit>.*/\1/'`
 	LCD=`svn --xml info | tr -d '\r\n' | sed -e 's/.*<commit.*<date>\([0-9\-]*\)\T\([0-9\:]*\)\..*<\/date>.*<\/commit>.*/\1 \2/'`
 elif svn --info >/dev/null 2>&1; then
-	echo "Using 'svn info' to get the revision"
 	REV=`svn info | grep "^Revision:" | cut -d" " -f2`
 	LCD=`svn info | grep "^Last Changed Date:" | cut -d" " -f4,5`
-#elif git svn --version >/dev/null 2>&1; then
-#	echo "Using 'git svn info' to get the revision"
-#	REV=`git svn info | grep "^Revision:" | cut -d" " -f2`
-#	LCD=`git svn info | grep "^Last Changed Date:" | cut -d" " -f4,5`
-elif git log --max-count=1 >/dev/null 2>&1; then
-	echo "Using 'git log --graph' to get the revision"
-	REV=`git log --graph | grep 'git-svn-id' | head -n 1 | grep -o -e "@\([0-9]*\)" | tr -d '@ '`
-	LCD=`git log --date=iso --max-count=1 | grep -o -e "Date: \(.*\)" | cut -d ' ' -f 2- | sed 's/^ *//' | cut -f -2 -d ' '`
+elif git svn --version >/dev/null 2>&1; then
+	REV=`git svn info | grep "^Revision:" | cut -d" " -f2`
+	LCD=`git svn info | grep "^Last Changed Date:" | cut -d" " -f4,5`
 else
 	REV=0
 	LCD=""
 fi
 
-echo "Found revision: '${REV}' '${LCD}'"
-
 if [ "x$REV" != "x$OLD_REV" -o ! -r $REV_FILE ]; then
 	echo "m4_define([SVN_REV], $REV)" > $REV_FILE
-	echo "m4_define([SVN_REVISION], 13.12svn$REV)" >> $REV_FILE
+	echo "m4_define([SVN_REVISION], 12.11release$REV)" >> $REV_FILE
 	echo "m4_define([SVN_DATE], $LCD)" >> $REV_FILE
 
 	# Also change the revision number in debian/changelog for package versioning
@@ -56,12 +47,12 @@ if [ "x$REV" != "x$OLD_REV" -o ! -r $REV_FILE ]; then
 		if [ -x "$DCH" ]; then
 			AKT_REV=`sed -e 's/.*svn\([0-9]*\).*/\1/' -e 'q' < debian/changelog`
 			if [ $REV -gt $AKT_REV ]; then
-				dch -v 13.12svn$REV "New svn revision"
+				dch -v 12.11svn$REV "New svn revision"
 			fi
 		fi
 	else
 		mv debian/changelog debian/changelog.tmp
-		sed "1 s/(13.12svn[^-)]*/(13.12svn$REV/" < debian/changelog.tmp > debian/changelog
+		sed "1 s/(12.11svn[^-)]*/(12.11svn$REV/" < debian/changelog.tmp > debian/changelog
 		rm debian/changelog.tmp
 	fi
 fi

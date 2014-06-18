@@ -129,12 +129,12 @@ void MSVCWorkspaceBase::updateProjects()
                         if (targetProj == 0)
                         {
                             // look for a project config which is a substring of the workspace config
-                            for (int l=0; l<proj._project->GetBuildTargetsCount(); ++l)
+                            for (int k=0; k<proj._project->GetBuildTargetsCount(); ++k)
                             {
-                                pconfig = proj._project->GetBuildTarget(l)->GetTitle();
+                                pconfig = proj._project->GetBuildTarget(k)->GetTitle();
                                 //Manager::Get()->GetLogManager()->DebugLog(_T("Test: %s <-> %s"), wconfig.c_str(), pconfig.c_str());
                                 if (wconfig.StartsWith(pconfig) || pconfig.StartsWith(wconfig))
-                                    targetProj = proj._project->GetBuildTarget(l);
+                                    targetProj = proj._project->GetBuildTarget(k);
                             }
                         }
                     }
@@ -152,12 +152,12 @@ void MSVCWorkspaceBase::updateProjects()
                         if (targetDep == 0)
                         {
                             // look for a project config which is a substring of the workspace config
-                            for (int l=0; l<dep._project->GetBuildTargetsCount(); ++l)
+                            for (int k=0; k<dep._project->GetBuildTargetsCount(); ++k)
                             {
-                                pconfig = dep._project->GetBuildTarget(l)->GetTitle();
+                                pconfig = dep._project->GetBuildTarget(k)->GetTitle();
                                 //Manager::Get()->GetLogManager()->DebugLog(_T("Test: %s <-> %s"), wconfig.c_str(), pconfig.c_str());
                                 if (wconfig.StartsWith(pconfig) || pconfig.StartsWith(wconfig))
-                                    targetDep = dep._project->GetBuildTarget(l);
+                                    targetDep = dep._project->GetBuildTarget(k);
                             }
                         }
                     }

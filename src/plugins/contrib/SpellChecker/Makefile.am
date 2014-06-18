@@ -1,6 +1,6 @@
 SUBDIRS = wxspellchecker
 
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+INCLUDES = $(WX_CXXFLAGS) \
 		$(CB_HUNSPELL_CFLAGS) \
 		-I$(srcdir)/wxspellchecker/include \
 		-I$(top_srcdir)/src/include \
@@ -12,10 +12,10 @@ pluginlib_LTLIBRARIES = libSpellChecker.la
 
 libSpellChecker_la_LDFLAGS = -module -version-info 0:1:0 -shared -no-undefined -avoid-version
 
-libSpellChecker_la_LIBADD = ../../../sdk/libcodeblocks.la \
-							wxspellchecker/libwxSpellChecker.la \
-							$(WX_LIBS) \
-							$(CB_HUNSPELL_LIBS)
+libSpellChecker_la_LIBADD = $(PLUGIN_WX_LIBS) \
+                            $(CB_HUNSPELL_LIBS) \
+                            wxspellchecker/libwxSpellChecker.la \
+							../../../sdk/libcodeblocks.la
 
 libSpellChecker_la_SOURCES = DictionariesNeededDialog.cpp \
                             MySpellingDialog.cpp \
@@ -50,7 +50,7 @@ EXTRA_DIST = 	$(srcdir)/*.cbp \
 		hunspell \
 		dictionaries \
 		manifest.xml \
-		$(srcdir)/update*
+		update
 
 pkgdata_DATA = SpellChecker.zip
 

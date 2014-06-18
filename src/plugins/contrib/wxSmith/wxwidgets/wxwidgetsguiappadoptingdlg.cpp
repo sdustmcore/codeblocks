@@ -20,12 +20,12 @@
 * $HeadURL$
 */
 
-#include <prep.h>
 #include "wxwidgetsguiappadoptingdlg.h"
 #include "wxwidgetsgui.h"
 
 #include <wx/filedlg.h>
 #include <projectmanager.h>
+#include <prep.h>
 
 //(*InternalHeaders(wxWidgetsGUIAppAdoptingDlg)
 #include <wx/intl.h>
@@ -244,7 +244,7 @@ void wxWidgetsGUIAppAdoptingDlg::OnCreateBtnClick(wxCommandEvent& event)
         // Adding new file to project
         wxArrayInt targets;
         Manager::Get()->GetProjectManager()->AddFileToProject(FileName,m_Project, targets);
-        Manager::Get()->GetProjectManager()->GetUI().RebuildTree();
+        Manager::Get()->GetProjectManager()->RebuildTree();
     }
 
     if ( m_GUI->CreateNewApp(FileName) )

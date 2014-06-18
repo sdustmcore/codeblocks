@@ -14,11 +14,8 @@
     #include <wx/filename.h>
     #include <wx/filesys.h>
     #include <wx/image.h>
-    #include <wx/imaglist.h>
     #include <wx/listctrl.h>
     #include <wx/menu.h>
-
-    #include "wx/wxscintilla.h"
 
     #include "cbexception.h"
     #include "configmanager.h" // ReadBool
@@ -152,9 +149,9 @@ wxArrayString GetArrayFromString(const wxString& text, const wxString& separator
     return out;
 }
 
-wxStringVec GetVectorFromString(const wxString& text, const wxString& separator, bool trimSpaces)
+std::vector<wxString> GetVectorFromString(const wxString& text, const wxString& separator, bool trimSpaces)
 {
-    wxStringVec out;
+    std::vector<wxString> out;
     wxString search = text;
     int seplen = separator.Length();
     while (true)
@@ -203,11 +200,6 @@ wxArrayString MakeUniqueArray(const wxArrayString& array, bool caseSens)
     return out;
 }
 
-wxString MakeUniqueString(const wxString& text, const wxString& separator, bool caseSens)
-{
-    return GetStringFromArray( MakeUniqueArray( GetArrayFromString(text, separator), caseSens ), separator, false );
-}
-
 void AppendArray(const wxArrayString& from, wxArrayString& to)
 {
     for (unsigned int i = 0; i < from.GetCount(); ++i)
@@ -248,15 +240,10 @@ wxString UnixFilename(const wxString& filename, wxPathFormat format)
 
 void QuoteStringIfNeeded(wxString& str)
 {
-    if ( NeedQuotes(str) )
-        str = wxString(_T("\"")) + str + _T("\"");
-}
-
-bool NeedQuotes(const wxString &str)
-{
     bool hasSpace = str.Find(_T(' ')) != -1;
     bool hasParen = !platform::windows && (str.Find(_T('(')) != -1 || str.Find(_T(')')) != -1);
-    return !str.IsEmpty() && str.GetChar(0) != _T('"') && (hasSpace || hasParen);
+    if (!str.IsEmpty() && str.GetChar(0) != _T('"') && (hasSpace || hasParen))
+        str = wxString(_T("\"")) + str + _T("\"");
 }
 
 wxString EscapeSpaces(const wxString& str)
@@ -451,7 +438,7 @@ void DoSelectRememberedNode(wxTreeCtrl* tree, const wxTreeItemId& parent, wxStri
         folder = tmpPath.Left(pos);
         tmpPath = tmpPath.Right(tmpPath.Length() - pos - 1);
         wxTreeItemId item = parent;
-        wxTreeItemIdValue cookie = nullptr;
+        wxTreeItemIdValue cookie = 0;
 
         while (item.IsOk())
         {
@@ -484,7 +471,7 @@ bool DoRememberExpandedNodes(wxTreeCtrl* tree, const wxTreeItemId& parent, wxArr
     wxString originalPath = path;
     bool found = false;
 
-    wxTreeItemIdValue cookie = nullptr;
+    wxTreeItemIdValue cookie = 0;
 
     wxTreeItemId child = tree->GetFirstChild(parent, cookie);
     while (child.IsOk())
@@ -530,7 +517,7 @@ void DoExpandRememberedNode(wxTreeCtrl* tree, const wxTreeItemId& parent, const 
 
         //Manager::Get()->GetLogManager()->Log(mltDevDebug, "%s, %s", folder.c_str(), tmpPath.c_str());
 
-        wxTreeItemIdValue cookie = nullptr;
+        wxTreeItemIdValue cookie = 0;
 
         wxTreeItemId child = tree->GetFirstChild(parent, cookie);
         while (child.IsOk())
@@ -784,26 +771,6 @@ wxFontEncoding DetectEncodingAndConvert(const char* strIn, wxString& strOut, wxF
     return encoding;
 }
 
-wxString GetEOLStr(int eolMode)
-{
-    if (eolMode == -1)
-    {
-        static const int defEOL = platform::windows ? wxSCI_EOL_CRLF : wxSCI_EOL_LF;
-        eolMode = Manager::Get()->GetConfigManager(wxT("editor"))->ReadInt(wxT("/eol/eolmode"), defEOL);
-        if (eolMode == 3) // auto-detect EOL
-            eolMode = defEOL;
-    }
-    switch (eolMode)
-    {
-      case wxSCI_EOL_CR:
-          return wxT("\r");
-      case wxSCI_EOL_LF:
-          return wxT("\n");
-      default: // wxSCI_EOL_CRLF
-          return wxT("\r\n");
-    }
-}
-
 wxString URLEncode(const wxString &str) // not sure this is 100% standards compliant, but I hope so
 {
     wxString ret;
@@ -857,8 +824,11 @@ wxString ExpandBackticks(wxString& str) // backticks are written in-place to str
 
         wxString bt;
         BackticksMap::iterator it = m_Backticks.find(cmd);
-        if (it != m_Backticks.end()) // in the cache :)
+        if (it != m_Backticks.end())
+        {
+            // in cache :)
             bt = it->second;
+        }
         else
         {
             Manager::Get()->GetLogManager()->DebugLog(F(_T("Caching result of `%s`"), cmd.wx_str()));
@@ -866,8 +836,8 @@ wxString ExpandBackticks(wxString& str) // backticks are written in-place to str
             if (platform::WindowsVersion() >= platform::winver_WindowsNT2000)
                 wxExecute(_T("cmd /c ") + cmd, output, wxEXEC_NODISABLE);
             else
-                wxExecute(cmd,                 output, wxEXEC_NODISABLE);
-            bt = GetStringFromArray(output, _T(" "), false);
+                wxExecute(cmd, output, wxEXEC_NODISABLE);
+            bt = GetStringFromArray(output, _T(" "));
             // add it in the cache
             m_Backticks[cmd] = bt;
             Manager::Get()->GetLogManager()->DebugLog(_T("Cached"));
@@ -892,7 +862,7 @@ wxMenu* CopyMenu(wxMenu* mnu, bool with_accelerators)
     for (size_t i = 0; i < mnu->GetMenuItemCount();++i)
     {
         wxMenuItem* tmpItem = mnu->FindItemByPosition(i);
-        wxMenuItem* theItem = new wxMenuItem(nullptr,
+        wxMenuItem* theItem = new wxMenuItem(NULL,
                                              tmpItem->GetId(),
                                              with_accelerators?tmpItem->GetItemLabel():tmpItem->GetItemLabelText(),
                                              tmpItem->GetHelp(),
@@ -1035,34 +1005,29 @@ wxBitmap cbLoadBitmap(const wxString& filename, wxBitmapType bitmapType)
     return wxBitmap(im);
 }
 
-// this doesn't work under wxGTK, and is only needed on wxMSW, we work around it on wxGTK
-#ifdef __WXMSW__
 void SetSettingsIconsStyle(wxListCtrl* lc, SettingsIconsStyle style)
 {
+// this doesn't work under wxGTK...
+#ifdef __WXMSW__
     long flags = lc->GetWindowStyleFlag();
     switch (style)
     {
-#if wxCHECK_VERSION(2, 9, 0)
-        case sisNoIcons: flags = (flags & ~wxLC_MASK_TYPE) | wxLC_LIST; break;
-#else
-        case sisNoIcons: flags = (flags & ~wxLC_MASK_TYPE) | wxLC_SMALL_ICON; break;
-#endif
-        default: flags = (flags & ~wxLC_MASK_TYPE) | wxLC_ICON; break;
+        case sisNoIcons: flags = (flags & ~wxLC_ICON) | wxLC_SMALL_ICON; break;
+        default: flags = (flags & ~wxLC_SMALL_ICON) | wxLC_ICON; break;
     }
     lc->SetWindowStyleFlag(flags);
-}
-#else
-void SetSettingsIconsStyle(cb_unused wxListCtrl* lc, cb_unused SettingsIconsStyle style) {}
 #endif
-
-SettingsIconsStyle GetSettingsIconsStyle(cb_unused wxListCtrl* lc)
-{
-    return GetSettingsIconsStyle();
 }
 
-SettingsIconsStyle GetSettingsIconsStyle()
+SettingsIconsStyle GetSettingsIconsStyle(wxListCtrl* lc)
 {
-    return SettingsIconsStyle(Manager::Get()->GetConfigManager(_T("app"))->ReadInt(_T("/environment/settings_size"), 0));
+// this doesn't work under wxGTK...
+#ifdef __WXMSW__
+    long flags = lc->GetWindowStyleFlag();
+    if (flags & wxLC_SMALL_ICON)
+        return sisNoIcons;
+#endif
+    return sisLargeIcons;
 }
 
 #ifdef __WXMSW__
@@ -1312,7 +1277,7 @@ namespace platform
 
             return winver_UnknownWindows;
         }
-    }
+    };
 
     windows_version_t WindowsVersion()
     {
@@ -1401,78 +1366,4 @@ int cbMessageBox(const wxString& message, const wxString& caption, int style, wx
     PlaceWindow(&dlg);
     // wxMessage*Dialog* returns any of wxID_OK, wxID_CANCEL, wxID_YES, wxID_NO
     return dlg.ShowModal();
-}
-
-wxImageList* cbProjectTreeImages::MakeImageList()
-{
-    static const wxString imgs[] =
-    {
-        // NOTE: Keep in sync with FileVisualState in globals.h!
-
-        // The following are related to (editable, source-) file states
-        _T("file.png"),                  // fvsNormal
-        _T("file-missing.png"),          // fvsMissing,
-        _T("file-modified.png"),         // fvsModified,
-        _T("file-readonly.png"),         // fvsReadOnly,
-
-        // The following are related to version control systems (vc)
-        _T("rc-file-added.png"),         // fvsVcAdded,
-        _T("rc-file-conflict.png"),      // fvsVcConflict,
-        _T("rc-file-missing.png"),       // fvsVcMissing,
-        _T("rc-file-modified.png"),      // fvsVcModified,
-        _T("rc-file-outofdate.png"),     // fvsVcOutOfDate,
-        _T("rc-file-uptodate.png"),      // fvsVcUpToDate,
-        _T("rc-file-requireslock.png"),  // fvsVcRequiresLock,
-        _T("rc-file-external.png"),      // fvsVcExternal,
-        _T("rc-file-gotlock.png"),       // fvsVcGotLock,
-        _T("rc-file-lockstolen.png"),    // fvsVcLockStolen,
-        _T("rc-file-mismatch.png"),      // fvsVcMismatch,
-        _T("rc-file-noncontrolled.png"), // fvsVcNonControlled,
-
-        // The following are related to C::B workspace/project/folder/virtual
-        _T("workspace.png"),             // fvsWorkspace,         WorkspaceIconIndex()
-        _T("workspace-readonly.png"),    // fvsWorkspaceReadOnly, WorkspaceIconIndex(true)
-        _T("project.png"),               // fvsProject,           ProjectIconIndex()
-        _T("project-readonly.png"),      // fvsProjectReadOnly,   ProjectIconIndex(true)
-        _T("folder_open.png"),           // fvsFolder,            FolderIconIndex()
-        _T("vfolder_open.png"),          // fvsVirtualFolder,     VirtualFolderIconIndex()
-
-        wxEmptyString
-    };
-    wxBitmap bmp;
-    wxImageList *images = new wxImageList(16, 16);
-    wxString prefix = ConfigManager::ReadDataPath() + _T("/images/");
-
-    for (int i = 0; !imgs[i].IsEmpty(); ++i)
-    {
-        bmp = cbLoadBitmap(prefix + imgs[i], wxBITMAP_TYPE_PNG); // workspace
-        images->Add(bmp);
-    }
-    return images;
-}
-
-int cbProjectTreeImages::WorkspaceIconIndex(bool read_only)
-{
-    if (read_only)
-        return (int)fvsWorkspaceReadOnly;
-
-    return (int)fvsWorkspace;
-}
-
-int cbProjectTreeImages::ProjectIconIndex(bool read_only)
-{
-    if (read_only)
-        return (int)fvsProjectReadOnly;
-
-    return (int)fvsProject;
-}
-
-int cbProjectTreeImages::FolderIconIndex()
-{
-    return (int)fvsFolder;
-}
-
-int cbProjectTreeImages::VirtualFolderIconIndex()
-{
-    return (int)fvsVirtualFolder;
 }

@@ -22,39 +22,34 @@
 #include <wx/wupdlock.h>
 
 #include "loggers.h"
-#include "cbcolourmanager.h"
 
-// Helper function which blends a colour with the default window text colour,
-// so that text will be readable in bright and dark colour schemes
 wxColour BlendTextColour(wxColour col)
 {
     wxColour fgCol = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
     wxColour bgCol = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
-
-    int dist = (fgCol.Red()*fgCol.Red() + fgCol.Green()*fgCol.Green() + fgCol.Blue()*fgCol.Blue())
-             - (bgCol.Red()*bgCol.Red() + bgCol.Green()*bgCol.Green() + bgCol.Blue()*bgCol.Blue());
+    int dist=
+        (fgCol.Red()*fgCol.Red() + fgCol.Green()*fgCol.Green() + fgCol.Blue()*fgCol.Blue()) -
+        (bgCol.Red()*bgCol.Red() + bgCol.Green()*bgCol.Green() + bgCol.Blue()*bgCol.Blue());
     if (dist > 0)
     {
         // If foreground color is brighter than background color, this is a dark theme, so
         // brighten the text colour.
         // I would use wxColour::changeLightness(), but it's only available in v2.9.0 or later.
-        int d = int(sqrt(dist)/4);
-        int r = col.Red()   + d;
-        int g = col.Green() + d;
-        int b = col.Blue()  + d;
-        return wxColour( r>255 ? 255 : r, g>255 ? 255 : g, b>255 ? 255 : b );
+        int d= int(sqrt(dist)/4);
+        int r= col.Red()+d, g= col.Green()+d, b= col.Blue()+d;
+        return wxColour( r>255? 255: r, g>255? 255: g, b>255? 255: b );
     }
     return col;
 }
 
 TextCtrlLogger::TextCtrlLogger(bool fixedPitchFont) :
-    control(nullptr), fixed(fixedPitchFont)
+    control(0), fixed(fixedPitchFont)
 {
 }
 
 TextCtrlLogger::~TextCtrlLogger()
 {
-    control = nullptr; // invalidate, do NOT destroy
+    control = 0; // invalidate, do NOT destroy
 }
 
 void TextCtrlLogger::CopyContentsToClipboard(bool selectionOnly)
@@ -109,19 +104,16 @@ void TextCtrlLogger::UpdateSettings()
     bigger_font.SetUnderlined(true);
     style[caption].SetFont(bigger_font);
 
-    ColourManager *colours = Manager::Get()->GetColourManager();
-
-    style[success].SetTextColour(colours->GetColour(wxT("logs_success_text")));
+    style[success].SetTextColour(BlendTextColour(*wxBLUE));
 
     style[warning].SetFont(italic_font);
-    style[warning].SetTextColour(colours->GetColour(wxT("logs_warning_text")));
 
     style[error].SetFont(bold_font);
-    style[error].SetTextColour(colours->GetColour(wxT("logs_error_text")));
+    style[error].SetTextColour( cfgman->ReadColour(_T("/log_error_text_colour"),wxColour(0xf0, 0x00, 0x00)) ); // red
 
     style[critical].SetFont(bold_font);
-    style[critical].SetTextColour(colours->GetColour(wxT("logs_critical_text")));     // we're setting both fore and background colors here
-    style[critical].SetBackgroundColour(colours->GetColour(wxT("logs_critical_back"))); // so we don't have to mix in default colors
+    style[critical].SetTextColour(BlendTextColour(*wxWHITE));     // we're setting both fore and background colors here
+    style[critical].SetBackgroundColour(BlendTextColour(*wxRED)); // so we don't have to mix in default colors
     style[spacer].SetFont(small_font);
 
     // Tell control about the font change
@@ -167,34 +159,17 @@ wxWindow* TextCtrlLogger::CreateControl(wxWindow* parent)
     return control;
 }
 
-
-bool TextCtrlLogger::HasFeature(Feature::Enum feature) const
+bool TextCtrlLogger::IsWrappableTextCtrl()
 {
-    switch (feature)
-    {
-        case Feature::IsWrappable:
-            return (control && control->IsMultiLine());
-        case Feature::CanClear:
-        case Feature::CanCopy:
-            return true;
-        default:
-            return false;
-    }
-}
-
-bool TextCtrlLogger::GetWrapMode() const
-{
-    if (!control)
-        return false;
-
-    long ctrl_style = control->GetWindowStyle();
-    return ((ctrl_style & wxTE_DONTWRAP)!=wxTE_DONTWRAP);
+    return (control && control->IsMultiLine());
 }
 
 void TextCtrlLogger::ToggleWrapMode()
 {
-    if (!control || !HasFeature(Feature::IsWrappable))
+    if (!control || !IsWrappableTextCtrl())
         return;
+
+    wxWindowUpdateLocker noUpdates(control);
 
     long ctrl_style = control->GetWindowStyle();
 
@@ -240,7 +215,7 @@ void TimestampTextCtrlLogger::Append(const wxString& msg, Logger::level lv)
 }
 
 ListCtrlLogger::ListCtrlLogger(const wxArrayString& titles_in, const wxArrayInt& widths_in, bool fixedPitchFont) :
-    control(nullptr),
+    control(0),
     fixed(fixedPitchFont),
     titles(titles_in),
     widths(widths_in)
@@ -250,7 +225,7 @@ ListCtrlLogger::ListCtrlLogger(const wxArrayString& titles_in, const wxArrayInt&
 
 ListCtrlLogger::~ListCtrlLogger()
 {
-    control = nullptr; // invalidate, do NOT destroy
+    control = 0; // invalidate, do NOT destroy
 }
 
 void ListCtrlLogger::CopyContentsToClipboard(bool selectionOnly)
@@ -328,19 +303,17 @@ void ListCtrlLogger::UpdateSettings()
         style[i].colour = default_text_colour;
     }
 
-    ColourManager *colours = Manager::Get()->GetColourManager();
-
     style[caption].font = bigger_font;
-    style[success].colour = colours->GetColour(wxT("logs_success_text"));
-    style[failure].colour = colours->GetColour(wxT("logs_failure_text"));
+    style[success].colour = BlendTextColour(*wxBLUE);
+    style[failure].colour = BlendTextColour(wxColour(0x00, 0x00, 0xa0));
 
     style[warning].font = italic_font;
-    style[warning].colour = colours->GetColour(wxT("logs_warning_text"));
+    style[warning].colour = cfgman->ReadColour(_T("/log_warning_text_colour"), wxColour(0x00, 0x00, 0xa0)); // navy blue
 
-    style[error].colour = colours->GetColour(wxT("logs_error_text"));
+    style[error].colour = cfgman->ReadColour(_T("/log_error_text_colour"), wxColour(0xf0, 0x00, 0x00)); // red
 
     style[critical].font = bold_font;
-    style[critical].colour = colours->GetColour(wxT("logs_critical_text_listctrl"));
+    style[critical].colour = BlendTextColour(wxColour(0x0a, 0x00, 0x00));   // maroon
 
     style[spacer].font = small_font;
     style[pagetitle] = style[caption];
@@ -369,7 +342,7 @@ void ListCtrlLogger::Append(const wxString& msg, Logger::level lv)
     control->Thaw();
 }
 
-void ListCtrlLogger::Append(const wxArrayString& colValues, Logger::level lv, int autoSize)
+void ListCtrlLogger::Append(const wxArrayString& colValues, Logger::level lv)
 {
     if (!control)
         return;
@@ -382,8 +355,6 @@ void ListCtrlLogger::Append(const wxArrayString& colValues, Logger::level lv, in
     int idx = control->GetItemCount() - 1;
     for (size_t i = 1; i < colValues.GetCount(); ++i)
         control->SetItem(idx, i, colValues[i]);
-    if (autoSize != -1)
-        control->SetColumnWidth(autoSize, wxLIST_AUTOSIZE);
     control->Thaw();
 }
 
@@ -410,18 +381,6 @@ wxWindow* ListCtrlLogger::CreateControl(wxWindow* parent)
     return control;
 }
 
-bool ListCtrlLogger::HasFeature(Feature::Enum feature) const
-{
-    switch (feature)
-    {
-    case Feature::CanClear:
-        return true;
-    case Feature::CanCopy:
-        return true;
-    default:
-        return false;
-    }
-}
 
 CSS::CSS() :
     caption  (_T("font-size: 12pt;")),

@@ -33,8 +33,7 @@ public:
   wxPdfImage(wxPdfDocument* document, int index, const wxString& name, const wxString& type);
 
   /// Constructor
-  wxPdfImage(wxPdfDocument* document, int index, const wxString& name, const wxImage& image, 
-             bool jpegFormat = false);
+  wxPdfImage(wxPdfDocument* document, int index, const wxString& name, const wxImage& image);
 
   /// Constructor
   wxPdfImage(wxPdfDocument* document, int index, const wxString& name, wxInputStream& stream, const wxString& mimeType);
@@ -122,7 +121,7 @@ public:
 
 protected:
   /// Extract info from a wxImage
-  bool ConvertWxImage(const wxImage& image, bool jpegFormat);
+  bool ConvertWxImage(const wxImage& image);
 
   /// Extract info from a JPEG file
   bool ParseJPG(wxInputStream* imageStream);

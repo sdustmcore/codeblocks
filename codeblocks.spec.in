@@ -3,7 +3,7 @@
 %define _fedora             %(if [ -f /etc/fedora-release ]; then echo 1; else echo 0; fi)
 %define _redhat             %(if [ -f /etc/redhat-release ]; then echo 1; else echo 0; fi)
 %define _mandrake           %(if [ -f /etc/mandrake-release ]; then echo 1; else echo 0; fi)
-%define _version            13.12.svn.%{_svnrev}
+%define _version            12.11
 %define _rel                1
 %define _release            %{_rel}
 %define jobs                %(if [ -e /usr/bin/getconf ]; then echo $(( `/usr/bin/getconf _NPROCESSORS_ONLN` + 1 )); else echo 1; fi)
@@ -46,7 +46,7 @@
 %endif
 
 %if 0%{?nassi_shneiderman}
-%define no_nassi_flag ""
+%define no_nassi_flag " "
 %else
 %define no_nassi_flag ,-NassiShneiderman
 %endif
@@ -61,8 +61,6 @@ URL:                        http://www.codeblocks.org/
 Packager:                   Jens Lody <jens@codeblocks.org>
 Source:                     %{name}-@VERSION@.tar.bz2
 BuildRoot:                  %{_tmppath}/%{name}-%{version}-buildroot
-Requires:                   %{name}-libs%{?_isa} = %{version}
-Requires:                   xterm
 
 %if 0%{?mandriva_version}
 Requires:                   wxgtk2.8 >= %{req_wxgtk}
@@ -119,19 +117,11 @@ It is based on a self-developed plugin framework allowing unlimited extensibilit
   * Extensible wizard based on scripts
   * Autosave (saves your work in the unfortunate case of a crash)
 
-%package libs
-Summary:                    Libraries needed to run Code::Blocks
-Group:                      Development/Tools/IDE
-
-%description libs
-Libraries needed to run Code::Blocks.
-
 %package contrib
 Summary:                    Code::Blocks contrib plugins
 Group:                      Development/Tools/IDE
 Requires:                   %{name}%{?_isa} = %{version}
-Requires:                   %{name}-contrib-libs%{?_isa} = %{version}
-BuildRequires:              gamin-devel, bzip2-devel, zlib-devel, hunspell-devel, fontconfig-devel
+BuildRequires:              gamin-devel, bzip2-devel, zlib-devel, hunspell-devel
 %if 0%{?nassi_shneiderman}
 BuildRequires:              boost-devel
 %endif
@@ -176,13 +166,6 @@ This package extends Code::Blocks functionality a great deal with the included p
  * wxSmith contrib items
  * wxSmith AUI
 
-%package contrib-libs
-Summary:                    Libraries needed to run Code::Blocks contrib-plugins
-Group:                      Development/Tools/IDE
-
-%description contrib-libs
-Libraries needed to run Code::Blocks contrib-plugins.
-
 %package devel
 Summary:                    Code::Blocks development libraries and headers (SDK)
 Group:                      Development/Tools/IDE
@@ -197,8 +180,8 @@ Group:                      Development/Tools/IDE
 Requires:                   %{name}-contrib%{?_isa} = %{version}
 
 %description contrib-devel
-This package contains the development libraries and headers needed to build wxSmith-plugins and to use the wxContribItems in own programs.
-
+This package contains the development libraries and headers needed to build wxSmith-pluhǵins and to use the wxContribItems in own programs.
+ 
 %{?debugrpm:%debug_package}
 
 %prep
@@ -241,7 +224,7 @@ This package contains the development libraries and headers needed to build wxSm
 
 %install
   %__make DESTDIR=$RPM_BUILD_ROOT install
-
+  
   rm -f $RPM_BUILD_ROOT%{_libdir}/*.la
   rm -f $RPM_BUILD_ROOT%{pkglibdir}/wxContribItems/*.la
   rm -f $RPM_BUILD_ROOT%{plugindir}/*.la
@@ -275,7 +258,6 @@ This package contains the development libraries and headers needed to build wxSm
 %{plugindir}/libcompiler.so
 %{plugindir}/libdebugger.so
 %{plugindir}/libdefaultmimehandler.so
-%{plugindir}/liboccurrenceshighlighting.so
 %{plugindir}/libopenfileslist.so
 %{plugindir}/libprojectsimporter.so
 %{plugindir}/libscriptedwizard.so
@@ -287,7 +269,6 @@ This package contains the development libraries and headers needed to build wxSm
 %{_mandir}/man1/codeblocks.*
 %{_mandir}/man1/cb_console_runner.*
 %{_mandir}/man1/cb_share_config.*
-%{pkgdatadir}/compilers/*
 %{pkgdatadir}/icons/*
 %{pkgdatadir}/images/*.png
 %{pkgdatadir}/images/16x16/*
@@ -305,7 +286,6 @@ This package contains the development libraries and headers needed to build wxSm
 %{pkgdatadir}/debugger.zip
 %{pkgdatadir}/defaultmimehandler.zip
 %{pkgdatadir}/manager_resources.zip
-%{pkgdatadir}/occurrenceshighlighting.zip
 %{pkgdatadir}/openfileslist.zip
 %{pkgdatadir}/projectsimporter.zip
 %{pkgdatadir}/resources.zip
@@ -313,13 +293,11 @@ This package contains the development libraries and headers needed to build wxSm
 %{pkgdatadir}/start_here.zip
 %{pkgdatadir}/todo.zip
 %{pkgdatadir}/tips.txt
-
-%files libs
-%defattr(-,root,root)
 %{_libdir}/libcodeblocks.so.*
 
 %files contrib
 %defattr(-,root,root)
+%{_bindir}/codesnippets
 %{plugindir}/libAutoVersioning.so
 %{plugindir}/libBrowseTracker.so
 %{plugindir}/libbyogames.so
@@ -348,7 +326,6 @@ This package contains the development libraries and headers needed to build wxSm
 %{plugindir}/libNassiShneiderman.so
 %endif
 %{plugindir}/libProfiler.so
-%{plugindir}/libProjectOptionsManipulator.so
 %{plugindir}/libRegExTestbed.so
 %{plugindir}/libSpellChecker.so
 %{plugindir}/libSymTab.so
@@ -390,7 +367,6 @@ This package contains the development libraries and headers needed to build wxSm
 %{pkgdatadir}/NassiShneiderman.zip
 %endif
 %{pkgdatadir}/Profiler.zip
-%{pkgdatadir}/ProjectOptionsManipulator.zip
 %{pkgdatadir}/RegExTestbed.zip
 %{pkgdatadir}/ReopenEditor.zip
 %{pkgdatadir}/SpellChecker.zip
@@ -408,9 +384,6 @@ This package contains the development libraries and headers needed to build wxSm
 %{pkgdatadir}/lib_finder/*
 %{pkgdatadir}/SpellChecker/*
 %{_mandir}/man1/*snippets*
-
-%files contrib-libs
-%defattr(-,root,root)
 %{_libdir}/libwxsmithlib.so.*
 %{pkglibdir}/wxContribItems/libwxchartctrl.so.*
 %{pkglibdir}/wxContribItems/libwxcustombutton.so.*
@@ -453,12 +426,8 @@ This package contains the development libraries and headers needed to build wxSm
 %{_includedir}/wxsmith/*
 
 %changelog
-* Tue Dec 24 2013 Jens Lody <jens@codeblocks.org>
-- Changes for release 13.12.
-* Sun Dec 08 2013 Jens Lody <jens@codeblocks.org>
-- Second release candidate of release 13.12.
-* Sun Nov 17 2013 Jens Lody <jens@codeblocks.org>
-- First release candidate of release 13.12.
+* Sat Nov 24 2012 jens <jens@codeblocks.org>
+- prepare for release
 * Fri Jun 08 2012 jens <jens@codeblocks.org>
 - partly reverted last change, to keep the package layout more clear
 - do not try to build NassiShneiderman-plugin on CentOS/RedHat < 6, because the
@@ -472,7 +441,7 @@ This package contains the development libraries and headers needed to build wxSm
 - Fixed: missing build-dependencies
 - Fixed: RPM build error, because of new contrib-packages
 - Layout changes in codeblocks.spec.in, to enhance readability
-* Sat Feb 20 2010 Biplab <bkmodak@gmail.com>
+* Sun Feb 20 2010 Biplab <bkmodak@gmail.com>
 - Fixed typos: In wxSmithAui generated files.
 - Fixed: RPM build error due to inclusion of contrib plugins twice.
 - Fixed: Copystrings plugin was not included properly in rpm.
@@ -503,7 +472,7 @@ This package contains the development libraries and headers needed to build wxSm
 - added wxsmithcontribitems files to filelist
 * Fri Jan  5 2007 TheTuxKeeper <thetuxkeeper@googlemail.com>
 - changed prefix on suse to default (from /opt/gnome to /usr)
-* Sat Dec  2 2006 TheTuxKeeper <thetuxkeeper@googlemail.com>
+* Sun Dec  2 2006 TheTuxKeeper <thetuxkeeper@googlemail.com>
 - Added RegExTestbed plugin to filelist
 * Sun Nov  5 2006 TheTuxKeeper <thetuxkeeper@googlemail.com>
 - applied patch #1605
@@ -529,7 +498,7 @@ This package contains the development libraries and headers needed to build wxSm
 - added byogames plugin to filelist
 * Sun Mar  5 2006 TheTuxKeeper <thetuxkeeper@googlemail.com>
 - rewrite of release tag setting
-* Thu Jan  5 2006 TheTuxKeeper <thetuxkeeper@googlemail.com>
+* Mon Jan  5 2006 TheTuxKeeper <thetuxkeeper@googlemail.com>
 - had to add Mandriva specific requires
 * Mon Jan  2 2006 TheTuxKeeper <thetuxkeeper@googlemail.com>
 - simplified the changes made before

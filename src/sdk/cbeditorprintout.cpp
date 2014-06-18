@@ -41,7 +41,7 @@ cbEditorPrintout::~cbEditorPrintout()
 {
     // dtor
     delete m_pPageSelStart;
-    m_pPageSelStart = nullptr;
+    m_pPageSelStart = 0;
 }
 
 bool cbEditorPrintout::OnPrintPage(int page)

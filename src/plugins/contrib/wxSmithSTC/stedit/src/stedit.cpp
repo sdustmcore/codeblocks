@@ -58,7 +58,6 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #include "wx/stedit/stedit.h"
 #include "wx/stedit/steexprt.h"
 #include "wx/stedit/steart.h"
-#include "wx/stedit/stetree.h"
 
 #include "wxtrunk.h"
 #include "wxext.h"
@@ -97,9 +96,6 @@ wxSTEditorRefData::wxSTEditorRefData()
 
 wxSTEditorRefData::~wxSTEditorRefData()
 {
-    if (m_treeItemData != NULL)
-        m_treeItemData->m_steRefData = NULL;
-
     m_editors.Clear();
 }
 
@@ -2032,9 +2028,7 @@ void wxSTEditor::HandleFindDialogEvent(wxFindDialogEvent& event)
     // For this event we only go to the previously found location.
     if (eventType == wxEVT_STEFIND_GOTO)
     {
-        wxSTEditorFoundStringData foundStringData;
-        if (foundStringData.FromString(findString))
-            wxSTEditorFindReplaceData::GotoFindAllString(foundStringData, this);
+        wxSTEditorFindReplaceData::GotoFindAllString(findString, this);
         return;
     }
 
@@ -2059,7 +2053,7 @@ void wxSTEditor::HandleFindDialogEvent(wxFindDialogEvent& event)
     {
         if (STE_HASBIT(flags, STE_FR_FINDALL|STE_FR_BOOKMARKALL))
         {
-            wxArraySTEditorFoundStringData& foundStringArray = GetFindReplaceData()->GetFoundStringArray();
+            wxArrayString& findAllStrings = GetFindReplaceData()->GetFindAllStrings();
             wxArrayInt startPositions;
             wxArrayInt endPositions;
             size_t n, count = FindAllStrings(findString, flags,
@@ -2075,12 +2069,12 @@ void wxSTEditor::HandleFindDialogEvent(wxFindDialogEvent& event)
 
                 if (STE_HASBIT(flags, STE_FR_FINDALL))
                 {
-                    foundStringArray.Add(wxSTEditorFoundStringData(GetFileName(), 
-                                                                   line, 
-                                                                   PositionFromLine(line), 
-                                                                   startPositions[n], 
-                                                                   endPositions[n]-startPositions[n], 
-                                                                   GetLine(line)));
+                    wxString str(wxSTEditorFindReplaceData::CreateFindAllString(
+                                    GetFileName().GetFullPath(),
+                                    line, PositionFromLine(line),
+                                    startPositions[n], endPositions[n]-startPositions[n],
+                                    GetLine(line)));
+                    findAllStrings.Add(str);
                 }
             }
         }
@@ -3296,7 +3290,7 @@ bool wxSTEditor::HandleMenuEvent(wxCommandEvent& event)
             {
                 //wxSearchCtrl* searchCtrl = wxDynamicCast(event.GetEventObject(), wxSearchCtrl);
                 //if (searchCtrl != NULL)
-                //    searchCtrl->Clear();
+                //	searchCtrl->Clear();
 
                 return true;
             }

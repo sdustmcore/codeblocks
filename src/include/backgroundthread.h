@@ -160,7 +160,7 @@ public:
             if (ownsJobs)
                 delete job;
         }
-        return nullptr;
+        return 0;
     };
 };
 

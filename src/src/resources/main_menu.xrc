@@ -174,16 +174,19 @@
       <object class="wxMenuItem" name="idEditCut">
         <label>Cu&amp;t</label>
         <bitmap>images\16x16\editcut.png</bitmap>
+        <accel>Ctrl-X</accel>
         <help>Copy selected text to clipboard and erase it</help>
       </object>
       <object class="wxMenuItem" name="idEditCopy">
         <label>&amp;Copy</label>
         <bitmap>images\16x16\editcopy.png</bitmap>
+        <accel>Ctrl-C</accel>
         <help>Copy selected text to clipboard</help>
       </object>
       <object class="wxMenuItem" name="idEditPaste">
         <label>&amp;Paste</label>
         <bitmap>images\16x16\editpaste.png</bitmap>
+        <accel>Ctrl-V</accel>
         <help>Paste text from clipboard</help>
       </object>
       <object class="separator"/>
@@ -254,17 +257,17 @@
       <object class="wxMenu" name="idEditEOLMode">
         <label>&amp;End-of-line mode</label>
         <object class="wxMenuItem" name="idEditEOLCRLF">
-          <label>Windows (CR &amp;&amp; LF)</label>
+          <label>CR &amp;&amp; LF</label>
           <help>End-of-line mode uses carriage return and line feed</help>
           <radio>1</radio>
         </object>
         <object class="wxMenuItem" name="idEditEOLCR">
-          <label>Mac (CR)</label>
+          <label>CR</label>
           <help>End-of-line mode uses carriage return only</help>
           <radio>1</radio>
         </object>
         <object class="wxMenuItem" name="idEditEOLLF">
-          <label>Unix (LF)</label>
+          <label>LF</label>
           <help>End-of-line mode uses line feed only</help>
           <radio>1</radio>
         </object>
@@ -454,17 +457,8 @@
       <object class="separator"/>
       <object class="wxMenuItem" name="idEditSelectAll">
         <label>Select &amp;all</label>
+        <accel>Ctrl-A</accel>
         <help>Selects the entire text range</help>
-      </object>
-      <object class="wxMenuItem" name="idEditSelectNext">
-        <label>&amp;Select next occurrence</label>
-        <accel>Ctrl-E</accel>
-        <help>Selects the next occurrence of the currently selected text. Allows editing all the occurrences.</help>
-      </object>
-      <object class="wxMenuItem" name="idEditSelectNextSkip">
-        <label>&amp;Select skip to next occurrence</label>
-        <accel>Shift-Ctrl-E</accel>
-        <help>Deselects the current text and then selects the next occurrence of the same text. Allows editing all the occurrences.</help>
       </object>
       <object class="separator"/>
       <object class="wxMenuItem" name="idEditCommentSelected">
@@ -495,11 +489,6 @@
         <accel>Ctrl-Shift-B</accel>
         <help>Moves the caret to the matching brace (if any)</help>
       </object>
-      <object class="separator"/>
-      <object class="wxMenuItem" name="idEditShowCallTip">
-        <label>Show call tip</label>
-        <accel>Ctrl-Shift-Space</accel>
-      </object>
     </object>
     <object class="wxMenu" name="menu_view">
       <label>&amp;View</label>
@@ -517,15 +506,6 @@
       </object>
       <object class="wxMenu" name="idViewToolbars">
         <label>Toolbars</label>
-        <object class="wxMenuItem" name="idViewToolFit">
-          <label>&amp;Fit toolbars</label>
-          <help>Try to reorder toolbars in such a way that all of them are visible</help>
-        </object>
-        <object class="wxMenuItem" name="idViewToolOptimize">
-          <label>&amp;Optimize toolbars</label>
-          <help>Try to reorder the toolbars in such a way that the use minimum space</help>
-        </object>
-        <object class="separator"/>
         <object class="wxMenuItem" name="idViewToolMain">
           <label>&amp;Main</label>
           <help>Show/hide main toolbar</help>
@@ -567,6 +547,7 @@
       </object>
       <object class="wxMenuItem" name="idViewHideEditorTabs">
         <label>Hide editor tabs</label>
+        <accel>Ctrl-H</accel>
         <help>Show/hide the editor tabs</help>
         <checkable>1</checkable>
         <enabled>1</enabled>
@@ -580,7 +561,6 @@
       <object class="separator"/>
       <object class="wxMenuItem" name="idViewFullScreen">
         <label>F&amp;ull screen</label>
-        <accel>SHIFT-F11</accel>
         <help>Switch to full screen view</help>
         <checkable>1</checkable>
         <enabled>1</enabled>

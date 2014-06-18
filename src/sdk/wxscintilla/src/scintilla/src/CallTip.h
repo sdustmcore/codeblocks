@@ -12,16 +12,12 @@
 namespace Scintilla {
 #endif
 
-/* C::B begin */
-#include <string>
-/* C::B end */
-
 /**
  */
 class CallTip {
 	int startHighlight;    // character offset to start and...
 	int endHighlight;      // ...end of highlighted text
-	std::string val;
+	char *val;
 	Font font;
 	PRectangle rectUp;      // rectangle of last up angle in the tip
 	PRectangle rectDown;    // rectangle of last down arrow in the tip
@@ -39,7 +35,7 @@ class CallTip {
 		bool highlight, bool draw);
 	int PaintContents(Surface *surfaceWindow, bool draw);
 	bool IsTabCharacter(char c) const;
-	int NextTabPos(int x) const;
+	int NextTabPos(int x);
 
 public:
 	Window wCallTip;

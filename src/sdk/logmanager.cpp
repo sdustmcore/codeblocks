@@ -17,18 +17,15 @@
 #include <wx/log.h>
 #endif
 
-#include "cbcolourmanager.h"
 #include "logmanager.h"
 #include "loggers.h"
 
-template<> LogManager* Mgr<LogManager>::instance = nullptr;
+template<> LogManager* Mgr<LogManager>::instance = 0;
 template<> bool  Mgr<LogManager>::isShutdown = false;
 
-static NullLogger g_null_log;
-
 LogSlot::LogSlot() :
-    log(nullptr),
-    icon(nullptr)
+    log(0),
+    icon(0)
 {
 }
 
@@ -73,16 +70,6 @@ LogManager::LogManager()
     slot[app_log].title = _T("Code::Blocks");
     slot[debug_log].title = _T("Code::Blocks Debug");
 
-    ColourManager *manager = Manager::Get()->GetColourManager();
-    manager->RegisterColour(_("Logs"), _("Success text"), wxT("logs_success_text"), *wxBLUE);
-    manager->RegisterColour(_("Logs"), _("Warning text"), wxT("logs_warning_text"), *wxBLUE);
-    manager->RegisterColour(_("Logs"), _("Error text"), wxT("logs_error_text"), wxColour(0xf0, 0x00, 0x00));
-    manager->RegisterColour(_("Logs"), _("Critical text"), wxT("logs_critical_text"), *wxWHITE);
-    manager->RegisterColour(_("Logs"), _("Critical background"), wxT("logs_critical_back"), *wxRED);
-    manager->RegisterColour(_("Logs"), _("Critical text (ListCtrl)"),
-                            wxT("logs_critical_text_listctrl"), wxColour(0x0a, 0x00, 0x00));
-    manager->RegisterColour(_("Logs"), _("Failure text"), wxT("logs_failure_text"), wxColour(0x00, 0x00, 0xa0));
-
     Register(_T("null"),   new Instantiator<NullLogger>);
     Register(_T("stdout"), new Instantiator<StdoutLogger>);
     Register(_T("text"),   new Instantiator<TextCtrlLogger>);
@@ -95,18 +82,6 @@ LogManager::~LogManager()
         delete i->second;
 }
 
-void LogManager::ClearLogInternal(int i)
-{
-    if (i >= 0 && i <= max_logs && slot[i].log != &g_null_log)
-        slot[i].log->Clear();
-}
-
-void LogManager::LogInternal(const wxString& msg, int i, Logger::level lv)
-{
-    if (i >= 0 && i <= max_logs && slot[i].log != &g_null_log)
-        slot[i].log->Append(msg, lv);
-}
-
 size_t LogManager::SetLog(Logger* l, int i)
 {
     unsigned int index = i;
@@ -115,7 +90,7 @@ size_t LogManager::SetLog(Logger* l, int i)
     {
         for (index = debug_log + 1; index < max_logs; ++index)
         {
-            if (slot[index].GetLogger() == &g_null_log)
+            if(slot[index].GetLogger() == &g_null_log)
             {
                 slot[index].SetLogger(l);
                 return index;
@@ -175,18 +150,18 @@ bool LogManager::FilenameRequired(const wxString& name)
 
     if (i != instMap.end())
         return i->second->RequiresFilename();
-
-    return false;
+    else
+        return false;
 }
 
 Logger* LogManager::New(const wxString& name)
 {
     inst_map_t::iterator i;
 
-    if ((i = instMap.find(name)) != instMap.end())
+    if((i = instMap.find(name)) != instMap.end())
         return i->second->New();
-
-    return new NullLogger;
+    else
+        return new NullLogger;
 }
 
 void LogManager::Register(const wxString& name, InstantiatorBase* ins)
@@ -203,4 +178,4 @@ void LogManager::Panic(const wxString& msg, const wxString& component)
         title.Append(_T("Code::Blocks"));
 
     wxSafeShowMessage(title, msg);
-}
+};

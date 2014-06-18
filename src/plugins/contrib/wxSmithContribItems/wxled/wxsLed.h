@@ -11,14 +11,12 @@ class wxsLed : public wxsWidget
         virtual ~wxsLed();
     protected:
 
-        void      OnBuildCreatingCode();
-        wxObject* OnBuildPreview(wxWindow* Parent,long Flags);
-        void      OnEnumWidgetProperties(long Flags);
+        void        OnBuildCreatingCode();
+        wxObject*   OnBuildPreview(wxWindow* Parent,long Flags);
+        void        OnEnumWidgetProperties(long Flags);
 
         wxsColourData	m_Disable;
-        wxsColourData	m_EnableOn;
-        wxsColourData	m_EnableOff;
-        bool m_State;
+        wxsColourData	m_Enable;
 
     private:
 };

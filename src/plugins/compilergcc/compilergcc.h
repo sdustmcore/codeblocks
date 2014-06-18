@@ -74,9 +74,7 @@ enum LogTarget
 enum BuildAction
 {
     baClean = 0,
-    baBuild,
-    baRun,
-    baBuildFile
+    baBuild
 };
 
 class wxComboBox;
@@ -136,7 +134,6 @@ class CompilerGCC : public cbCompilerPlugin
 
         void OnCompile(wxCommandEvent& event);
         void OnCompileFile(wxCommandEvent& event);
-        void OnCleanFile(wxCommandEvent& event);
         void OnRebuild(wxCommandEvent& event);
         void OnCompileAll(wxCommandEvent& event);
         void OnRebuildAll(wxCommandEvent& event);
@@ -180,8 +177,7 @@ class CompilerGCC : public cbCompilerPlugin
 
         void SaveOptions();
         void LoadOptions();
-        void DoRegisterCompilers();
-        void DoPrepareQueue(bool clearLog);
+        void DoPrepareQueue(bool clearLog=true);
         void NotifyCleanProject(const wxString& target);
         void NotifyCleanWorkspace();
         int DoRunQueue();
@@ -210,6 +206,7 @@ class CompilerGCC : public cbCompilerPlugin
         bool UseMake(cbProject* project = 0);
         bool CompilerValid(ProjectBuildTarget* target = 0);
         ProjectBuildTarget* GetBuildTargetForFile(ProjectFile* pf);
+        ProjectBuildTarget* GetBuildTargetForFile(const wxString& file);
         wxString GetMakeCommandFor(MakeCommand cmd, cbProject* project, ProjectBuildTarget* target);
         int DoBuild(bool clean, bool build);
         int DoBuild(const wxString& target, bool clean, bool build, bool clearLog=true);
@@ -234,8 +231,8 @@ class CompilerGCC : public cbCompilerPlugin
         // active target, currently building project or active project
         wxString GetCurrentCompilerID(ProjectBuildTarget* target);
 
-        wxString GetErrWarnStr();
-        wxString GetMinSecStr();
+        // returns a string valid to be used as LD_LIBRARY_PATH (or equivalent)
+        wxString GetDynamicLinkerPathForTarget(ProjectBuildTarget* target);
 
         // when a build is about to start, a preprocessing step runs
         // in PreprocessJob(), that fills m_BuildJobTargetsList with
@@ -253,7 +250,7 @@ class CompilerGCC : public cbCompilerPlugin
         void ExpandTargets(cbProject* project, const wxString& targetName, wxArrayString& result);
         void PreprocessJob(cbProject* project, const wxString& targetName);
         BuildJobTarget GetNextJob();
-        const BuildJobTarget& PeekNextJob();
+        BuildJobTarget& PeekNextJob();
 
         struct CompilerProcess
         {

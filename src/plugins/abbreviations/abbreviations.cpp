@@ -8,21 +8,16 @@
  */
 
 #include <sdk.h>
+#include <configurationpanel.h>
+#include <cbstyledtextctrl.h>
 
-#ifndef CB_PRECOMP
-    #include <configurationpanel.h>
-    #include <cbstyledtextctrl.h>
-    #include <editorcolourset.h>
-#endif
+#include <editor_hooks.h>
 
 #include "abbreviations.h"
 #include "abbreviationsconfigpanel.h"
 
-#include <ccmanager.h>
-#include <editor_hooks.h>
 #include <sqplus.h>
 #include <sc_base_types.h>
-
 
 // Register the plugin with Code::Blocks.
 // We are using an anonymous namespace so we don't litter the global one.
@@ -34,41 +29,12 @@ namespace
 
 Abbreviations* Abbreviations::m_Singleton = nullptr;
 
-/* XPM */
-static const char* abbrev_xpm[] = {
-"16 16 7 1",
-"   c None",
-".  c #B00000",
-"+  c #F70000",
-"@  c #DD3F3F",
-"#  c #FF3A39",
-"$  c #D56D6C",
-"%  c #F5A8A8",
-"                ",
-"                ",
-"          +.    ",
-"   %%#++++++    ",
-"  %%#++++++++   ",
-" $%@+++++++++   ",
-" %@++. +++++++  ",
-" #++.  +++####  ",
-" +++   .@$$%%$@ ",
-"++++            ",
-"+++.            ",
-"+++             ",
-"++.             ",
-"+..             ",
-"                ",
-"                "};
-
 // events handling
 BEGIN_EVENT_TABLE(Abbreviations, cbPlugin)
     // add any events you want to handle here
     EVT_MENU(idEditAutoComplete,      Abbreviations::OnEditAutoComplete)
     EVT_UPDATE_UI(idEditAutoComplete, Abbreviations::OnEditMenuUpdateUI)
 END_EVENT_TABLE()
-
-wxString defaultLanguageStr = _T("--default--");
 
 // constructor
 Abbreviations::Abbreviations()
@@ -124,8 +90,6 @@ void Abbreviations::OnRelease(cb_unused bool appShutDown)
     // unregister hook
     // 'true' will delete the functor too
     EditorHooks::UnregisterHook(m_EditorHookId, true);
-
-    ClearAutoCompLanguageMap();
 }
 
 void Abbreviations::RegisterScripting()
@@ -170,11 +134,9 @@ void Abbreviations::BuildMenu(wxMenuBar* menuBar)
 void Abbreviations::OnEditAutoComplete(cb_unused wxCommandEvent& event)
 {
     cbEditor* editor = Manager::Get()->GetEditorManager()->GetBuiltinActiveEditor();
-    if (!editor)
-        return;
     cbStyledTextCtrl* control = editor->GetControl();
 
-    const AutoCompleteMap& acm = *GetCurrentACMap(editor);
+    const AutoCompleteMap& acm = m_AutoCompleteMap;
 
     int curPos = control->GetCurrentPos();
     int startPos = control->WordStartPosition(curPos, true);
@@ -193,19 +155,11 @@ void Abbreviations::OnEditAutoComplete(cb_unused wxCommandEvent& event)
         for (acm_it = acm.begin(); acm_it != acm.end(); ++acm_it)
         {
             if (acm_it->first.Lower().StartsWith(keyword))
-                items.Add(acm_it->first + _T("?0"));
+                items.Add(acm_it->first);
         }
-
-        if (!items.IsEmpty())
-        {
-            control->ClearRegisteredImages();
-            control->RegisterImage(0, wxBitmap(abbrev_xpm));
-            items.Sort();
-            wxString itemsStr = GetStringFromArray(items, _T(" "));
-            control->AutoCompSetSeparator(_T(' '));
-            control->AutoCompSetTypeSeparator(_T('?'));
-            Manager::Get()->GetCCManager()->InjectAutoCompShow(endPos - startPos, itemsStr);
-        }
+        items.Sort();
+        wxString itemsStr = GetStringFromArray(items, _T(" "));
+        control->AutoCompShow(endPos-startPos, itemsStr);
         m_IsAutoCompVisible = control->AutoCompActive();
     }
 
@@ -234,7 +188,6 @@ void Abbreviations::DoAutoComplete(cbEditor* ed)
 
     if (control->AutoCompActive())
         control->AutoCompCancel();
-
     if (control->CallTipActive())
         control->CallTipCancel();
 
@@ -248,9 +201,8 @@ void Abbreviations::DoAutoComplete(cbEditor* ed)
     wxString lineIndent = ed->GetLineIndentString(control->GetCurrentLine());
     msgMan->DebugLog(_T("Auto-complete keyword: ") + keyword);
 
-    AutoCompleteMap* pAutoCompleteMap = GetCurrentACMap(ed);
-    AutoCompleteMap::iterator it = pAutoCompleteMap->find(keyword);
-    if (it != pAutoCompleteMap->end() )
+    AutoCompleteMap::iterator it = m_AutoCompleteMap.find(keyword);
+    if (it != m_AutoCompleteMap.end() )
     {
         // found; auto-complete it
         msgMan->DebugLog(_T("Auto-complete match for keyword found."));
@@ -266,7 +218,6 @@ void Abbreviations::DoAutoComplete(cbEditor* ed)
             // locate ending parenthesis
             int macroPosEnd = macroPos + 2;
             int len = (int)code.Length();
-
             while (macroPosEnd < len && code.GetChar(macroPosEnd) != _T(')'))
                 ++macroPosEnd;
 
@@ -309,7 +260,6 @@ void Abbreviations::DoAutoComplete(cbEditor* ed)
             control->SetSelectionVoid(curPos + caretPos, curPos + caretPos + 1);
             control->ReplaceSelection(wxEmptyString);
         }
-        control->ChooseCaretX();
 
         control->EndUndoAction();
     }
@@ -317,75 +267,42 @@ void Abbreviations::DoAutoComplete(cbEditor* ed)
 
 void Abbreviations::LoadAutoCompleteConfig()
 {
-    ClearAutoCompLanguageMap();
-    AutoCompleteMap* pAutoCompleteMap;
+    m_AutoCompleteMap.clear();
     wxArrayString list = Manager::Get()->GetConfigManager(_T("editor"))->EnumerateSubPaths(_T("/auto_complete"));
     for (unsigned int i = 0; i < list.GetCount(); ++i)
     {
-        wxString langStr = Manager::Get()->GetConfigManager(_T("editor"))->Read(_T("/auto_complete/") + list[i] + _T("/language"), defaultLanguageStr);
         wxString name = Manager::Get()->GetConfigManager(_T("editor"))->Read(_T("/auto_complete/") + list[i] + _T("/name"), wxEmptyString);
         wxString code = Manager::Get()->GetConfigManager(_T("editor"))->Read(_T("/auto_complete/") + list[i] + _T("/code"), wxEmptyString);
-        if (m_AutoCompLanguageMap.find(langStr) == m_AutoCompLanguageMap.end())
-            m_AutoCompLanguageMap[langStr] = new AutoCompleteMap();
-
-        pAutoCompleteMap = m_AutoCompLanguageMap[langStr];
-
         if (name.IsEmpty())
             continue;
         // convert non-printable chars to printable
-        wxString resolved;
-        resolved.Alloc(code.Length());
-        for (size_t pos = 0; pos < code.Length(); ++pos)
-        {
-            if (code[pos] == wxT('\\') && pos < code.Length() - 1)
-            {
-                ++pos;
-                if (code[pos] == wxT('n'))
-                    resolved += wxT("\n");
-                else if (code[pos] == wxT('r')) // should not exist, remove in next step
-                    resolved += wxT("\r");
-                else if (code[pos] == wxT('t'))
-                    resolved += wxT("\t");
-                else if (code[pos] == wxT('\\'))
-                    resolved += wxT("\\");
-                else // ?!
-                {
-                    resolved += wxT("\\");
-                    resolved += code[pos];
-                }
-            }
-            else
-                resolved += code[pos];
-        }
-
+        code.Replace(_T("\\n"),   _T("\n"));
+        code.Replace(_T("\\t"),   _T("\t"));
         // should not exist, but remove if it does (EOL style is matched just before code generation)
-        resolved.Replace(wxT("\r\n"), wxT("\n"));
-        resolved.Replace(wxT("\r"),   wxT("\n"));
-        (*pAutoCompleteMap)[name] = resolved;
+        code.Replace(_T("\\r\n"), _T("\n"));
+        code.Replace(_T("\\r"),   _T("\n"));
+        m_AutoCompleteMap[name] = code;
     }
 
-    if (m_AutoCompLanguageMap.find(defaultLanguageStr) == m_AutoCompLanguageMap.end())
-        m_AutoCompLanguageMap[defaultLanguageStr] = new AutoCompleteMap();
-
-    pAutoCompleteMap = m_AutoCompLanguageMap[defaultLanguageStr];
-    if (pAutoCompleteMap->empty())
+    if (m_AutoCompleteMap.empty())
     {
         // default auto-complete items
-        (*pAutoCompleteMap)[_T("if")]     = _T("if (|)\n\t;");
-        (*pAutoCompleteMap)[_T("ifb")]    = _T("if (|)\n{\n\t\n}");
-        (*pAutoCompleteMap)[_T("ife")]    = _T("if (|)\n{\n\t\n}\nelse\n{\n\t\n}");
-        (*pAutoCompleteMap)[_T("ifei")]   = _T("if (|)\n{\n\t\n}\nelse if ()\n{\n\t\n}\nelse\n{\n\t\n}");
-        (*pAutoCompleteMap)[_T("guard")]  = _T("#ifndef $(Guard token)\n#define $(Guard token)\n\n|\n\n#endif // $(Guard token)\n");
-        (*pAutoCompleteMap)[_T("while")]  = _T("while (|)\n\t;");
-        (*pAutoCompleteMap)[_T("whileb")] = _T("while (|)\n{\n\t\n}");
-        (*pAutoCompleteMap)[_T("do")]     = _T("do\n{\n\t\n} while (|);");
-        (*pAutoCompleteMap)[_T("switch")] = _T("switch (|)\n{\ncase :\n\tbreak;\n\ndefault:\n\tbreak;\n}\n");
-        (*pAutoCompleteMap)[_T("for")]    = _T("for (|; ; )\n\t;");
-        (*pAutoCompleteMap)[_T("forb")]   = _T("for (|; ; )\n{\n\t\n}");
-        (*pAutoCompleteMap)[_T("class")]  = _T("class $(Class name)|\n{\npublic:\n\t$(Class name)();\n\t~$(Class name)();\nprotected:\nprivate:\n};\n");
-        (*pAutoCompleteMap)[_T("struct")] = _T("struct |\n{\n\t\n};\n");
+        m_AutoCompleteMap[_T("if")]     = _T("if (|)\n\t;");
+        m_AutoCompleteMap[_T("ifb")]    = _T("if (|)\n{\n\t\n}");
+        m_AutoCompleteMap[_T("ife")]    = _T("if (|)\n{\n\t\n}\nelse\n{\n\t\n}");
+        m_AutoCompleteMap[_T("ifei")]   = _T("if (|)\n{\n\t\n}\nelse if ()\n{\n\t\n}\nelse\n{\n\t\n}");
+        m_AutoCompleteMap[_T("guard")]  = _T("#ifndef $(Guard token)\n#define $(Guard token)\n\n|\n\n#endif // $(Guard token)\n");
+        m_AutoCompleteMap[_T("while")]  = _T("while (|)\n\t;");
+        m_AutoCompleteMap[_T("whileb")] = _T("while (|)\n{\n\t\n}");
+        m_AutoCompleteMap[_T("switch")] = _T("switch (|)\n{\ncase :\n\tbreak;\n\ndefault:\n\tbreak;\n}\n");
+        m_AutoCompleteMap[_T("for")]    = _T("for (|; ; )\n\t;");
+        m_AutoCompleteMap[_T("forb")]   = _T("for (|; ; )\n{\n\t\n}");
+        m_AutoCompleteMap[_T("class")]  = _T("class $(Class name)|\n{\npublic:\n\t$(Class name)();\n\t~$(Class name)();\nprotected:\nprivate:\n};\n");
+        m_AutoCompleteMap[_T("struct")] = _T("struct |\n{\n\t\n};\n");
     }
-    ExchangeTabAndSpaces(*pAutoCompleteMap);
+
+    ExchangeTabAndSpaces(m_AutoCompleteMap);
+
     // date and time macros
     // these are auto-added if they 're found to be missing
     const wxString timeAndDate[9][2] =
@@ -403,28 +320,9 @@ void Abbreviations::LoadAutoCompleteConfig()
 
     for (int i = 0; i < 9; ++i)
     {
-        if (pAutoCompleteMap->find(timeAndDate[i][0]) == pAutoCompleteMap->end())
-            (*pAutoCompleteMap)[timeAndDate[i][0]] = timeAndDate[i][1];
+        if (m_AutoCompleteMap.find(timeAndDate[i][0]) == m_AutoCompleteMap.end())
+            m_AutoCompleteMap[timeAndDate[i][0]] = timeAndDate[i][1];
     }
-
-    wxString langFortran = _T("Fortran");
-    if (m_AutoCompLanguageMap.find(langFortran) == m_AutoCompLanguageMap.end())
-        m_AutoCompLanguageMap[langFortran] = new AutoCompleteMap();
-
-    pAutoCompleteMap = m_AutoCompLanguageMap[langFortran];
-    if (pAutoCompleteMap->empty())
-    {
-        // default auto-complete items for Fortran
-        (*pAutoCompleteMap)[_T("if")]  = _T("if (|) then\n\t\nend if\n");
-        (*pAutoCompleteMap)[_T("do")]  = _T("do |\n\t\nend do\n");
-        (*pAutoCompleteMap)[_T("dw")]  = _T("do while (|)\n\t\nend do\n");
-        (*pAutoCompleteMap)[_T("sc")]  = _T("select case (|)\n\tcase ()\n\t\t\n\tcase default\n\t\t\nend select\n");
-        (*pAutoCompleteMap)[_T("fun")] = _T("function |()\n\t\nend function\n");
-        (*pAutoCompleteMap)[_T("sub")] = _T("subroutine |()\n\t\nend subroutine\n");
-        (*pAutoCompleteMap)[_T("mod")] = _T("module |\n\t\nend module\n");
-        (*pAutoCompleteMap)[_T("ty")]  = _T("type |\n\t\nend type\n");
-    }
-    ExchangeTabAndSpaces(*pAutoCompleteMap);
 }
 
 void Abbreviations::ExchangeTabAndSpaces(AutoCompleteMap& map)
@@ -445,36 +343,23 @@ void Abbreviations::ExchangeTabAndSpaces(AutoCompleteMap& map)
 void Abbreviations::SaveAutoCompleteConfig()
 {
     Manager::Get()->GetConfigManager(_T("editor"))->DeleteSubPath(_T("/auto_complete"));
-    AutoCompLanguageMap::iterator itlan;
     AutoCompleteMap::iterator it;
     int count = 0;
-    for (itlan = m_AutoCompLanguageMap.begin(); itlan != m_AutoCompLanguageMap.end(); ++itlan)
+    for (it = m_AutoCompleteMap.begin(); it != m_AutoCompleteMap.end(); ++it)
     {
-        wxString langStr = itlan->first;
-        wxString langStrLw = langStr.Lower();
-        AutoCompleteMap* pAutoCompleteMap = itlan->second;
-        for (it = pAutoCompleteMap->begin(); it != pAutoCompleteMap->end(); ++it)
-        {
-            wxString code = it->second;
-            // convert non-printable chars to printable
-            code.Replace(_T("\\"),   _T("\\\\"));
-            code.Replace(_T("\r\n"), _T("\\n")); // EOL style will be matched just before code generation
-            code.Replace(_T("\n"),   _T("\\n"));
-            code.Replace(_T("\r"),   _T("\\n"));
-            code.Replace(_T("\t"),   _T("\\t"));
+        wxString code = it->second;
+        // convert non-printable chars to printable
+        code.Replace(_T("\r\n"), _T("\\n")); // EOL style will be matched just before code generation
+        code.Replace(_T("\n"),   _T("\\n"));
+        code.Replace(_T("\r"),   _T("\\n"));
+        code.Replace(_T("\t"),   _T("\\t"));
 
-            ++count;
-            wxString key;
-            if (!langStr.IsSameAs(defaultLanguageStr))
-            {
-                key.Printf(_T("/auto_complete/entry%d/language"), count);
-                Manager::Get()->GetConfigManager(_T("editor"))->Write(key, langStr);
-            }
-            key.Printf(_T("/auto_complete/entry%d/name"), count);
-            Manager::Get()->GetConfigManager(_T("editor"))->Write(key, it->first);
-            key.Printf(_T("/auto_complete/entry%d/code"), count);
-            Manager::Get()->GetConfigManager(_T("editor"))->Write(key, code);
-        }
+        ++count;
+        wxString key;
+        key.Printf(_T("/auto_complete/entry%d/name"), count);
+        Manager::Get()->GetConfigManager(_T("editor"))->Write(key, it->first);
+        key.Printf(_T("/auto_complete/entry%d/code"), count);
+        Manager::Get()->GetConfigManager(_T("editor"))->Write(key, code);
     }
 }
 
@@ -520,38 +405,4 @@ void Abbreviations::EditorEventHook(cbEditor* editor, wxScintillaEvent& event)
 cbConfigurationPanel* Abbreviations::GetConfigurationPanel(wxWindow* parent)
 {
     return new AbbreviationsConfigPanel(parent, this);
-}
-
-void Abbreviations::ClearAutoCompLanguageMap()
-{
-    AutoCompLanguageMap::iterator it;
-    for (it=m_AutoCompLanguageMap.begin(); it!=m_AutoCompLanguageMap.end(); ++it)
-    {
-        it->second->clear();
-        delete it->second;
-        it->second = 0;
-    }
-    m_AutoCompLanguageMap.clear();
-}
-
-AutoCompleteMap* Abbreviations::GetCurrentACMap(cbEditor* ed)
-{
-    AutoCompleteMap* pAutoCompleteMap;
-    EditorColourSet* theme = ed->GetColourSet();
-    if (theme)
-    {
-        wxString strLang = theme->GetLanguageName(ed->GetLanguage());
-
-        if (strLang == _T("Fortran77")) // the same abbreviations for Fortran and Fortran77
-            strLang = _T("Fortran");
-
-        if (m_AutoCompLanguageMap.find(strLang) == m_AutoCompLanguageMap.end())
-            pAutoCompleteMap = m_AutoCompLanguageMap[defaultLanguageStr];
-        else
-            pAutoCompleteMap = m_AutoCompLanguageMap[strLang];
-    }
-    else
-        pAutoCompleteMap = m_AutoCompLanguageMap[defaultLanguageStr];
-
-    return pAutoCompleteMap;
 }

@@ -1,6 +1,6 @@
 SUBDIRS = scripting wxscintilla $(WXPROPGRID_DIR) resources
 
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+INCLUDES = $(WX_CXXFLAGS) \
 			-I$(top_srcdir)/src/include \
 			-I$(top_srcdir)/src/sdk/wxscintilla/include \
 			 $(WXPROPGRID_INCLUDE) \
@@ -8,24 +8,19 @@ AM_CPPFLAGS = $(WX_CXXFLAGS) \
 			-I$(top_srcdir)/src/include/scripting/include \
 			-I$(top_srcdir)/src/include/scripting/bindings \
  			-I$(top_srcdir)/src/include/scripting/sqplus \
- 			-I$(top_srcdir)/src/include/mozilla_chardet \
- 			-I$(top_srcdir)/src/include/mozilla_chardet/mfbt \
- 			-I$(top_srcdir)/src/include/mozilla_chardet/nsprpub/pr/include \
- 			-I$(top_srcdir)/src/include/mozilla_chardet/xpcom \
- 			-I$(top_srcdir)/src/include/mozilla_chardet/xpcom/base \
- 			-I$(top_srcdir)/src/include/mozilla_chardet/xpcom/glue
+			-I$(top_srcdir)/src/include/mozilla_chardet
 
 lib_LTLIBRARIES = libcodeblocks.la
 
 libcodeblocks_la_LDFLAGS = -version-info @CODEBLOCKS_VERSION_INFO@
 
-libcodeblocks_la_LIBADD = scripting/bindings/libsqbindings.la \
+libcodeblocks_la_LIBADD =  $(WX_LIBS) \
+			scripting/bindings/libsqbindings.la \
 			scripting/sqplus/libsqplus.la \
 			scripting/sqstdlib/libsqstdlib.la \
 			scripting/squirrel/libsquirrel.la \
 			../base/tinyxml/libtinyxml.la \
 			wxscintilla/libwxscintilla.la \
-			$(WX_LIBS) \
 			$(WXPROPGRID_LIB)
 
 libcodeblocks_la_SOURCES = annoyingdialog.cpp \
@@ -33,7 +28,6 @@ libcodeblocks_la_SOURCES = annoyingdialog.cpp \
 						base64.cpp \
 						blockallocated.cpp \
 						cbauibook.cpp \
-						cbcolourmanager.cpp \
 						cbdebugger_interfaces.cpp \
 						cbeditor.cpp \
 						cbeditorprintout.cpp \
@@ -45,7 +39,6 @@ libcodeblocks_la_SOURCES = annoyingdialog.cpp \
 						cbthreadpool.cpp \
 						cbtreectrl.cpp \
 						cbworkspace.cpp \
-						ccmanager.cpp \
 						compileoptionsbase.cpp \
 						compiler.cpp \
 						compilercommandgenerator.cpp \
@@ -62,9 +55,11 @@ libcodeblocks_la_SOURCES = annoyingdialog.cpp \
 						editarrayfiledlg.cpp \
 						editarrayorderdlg.cpp \
 						editarraystringdlg.cpp \
+						editkeywordsdlg.cpp \
 						editor_hooks.cpp \
 						editorbase.cpp \
 						editorcolourset.cpp \
+						editorconfigurationdlg.cpp \
 						editorlexerloader.cpp \
 						editormanager.cpp \
 						editpairdlg.cpp \
@@ -95,12 +90,14 @@ libcodeblocks_la_SOURCES = annoyingdialog.cpp \
 						pluginsconfigurationdlg.cpp \
 						printing_types.cpp \
 						projectbuildtarget.cpp \
+						projectdepsdlg.cpp \
 						projectfile.cpp \
 						projectfileoptionsdlg.cpp \
 						projectlayoutloader.cpp \
 						projectloader.cpp \
 						projectloader_hooks.cpp \
 						projectmanager.cpp \
+						projectoptionsdlg.cpp \
 						projectsfilemasksdlg.cpp \
 						projecttemplateloader.cpp \
 						scriptingmanager.cpp \
@@ -112,6 +109,7 @@ libcodeblocks_la_SOURCES = annoyingdialog.cpp \
 						templatemanager.cpp \
 						toolsmanager.cpp \
 						uservarmanager.cpp \
+						virtualbuildtargetsdlg.cpp \
 						workspaceloader.cpp \
 						xtra_res.cpp  \
 						mozilla_chardet/src/CharDistribution.cpp \

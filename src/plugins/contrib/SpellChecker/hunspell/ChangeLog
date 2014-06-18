@@ -1,38 +1,3 @@
-2013-07-25 pchang9@cs.wisc.edu
-	* moz#897255 Wasted work in line_uniq
-	* moz#897780 Wasted work in SuggestMgr::twowords
-
-2013-07-25 Caolán McNamara <caolanm at LibO>:
-	* hunspell#167 layout problems with long lines
-		- based on the original fix by xorho
-		  adapted to HEAD
-	* rhbz#925562 upgrade config.guess for aarch64
-
-2013-07-24 pchang9@cs.wisc.edu
-	* moz#896301 Wasted work in SfxEntry::checkword
-	* moz#896844 Wasted work in AffixMgr::defcpd_check
-
-2013-06-13 Konstantin Khlebniko
-	* #49 HashMgr::add_word computes wrong size for struct hentry
-
-2013-06-13 Ville Skyttä
-	* #53 Man page syntax fixes 
-
-2013-04-19 John Thomson <john thomson at SIL>
-        * win_api: add remove() of Hunspell API (hun#3606435)
-
-2013-04-19 Rouslan Solomokhin <at sf.net>
-        * fix crash in suggestions for 99-character long words
-          by extending arrays of SuggestMgr::forgotchar_*
-          (hun#3595024, also http://crbug.com/130128),
-          thanks to also Paweł Hajdan to report the patch
-
-2013-04-01 Caolán McNamara <caolanm at LibO>:
-	* hunspell: -Werror=undef
-
-2013-03-13 Caolán McNamara <caolanm at LibO>:
-	* rhbz#918938 crash in interaction with danish thesaurus
-
 2012-09-18 Németh László <nemeth at numbertext dot org>:
         * src/hunspell/affixmgr.*: - fix morphological analysis of
         compound words (hun#3544994, reported by Dávid Nemeskey, fdo#55045)

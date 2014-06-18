@@ -98,7 +98,7 @@ void FormatterSettings::ApplyTo(astyle::ASFormatter& formatter)
   formatter.setBlockIndent(cfg->ReadBool(_T("/indent_blocks")));
   formatter.setNamespaceIndent(cfg->ReadBool(_T("/indent_namespaces")));
   formatter.setLabelIndent(cfg->ReadBool(_T("/indent_labels")));
-  formatter.setPreprocDefineIndent(cfg->ReadBool(_T("/indent_preprocessor")));
+  formatter.setPreprocessorIndent(cfg->ReadBool(_T("/indent_preprocessor")));
   formatter.setIndentCol1CommentsMode(cfg->ReadBool(_T("/indent_col1_comments")));
 
   wxString pointerAlign = cfg->Read(_T("/pointer_align"));
@@ -126,9 +126,4 @@ void FormatterSettings::ApplyTo(astyle::ASFormatter& formatter)
   formatter.setTabSpaceConversionMode(cfg->ReadBool(_T("/convert_tabs")));
   formatter.setEmptyLineFill(cfg->ReadBool(_T("/fill_empty_lines")));
   formatter.setAddBracketsMode(cfg->ReadBool(_T("/add_brackets")));
-
-  if (cfg->ReadBool(_T("/break_lines")))
-    formatter.setMaxCodeLength( wxAtoi(cfg->Read(_T("/max_line_length"))));
-  else
-    formatter.setMaxCodeLength(INT_MAX);
 }

@@ -19,7 +19,6 @@
   #include <wx/string.h>
   #include <wx/utils.h>
   #include <wx/xrc/xmlres.h>
-
   #include "cbeditor.h"
   #include "configmanager.h"
   #include "editormanager.h"
@@ -38,13 +37,6 @@
 #include "todolistview.h"
 #include "todosettingsdlg.h"
 
-// arrimpl.cpp says about the usage:
-// 1) #include dynarray.h
-// 2) WX_DECLARE_OBJARRAY
-// ...these two are in todolistview.h
-// 3) #include arrimpl.cpp
-// 4) WX_DEFINE_OBJARRAY
-// ...these come now:
 #include <wx/arrimpl.cpp>
 WX_DEFINE_OBJARRAY(ToDoItems); // TODO: find out why this causes a shadow warning for 'Item'
 
@@ -90,7 +82,6 @@ void ToDoList::OnAttach()
     titles.Add(_("User")); widths.Add(64);
     titles.Add(_("Prio")); widths.Add(48);
     titles.Add(_("Line")); widths.Add(48);
-    titles.Add(_("Date")); widths.Add(56);
     titles.Add(_("File")); widths.Add(640);
 
     m_pListLog = new ToDoListView(titles, widths, m_Types);
@@ -400,10 +391,9 @@ void ToDoList::OnAddItem(cb_unused wxCommandEvent& event)
         // calculate insertion point by skipping next newline
         switch (control->GetEOLMode())
         {
+            case wxSCI_EOL_CR:
+            case wxSCI_EOL_LF:   crlfLen = 1; break;
             case wxSCI_EOL_CRLF: crlfLen = 2; break;
-            case wxSCI_EOL_CR: // fall-though
-            case wxSCI_EOL_LF: // fall-though
-            default:             crlfLen = 1; break;
         }
         if (idx > 0)
             idx += crlfLen;
@@ -446,7 +436,7 @@ void ToDoList::OnAddItem(cb_unused wxCommandEvent& event)
     wxString priority = wxString::Format(_T("%d"), dlg.GetPriority()); // do it like this (wx bug with int and streams)
 
     // now do the () part
-    buffer << _T("(") << dlg.GetUser() << _T("#") << priority << _T("#") << (dlg.DateRequested() ? (wxDateTime::Today().Format(_T("%x): "))) :  _T("): "));
+    buffer << _T("(") << dlg.GetUser() << _T("#") << priority << _T("#): ");
 
     wxString text = dlg.GetText();
 
@@ -484,7 +474,15 @@ void ToDoList::OnAddItem(cb_unused wxCommandEvent& event)
 
     // add newline char(s), only if dlg.GetPosition() != tdpCurrent
     if (dlg.GetPosition() != tdpCurrent)
-        buffer << GetEOLStr(control->GetEOLMode());
+    {
+        switch (control->GetEOLMode())
+        {
+            // NOTE: maybe this switch, should make it in the SDK (maybe as cbStyledTextCtrl::GetEOLString())???
+            case wxSCI_EOL_CR: buffer << _T("\r"); break;
+            case wxSCI_EOL_CRLF: buffer << _T("\r\n"); break;
+            case wxSCI_EOL_LF: buffer << _T("\n"); break;
+        }
+    }
 
     // ok, insert the todo line text
     control->InsertText(idx, buffer);
@@ -510,17 +508,6 @@ void ToDoList::OnReparse(CodeBlocksEvent& event)
 
 void ToDoList::OnReparseCurrent(CodeBlocksEvent& event)
 {
-#if 0
-    if(event.GetEventType()==cbEVT_EDITOR_OPEN)
-        Manager::Get()->GetLogManager()->DebugLog(wxT("ToDoList::OnReparseCurrent(): cbEVT_EDITOR_OPEN"));
-    else if(event.GetEventType()==cbEVT_EDITOR_SAVE)
-        Manager::Get()->GetLogManager()->DebugLog(wxT("ToDoList::OnReparseCurrent(): cbEVT_EDITOR_SAVE"));
-    else if(event.GetEventType()==cbEVT_EDITOR_ACTIVATED)
-        Manager::Get()->GetLogManager()->DebugLog(wxT("ToDoList::OnReparseCurrent(): cbEVT_EDITOR_ACTIVATED"));
-    else if(event.GetEventType()==cbEVT_EDITOR_CLOSE)
-        Manager::Get()->GetLogManager()->DebugLog(wxT("ToDoList::OnReparseCurrent(): cbEVT_EDITOR_CLOSE"));
-#endif // debug only
-
     bool forced = (event.GetEventType() == cbEVT_EDITOR_OPEN || event.GetEventType() == cbEVT_EDITOR_SAVE);
     if (m_InitDone && m_AutoRefresh && !(ProjectManager::IsBusy()))
     {

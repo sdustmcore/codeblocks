@@ -36,7 +36,7 @@ public:
         LTOrEqual,      // <=
         LShift,         // <<
         RShift,         // >>
-        Numeric         // Numeric
+        Numeric,        // Numeric
     };
 
     ExpressionNode();
@@ -71,17 +71,10 @@ private:
 class Expression
 {
 public:
-    // constructor
-    Expression() :
-        m_Status(false),
-        m_Result(0)
-    {
-    };
-
     void AddToInfixExpression(wxString token);
     void ConvertInfixToPostfix();
     bool CalcPostfix();
-    long GetResult() const { return m_Result; }
+    bool GetResult() const { return m_Result; }
     bool GetStatus() const { return m_Status; }
     void Clear();
 
@@ -95,8 +88,8 @@ private:
 
     PostfixVector m_PostfixExpression;
     InfixVector   m_InfixExpression;
+    bool          m_Result;
     bool          m_Status;
-    long          m_Result; /// the calculated value
 };
 
 #endif // EXPRESSION_H

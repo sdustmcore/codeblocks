@@ -9,8 +9,6 @@
 #include <wx/string.h>
 #include <wx/log.h> // for wxSafeShowMessage()
 
-#include "globals.h" // for cbC2U()
-
 /**
 @brief Code::Blocks error handling unit.
 

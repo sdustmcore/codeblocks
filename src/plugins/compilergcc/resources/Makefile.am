@@ -2,7 +2,6 @@ pkgdata_DATA = compiler.zip
 CLEANFILES = $(pkgdata_DATA)
 
 EXTRA_DIST = advanced_compiler_options.xrc \
-	compiler_flag.xrc \
 	compiler_menu.xrc \
 	compiler_options.xrc \
 	compiler_toolbar_16x16.xrc \
@@ -22,6 +21,3 @@ EXTRA_DIST = advanced_compiler_options.xrc \
 compiler.zip: $(EXTRA_DIST)
 	PWD=`pwd` cd $(srcdir) && zip $(PWD)/compiler.zip manifest.xml *.xrc images/*.png images/16x16/*.png > /dev/null
 
-compilers_xmldir = $(datadir)/@PACKAGE@/compilers
-
-dist_compilers_xml_DATA = $(srcdir)/compilers/*.xml

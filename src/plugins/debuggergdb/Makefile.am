@@ -1,6 +1,6 @@
 SUBDIRS = resources
 
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+INCLUDES = $(WX_CXXFLAGS) \
 		-I$(top_srcdir)/src/include \
 		-I$(top_srcdir)/src/sdk/wxscintilla/include \
 		-I$(top_srcdir)/src/include/scripting/include \
@@ -10,9 +10,9 @@ pluginlibdir = $(pkglibdir)/plugins
 
 pluginlib_LTLIBRARIES = libdebugger.la
 
-libdebugger_la_LDFLAGS = -module -version-info 0:1:0 -shared -no-undefined -avoid-version
+libdebugger_la_LDFLAGS = $(WX_GTK2_LIBS) -module -version-info 0:1:0 -shared -no-undefined -avoid-version
 
-libdebugger_la_LIBADD = ../../sdk/libcodeblocks.la $(WX_LIBS) $(WX_GTK2_LIBS)
+libdebugger_la_LIBADD = $(PLUGIN_WX_LIBS) ../../sdk/libcodeblocks.la
 
 libdebugger_la_SOURCES = cdb_driver.cpp \
 			databreakpointdlg.cpp \
@@ -49,5 +49,6 @@ EXTRA_DIST = debuggergdb_test_defs.cpp \
 		debuggergdb_test_main.cpp \
 		debuggergdb_test_parser.cpp \
 		debuggergdb_test_parser_cdb.cpp \
-		$(srcdir)/*.cbp
+		debuggergdb_test-unix.cbp \
+		debuggergdb_test.cbp
 

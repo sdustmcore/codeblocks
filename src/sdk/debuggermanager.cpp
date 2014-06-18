@@ -44,8 +44,7 @@
 cbWatch::cbWatch() :
     m_changed(true),
     m_removed(false),
-    m_expanded(false),
-    m_autoUpdate(true)
+    m_expanded(false)
 {
 }
 
@@ -67,7 +66,7 @@ void cbWatch::RemoveChild(int index)
     m_children.erase(it);
 }
 
-inline bool TestIfMarkedForRemoval(cb::shared_ptr<cbWatch> watch)
+bool TestIfMarkedForRemoval(cb::shared_ptr<cbWatch> watch)
 {
     if(watch->IsRemoved())
         return true;
@@ -191,16 +190,6 @@ void cbWatch::Expand(bool expand)
     m_expanded = expand;
 }
 
-bool cbWatch::IsAutoUpdateEnabled() const
-{
-    return m_autoUpdate;
-}
-
-void cbWatch::AutoUpdate(bool enabled)
-{
-    m_autoUpdate = enabled;
-}
-
 cb::shared_ptr<cbWatch> DLLIMPORT cbGetRootWatch(cb::shared_ptr<cbWatch> watch)
 {
     cb::shared_ptr<cbWatch> root = watch;
@@ -224,7 +213,7 @@ void cbStackFrame::SetNumber(int number)
     m_number = number;
 }
 
-void cbStackFrame::SetAddress(size_t address)
+void cbStackFrame::SetAddress(unsigned long int address)
 {
     m_address = address;
 }
@@ -250,7 +239,7 @@ int cbStackFrame::GetNumber() const
     return m_number;
 }
 
-size_t cbStackFrame::GetAddress() const
+unsigned long int cbStackFrame::GetAddress() const
 {
     return m_address;
 }
@@ -465,7 +454,7 @@ class DebugTextCtrlLogger : public TextCtrlLogger
 public:
     DebugTextCtrlLogger(bool fixedPitchFont, bool debugLog) :
         TextCtrlLogger(fixedPitchFont),
-        m_panel(nullptr),
+        m_panel(NULL),
         m_debugLog(debugLog)
     {
     }
@@ -506,7 +495,7 @@ public:
                                                wxDefaultPosition, wxDefaultSize, wxST_NO_AUTORESIZE);
 
         m_command_entry = new wxComboBox(this, idDebug_LogEntryControl, wxEmptyString,
-                                         wxDefaultPosition, wxDefaultSize, 0, nullptr,
+                                         wxDefaultPosition, wxDefaultSize, 0, 0,
                                          wxCB_DROPDOWN | wxTE_PROCESS_ENTER);
 
         wxBitmap execute_bitmap = wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(_T("wxART_EXECUTABLE_FILE")),
@@ -637,10 +626,10 @@ wxWindow* DebugTextCtrlLogger::CreateControl(wxWindow* parent)
     return m_panel;
 }
 
-template<> DebuggerManager* Mgr<DebuggerManager>::instance = nullptr;
+template<> DebuggerManager* Mgr<DebuggerManager>::instance = 0;
 template<> bool  Mgr<DebuggerManager>::isShutdown = false;
 
-inline void ReadActiveDebuggerConfig(wxString &name, int &configIndex)
+void ReadActiveDebuggerConfig(wxString &name, int &configIndex)
 {
     ConfigManager &config = *Manager::Get()->GetConfigManager(_T("debugger_common"));
     name = config.Read(wxT("active_debugger"), wxEmptyString);
@@ -650,7 +639,7 @@ inline void ReadActiveDebuggerConfig(wxString &name, int &configIndex)
         configIndex = std::max(0, config.ReadInt(wxT("active_debugger_config"), 0));
 }
 
-inline void WriteActiveDebuggerConfig(const wxString &name, int configIndex)
+void WriteActiveDebuggerConfig(const wxString &name, int configIndex)
 {
     ConfigManager &configMgr = *Manager::Get()->GetConfigManager(_T("debugger_common"));
     configMgr.Write(wxT("active_debugger"), name);
@@ -669,27 +658,26 @@ cbDebuggerConfiguration* DebuggerManager::PluginData::GetConfiguration(int index
 
 DebuggerManager::DebuggerManager() :
     m_interfaceFactory(nullptr),
-    m_activeDebugger(nullptr),
+    m_activeDebugger(NULL),
     m_menuHandler(nullptr),
-    m_backtraceDialog(nullptr),
-    m_breakPointsDialog(nullptr),
-    m_cpuRegistersDialog(nullptr),
-    m_disassemblyDialog(nullptr),
-    m_examineMemoryDialog(nullptr),
-    m_threadsDialog(nullptr),
-    m_watchesDialog(nullptr),
-    m_logger(nullptr),
+    m_backtraceDialog(NULL),
+    m_breakPointsDialog(NULL),
+    m_cpuRegistersDialog(NULL),
+    m_disassemblyDialog(NULL),
+    m_examineMemoryDialog(NULL),
+    m_threadsDialog(NULL),
+    m_watchesDialog(NULL),
+    m_logger(NULL),
     m_loggerIndex(-1),
     m_isDisassemblyMixedMode(false),
     m_useTargetsDefault(false)
 {
     typedef cbEventFunctor<DebuggerManager, CodeBlocksEvent> Event;
-    Manager::Get()->RegisterEventSink(cbEVT_PROJECT_ACTIVATE,        new Event(this, &DebuggerManager::OnProjectActivated));
-    // connect with cbEVT_PROJECT_OPEN, too (see here: http://forums.codeblocks.org/index.php/topic,17260.msg118431.html#msg118431)
-    Manager::Get()->RegisterEventSink(cbEVT_PROJECT_OPEN,            new Event(this, &DebuggerManager::OnProjectActivated));
-    Manager::Get()->RegisterEventSink(cbEVT_BUILDTARGET_SELECTED,    new Event(this, &DebuggerManager::OnTargetSelected));
-    Manager::Get()->RegisterEventSink(cbEVT_SETTINGS_CHANGED,        new Event(this, &DebuggerManager::OnSettingsChanged));
-    Manager::Get()->RegisterEventSink(cbEVT_PLUGIN_LOADING_COMPLETE, new Event(this, &DebuggerManager::OnPluginLoadingComplete));
+    Manager::Get()->RegisterEventSink(cbEVT_PROJECT_ACTIVATE, new Event(this, &DebuggerManager::OnProjectActivated));
+    Manager::Get()->RegisterEventSink(cbEVT_BUILDTARGET_SELECTED, new Event(this, &DebuggerManager::OnTargetSelected));
+    Manager::Get()->RegisterEventSink(cbEVT_SETTINGS_CHANGED, new Event(this, &DebuggerManager::OnSettingsChanged));
+    Manager::Get()->RegisterEventSink(cbEVT_PLUGIN_LOADING_COMPLETE,
+                                      new Event(this, &DebuggerManager::OnPluginLoadingComplete));
 
     wxString activeDebuggerName;
     int activeConfig;
@@ -754,7 +742,6 @@ bool DebuggerManager::RegisterDebugger(cbDebuggerPlugin *plugin)
         m_menuHandler->SetActiveDebugger(m_activeDebugger);
     }
 
-    CreateWindows();
     m_menuHandler->RebuildMenus();
 
     return true;
@@ -766,25 +753,40 @@ bool DebuggerManager::UnregisterDebugger(cbDebuggerPlugin *plugin)
     if(it == m_registered.end())
         return false;
 
-    it->second.ClearConfigurations();
     m_registered.erase(it);
     if (plugin == m_activeDebugger)
     {
         if (m_registered.empty())
-            m_activeDebugger = nullptr;
+            m_activeDebugger = NULL;
         else
             m_activeDebugger = m_registered.begin()->first;
         m_menuHandler->SetActiveDebugger(m_activeDebugger);
     }
-    if (!Manager::IsAppShuttingDown())
-    {
-        m_menuHandler->RebuildMenus();
-        RefreshUI();
-    }
+    m_menuHandler->RebuildMenus();
+    RefreshUI();
 
     if (m_registered.empty())
     {
-        DestoryWindows();
+        m_interfaceFactory->DeleteBacktrace(m_backtraceDialog);
+        m_backtraceDialog = NULL;
+
+        m_interfaceFactory->DeleteBreakpoints(m_breakPointsDialog);
+        m_breakPointsDialog = NULL;
+
+        m_interfaceFactory->DeleteCPURegisters(m_cpuRegistersDialog);
+        m_cpuRegistersDialog = NULL;
+
+        m_interfaceFactory->DeleteDisassembly(m_disassemblyDialog);
+        m_disassemblyDialog = NULL;
+
+        m_interfaceFactory->DeleteMemory(m_examineMemoryDialog);
+        m_examineMemoryDialog = NULL;
+
+        m_interfaceFactory->DeleteThreads(m_threadsDialog);
+        m_threadsDialog = NULL;
+
+        m_interfaceFactory->DeleteWatches(m_watchesDialog);
+        m_watchesDialog = NULL;
 
         if (Manager::Get()->GetLogManager())
             Manager::Get()->GetDebuggerManager()->HideLogger();
@@ -899,14 +901,6 @@ wxMenu* DebuggerManager::GetMenu()
     return menu;
 }
 
-bool DebuggerManager::HasMenu() const
-{
-    wxMenuBar *menuBar = Manager::Get()->GetAppFrame()->GetMenuBar();
-    cbAssert(menuBar);
-    int menu_pos = menuBar->FindMenu(_("&Debug"));
-    return menu_pos != wxNOT_FOUND;
-}
-
 void DebuggerManager::BuildContextMenu(wxMenu &menu, const wxString& word_at_caret, bool is_running)
 {
     m_menuHandler->BuildContextMenu(menu, word_at_caret, is_running);
@@ -946,7 +940,7 @@ void DebuggerManager::HideLogger()
 
     CodeBlocksLogEvent evt(cbEVT_REMOVE_LOG_WINDOW, m_logger);
     Manager::Get()->ProcessEvent(evt);
-    m_logger = nullptr;
+    m_logger = NULL;
     m_loggerIndex = -1;
 }
 
@@ -955,55 +949,19 @@ void DebuggerManager::SetInterfaceFactory(cbDebugInterfaceFactory *factory)
     cbAssert(!m_interfaceFactory);
     m_interfaceFactory = factory;
 
-    CreateWindows();
+    m_backtraceDialog = m_interfaceFactory->CreateBacktrace();
+    m_breakPointsDialog = m_interfaceFactory->CreateBreapoints();
+    m_cpuRegistersDialog = m_interfaceFactory->CreateCPURegisters();
+    m_disassemblyDialog = m_interfaceFactory->CreateDisassembly();
+    m_examineMemoryDialog = m_interfaceFactory->CreateMemory();
+    m_threadsDialog = m_interfaceFactory->CreateThreads();
+    m_watchesDialog = m_interfaceFactory->CreateWatches();
 
     m_backtraceDialog->EnableWindow(false);
     m_cpuRegistersDialog->EnableWindow(false);
     m_disassemblyDialog->EnableWindow(false);
     m_examineMemoryDialog->EnableWindow(false);
     m_threadsDialog->EnableWindow(false);
-}
-
-void DebuggerManager::CreateWindows()
-{
-    if (!m_backtraceDialog)
-        m_backtraceDialog = m_interfaceFactory->CreateBacktrace();
-    if (!m_breakPointsDialog)
-        m_breakPointsDialog = m_interfaceFactory->CreateBreapoints();
-    if (!m_cpuRegistersDialog)
-        m_cpuRegistersDialog = m_interfaceFactory->CreateCPURegisters();
-    if (!m_disassemblyDialog)
-        m_disassemblyDialog = m_interfaceFactory->CreateDisassembly();
-    if (!m_examineMemoryDialog)
-        m_examineMemoryDialog = m_interfaceFactory->CreateMemory();
-    if (!m_threadsDialog)
-        m_threadsDialog = m_interfaceFactory->CreateThreads();
-    if (!m_watchesDialog)
-        m_watchesDialog = m_interfaceFactory->CreateWatches();
-}
-
-void DebuggerManager::DestoryWindows()
-{
-    m_interfaceFactory->DeleteBacktrace(m_backtraceDialog);
-    m_backtraceDialog = nullptr;
-
-    m_interfaceFactory->DeleteBreakpoints(m_breakPointsDialog);
-    m_breakPointsDialog = nullptr;
-
-    m_interfaceFactory->DeleteCPURegisters(m_cpuRegistersDialog);
-    m_cpuRegistersDialog = nullptr;
-
-    m_interfaceFactory->DeleteDisassembly(m_disassemblyDialog);
-    m_disassemblyDialog = nullptr;
-
-    m_interfaceFactory->DeleteMemory(m_examineMemoryDialog);
-    m_examineMemoryDialog = nullptr;
-
-    m_interfaceFactory->DeleteThreads(m_threadsDialog);
-    m_threadsDialog = nullptr;
-
-    m_interfaceFactory->DeleteWatches(m_watchesDialog);
-    m_watchesDialog = nullptr;
 }
 
 cbDebugInterfaceFactory* DebuggerManager::GetInterfaceFactory()
@@ -1126,7 +1084,7 @@ cbDebuggerPlugin* DebuggerManager::GetActiveDebugger()
     return m_activeDebugger;
 }
 
-inline void RefreshBreakpoints(cb_unused const cbDebuggerPlugin* plugin)
+void RefreshBreakpoints(cb_unused const cbDebuggerPlugin* plugin)
 {
     EditorManager *editorManager = Manager::Get()->GetEditorManager();
     int count = editorManager->GetEditorsCount();
@@ -1139,14 +1097,14 @@ inline void RefreshBreakpoints(cb_unused const cbDebuggerPlugin* plugin)
     }
 }
 
-void DebuggerManager::SetActiveDebugger(cbDebuggerPlugin* activeDebugger, ConfigurationVector::const_iterator config)
+void DebuggerManager::SetActiveDebugger(cbDebuggerPlugin* activeDebugger, ConfigurationVector::iterator config)
 {
     RegisteredPlugins::const_iterator it = m_registered.find(activeDebugger);
     cbAssert(it != m_registered.end());
 
     m_useTargetsDefault = false;
     m_activeDebugger = activeDebugger;
-    int index = std::distance(it->second.GetConfigurations().begin(), config);
+    int index = std::distance<ConfigurationVector::const_iterator>(it->second.GetConfigurations().begin(), config);
     m_activeDebugger->SetActiveConfig(index);
 
     WriteActiveDebuggerConfig(it->first->GetSettingsName(), index);
@@ -1235,8 +1193,7 @@ void DebuggerManager::FindTargetsDebugger()
         compiler = CompilerFactory::GetCompiler(target->GetCompilerID());
         if (!compiler)
         {
-            log->LogError(wxString::Format(_("Current target '%s' doesn't have valid compiler!"),
-                                           target->GetTitle().c_str()));
+            log->LogError(_("Current target doesn't have valid compiler!"));
             m_menuHandler->MarkActiveTargetAsValid(false);
             return;
         }
@@ -1253,8 +1210,7 @@ void DebuggerManager::FindTargetsDebugger()
 
     if (name.empty() || config.empty())
     {
-        log->LogError(wxString::Format(_("Current compiler '%s' doesn't have correctly defined debugger!"),
-                                       compiler->GetName().c_str()));
+        log->LogError(_("Current compiler doesn't have correctly defined debugger!"));
         m_menuHandler->MarkActiveTargetAsValid(false);
         return;
     }
@@ -1283,10 +1239,8 @@ void DebuggerManager::FindTargetsDebugger()
         }
     }
 
-    wxString targetTitle(target ? target->GetTitle() : wxT("<nullptr>"));
-    log->LogError(wxString::Format(_("Can't find the debugger config: '%s:%s' for the current target '%s'!"),
-                                   name.c_str(), config.c_str(),
-                                   targetTitle.c_str()));
+    log->LogError(wxString::Format(_("Can't find the debugger config: '%s:%s' for the current target!"),
+                                   name.c_str(), config.c_str()));
     m_menuHandler->MarkActiveTargetAsValid(false);
 }
 

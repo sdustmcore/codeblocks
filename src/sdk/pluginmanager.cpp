@@ -49,10 +49,10 @@
 
 #include "scripting/bindings/sc_plugin.h"
 
-template<> PluginManager* Mgr<PluginManager>::instance = nullptr;
+template<> PluginManager* Mgr<PluginManager>::instance = 0;
 template<> bool  Mgr<PluginManager>::isShutdown = false;
 
-inline void VersionStringToNumbers(const wxString& version, long* major, long* minor, long* release)
+void VersionStringToNumbers(const wxString& version, long* major, long* minor, long* release)
 {
     wxString majorS = version.BeforeFirst(_T('.')); // 6.3.2 -> 6
     wxString minorS = version.AfterFirst(_T('.')); // 6.3.2 -> 3.2
@@ -67,7 +67,7 @@ inline void VersionStringToNumbers(const wxString& version, long* major, long* m
 }
 
 // returns -1 if new is less then old, 0 if equal and 1 if new is greater than old
-inline int CompareVersions(const wxString& new_version, const wxString& old_version)
+int CompareVersions(const wxString& new_version, const wxString& old_version)
 {
     long new_major, new_minor, new_release;
     long old_major, old_minor, old_release;
@@ -91,14 +91,14 @@ namespace LibLoader
 {
     struct RefCountedLib
     {
-        RefCountedLib() : lib(nullptr), ref(0) {}
+        RefCountedLib() : lib(0), ref(0) {}
         wxDynamicLibrary* lib;
         int ref;
     };
     typedef std::map<wxString, RefCountedLib> Libs;
     Libs s_Libs;
 
-    inline wxDynamicLibrary* LoadLibrary(const wxString& filename)
+    wxDynamicLibrary* LoadLibrary(const wxString& filename)
     {
         Libs::iterator it = s_Libs.find(filename);
         if (it != s_Libs.end())
@@ -115,7 +115,7 @@ namespace LibLoader
         return it->second.lib;
     }
 
-    inline void RemoveLibrary(wxDynamicLibrary* lib)
+    void RemoveLibrary(wxDynamicLibrary* lib)
     {
         Libs::iterator it;
         for (it = s_Libs.begin(); it != s_Libs.end(); ++it)
@@ -140,7 +140,7 @@ namespace LibLoader
         // (or had wrong refcounting)
     }
 
-    inline void Cleanup()
+    void Cleanup()
     {
         Libs::iterator it;
         for (it = s_Libs.begin(); it != s_Libs.end(); ++it)
@@ -164,8 +164,8 @@ END_EVENT_TABLE()
 
 // class constructor
 PluginManager::PluginManager()
-    : m_pCurrentlyLoadingLib(nullptr),
-    m_pCurrentlyLoadingManifestDoc(nullptr)
+    : m_pCurrentlyLoadingLib(0),
+    m_pCurrentlyLoadingManifestDoc(0)
 {
     Manager::Get()->GetAppWindow()->PushEventHandler(this);
 }
@@ -282,7 +282,7 @@ bool PluginManager::InstallPlugin(const wxString& pluginName, bool forAllUsers, 
         settingsOnName.Remove(0, 3);
     if (!platform::windows && settingsOffName.StartsWith(_T("lib")))
         settingsOffName.Remove(0, 3);
-    wxString pluginFilename = UnixFilename(pluginDir + _T('/') + localName);
+    wxString pluginFilename = pluginDir + _T('/') + localName;
 //    Manager::Get()->GetLogManager()->DebugLog(F(_T("Plugin filename: ") + pluginFilename));
 //    Manager::Get()->GetLogManager()->DebugLog(F(_T("Plugin resources: ") + ConfigManager::GetDataFolder() + _T('/') + resourceName));
 
@@ -928,11 +928,9 @@ void PluginManager::ReadExtraFilesFromManifestFile(const wxString& pluginFilenam
 
 int PluginManager::ScanForPlugins(const wxString& path)
 {
-    static const wxString PluginsMask = platform::windows                      ? _T("*.dll")
-                                      : (platform::darwin || platform::macosx) ? _T("*.dylib")
-                                      :                                          _T("*.so");
+    static const wxString PluginsMask = platform::windows ? _T("*.dll") : _T("*.so");
     int count = 0;
-    if (!wxDirExists(path))
+    if(!wxDirExists(path))
         return count;
     wxDir dir(path);
 
@@ -948,10 +946,8 @@ int PluginManager::ScanForPlugins(const wxString& path)
         if (!bbplugins.GetCount())
         {
             // defaults
-            if      (platform::windows)
+            if(platform::windows)
                 bbplugins.Add(_T("compiler.dll"));
-            else if (platform::darwin || platform::macosx)
-                bbplugins.Add(_T("libcompiler.dylib"));
             else
                 bbplugins.Add(_T("libcompiler.so"));
         }
@@ -983,10 +979,10 @@ int PluginManager::ScanForPlugins(const wxString& path)
         }
 
         // load manifest
-        m_pCurrentlyLoadingManifestDoc = nullptr;
+        m_pCurrentlyLoadingManifestDoc = 0;
         if (ReadManifestFile(filename))
         {
-            if (LoadPlugin(path + wxFILE_SEP_PATH + filename))
+            if (LoadPlugin(path + _T('/') + filename))
                 ++count;
             else
                 failed << _T('\n') << filename;
@@ -994,7 +990,7 @@ int PluginManager::ScanForPlugins(const wxString& path)
         if (m_pCurrentlyLoadingManifestDoc)
         {
             delete m_pCurrentlyLoadingManifestDoc;
-            m_pCurrentlyLoadingManifestDoc = nullptr;
+            m_pCurrentlyLoadingManifestDoc = 0;
         }
         ok = dir.GetNext(&filename);
     }
@@ -1024,7 +1020,7 @@ bool PluginManager::LoadPlugin(const wxString& pluginName)
     {
         Manager::Get()->GetLogManager()->LogError(F(_T("%s: not loaded (missing symbols?)"), pluginName.wx_str()));
         LibLoader::RemoveLibrary(m_pCurrentlyLoadingLib);
-        m_pCurrentlyLoadingLib = nullptr;
+        m_pCurrentlyLoadingLib = 0;
         m_CurrentlyLoadingFilename.Clear();
         return false;
     }
@@ -1038,7 +1034,7 @@ bool PluginManager::LoadPlugin(const wxString& pluginName)
     for (it = m_RegisteredPlugins.begin(); it != m_RegisteredPlugins.end(); ++it)
     {
         PluginRegistration& pr = *it;
-        cbPlugin* plug = nullptr;
+        cbPlugin* plug = 0L;
         try
         {
             plug = pr.createProc();
@@ -1068,7 +1064,7 @@ bool PluginManager::LoadPlugin(const wxString& pluginName)
         // no plugins loaded from this library, but it's not an error
         LibLoader::RemoveLibrary(m_pCurrentlyLoadingLib);
     }
-    m_pCurrentlyLoadingLib = nullptr;
+    m_pCurrentlyLoadingLib = 0;
     m_CurrentlyLoadingFilename.Clear();
     return true;
 }
@@ -1086,7 +1082,7 @@ void PluginManager::LoadAllPlugins()
             probPlugin = _T("");
     }
 
-    PluginElement* elem = nullptr;
+    PluginElement* elem = 0;
     for (unsigned int i = 0; i < m_Plugins.GetCount(); ++i)
     {
         elem = m_Plugins[i];
@@ -1185,7 +1181,7 @@ PluginElement* PluginManager::FindElementByName(const wxString& pluginName)
             return plugElem;
     }
 
-    return nullptr;
+    return 0;
 }
 
 cbPlugin* PluginManager::FindPluginByName(const wxString& pluginName)
@@ -1197,7 +1193,7 @@ cbPlugin* PluginManager::FindPluginByName(const wxString& pluginName)
             return plugElem->plugin;
     }
 
-    return nullptr;
+    return 0;
 }
 
 cbPlugin* PluginManager::FindPluginByFileName(const wxString& pluginFileName)
@@ -1209,7 +1205,7 @@ cbPlugin* PluginManager::FindPluginByFileName(const wxString& pluginFileName)
             return plugElem->plugin;
     }
 
-    return nullptr;
+    return 0;
 }
 
 const PluginInfo* PluginManager::GetPluginInfo(const wxString& pluginName)
@@ -1218,7 +1214,7 @@ const PluginInfo* PluginManager::GetPluginInfo(const wxString& pluginName)
     if (plugElem && plugElem->info.name == pluginName)
         return &plugElem->info;
 
-    return nullptr;
+    return 0;
 }
 
 const PluginInfo* PluginManager::GetPluginInfo(cbPlugin* plugin)
@@ -1230,13 +1226,13 @@ const PluginInfo* PluginManager::GetPluginInfo(cbPlugin* plugin)
             return &plugElem->info;
     }
 
-    return nullptr;
+    return 0;
 }
 
 int PluginManager::ExecutePlugin(const wxString& pluginName)
 {
     PluginElement* elem = FindElementByName(pluginName);
-    cbPlugin* plug = elem ? elem->plugin : nullptr;
+    cbPlugin* plug = elem ? elem->plugin : 0;
     if (plug)
     {
         if (plug->GetType() != ptTool)
@@ -1262,7 +1258,7 @@ int PluginManager::ExecutePlugin(const wxString& pluginName)
     return 0;
 }
 
-inline int SortByConfigurationPriority(cbPlugin** first, cbPlugin** second)
+int SortByConfigurationPriority(cbPlugin** first, cbPlugin** second)
 {
     return (*first)->GetConfigurationPriority() - (*second)->GetConfigurationPriority();
 }
@@ -1338,7 +1334,7 @@ PluginsArray PluginManager::GetOffersFor(PluginType type)
 
     // special case for MIME plugins
     // we 'll add the default MIME handler, last in the returned array
-    cbPlugin* dflt = nullptr;
+    cbPlugin* dflt = 0;
 
     for (unsigned int i = 0; i < m_Plugins.GetCount(); ++i)
     {
@@ -1412,7 +1408,7 @@ cbMimePlugin* PluginManager::GetMIMEHandlerForFile(const wxString& filename)
         if (plugin && plugin->CanHandleFile(filename))
             return plugin;
     }
-    return nullptr;
+    return 0;
 }
 
 int PluginManager::Configure()

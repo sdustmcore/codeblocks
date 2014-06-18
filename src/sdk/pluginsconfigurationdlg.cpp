@@ -26,19 +26,19 @@
 #endif
 
 #include "annoyingdialog.h"
-#include <wx/dirdlg.h>
-#include <wx/filedlg.h>
-#include <wx/html/htmlwin.h>
-#include <wx/progdlg.h>
+#include "prep.h"
 #include <wx/settings.h>
-#include <wx/tooltip.h>
+#include <wx/filedlg.h>
+#include <wx/dirdlg.h>
+#include <wx/progdlg.h>
+#include <wx/html/htmlwin.h>
 
 #include "pluginsconfigurationdlg.h" // class's header file
 
 #if wxCHECK_VERSION(2, 9, 1)
-inline int wxCALLBACK sortByTitle(wxIntPtr item1, wxIntPtr item2, cb_unused wxIntPtr sortData)
+int wxCALLBACK sortByTitle(long item1, long item2, cb_unused wxIntPtr sortData)
 #else
-inline int wxCALLBACK sortByTitle(long item1, long item2, cb_unused long sortData)
+int wxCALLBACK sortByTitle(long item1, long item2, cb_unused long sortData)
 #endif
 {
     const PluginElement* elem1 = (const PluginElement*)item1;
@@ -56,7 +56,6 @@ BEGIN_EVENT_TABLE(PluginsConfigurationDlg, wxScrollingDialog)
     EVT_LIST_ITEM_SELECTED(XRCID("lstPlugins"), PluginsConfigurationDlg::OnSelect)
 
     EVT_UPDATE_UI(-1, PluginsConfigurationDlg::OnUpdateUI)
-    EVT_HTML_LINK_CLICKED(XRCID("htmlInfo"), PluginsConfigurationDlg::OnLinkClicked)
 END_EVENT_TABLE()
 
 // class constructor
@@ -103,10 +102,6 @@ PluginsConfigurationDlg::PluginsConfigurationDlg(wxWindow* parent)
     initialInfo << _T("</font></b><br /><i><font color=\"black\">\n");
     initialInfo << _("If a plugin is not well-written, it could cause Code::Blocks to crash ");
     initialInfo << _("when performing any operation on it...");
-    initialInfo << _T("<br></font></b><br /><i><font color=\"green\">\n");
-    initialInfo << _("Some additional plugins can be found here:");
-    initialInfo << _T("</font></b><br /><i><font color=\"black\">\n");
-    initialInfo << _("<A href=\"http://wiki.codeblocks.org/index.php?title=Announcement_for_plugins/patches\">http://wiki.codeblocks.org/index.php?title=Announcement_for_plugins/patches\n </A>");
 
     if (PluginManager::GetSafeMode())
     {
@@ -120,9 +115,6 @@ PluginsConfigurationDlg::PluginsConfigurationDlg(wxWindow* parent)
     initialInfo << _T("</font></i><br /></body></html>\n");
 
     XRCCTRL(*this, "htmlInfo", wxHtmlWindow)->SetPage(initialInfo);
-
-    XRCCTRL(*this, "lstPlugins", wxListCtrl)->Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(PluginsConfigurationDlg::OnMouseMotion));
-    XRCCTRL(*this, "lstPlugins", wxListCtrl)->Connect(wxEVT_MOTION,       wxMouseEventHandler(PluginsConfigurationDlg::OnMouseMotion));
 }
 
 void PluginsConfigurationDlg::FillList()
@@ -148,8 +140,8 @@ void PluginsConfigurationDlg::FillList()
         long idx = list->InsertItem(i, elem->info.title);
         list->SetItem(idx, 1, elem->info.version);
         list->SetItem(idx, 2, elem->plugin->IsAttached() ? _("Yes") : _("No"));
-        list->SetItem(idx, 3, UnixFilename(elem->fileName).AfterLast(wxFILE_SEP_PATH));
-        list->SetItemData(idx, (wxIntPtr)elem);
+        list->SetItem(idx, 3, UnixFilename(elem->fileName));
+        list->SetItemData(idx, (long)elem);
 
         if (!elem->plugin->IsAttached())
             list->SetItemTextColour(idx, wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
@@ -168,8 +160,7 @@ void PluginsConfigurationDlg::FillList()
 // class destructor
 PluginsConfigurationDlg::~PluginsConfigurationDlg()
 {
-    XRCCTRL(*this, "lstPlugins", wxListCtrl)->Disconnect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(PluginsConfigurationDlg::OnMouseMotion));
-    XRCCTRL(*this, "lstPlugins", wxListCtrl)->Disconnect(wxEVT_MOTION,       wxMouseEventHandler(PluginsConfigurationDlg::OnMouseMotion));
+    // insert your code here
 }
 
 void PluginsConfigurationDlg::OnToggle(wxCommandEvent& event)
@@ -363,20 +354,21 @@ void PluginsConfigurationDlg::OnExport(cb_unused wxCommandEvent& event)
 
         if (!confirmed && wxFileExists(filename))
         {
-            AnnoyingDialog dlg(_("Overwrite confirmation"),
+            AnnoyingDialog dlg(_("Confirmation"),
                                 wxString::Format(_("%s already exists.\n"
                                 "Are you sure you want to overwrite it?"), filename.c_str()),
                                 wxART_QUESTION,
                                 AnnoyingDialog::THREE_BUTTONS,
-                                AnnoyingDialog::rtONE,
+                                1,
+                                true,
                                 _("&Yes"), _("Yes to &all"), _("&No"));
             switch (dlg.ShowModal())
             {
-                case AnnoyingDialog::rtTHREE:
+                case 3:
                     continue;
                     break;
 
-                case AnnoyingDialog::rtTWO:
+                case 2:
                     confirmed = true;
                     break;
 
@@ -419,36 +411,6 @@ void PluginsConfigurationDlg::OnSelect(cb_unused wxListEvent& event)
     XRCCTRL(*this, "htmlInfo", wxHtmlWindow)->SetPage(info);
 }
 
-void PluginsConfigurationDlg::OnMouseMotion(wxMouseEvent& event)
-{
-    event.Skip();
-    wxListCtrl* list = XRCCTRL(*this, "lstPlugins", wxListCtrl);
-    if (event.Leaving())
-    {
-        if (list->GetToolTip())
-            list->UnsetToolTip();
-        return;
-    }
-    int flags = 0;
-    long idx = list->HitTest(event.GetPosition(), flags);
-    wxString path;
-    if (flags & wxLIST_HITTEST_ONITEM)
-    {
-        const PluginElement* elem = (const PluginElement*)list->GetItemData(idx);
-        if (elem)
-            path = elem->fileName;
-    }
-    if (list->GetToolTip())
-    {
-        if (path.IsEmpty())
-            list->UnsetToolTip();
-        else if (path != list->GetToolTip()->GetTip())
-            list->SetToolTip(path);
-    }
-    else if (!path.IsEmpty())
-        list->SetToolTip(path);
-}
-
 void PluginsConfigurationDlg::OnUpdateUI(wxUpdateUIEvent& event)
 {
     static long lastSelection = -2;
@@ -465,7 +427,7 @@ void PluginsConfigurationDlg::OnUpdateUI(wxUpdateUIEvent& event)
     lastSelectionMultiple = list->GetSelectedItemCount() > 1;
 
     bool en = sel != -1;
-    const PluginElement* elem = en ? (const PluginElement*)list->GetItemData(sel) : nullptr;
+    const PluginElement* elem = en ? (const PluginElement*)list->GetItemData(sel) : 0;
     bool hasPlugin = elem && elem->plugin;
     bool isAttached = hasPlugin && elem->plugin->IsAttached();
 
@@ -483,9 +445,4 @@ void PluginsConfigurationDlg::EndModal(int retCode)
     cfg->Write(_T("/install_confirmation"), XRCCTRL(*this, "chkInstallConfirmation", wxCheckBox)->GetValue());
 
     wxScrollingDialog::EndModal(retCode);
-}
-
-void PluginsConfigurationDlg::OnLinkClicked(wxHtmlLinkEvent& event)
-{
-    wxLaunchDefaultBrowser(event.GetLinkInfo().GetHref());
 }

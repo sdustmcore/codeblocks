@@ -459,9 +459,7 @@ void CodeRefactoring::DoFindReferences()
     if (!editor)
         return;
 
-    cbSearchResultsLog* searchLog = Manager::Get()->GetSearchResultLogger();
-    if (!searchLog)
-        return;
+    SearchResultsLog* searchLog = Manager::Get()->GetEditorManager()->GetSearchResultLogger();
 
     const wxString focusFile = editor->GetFilename();
     const int focusLine = editor->GetControl()->GetCurrentLine() + 1;

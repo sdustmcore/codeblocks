@@ -95,11 +95,7 @@ BEGIN_EVENT_TABLE(CodeSnippetsApp, wxApp)
 END_EVENT_TABLE()
 
 #ifdef __WXMAC__
-    #if wxCHECK_VERSION(2,9,0)
-        #include "wx/osx/core/cfstring.h"
-    #else
-        #include "wx/mac/corefoundation/cfstring.h"
-    #endif
+    #include "wx/mac/corefoundation/cfstring.h"
     #include "wx/intl.h"
 
     #include <CoreFoundation/CFBundle.h>
@@ -116,11 +112,7 @@ END_EVENT_TABLE()
         CFRelease(resourcesURL);
         CFStringRef cfStrPath = CFURLCopyFileSystemPath(absoluteURL,kCFURLPOSIXPathStyle);
         CFRelease(absoluteURL);
-        #if wxCHECK_VERSION(2,9,0)
-          return wxCFStringRef(cfStrPath).AsString(wxLocale::GetSystemEncoding());
-        #else
-          return wxMacCFStringHolder(cfStrPath).AsString(wxLocale::GetSystemEncoding());
-        #endif
+        return wxMacCFStringHolder(cfStrPath).AsString(wxLocale::GetSystemEncoding());
     }
 #endif
 
@@ -276,6 +268,7 @@ void CodeSnippetsAppFrame::InitCodeSnippetsAppFrame(wxFrame *frame, const wxStri
     m_KeepAliveFileName = wxEmptyString;
     m_pFilesHistory = 0;
 
+    wxStandardPaths stdPaths;
 
     // -------------------------------
     // initialize version and logging
@@ -332,7 +325,7 @@ void CodeSnippetsAppFrame::InitCodeSnippetsAppFrame(wxFrame *frame, const wxStri
     // Find Config File
     // -----------------------------------------
     // Create filename like {%HOME%}\codesnippets.ini
-    m_ConfigFolder = Normalize(wxStandardPaths::Get().GetUserDataDir());
+    m_ConfigFolder = Normalize(stdPaths.GetUserDataDir());
     wxString m_ExecuteFolder = Normalize(FindAppPath(wxTheApp->argv[0], ::wxGetCwd(), wxEmptyString));
 
     #if defined(LOGGING)
@@ -425,13 +418,8 @@ void CodeSnippetsAppFrame::InitCodeSnippetsAppFrame(wxFrame *frame, const wxStri
             // Got the first instance handle of the window from the config file
             HWND pFirstInstance;
             // gotten from cfgFile.Read( wxT("WindowHandle"),  &windowHandle ) ;
-            #if defined(_WIN64) | defined(WIN64)
-            size_t val;
-            if ( GetConfig()->m_sWindowHandle.ToULongLong( &val, 16) )
-            #else
-            long unsigned int val;
+            unsigned long val;
             if ( GetConfig()->m_sWindowHandle.ToULong( &val, 16) )
-            #endif
                 pFirstInstance = (HWND)val;
             if (pFirstInstance && ::IsWindow(pFirstInstance) )
             {
@@ -1399,6 +1387,7 @@ int CodeSnippetsAppFrame::ParseCmdLine(wxFrame* handlerFrame)
 void CodeSnippetsAppFrame::ImportCBResources()
 // ----------------------------------------------------------------------------
 {
+    wxStandardPaths stdPaths;
 
     // Location of app config folder
     wxString appConfigFolder =  Normalize(m_ConfigFolder) ;
@@ -1410,7 +1399,7 @@ void CodeSnippetsAppFrame::ImportCBResources()
     wxString cbExeFolder = Normalize(GetCBExeFolder());
 
     // location of CodeBlocks config folder
-    wxString cbConfigFolder = Normalize(wxStandardPaths::Get().GetUserDataDir());
+    wxString cbConfigFolder = Normalize(stdPaths.GetUserDataDir());
     wxString appParent = GetConfig()->GetAppParent();
     if ( appParent.empty()) appParent =_T("codeblocks");
     wxString prefixPath;

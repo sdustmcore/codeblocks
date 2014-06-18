@@ -17,7 +17,6 @@ Build-Depends: debhelper (>= 7.4.11~)
  , libstdc++6-4.3-dev | libstdc++6-4.4-dev | libstdc++6-4.5-dev | libstdc++6-4.6-dev
  , libboost1.40-dev | libboost-dev (>= 1.40)
  , libhunspell-dev
- , libfontconfig1-dev
 Standards-Version: 3.9.1
 
 Package: codeblocks
@@ -26,10 +25,10 @@ Depends: ${shlibs:Depends}
  , ${misc:Depends}
  , codeblocks-common (= ${source:Version})
  , libcodeblocks0 (= ${binary:Version})
- , xterm
 Recommends:
  gcc | g++
  , gdb
+ , xterm
 Suggests:
  libwxgtk2.8-dev
  , wx-common
@@ -50,8 +49,6 @@ Description: Code::Blocks integrated development environment (IDE)
     * To-do list
     * Extensible wizard based on scripts
     * Autosave (saves your work in the unfortunate case of a crash)
-    * Occurrences highlighter
-    * Open files list
 
 Package: codeblocks-common
 Architecture: all
@@ -138,6 +135,7 @@ Description: contrib plugins for Code::Blocks IDE
     * Autoversioning
     * BrowseTracker
     * Cccc
+    * Code profiler (based on gprof)
     * Code statistics (SLOCs etc)
     * Codesnippets
     * Copy strings
@@ -160,8 +158,6 @@ Description: contrib plugins for Code::Blocks IDE
     * Library finder
     * MouseSap
     * NassiShneiderman
-    * Profiler (based on gprof)
-    * ProjectOptionsManipulator
     * Regular expression testbed
     * Reopen last closed editor(s) via menu or hotkey
     * Smartindent plugin (cpp, HDL, Fortran, Lua, Pascal, Python, XML)
@@ -213,6 +209,7 @@ Depends: ${misc:Depends}
 Description: Debugging libraries for the Code::Blocks contrib plugins
  This package extends Code::Blocks functionality a great deal with the included
  plugins. These are:
+    * Code profiler (based on gprof)
     * Code statistics (SLOCs etc)
     * Copy strings
     * Cscope
@@ -237,8 +234,6 @@ Description: Debugging libraries for the Code::Blocks contrib plugins
     * IncrementalSearch
     * Codesnippets
     * Library finder
-    * Profiler (based on gprof)
-    * ProjectOptionsManipulator
     * Regular expression testbed
     * Reopen last closed editor(s) via menu or hotkey
     * Spellchecker plugin

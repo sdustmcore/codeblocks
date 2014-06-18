@@ -1,6 +1,6 @@
 SUBDIRS = include/wx/KWIC include/wx/xrc
 
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+INCLUDES = $(WX_CXXFLAGS) \
 		-I$(srcdir)/include
 
 wxcontribitemsdir=$(libdir)/codeblocks/wxContribItems

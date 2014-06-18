@@ -2,7 +2,7 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="CC Test (Unix)" />
+		<Option title="CC Test (unix)" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="cctest">
@@ -12,6 +12,7 @@
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
+					<Add option="-DCC_PARSER_TEST" />
 					<Add directory="cctest" />
 					<Add directory="parser" />
 					<Add directory="." />
@@ -27,11 +28,12 @@
 		</VirtualTargets>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add option="-ansi" />
 			<Add option="$(#CB_RELEASE_TYPE)" />
 			<Add option="-pipe" />
 			<Add option="-fmessage-length=0" />
 			<Add option="-fexceptions" />
+			<Add option="-Ulinux" />
+			<Add option="-Uunix" />
 			<Add option="-fPIC" />
 			<Add option="`$(WX_CONFIG) --cflags`" />
 			<Add option="-DcbDEBUG" />
@@ -40,10 +42,11 @@
 		</Compiler>
 		<Linker>
 			<Add option="`$(WX_CONFIG) --libs std`" />
-			<Add option="-Wl,--no-undefined" />
 			<Add library="codeblocks" />
 			<Add directory="../../devel" />
 		</Linker>
+		<Unit filename="cctest/cctest.cpp" />
+		<Unit filename="cctest/cctest.h" />
 		<Unit filename="cctest/cctest_app.cpp" />
 		<Unit filename="cctest/cctest_frame.cpp" />
 		<Unit filename="cctest/cctest_frame.h" />
@@ -72,7 +75,6 @@
 		<Unit filename="parser/tokenizer.h" />
 		<Unit filename="parser/tokentree.cpp" />
 		<Unit filename="parser/tokentree.h" />
-		<Unit filename="wxsmith/CCTestFrame.wxs" />
 		<Extensions>
 			<code_completion />
 			<envvars />

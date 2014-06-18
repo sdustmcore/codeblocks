@@ -7,7 +7,7 @@
  * $HeadURL$
  */
 
-#ifdef __WXMSW__
+#if (__WXMSW__)
 #include "sdk.h"
 #ifndef CB_PRECOMP
     #include <wx/filefn.h>
@@ -23,7 +23,7 @@
 #include "crashhandler.h"
 #include <shlobj.h>
 
-inline void CrashHandlerSaveEditorFiles(wxString& buf)
+void CrashHandlerSaveEditorFiles(wxString& buf)
 {
     wxString path;
     //get the "My Files" folder
@@ -89,10 +89,8 @@ LONG WINAPI CrashHandlerFunc(PEXCEPTION_POINTERS ExceptionInfo)
         return EXCEPTION_CONTINUE_SEARCH;
 
     wxString buf;
-#if !defined(_WIN64)
     buf.Printf(_("The application encountered a crash at address %u.\n\n"),
                (unsigned int) ExceptionInfo->ContextRecord->Eip);
-#endif
 
     if (EditorFilesNotSaved)
     {
@@ -113,16 +111,12 @@ LONG WINAPI CrashHandlerFunc(PEXCEPTION_POINTERS ExceptionInfo)
         break;
 
         case IDIGNORE:
-#if !defined(_WIN64)
         ExceptionInfo->ContextRecord->Eip += 2;
-#endif
         return EXCEPTION_CONTINUE_EXECUTION;
         break;
 
         case IDRETRY:
         return EXCEPTION_CONTINUE_EXECUTION;
-        break;
-        default:
         break;
     }
     return EXCEPTION_CONTINUE_SEARCH;

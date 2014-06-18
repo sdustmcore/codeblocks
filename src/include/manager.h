@@ -39,9 +39,6 @@ class UserVariableManager;
 class ScriptingManager;
 class ConfigManager;
 class FileManager;
-class ColourManager;
-class CCManager;
-class cbSearchResultsLog;
 
 
 class DLLIMPORT Manager
@@ -122,8 +119,7 @@ public:
     ConfigManager*       GetConfigManager(const wxString& name_space) const;
     FileManager*         GetFileManager()                             const;
     DebuggerManager*     GetDebuggerManager()                         const;
-    ColourManager*       GetColourManager()                           const;
-    CCManager*           GetCCManager()                               const;
+
 
 
     /////// XML Resource functions ///////
@@ -156,11 +152,6 @@ public:
     void RegisterEventSink(wxEventType eventType, IEventFunctorBase<CodeBlocksLogEvent>*    functor);
     void RemoveAllEventSinksFor(void* owner);
 
-    /// Returns pointer to the search result logger, might be nullptr or hidden.
-    cbSearchResultsLog* GetSearchResultLogger() const { return m_SearchResultLog; }
-    /// Sets the pointer to the search result logger, users must not call this method.
-    void SetSearchResultLogger(cbSearchResultsLog *log) { m_SearchResultLog = log; }
-
 private:
     // event sinks
     typedef std::vector< IEventFunctorBase<CodeBlocksEvent>* >       EventSinksArray;
@@ -176,7 +167,6 @@ private:
     DockEventSinksMap   m_DockEventSinks;
     LayoutEventSinksMap m_LayoutEventSinks;
     LogEventSinksMap    m_LogEventSinks;
-    cbSearchResultsLog *m_SearchResultLog;
 };
 
 template <class MgrT> class Mgr
@@ -188,8 +178,8 @@ template <class MgrT> class Mgr
 
 protected:
 
-    Mgr()          { assert(Mgr<MgrT>::instance == nullptr); }
-    virtual ~Mgr() { Mgr<MgrT>::instance = nullptr; }
+    Mgr()          { assert(Mgr<MgrT>::instance == 0); }
+    virtual ~Mgr() { Mgr<MgrT>::instance = 0; }
 
 public:
 
@@ -197,7 +187,7 @@ public:
 
     static inline MgrT* Get()
     {
-        if (instance == nullptr && isShutdown == false)
+        if (instance == 0 && isShutdown == false)
             instance = new MgrT();
 
         return instance;
@@ -207,7 +197,7 @@ public:
     {
         isShutdown = true;
         delete instance;
-        instance = nullptr;
+        instance = 0;
     }
 };
 

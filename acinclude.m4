@@ -48,8 +48,8 @@ AC_DEFUN([CODEBLOCKS_SETUP_FOR_TARGET],
     darwin=true
 ;;
  *) dnl default to standard linux
-    AC_SUBST(SHARED_FLAGS, "-shared")
-    AC_SUBST(PLUGIN_FLAGS, "-shared -avoid-version")
+	AC_SUBST(SHARED_FLAGS, "-shared")
+	AC_SUBST(PLUGIN_FLAGS, "-shared -avoid-version")
     linux=true
 ;;
 esac
@@ -66,40 +66,15 @@ AC_MSG_CHECKING(whether to enable debugging)
 debug_default="no"
 AC_ARG_ENABLE(debug, [AC_HELP_STRING([--enable-debug], [turn on debugging (default is OFF)])],,
                        enable_debug=$debug_default)
-    if test "x$enable_debug" = "xyes"; then
-        CFLAGS="-g -DDEBUG -DCB_AUTOCONF $CFLAGS"
-        CXXFLAGS="-g -DDEBUG -DCB_AUTOCONF $CXXFLAGS"
-        LDFLAGS="-Wl,--no-undefined"
-        AC_MSG_RESULT(yes)
-    else
-        CFLAGS="-O2 -ffast-math -DCB_AUTOCONF $CFLAGS"
-        CXXFLAGS="-O2 -ffast-math -DCB_AUTOCONF $CXXFLAGS"
-        LDFLAGS="-Wl,--no-undefined"
-        AC_MSG_RESULT(no)
-    fi
-])
-
-AC_DEFUN([CB_GCC_VERSION], [
-    GCC_FULL_VERSION=""
-    GCC_MAJOR_VERSION=""
-    GCC_MINOR_VERSION=""
-    GCC_PATCH_VERSION=""
-    if test "x$GCC" = "xyes" ; then
-        AC_CACHE_CHECK([gcc version],[cb_cv_gcc_version],[
-            cb_cv_gcc_version="`$CC -dumpversion`"
-            if test "x$cb_cv_gcc_version" = "x"; then
-                cb_cv_gcc_version=""
-            fi
-        ])
-        GCC_FULL_VERSION=$cb_cv_gcc_version
-        GCC_MAJOR_VERSION=$(echo $GCC_FULL_VERSION | cut -d'.' -f1)
-        GCC_MINOR_VERSION=$(echo $GCC_FULL_VERSION | cut -d'.' -f2)
-        GCC_PATCH_VERSION=$(echo $GCC_FULL_VERSION | cut -d'.' -f3)
-    fi
-    AC_SUBST([GCC_VERSION])
-    AC_SUBST([GCC_MAJOR_VERSION])
-    AC_SUBST([GCC_MINOR_VERSION])
-    AC_SUBST([GCC_PATCH_VERSION])
+if test "x$enable_debug" = "xyes"; then
+         CFLAGS="-g -DDEBUG -DCB_AUTOCONF $CFLAGS"
+         CXXFLAGS="-g -DDEBUG -DCB_AUTOCONF $CXXFLAGS"
+	AC_MSG_RESULT(yes)
+else
+	CFLAGS="-O2 -ffast-math -DCB_AUTOCONF $CFLAGS"
+	CXXFLAGS="-O2 -ffast-math -DCB_AUTOCONF $CXXFLAGS"
+	AC_MSG_RESULT(no)
+fi
 ])
 
 dnl check what settings to enable
@@ -193,17 +168,6 @@ else
 	AC_MSG_RESULT(no)
 fi
 
-AC_MSG_CHECKING(whether to build the occurrences highlighting plugin)
-occurrenceshighlighting_default="yes"
-AC_ARG_ENABLE(occurrences-highlighting, [AC_HELP_STRING([--enable-occurrences-highlighting], [build the occurrences highlighting plugin (default YES)])],,
-                       enable_occurrenceshighlighting=$occurrenceshighlighting_default)
-AM_CONDITIONAL([BUILD_OCCURRENCESHIGHLIGHTING], [test "x$enable_occurrenceshighlighting" = "xyes"])
-if test "x$enable_occurrenceshighlighting" = "xyes"; then
-	AC_MSG_RESULT(yes)
-else
-	AC_MSG_RESULT(no)
-fi
-
 AC_MSG_CHECKING(whether to build the foreign projects importer plugin)
 pimport_default="yes"
 AC_ARG_ENABLE(projects-importer, [AC_HELP_STRING([--enable-projects-importer], [build the foreign projects importer plugin (default YES)])],,
@@ -254,17 +218,6 @@ AC_ARG_ENABLE(keep-dlls, [AC_HELP_STRING([--enable-keep-dlls], [keep prebuild wi
                        enable_keep_dlls=$keep_dlls_default)
 AM_CONDITIONAL([KEEP_DLLS], [test "x$enable_keep_dlls" = "xyes"])
 if test "x$enable_keep_dlls" = "xyes"; then
-	AC_MSG_RESULT(yes)
-else
-	AC_MSG_RESULT(no)
-fi
-
-AC_MSG_CHECKING(whether to integrate fortran-plugin in dist-tarball)
-enable_fortran_default="yes"
-AC_ARG_ENABLE(fortran, [AC_HELP_STRING([--enable-fortran], [integrate (external) fortran plugin in dist-tarball (default YES), NOTE: it will not be build automatically])],,
-                       enable_fortran=$enable_fortran_default)
-AM_CONDITIONAL([ENABLE_FORTRAN], [test "x$enable_fortran" = "xyes"])
-if test "x$enable_fortran" = "xyes"; then
 	AC_MSG_RESULT(yes)
 else
 	AC_MSG_RESULT(no)
@@ -321,7 +274,6 @@ AC_DEFUN([BUILD_CONTRIB_NONE], [
 	AM_CONDITIONAL([BUILD_LIBFINDER], [false])
 	AM_CONDITIONAL([BUILD_NASSISHNEIDERMAN], [false])
 	AM_CONDITIONAL([BUILD_PROFILER], [false])
-	AM_CONDITIONAL([BUILD_PROJECTOPTIONSMANIPULATOR], [false])
 	AM_CONDITIONAL([BUILD_REGEX], [false])
 	AM_CONDITIONAL([BUILD_REOPENEDITOR], [false])
 	AM_CONDITIONAL([BUILD_EXPORTER], [false])
@@ -362,7 +314,6 @@ AC_DEFUN([BUILD_CONTRIB_ALL], [
 	AM_CONDITIONAL([BUILD_KEYBINDER], [true])
 	AM_CONDITIONAL([BUILD_LIBFINDER], [true])
 	AM_CONDITIONAL([BUILD_NASSISHNEIDERMAN], [true])
-	AM_CONDITIONAL([BUILD_PROJECTOPTIONSMANIPULATOR], [true])
 	AM_CONDITIONAL([BUILD_PROFILER], [true])
 	AM_CONDITIONAL([BUILD_REGEX], [true])
 	AM_CONDITIONAL([BUILD_REOPENEDITOR], [true])
@@ -391,22 +342,21 @@ AC_MSG_CHECKING(which (if any) contrib plugins to build)
 AC_ARG_WITH(contrib-plugins,
   [  --with-contrib-plugins=<list>     compile contrib plugins in <list>. ]
   [                        plugins may be separated with commas. ]
-  [                        "all", "yes" or just "--with-contrib-plugins" compiles all contrib plugins ]
-  [                        "all,-help" or "yes,-help" compiles all contrib plugins except the help plugin ]
-  [                        "none", "no", "--without-contrib-plugins" or skipping the parameter at all, ]
-  [                        compiles none of the contrib-plugins ]
-  [                        Plugin names are: AutoVersioning, BrowseTracker, byogames, Cccc, CppCheck, cbkoders, codesnippets, ]
+  [                        "all" compiles all contrib plugins ]
+  [                        "all,-help" compiles all contrib plugins except the help plugin ]
+  [                        By default, no contrib plugins are compiled ]
+  [                        Plugin names are: AutoVersioning, BrowseTracker,byogames,Cccc,CppCheck,cbkoders,codesnippets, ]
   [                        		     codestat, copystrings, Cscope, DoxyBlocks, dragscroll, EditorConfig, EditorTweaks, envvars, ]
   [                        		     FileManager, headerfixup, help, hexeditor, incsearch, keybinder, libfinder, MouseSap, ]
-  [                        		     NassiShneiderman, ProjectOptionsManipulator, profiler, regex, ReopenEditor, exporter, smartindent, spellchecker, ]
-  [                        		     symtab, ThreadSearch, ToolsPlus, Valgrind, wxcontrib, wxsmith, wxsmithcontrib, wxsmithaui ],
+  [                        		     NassiShneiderman, profiler, regex, ReopenEditor, exporter, smartindent, spellchecker, symtab, ]
+  [                        		     ThreadSearch, ToolsPlus, Valgrind, wxcontrib, wxsmith, wxsmithcontrib, wxsmithaui ],
   plugins="$withval", plugins="none")
 
 plugins=`echo $plugins | sed 's/,/ /g'`
 for plugin in $plugins
 do
     case "$plugin" in
-	all|yes)
+	all)
 		BUILD_CONTRIB_ALL
 		;;
 	AutoVersioning)
@@ -465,9 +415,6 @@ do
 		;;
 	NassiShneiderman)
 		AM_CONDITIONAL([BUILD_NASSISHNEIDERMAN], [true])
-		;;
-	ProjectOptionsManipulator)
-		AM_CONDITIONAL([BUILD_PROJECTOPTIONSMANIPULATOR], [true])
 		;;
 	profiler)
 		AM_CONDITIONAL([BUILD_PROFILER], [true])
@@ -640,14 +587,8 @@ do
 	-CppCheck)
 		AM_CONDITIONAL([BUILD_CPPCHECK], [false])
 		;;
-	none|no)
-		;;
 	*)
-		echo
-		echo "Error: Unknown contrib plugin $plugin." >&2
-		echo "       Note: the names are case-sensitive!" >&2
-		echo "       Try $[0] --help for exact spelling." >&2
-		exit 1
+		echo "Unknown contrib plugin $plugin, ignoring"
 		;;
     esac
 done

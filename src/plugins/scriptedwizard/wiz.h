@@ -1,11 +1,28 @@
 /*
  * This file is part of the Code::Blocks IDE and licensed under the GNU General Public License, version 3
  * http://www.gnu.org/licenses/gpl-3.0.html
+ *
+ * $Revision$
+ * $Id$
+ * $HeadURL$
  */
 
 #ifndef WIZ_H
 #define WIZ_H
 
+#if defined(__GNUG__) && !defined(__APPLE__)
+	#pragma interface "wiz.h"
+#endif
+// For compilers that support precompilation, includes <wx/wx.h>
+#include <wx/wxprec.h>
+
+#ifdef __BORLANDC__
+	#pragma hdrstop
+#endif
+
+#ifndef WX_PRECOMP
+	#include <wx/wx.h>
+#endif
 
 #include <cbplugin.h> // the base class we 're inheriting
 #include <settings.h> // needed to use the Code::Blocks SDK
@@ -92,16 +109,8 @@ class Wiz : public cbWizardPlugin
         wxString GetListboxStringSelections(const wxString& name);
         void SetListboxSelection(const wxString& name, int sel);
 
-        wxString GetCheckListboxChecked(const wxString& name);
-        wxString GetCheckListboxStringChecked(const wxString& name);
-        bool IsCheckListboxItemChecked(const wxString& name, unsigned int item);
-        void CheckCheckListboxItem(const wxString& name, unsigned int item, bool check);
-
         void SetTextControlValue(const wxString& name, const wxString& value);
         wxString GetTextControlValue(const wxString& name);
-
-        void SetSpinControlValue(const wxString& name, int value);
-        int GetSpinControlValue(const wxString& name);
 
         // project path page
         wxString GetProjectPath();

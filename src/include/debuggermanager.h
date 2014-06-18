@@ -93,15 +93,12 @@ class DLLIMPORT cbWatch
         bool IsExpanded() const;
         void Expand(bool expand);
 
-        bool IsAutoUpdateEnabled() const;
-        void AutoUpdate(bool enabled);
     private:
         cb::weak_ptr<cbWatch> m_parent;
         std::vector<cb::shared_ptr<cbWatch> >    m_children;
         bool            m_changed;
         bool            m_removed;
         bool            m_expanded;
-        bool            m_autoUpdate;
 };
 
 cb::shared_ptr<cbWatch> DLLIMPORT cbGetRootWatch(cb::shared_ptr<cbWatch> watch);
@@ -112,13 +109,13 @@ class DLLIMPORT cbStackFrame
         cbStackFrame();
 
         void SetNumber(int number);
-        void SetAddress(size_t address);
+        void SetAddress(unsigned long int address);
         void SetSymbol(const wxString& symbol);
         void SetFile(const wxString& filename, const wxString &line);
         void MakeValid(bool flag);
 
         int GetNumber() const;
-        size_t GetAddress() const;
+        unsigned long int GetAddress() const;
         const wxString& GetSymbol() const;
         const wxString& GetFilename() const;
         const wxString& GetLine() const;
@@ -126,7 +123,7 @@ class DLLIMPORT cbStackFrame
     private:
         bool m_valid; ///< Is this stack frame valid?
         int m_number; ///< Stack frame's number (used in backtraces).
-        size_t m_address; ///< Stack frame's address.
+        unsigned long int m_address; ///< Stack frame's address.
         wxString m_symbol; ///< Current function name.
         wxString m_file; ///< Current file.
         wxString m_line; ///< Current line in file.
@@ -264,7 +261,6 @@ class DLLIMPORT DebuggerManager : public Mgr<DebuggerManager>
         void RebuildAllConfigs();
 
         wxMenu* GetMenu();
-        bool HasMenu() const;
         void BuildContextMenu(wxMenu &menu, const wxString& word_at_caret, bool is_running);
 
         TextCtrlLogger* GetLogger(int &index);
@@ -278,41 +274,11 @@ class DLLIMPORT DebuggerManager : public Mgr<DebuggerManager>
         cbDebuggerMenuHandler* GetMenuHandler();
 
         cbBacktraceDlg* GetBacktraceDialog();
-
-        /** Returns a pointer to the breakpoints dialog.
-          * It will return nullptr if there are no debugger plugins loaded.
-          * Debugger plugin writers can treat it as always returning non-null value.
-          */
         cbBreakpointsDlg* GetBreakpointDialog();
-
-        /** Returns a pointer to the CPU registers dialog.
-          * It will return nullptr if there are no debugger plugins loaded.
-          * Debugger plugin writers can treat it as always returning non-null value.
-          */
         cbCPURegistersDlg* GetCPURegistersDialog();
-
-        /** Returns a pointer to the disassembly dialog.
-          * It will return nullptr if there are no debugger plugins loaded.
-          * Debugger plugin writers can treat it as always returning non-null value.
-          */
         cbDisassemblyDlg* GetDisassemblyDialog();
-
-        /** Returns a pointer to the memory dialog.
-          * It will return nullptr if there are no debugger plugins loaded.
-          * Debugger plugin writers can treat it as always returning non-null value.
-          */
         cbExamineMemoryDlg* GetExamineMemoryDialog();
-
-        /** Returns a pointer to the threads dialog.
-          * It will return nullptr if there are no debugger plugins loaded.
-          * Debugger plugin writers can treat it as always returning non-null value.
-          */
         cbThreadsDlg* GetThreadsDialog();
-
-        /** Returns a pointer to the watches dialog.
-          * It will return nullptr if there are no debugger plugins loaded.
-          * Debugger plugin writers can treat it as always returning non-null value.
-          */
         cbWatchesDlg* GetWatchesDialog();
 
         bool ShowBacktraceDialog();
@@ -331,7 +297,7 @@ class DLLIMPORT DebuggerManager : public Mgr<DebuggerManager>
         RegisteredPlugins const & GetAllDebuggers() const;
         RegisteredPlugins & GetAllDebuggers();
         cbDebuggerPlugin* GetActiveDebugger();
-        void SetActiveDebugger(cbDebuggerPlugin* activeDebugger, ConfigurationVector::const_iterator config);
+        void SetActiveDebugger(cbDebuggerPlugin* activeDebugger, ConfigurationVector::iterator config);
         void SetTargetsDefaultAsActiveDebugger();
         bool IsActiveDebuggerTargetsDefault() const;
 
@@ -342,8 +308,6 @@ class DLLIMPORT DebuggerManager : public Mgr<DebuggerManager>
         void ProcessSettings(RegisteredPlugins::iterator it);
         void FindTargetsDebugger();
         void RefreshUI();
-        void CreateWindows();
-        void DestoryWindows();
 
         void OnProjectActivated(CodeBlocksEvent& event);
         void OnTargetSelected(CodeBlocksEvent& event);

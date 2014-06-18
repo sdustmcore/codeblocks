@@ -37,6 +37,7 @@
 				</object>
 				<flag>wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
+				<option>1</option>
 			</object>
 			<object class="sizeritem">
 				<object class="wxStaticLine" name="ID_STATICLINE1" />
@@ -380,6 +381,35 @@
 								<object class="sizeritem">
 									<object class="wxFlexGridSizer">
 										<cols>2</cols>
+										<vgap>4</vgap>
+										<hgap>4</hgap>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT23">
+												<label>Warning message text colour:</label>
+											</object>
+											<flag>wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+										</object>
+										<object class="sizeritem">
+											<object class="wxButton" name="btnLogWarningTextColour" />
+											<flag>wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT</flag>
+										</object>
+										<object class="sizeritem">
+											<object class="wxStaticText" name="ID_STATICTEXT24">
+												<label>Error message text colour:</label>
+											</object>
+											<flag>wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+										</object>
+										<object class="sizeritem">
+											<object class="wxButton" name="btnLogErrorTextColour" />
+											<flag>wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT</flag>
+										</object>
+									</object>
+									<flag>wxLEFT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+									<border>8</border>
+								</object>
+								<object class="sizeritem">
+									<object class="wxFlexGridSizer">
+										<cols>2</cols>
 										<vgap>8</vgap>
 										<hgap>8</hgap>
 										<object class="sizeritem">
@@ -430,13 +460,14 @@
 											<border>4</border>
 										</object>
 										<object class="sizeritem">
-											<object class="wxChoice" name="cmbEditorTabs">
+											<object class="wxComboBox" name="cmbEditorTabs">
 												<content>
 													<item>Default</item>
 													<item>Simple tabs</item>
 													<item>Microsoft (tm) Visual Studio 7.1</item>
 													<item>Firefox 2</item>
 												</content>
+												<style>wxCB_READONLY</style>
 											</object>
 											<flag>wxLEFT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 											<border>4</border>
@@ -459,12 +490,13 @@
 											<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 										</object>
 										<object class="sizeritem">
-											<object class="wxChoice" name="cmbTabCloseStyle">
+											<object class="wxComboBox" name="cmbTabCloseStyle">
 												<content>
 													<item>all tabs</item>
 													<item>current tab</item>
 													<item>the right side</item>
 												</content>
+												<style>wxCB_READONLY</style>
 											</object>
 											<flag>wxLEFT|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 											<border>4</border>
@@ -554,91 +586,6 @@
 							</object>
 						</object>
 						<label>Notebooks appearance</label>
-					</object>
-					<object class="listbookpage">
-						<object class="wxPanel" name="tabColours">
-							<object class="wxBoxSizer">
-								<orient>wxVERTICAL</orient>
-								<object class="sizeritem">
-									<object class="wxBoxSizer">
-										<object class="sizeritem">
-											<object class="wxStaticText" name="ID_STATICTEXT4">
-												<label>Category:</label>
-											</object>
-											<flag>wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-											<border>5</border>
-										</object>
-										<object class="sizeritem">
-											<object class="wxChoice" name="chCategory" />
-											<flag>wxALIGN_LEFT|wxALIGN_BOTTOM</flag>
-											<border>5</border>
-											<option>1</option>
-										</object>
-									</object>
-									<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_BOTTOM</flag>
-								</object>
-								<object class="sizeritem">
-									<object class="wxBoxSizer">
-										<object class="sizeritem">
-											<object class="wxListBox" name="lstColours">
-												<default>-1</default>
-											</object>
-											<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_BOTTOM</flag>
-											<border>5</border>
-											<option>1</option>
-										</object>
-										<object class="sizeritem">
-											<object class="wxBoxSizer">
-												<orient>wxVERTICAL</orient>
-												<object class="sizeritem">
-													<object class="wxStaticText" name="ID_STATICTEXT11">
-														<label>Colour:</label>
-													</object>
-													<flag>wxTOP|wxEXPAND|wxALIGN_BOTTOM|wxALIGN_CENTER_HORIZONTAL</flag>
-													<border>5</border>
-												</object>
-												<object class="sizeritem">
-													<object class="wxButton" name="btnColour">
-														<label>...</label>
-													</object>
-													<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_BOTTOM</flag>
-													<border>5</border>
-												</object>
-												<object class="sizeritem">
-													<object class="wxStaticLine" name="ID_STATICLINE4">
-														<size>10,-1</size>
-													</object>
-													<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_BOTTOM</flag>
-													<border>5</border>
-													<option>1</option>
-												</object>
-												<object class="sizeritem">
-													<object class="wxStaticText" name="ID_STATICTEXT25">
-														<label>Default:</label>
-													</object>
-													<flag>wxEXPAND|wxALIGN_BOTTOM|wxALIGN_CENTER_HORIZONTAL</flag>
-													<border>5</border>
-												</object>
-												<object class="sizeritem">
-													<object class="wxButton" name="btnDefaultColour">
-														<label>Default</label>
-													</object>
-													<flag>wxALIGN_LEFT|wxALIGN_BOTTOM</flag>
-													<border>5</border>
-													<option>1</option>
-												</object>
-											</object>
-											<flag>wxALL|wxALIGN_LEFT|wxALIGN_TOP</flag>
-											<border>5</border>
-										</object>
-									</object>
-									<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_BOTTOM</flag>
-									<border>5</border>
-									<option>1</option>
-								</object>
-							</object>
-						</object>
-						<label>Colours</label>
 					</object>
 					<object class="listbookpage">
 						<object class="wxPanel" name="pnlDocking">

@@ -26,21 +26,14 @@
         source files have not been through the extensive system tests that are done before each release. Use reasonable
         precautions when using source code from the repository.</p>
     <p>
-        <strong>The repository address was changed on 5/31/13 when the project was upgraded to the Allura platform by SourceForge.</strong>
-        The new repository address is "https://svn.code.sf.net/p/astyle/code" or "svn://svn.code.sf.net/p/astyle/code".
-        The OLD repository address was "https://astyle.svn.sourceforge.net/svnroot/astyle", which is now read only. If
-        you have checked out a working copy of the AStyle source check the <a href="http://sourceforge.net/p/forge/community-docs/Repository%20Upgrade%20FAQ/">
-            Repository Upgrade FAQ</a> for information on <a href="http://sourceforge.net/p/forge/community-docs/Repository%20Upgrade%20FAQ/#how-do-i-change-svn-to-point-to-the-new-repo">
-                how to change the repository</a>.</p>
-    <p>
-        The current version is in the "trunk/AStyle" branch of the repository. The file and directory names are case sensitive.</p>
+        The repository address is "https://astyle.svn.sourceforge.net/svnroot/astyle". The current version is in the "trunk/AStyle"
+        branch of the repository. The file and directory names in the repository are case sensitive.</p>
     <p>
         A sample checkout is:<br />
-        <strong>svn&nbsp; checkout&nbsp; "https://svn.code.sf.net/p/astyle/code/trunk/AStyle"&nbsp; "$HOME/astyle"</strong></p>
+        <strong>svn&nbsp; checkout&nbsp; "https://astyle.svn.sourceforge.net/svnroot/astyle/trunk/AStyle"&nbsp; "$HOME/astyle"</strong></p>
     <p>
-        You can also <a href="https://sourceforge.net/p/astyle/code/HEAD/tree/">browse the subversion repository</a>.
-        The current development release is in the "trunk" directory. This gives you a view into the current status of
-        the project's code without actually checking-out the files.</p>
+        You can also <a href="http://astyle.svn.sourceforge.net/viewvc/astyle/">browse the subversion repository</a>.
+        This gives you a view into the current status of the project's code without actually checking-out the files.</p>
     <p>
         &nbsp;</p>
 
@@ -61,34 +54,28 @@
         to that section for more information.</p>
     <p>
         A sample checkout is:<br />
-        svn&nbsp; checkout&nbsp; "https://svn.code.sf.net/p/astyle/code/trunk/AStyleDev"&nbsp; "$HOME/astyledev"</p>
+        svn&nbsp; checkout&nbsp; "https://astyle.svn.sourceforge.net/svnroot/astyle/trunk/AStyleDev"&nbsp; "$HOME/astyledev"
+        .</p>
 
     <h4>
         AStyleTest</h4>
 
     <p>
-        AStyleTest contains the unit test programs and test scripts for Artistic Style. There are over 2000 tests in the
-        main test program.</p>
+        AStyleTest contains the unit test programs and test scripts for Artistic Style.</p>
+    <p>
+        In addition to the Artistic Style source the unit test program requires the program <a href="http://code.google.com/p/googlemock/"
+            target="astyle" title="open new window">Google Mock</a>. An optional leak finder program can be added if you
+        are using Visual Studio. It can be found at <a href="http://www.codeproject.com/KB/applications/leakfinder.aspx"
+            target="astyle" title="open new window">Memory(-Leak) and Exception Trace (CRT and COM Leaks)</a> at "The
+        Code Project". You have to search through the message board at the bottom of the description to find the most
+        current release. As of May 2011, the most current download is <a href="http://blog.kalmbachnet.de/files/LeakFinder-RC11.zip">
+            http://blog.kalmbachnet.de/files/LeakFinder-RC11.zip</a>.</p>
     <p>
         A sample checkout is:<br />
-        svn&nbsp; checkout&nbsp; "https://svn.code.sf.net/p/astyle/code/trunk/AStyleTest"&nbsp; "$HOME/astyletest"</p>
+        svn&nbsp; checkout&nbsp; "https://astyle.svn.sourceforge.net/svnroot/astyle/trunk/AStyleTest"&nbsp; "$HOME/astyletest"
+        .</p>
     <p>
-        In addition to the Artistic Style source the test program requires
-        <a href="http://code.google.com/p/googlemock/"
-            target="astyle" title="open new window">Google Mock</a>. This is the Google multi-platform framework for writing C++ 
-        unit tests. The main Artistic Style test project, AStyleTest, actually uses &quot;integration&quot; tests instead of 
-        &quot;unit&quot; tests. This type of testing can be effective for programs that were written without unit tests to begin 
-        with.</p>
-    <p>
-        An optional leak finder program can be added if you
-        are using Visual Studio. The <a href="https://vld.codeplex.com/" target="astyle"
-            title="open new window">Visual Leak Detector</a> should be installed in the default install directory
-        (C:\Program Files (x86)\Visual Leak Detector). You do NOT need to change the &quot;PATH&quot; environment variable.
-        It can be downloaded from the website or installed from standard versions of Visual Studio 2012 from the 
-        &quot;Tools &gt; Extensions and Updates&quot; menu.</p>
-    <p>
-        &nbsp;
-    </p>
+        &nbsp;</p>
 
     <center style="margin-left: -0.4in;">
         <a href="http://sourceforge.net/projects/astyle">

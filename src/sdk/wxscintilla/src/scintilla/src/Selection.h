@@ -92,9 +92,9 @@ struct SelectionRange {
 
 	SelectionRange() : caret(), anchor() {
 	}
-	explicit SelectionRange(SelectionPosition single) : caret(single), anchor(single) {
+	SelectionRange(SelectionPosition single) : caret(single), anchor(single) {
 	}
-	explicit SelectionRange(int single) : caret(single), anchor(single) {
+	SelectionRange(int single) : caret(single), anchor(single) {
 	}
 	SelectionRange(SelectionPosition caret_, SelectionPosition anchor_) : caret(caret_), anchor(anchor_) {
 	}
@@ -161,7 +161,6 @@ public:
 	void SetMain(size_t r);
 	SelectionRange &Range(size_t r);
 	SelectionRange &RangeMain();
-	SelectionPosition Start() const;
 	bool MoveExtends() const;
 	void SetMoveExtends(bool moveExtends_);
 	bool Empty() const;
@@ -172,7 +171,6 @@ public:
 	void SetSelection(SelectionRange range);
 	void AddSelection(SelectionRange range);
 	void AddSelectionWithoutTrim(SelectionRange range);
-	void DropSelection(size_t r);
 	void TentativeSelection(SelectionRange range);
 	void CommitTentative();
 	int CharacterInSelection(int posCharacter) const;

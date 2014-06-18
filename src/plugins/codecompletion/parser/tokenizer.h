@@ -48,14 +48,14 @@ WX_DECLARE_HASH_MAP(wxString, wxString, HashForWxStringMap, EqualForWxStringMap,
 /// Enum defines the skip state of the Tokenizer
 enum TokenizerState
 {
-    tsSkipEqual         = 0x0001,         //!< Skip the assignment statement
-    tsSkipQuestion      = 0x0002,         //!< Skip the conditional evaluation statement
-    tsSkipSubScrip      = 0x0004,         //!< Skip the array-subscript notation statement
+    tsSkipEqual         = 0x0001,         /// Skip the assignment statement
+    tsSkipQuestion      = 0x0002,         /// Skip the conditional evaluation statement
+    tsSkipSubScrip      = 0x0004,         /// Skip the array-subscript notation statement
 
-    tsSingleAngleBrace  = 0x0008,         //!< Reserve angle braces
-    tsReadRawExpression = 0x0010,         //!< Reserve every chars
+    tsSingleAngleBrace  = 0x0008,         /// Reserve angle braces
+    tsReadRawExpression = 0x0010,         /// Reserve every chars
 
-    tsSkipNone          = 0x1000,         //!< Skip None
+    tsSkipNone          = 0x1000,         /// Skip None
     // convenient masks
     tsSkipUnWanted      = tsSkipEqual    | tsSkipQuestion | tsSkipSubScrip,
     tsTemplateArgument  = tsSkipUnWanted | tsSingleAngleBrace
@@ -64,22 +64,21 @@ enum TokenizerState
 /// Enum categorizing C-preprocessor directives
 enum PreprocessorType
 {
-    ptIf                = 0x0001,   //!< #if
-    ptIfdef             = 0x0002,   //!< #ifdef
-    ptIfndef            = 0x0003,   //!< #ifndef
-    ptElif              = 0x0004,   //!< #elif
-    ptElifdef           = 0x0005,   //!< #elifdef
-    ptElifndef          = 0x0006,   //!< #elifndef
-    ptElse              = 0x0007,   //!< #else
-    ptEndif             = 0x0008,   //!< #endif
-    ptOthers            = 0x0009    //!< #include, #define ...
+    ptIf                = 0x0001,   // #if
+    ptIfdef             = 0x0002,   // #ifdef
+    ptIfndef            = 0x0003,   // #ifndef
+    ptElif              = 0x0004,   // #elif
+    ptElifdef           = 0x0005,   // #elifdef
+    ptElifndef          = 0x0006,   // #elifndef
+    ptElse              = 0x0007,   // #else
+    ptEndif             = 0x0008,   // #endif
+    ptOthers            = 0x0009,   // #include, #define ...
 };
 
 /// Whether we need to handle C-preprocessor directives
 struct TokenizerOptions
 {
     bool wantPreprocessor;
-    bool storeDocumentation;
 };
 
 /** @brief This is just a simple lexer class
@@ -91,7 +90,7 @@ struct TokenizerOptions
  * the next token string(peeked string). The peeked string content will be buffered until the next GetToken() call,
  * thus performance can be improved.
  * Also, Tokenizer class does some kind of handling "Macro replacement" on the buffer to imitate the macro expansion in
- * C-preprocessor, see member-function ReplaceMacro() for details.
+ * C-preprocessor, see member-function MacroReplace() for details.
  * Further more, it handles some "conditional preprocessor directives"(like "#if xxx").
  */
 class Tokenizer
@@ -108,10 +107,7 @@ public:
     /** Initialize the buffer by opening a file through a loader. */
     bool Init(const wxString& filename = wxEmptyString, LoaderBase* loader = 0);
 
-    /** Initialize the buffer by directly using a wxString reference.
-     * @param initLineNumber the start line of the buffer, usually the parser try to parse a function
-     * body, so the line information of each Token can be correct.
-     */
+    /** Initialize the buffer by directly using a wxString reference. */
     bool InitFromBuffer(const wxString& buffer, const wxString& fileOfBuffer = wxEmptyString,
                         size_t initLineNumber = 0);
 
@@ -124,11 +120,10 @@ public:
     /** Undo the GetToken. */
     void     UngetToken();
 
-    /** Handle condition preprocessor and store documentation or not */
-    void SetTokenizerOption(bool wantPreprocessor, bool storeDocumentation)
+    /** Handle condition preprocessor or not */
+    void SetTokenizerOption(bool wantPreprocessor)
     {
         m_TokenizerOptions.wantPreprocessor = wantPreprocessor;
-        m_TokenizerOptions.storeDocumentation = storeDocumentation;
     };
 
     /** Set the Tokenizer skipping options. E.g. sometimes, we need to skip the statement after "=",
@@ -191,12 +186,14 @@ public:
 
     /** return the string from the current position to the end of current line, in most case, this
      * function is used in handling #define, use with care outside this class!
-     * @param nestBraces true if you still need to count the '{' and '}' levels
-     * @param stripUnneeded true if you are going to remove comments and compression spaces(two or
-     * more spaces should become one space)
      */
     wxString ReadToEOL(bool nestBraces = true, bool stripUnneeded = true);
 
+    /** Read all tokens from the current position to the end of current line */
+    void ReadToEOL(wxArrayString& tokens);
+
+    /** Read and format between (), stored in 'str' */
+    void ReadParentheses(wxString& str, bool trimFirst);
     void ReadParentheses(wxString& str);
 
     /** Skip from the current position to the end of line.
@@ -256,41 +253,11 @@ public:
         return m_TokenIndex < m_BufferLen;
     }
 
-    /** Backward buffer replacement for re-parsing
-     *
-     * @param target the new text going to take place on the m_Buffer
-     * @param updatePeekToken do we need to update the m_PeekToken after the replacement?
-     *
-     * http://forums.codeblocks.org/index.php/topic,13384.msg90391.html#msg90391
-     *
-     * Macro expansion is just replace some characters in the m_Buffer.
-     *
-     * xxxxxxxxxAAAA(u,v)yyyyyyyyy
-     *          ^---m_TokenIndex
-     * For example, the above is a wxChar Array m_Buffer, then "AAAA(u,v)" need to do a Macro
-     * expansion to some other text. So, we just do a "backward" text replace, so that, after
-     * replacement, The last replacement char was ")" in "AAAA(u,v)" (We say it as an entry point),
-     * so the text becomes:
-     *
-     * xxxNNNNNNNNNNNNNNNyyyyyyyyy
-     *    ^---m_TokenIndex
-     * Note that "NNNNNNNNNNNN" is some macro expansion text. then the m_TokenIndex was moved
-     * backward to the beginning of the text.
-     * if the macro expansion result text is small enough, then m_Buffer's length do not need to
-     * change.
-     * The situation when our m_Buffer's length need to be change is that the macro expansion text
-     * is too long, so the buffer before "entry point" can not hold the new text, this way,
-     * m_Buffer's length will adjusted. like below:
-     * NNNNNNNNNNNNNNNNNNNNNNyyyyyyyyy
-     * ^---m_TokenIndex
-     */
-    bool ReplaceBufferText(const wxString& target, bool updatePeekToken = true);
+    /** Backward buffer replacement for re-parsing */
+    bool ReplaceBufferForReparse(const wxString& target, bool updatePeekToken = true);
 
-    /** Get actual context for macro, then replace buffer for re-parsing
-     *  @param tk the macro definition, this is usually happens we want to expand a function like
-     *  macro, since a variable like macro just did a simple text replacement.
-     */
-    bool ReplaceFunctionLikeMacro(const Token* tk, bool updatePeekToken = true);
+    /** Get actual context for macro, then replace buffer for re-parsing */
+    bool ReplaceMacroActualContext(const Token* tk, bool updatePeekToken = true);
 
     /** Get first token position in buffer */
     int GetFirstTokenPosition(const wxString& buffer, const wxString& target)
@@ -298,28 +265,17 @@ public:
         return GetFirstTokenPosition(buffer.GetData(), buffer.Len(), target.GetData(), target.Len());
     }
 
-    /** find the sub-string key in the whole buffer, return the first position of the key
-     *  @param buffer the content of the string
-     *  @param bufferLen length of the string
-     *  @param key the search key(sub-string)
-     *  @param keyLen the search key length
-     */
     int GetFirstTokenPosition(const wxChar* buffer, const size_t bufferLen,
-                              const wxChar* key, const size_t keyLen);
+                              const wxChar* target, const size_t targetLen);
 
     /** KMP find, get the first position, if find nothing, return -1 */
     int KMP_Find(const wxChar* text, const wxChar* pattern, const int patternLen);
-
-    void SetLastTokenIdx(int tokenIdx);
 
 protected:
     /** Initialize some member variables */
     void BaseInit();
 
-    /** Do the actual lexical analysis, both GetToken() and PeekToken() will internally call this
-     * function. It just move the m_TokenIndex one step forward, and return a lexeme before the
-     * m_TokenIndex.
-     */
+    /** Do the actual lexical analysis, both GetToken() and PeekToken will internally call this function */
     wxString DoGetToken();
 
     /** Read a file, and fill the m_Buffer */
@@ -408,13 +364,16 @@ private:
         return false;
     };
 
-    /** Check the previous char before EOL is a backslash, call this function in the condition that
-     * the CurrentChar is '\n', here we have two cases:
-     * ......\\\r\n......
-     *            ^--current char, this is DOS style EOL
-     * ......\\\n......
-     *          ^--current char, this is Linux style EOL
-     */
+    /** This function is not used in the current code, it is replaced by MacroReplace() */
+    inline const wxString& ThisOrReplacement(const wxString& str) const
+    {
+        wxStringHashMap::const_iterator it = s_Replacements.find(str);
+        if (it != s_Replacements.end())
+            return it->second;
+        return str;
+    };
+
+    /** Check the previous char before EOL is a backslash */
     inline bool IsBackslashBeforeEOL()
     {
         wxChar last = PreviousChar();
@@ -425,7 +384,7 @@ private:
     }
 
     /** Do the Macro replacement according to the macro replacement rules */
-    void ReplaceMacro(wxString& str);
+    void MacroReplace(wxString& str);
 
     /** Judge what is the first block
       * It will call 'SkipToEOL(false, true)' before returned.
@@ -455,11 +414,8 @@ private:
     /** Split the actual macro arguments, and store them in results*/
     void SplitArguments(wxArrayString& results);
 
-    /** Get the text after macro expansion
-     * @param tk the macro definition token, usually a function like macro definition
-     * @param expandedText is an output variable string
-     */
-    bool GetMacroExpendedText(const Token* tk, wxString& expandedText);
+    /** Get the actual context for macro */
+    bool GetActualContextForMacro(const Token* tk, wxString& actualContext);
 
     /** Just for KMP find */
     void KMP_GetNextVal(const wxChar* pattern, int next[]);
@@ -470,8 +426,6 @@ private:
 
     /** Filename of the buffer */
     wxString             m_Filename;
-    /** File index, useful when parsing documentation; \sa SkipComment */
-    int                  m_FileIdx;
     /** Buffer content, all the lexical analysis is done on this */
     wxString             m_Buffer;
     /** Buffer length */
@@ -480,16 +434,10 @@ private:
     /** These variables define the current token string and its auxiliary information,
      * such as the token name, the line number of the token, the current brace nest level.
      */
-    wxString             m_Token;                //!< token name
-    /** when parsing a buffer
-     * ....... namespace std { int a; .......
-     *                      ^ --- m_TokenIndex, m_Token = "std"
-     * m_TokenIndex is always point to the next character of a valid token, in the above example,
-     * it is the space after "std".
-     */
-    unsigned int         m_TokenIndex;           //!< index offset in buffer
-    unsigned int         m_LineNumber;           //!< line offset in buffer
-    unsigned int         m_NestLevel;            //!< keep track of block nesting { }
+    wxString             m_Token;                /// token name
+    unsigned int         m_TokenIndex;           /// index offset in buffer
+    unsigned int         m_LineNumber;           /// line offset in buffer
+    unsigned int         m_NestLevel;            /// keep track of block nesting { }
     unsigned int         m_SavedNestingLevel;
 
     /** Backup the previous Token information */
@@ -514,29 +462,17 @@ private:
     /** Calculate Expression's result, stack for Shunting-yard algorithm */
     std::stack<bool>     m_ExpressionResult;
 
+    /** Whether we are in replace buffer parsing, avoid recursive calling */
+    bool                 m_IsReplaceParsing;
 
-    /** Save the remaining length from m_TokenIndex to the end of m_Buffer before replace m_Buffer.
-     *  ..........AAA..................
-     *               ^                 [EOF]
-     * It is the length between '^'(m_TokenIndex) and [EOF], sometimes there is not enough space
-     * to put the substitute before TokenIndex, so the m_Buffer will grows after the replacement:
-     *  BBBBBBBBBBBBBBBBBBBBBBBBB..................
-     *  ^                        !                 [EOF]
-     * Here, m_TokenIndex is moved backward to the beginning of the new substitute
-     * string, but the length between '!' and [EOF] should be unchanged
-     */
+    /** Save the remaining length, after the first replace buffer */
     size_t               m_FirstRemainingLength;
 
-    /** Save the repeat replace buffer count if currently in replace parsing, if it is 0, this means
-     * replace buffer does not happen.
-     */
+    /** Save the repeat replace buffer count if currently in replace parsing */
     size_t               m_RepeatReplaceCount;
 
     /** Static member, this is a hash map storing all macro replacement rules */
     static wxStringHashMap s_Replacements;
-
-    wxString             m_NextTokenDoc;
-    int                  m_LastTokenIdx;
 };
 
 #endif // TOKENIZER_H

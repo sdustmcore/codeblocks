@@ -211,8 +211,7 @@ wxsRichTextCtrl::wxsRichTextCtrl(wxsItemResData* Data):
         Data,
         &Reg.Info,
         wxsRichTextCtrlEvents,
-        wxsRichTextCtrlStyles,
-        flWidget&~(flFont)),
+        wxsRichTextCtrlStyles),
     m_sText(_("Text")),
     m_iAlignment(wxTEXT_ALIGNMENT_LEFT),
     m_iAttribute(0),
@@ -240,7 +239,7 @@ void wxsRichTextCtrl::OnBuildCreatingCode()
             Codef(_T("%C(%W, %I, %t, %P, %S, %T, %V, %N);\n"), m_sText.wx_str());
 
             wxString sAttrName = GetCoderContext()->GetUniqueName(_T("rchtxtAttr"));
-            Codef(_T("wxRichTextAttr %s;\n"), sAttrName.wx_str());
+            Codef(_T("\twxRichTextAttr %s;\n"), sAttrName.wx_str());
             // Alignment.
             // wxTEXT_ALIGNMENT_LEFT is the default.
             if(m_iAlignment == wxTEXT_ALIGNMENT_CENTRE){
@@ -251,7 +250,7 @@ void wxsRichTextCtrl::OnBuildCreatingCode()
             }
             // Attribute flags.
             for(int i = 0;arrAttributeNames[i];i++){
-                if((m_iAttribute & arrAttributeStates[i]) == arrAttributeStates[i]){
+                if(m_iAttribute & arrAttributeStates[i]){
                     sFlags << arrAttributeNames[i] << _T("|");
                 }
             }
@@ -262,7 +261,7 @@ void wxsRichTextCtrl::OnBuildCreatingCode()
             // Bullet flags.
             sFlags.Clear();
             for(int i = 0;arrBulletNames[i];i++){
-                if((m_iBullets & arrBulletStates[i]) == arrBulletStates[i]){
+                if(m_iBullets & arrBulletStates[i]){
                     sFlags << arrBulletNames[i] << _T("|");
                 }
             }
@@ -281,7 +280,7 @@ void wxsRichTextCtrl::OnBuildCreatingCode()
             // Text effect flags.
             sFlags.Clear();
             for(int i = 0;arrEffectNames[i];i++){
-                if((m_iEffects & arrEffectStates[i]) == arrEffectStates[i]){
+                if(m_iEffects & arrEffectStates[i]){
                     sFlags << arrEffectNames[i] << _T("|");
                 }
             }
@@ -307,11 +306,11 @@ void wxsRichTextCtrl::OnBuildCreatingCode()
             wxString sFnt = m_fdFont.BuildFontCode(sFntName, GetCoderContext());
             if(sFnt.Len() > 0){
                 Codef(_T("%s"), sFnt.wx_str());
-                Codef( _T("%s.SetFontFaceName(%s.GetFaceName());\n"), sAttrName.wx_str(), sFntName.wx_str());
-                Codef( _T("%s.SetFontSize(%s.GetPointSize());\n"), sAttrName.wx_str(), sFntName.wx_str());
-                Codef( _T("%s.SetFontStyle(%s.GetStyle());\n"), sAttrName.wx_str(), sFntName.wx_str());
-                Codef( _T("%s.SetFontUnderlined(%s.GetUnderlined());\n"), sAttrName.wx_str(), sFntName.wx_str());
-                Codef( _T("%s.SetFontWeight(%s.GetWeight());\n"), sAttrName.wx_str(), sFntName.wx_str());
+                Codef( _T("%s.SetFontFaceName(%s.GetFaceName());\n"), sAttrName.wx_str(), sFnt.wx_str());
+                Codef( _T("%s.SetFontSize(%s.GetPointSize());\n"), sAttrName.wx_str(), sFnt.wx_str());
+                Codef( _T("%s.SetFontStyle(%s.GetStyle());\n"), sAttrName.wx_str(), sFnt.wx_str());
+                Codef( _T("%s.SetFontUnderlined(%s.GetUnderlined());\n"), sAttrName.wx_str(), sFnt.wx_str());
+                Codef( _T("%s.SetFontWeight(%s.GetWeight());\n"), sAttrName.wx_str(), sFnt.wx_str());
             }
 
             if(m_iAlignment != wxTEXT_ALIGNMENT_LEFT || m_iAttribute != 0 || m_iBullets != wxTEXT_ATTR_BULLET_STYLE_NONE ||

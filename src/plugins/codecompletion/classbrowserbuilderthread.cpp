@@ -28,8 +28,6 @@
 
 #include "classbrowserbuilderthread.h"
 
-// sanity check for the build tree functions, this function should only be called in a worker thread
-// also, there should be no termination requested, otherwise, it will return false
 #define CBBT_SANITY_CHECK ((!::wxIsMainThread() && m_TerminationRequested) || Manager::IsAppShuttingDown())
 
 #define CC_BUILDERTHREAD_DEBUG_OUTPUT 0
@@ -190,17 +188,12 @@ void* ClassBrowserBuilderThread::Entry()
     while (!m_TerminationRequested && !Manager::IsAppShuttingDown() )
     {
         // waits here, until the ClassBrowser unlocks
-        // we put a semaphore wait function in the while loop, so the first time if
-        // the semaphore is 1, we can call BuildTree() in the loop, in the meanwhile
-        // the semaphore becomes 0. We will be blocked by semaphore's wait function
-        // in the next while loop. The semaphore post function will be called in the
-        // GUI thread once a new BuildTree() call is needed.
         m_ClassBrowserSemaphore.Wait();
 
         if (m_TerminationRequested || Manager::IsAppShuttingDown() )
             break;
 
-        if (platform::gtk || platform::macosx)
+        if (platform::gtk)
         {
             // this code (PART 1/2) seems to be good on linux
             // because of it the libcairo crash on dualcore processors
@@ -213,7 +206,7 @@ void* ClassBrowserBuilderThread::Entry()
 
         BuildTree();
 
-        if (platform::gtk || platform::macosx)
+        if (platform::gtk)
         {
             // this code (PART 2/2) seems to be good on linux
             // because of it the libcairo crash on dualcore processors
@@ -255,8 +248,7 @@ void ClassBrowserBuilderThread::ExpandItem(wxTreeItemId item)
     CC_LOCKER_TRACK_TT_MTX_LOCK(s_TokenTreeMutex)
 
     CCTreeCtrlData* data = static_cast<CCTreeCtrlData*>(m_CCTreeCtrlTop->GetItemData(item));
-    if (data)
-        m_TokenTree->RecalcInheritanceChain(data->m_Token);
+    m_TokenTree->RecalcInheritanceChain(data->m_Token);
 
     CC_LOCKER_TRACK_TT_MTX_UNLOCK(s_TokenTreeMutex)
 
@@ -269,7 +261,7 @@ void ClassBrowserBuilderThread::ExpandItem(wxTreeItemId item)
                 CreateSpecialFolders(m_CCTreeCtrlTop, item);
                 if( !(   m_BrowserOptions.displayFilter == bdfFile
                       && m_ActiveFilename.IsEmpty() ) )
-                    AddChildrenOf(m_CCTreeCtrlTop, item, -1, ~(tkFunction | tkVariable | tkMacroDef | tkTypedef | tkMacroUse));
+                    AddChildrenOf(m_CCTreeCtrlTop, item, -1, ~(tkFunction | tkVariable | tkPreprocessor | tkTypedef | tkMacro));
                 break;
             }
             case sfBase:    AddAncestorsOf(m_CCTreeCtrlTop, item, data->m_Token->m_Index); break;
@@ -308,8 +300,8 @@ void ClassBrowserBuilderThread::ExpandItem(wxTreeItemId item)
                     case tkFunction:
                     case tkVariable:
                     case tkEnumerator:
-                    case tkMacroDef:
-                    case tkMacroUse:
+                    case tkPreprocessor:
+                    case tkMacro:
                     case tkAnyContainer:
                     case tkAnyFunction:
                     case tkUndefined:
@@ -355,7 +347,7 @@ void ClassBrowserBuilderThread::CollapseItem(wxTreeItemId item)
         locked = true;
     }
 
-#if !defined(__WXGTK__) && !defined(__WXMAC__)
+#ifndef __WXGTK__
     m_CCTreeCtrlTop->CollapseAndReset(item); // this freezes gtk
 #else
     m_CCTreeCtrlTop->DeleteChildren(item);
@@ -451,7 +443,7 @@ void ClassBrowserBuilderThread::BuildTree()
 #endif
 
     // 6.) Hide&Freeze trees shown
-    if (m_BrowserOptions.treeMembers && m_CCTreeCtrlBottom)
+    if (m_BrowserOptions.treeMembers)
     {
         m_CCTreeCtrlBottom->Hide();
         m_CCTreeCtrlBottom->Freeze();
@@ -511,7 +503,7 @@ void ClassBrowserBuilderThread::BuildTree()
 #endif // CC_NO_COLLAPSE_ITEM
 
     // seems like the "expand" event comes too late in wxGTK, so make it happen now
-    if (platform::gtk || platform::macosx)
+    if (platform::gtk)
         ExpandItem(root);
 #ifdef CC_BUILDTREE_MEASURING
     CCLogger::Get()->DebugLog(F(_T("Expanding root item (gtk only) took : %ld ms"),sw.Time()));
@@ -548,10 +540,8 @@ void ClassBrowserBuilderThread::BuildTree()
 #endif
     }
 
-    // 13.) Expand namespaces and classes
-    ExpandNamespaces(m_CCTreeCtrlTop->GetRootItem(), tkNamespace, 1);
-    ExpandNamespaces(m_CCTreeCtrlTop->GetRootItem(), tkClass,     1);
-
+    // 13.) Expand namespaces
+    ExpandNamespaces(m_CCTreeCtrlTop->GetRootItem());
 #ifdef CC_BUILDTREE_MEASURING
     CCLogger::Get()->DebugLog(F(_T("Expanding namespaces took : %ld ms"),sw.Time()));
     sw.Start();
@@ -652,11 +642,11 @@ void ClassBrowserBuilderThread::RemoveInvalidNodes(CCTreeCtrl* tree, wxTreeItemI
     }
 }
 
-void ClassBrowserBuilderThread::ExpandNamespaces(wxTreeItemId node, TokenKind tokenKind, int level)
+void ClassBrowserBuilderThread::ExpandNamespaces(wxTreeItemId node)
 {
     TRACE(_T("ClassBrowserBuilderThread::ExpandNamespaces"));
 
-    if (CBBT_SANITY_CHECK || !m_BrowserOptions.expandNS || !node.IsOk() || level <= 0 )
+    if (CBBT_SANITY_CHECK || !m_BrowserOptions.expandNS || !node.IsOk())
         return;
 
     wxTreeItemIdValue enumerationCookie;
@@ -666,11 +656,11 @@ void ClassBrowserBuilderThread::ExpandNamespaces(wxTreeItemId node, TokenKind to
         CCTreeCtrlData* data = static_cast<CCTreeCtrlData*>(m_CCTreeCtrlTop->GetItemData(existing));
         if (   data
             && data->m_Token
-            && (data->m_Token->m_TokenKind == tokenKind) )
+            && data->m_Token->m_TokenKind == tkNamespace )
         {
             TRACE(F(_T("Auto-expanding: ") + data->m_Token->m_Name));
             m_CCTreeCtrlTop->Expand(existing);
-            ExpandNamespaces(existing, tokenKind, level-1); // re-curse
+            ExpandNamespaces(existing); // re-curse
         }
 
         existing = m_CCTreeCtrlTop->GetNextSibling(existing);
@@ -701,11 +691,11 @@ bool ClassBrowserBuilderThread::CreateSpecialFolders(CCTreeCtrl* tree, wxTreeIte
         {
             if      (!hasGF && token->m_TokenKind == tkFunction)
                 hasGF = true;
-            else if (!hasGM && token->m_TokenKind == tkMacroUse)
+            else if (!hasGM && token->m_TokenKind == tkMacro)
                 hasGM = true;
             else if (!hasGV && token->m_TokenKind == tkVariable)
                 hasGV = true;
-            else if (!hasGP && token->m_TokenKind == tkMacroDef)
+            else if (!hasGP && token->m_TokenKind == tkPreprocessor)
                 hasGP = true;
             else if (!hasTD && token->m_TokenKind == tkTypedef)
                 hasTD = true;
@@ -723,10 +713,10 @@ bool ClassBrowserBuilderThread::CreateSpecialFolders(CCTreeCtrl* tree, wxTreeIte
                            PARSER_IMG_TYPEDEF_FOLDER, new CCTreeCtrlData(sfTypedef, 0, tkTypedef,      -1));
     wxTreeItemId gvars   = AddNodeIfNotThere(m_CCTreeCtrlTop, parent, _("Global variables"),
                            PARSER_IMG_VARS_FOLDER,    new CCTreeCtrlData(sfGVars,   0, tkVariable,     -1));
-    wxTreeItemId preproc = AddNodeIfNotThere(m_CCTreeCtrlTop, parent, _("Macro definitions"),
-                           PARSER_IMG_MACRO_DEF_FOLDER, new CCTreeCtrlData(sfPreproc, 0, tkMacroDef, -1));
-    wxTreeItemId gmacro  = AddNodeIfNotThere(m_CCTreeCtrlTop, parent, _("Macro usages"),
-                           PARSER_IMG_MACRO_USE_FOLDER,   new CCTreeCtrlData(sfMacro,   0, tkMacroUse,        -1));
+    wxTreeItemId preproc = AddNodeIfNotThere(m_CCTreeCtrlTop, parent, _("Preprocessor symbols"),
+                           PARSER_IMG_PREPROC_FOLDER, new CCTreeCtrlData(sfPreproc, 0, tkPreprocessor, -1));
+    wxTreeItemId gmacro  = AddNodeIfNotThere(m_CCTreeCtrlTop, parent, _("Global macros"),
+                           PARSER_IMG_MACRO_FOLDER,   new CCTreeCtrlData(sfMacro,   0, tkMacro,        -1));
 
     bool bottom = m_BrowserOptions.treeMembers;
     m_CCTreeCtrlTop->SetItemHasChildren(gfuncs,  !bottom && hasGF);
@@ -902,9 +892,9 @@ void ClassBrowserBuilderThread::AddMembersOf(CCTreeCtrl* tree, wxTreeItemId node
         {
             case sfGFuncs  : AddChildrenOf(tree, node, -1, tkFunction,     false); break;
             case sfGVars   : AddChildrenOf(tree, node, -1, tkVariable,     false); break;
-            case sfPreproc : AddChildrenOf(tree, node, -1, tkMacroDef,     false); break;
+            case sfPreproc : AddChildrenOf(tree, node, -1, tkPreprocessor, false); break;
             case sfTypedef : AddChildrenOf(tree, node, -1, tkTypedef,      false); break;
-            case sfMacro   : AddChildrenOf(tree, node, -1, tkMacroUse,     false); break;
+            case sfMacro   : AddChildrenOf(tree, node, -1, tkMacro,        false); break;
             case sfToken:
             {
                 if (bottom)
@@ -915,14 +905,14 @@ void ClassBrowserBuilderThread::AddMembersOf(CCTreeCtrl* tree, wxTreeItemId node
                         wxTreeItemId rootCtorDtor = tree->AppendItem(node, _("Ctors & Dtors"), PARSER_IMG_CLASS_FOLDER);
                         wxTreeItemId rootFuncs    = tree->AppendItem(node, _("Functions"), PARSER_IMG_FUNCS_FOLDER);
                         wxTreeItemId rootVars     = tree->AppendItem(node, _("Variables"), PARSER_IMG_VARS_FOLDER);
-                        wxTreeItemId rootMacro    = tree->AppendItem(node, _("Macros"), PARSER_IMG_MACRO_USE_FOLDER);
+                        wxTreeItemId rootMacro    = tree->AppendItem(node, _("Macros"), PARSER_IMG_MACRO_FOLDER);
                         wxTreeItemId rootOthers   = tree->AppendItem(node, _("Others"), PARSER_IMG_OTHERS_FOLDER);
 
                         AddChildrenOf(tree, rootCtorDtor, data->m_Token->m_Index, tkConstructor | tkDestructor);
                         AddChildrenOf(tree, rootFuncs,    data->m_Token->m_Index, tkFunction);
                         AddChildrenOf(tree, rootVars,     data->m_Token->m_Index, tkVariable);
-                        AddChildrenOf(tree, rootMacro,    data->m_Token->m_Index, tkMacroUse);
-                        AddChildrenOf(tree, rootOthers,   data->m_Token->m_Index, ~(tkNamespace | tkClass | tkEnum | tkAnyFunction | tkVariable | tkMacroUse));
+                        AddChildrenOf(tree, rootMacro,    data->m_Token->m_Index, tkMacro);
+                        AddChildrenOf(tree, rootOthers,   data->m_Token->m_Index, ~(tkNamespace | tkClass | tkEnum | tkAnyFunction | tkVariable | tkMacro));
 
                         firstItem = rootCtorDtor;
                     }
@@ -1043,13 +1033,14 @@ bool ClassBrowserBuilderThread::AddNodes(CCTreeCtrl* tree, wxTreeItemId parent, 
             if (   (token->m_TokenKind == tkFunction)
                 || (token->m_TokenKind == tkConstructor)
                 || (token->m_TokenKind == tkDestructor)
-                || (token->m_TokenKind == tkMacroUse)
+                || (token->m_TokenKind == tkMacro)
                 || (token->m_TokenKind == tkClass) )
-            {
                 str << token->GetFormattedArgs();
-            }
-            if (!token->m_FullType.IsEmpty())
-                str = str + _T(" : ") + token->m_FullType + token->m_TemplateArgument;
+            // modification suggested by ollydbg in http://forums.codeblocks.org/index.php/topic,10242.msg70865.html#msg70865:
+//            if (!token->m_ActualType.IsEmpty())
+//                 str = str + _T(" : ") + token->m_ActualType;
+            if (!token->m_BaseType.IsEmpty())
+                str = str + _T(" : ") + token->m_BaseType + token->m_TemplateArgument;
 
             wxTreeItemId child = tree->AppendItem(parent, str, img, img, new CCTreeCtrlData(sfToken, token, tokenKindMask));
 
@@ -1058,14 +1049,14 @@ bool ClassBrowserBuilderThread::AddNodes(CCTreeCtrl* tree, wxTreeItemId parent, 
             if (token->m_TokenKind == tkClass)
             {
                 if (!m_BrowserOptions.treeMembers)
-                    kind |= tkTypedef | tkFunction | tkVariable | tkEnum | tkMacroUse;
+                    kind |= tkTypedef | tkFunction | tkVariable | tkEnum | tkMacro;
                 tree->SetItemHasChildren(child,    m_BrowserOptions.showInheritance
                                                 || TokenContainsChildrenOfKind(token, kind));
             }
             else if (token->m_TokenKind & (tkNamespace | tkEnum))
             {
                 if (!m_BrowserOptions.treeMembers)
-                    kind |= tkTypedef | tkFunction | tkVariable | tkEnumerator | tkMacroUse;
+                    kind |= tkTypedef | tkFunction | tkVariable | tkEnumerator | tkMacro;
                 tree->SetItemHasChildren(child, TokenContainsChildrenOfKind(token, kind));
             }
         }
@@ -1240,9 +1231,9 @@ void ClassBrowserBuilderThread::SelectSavedItem()
 
     wxTreeItemId parent = m_CCTreeCtrlTop->GetRootItem();
 
-    // TODO (Morten#1#): wxTreeCtrl documentation states that cookie is for re-entrancy an must be unique for all calls that belong together.
-    //        So, this needs to be initialized to some value?
-    //        (Which value, though... I'm inclined to just use 1 and 2 for here and below... but no clue if you've used those elsewhere)
+	// TODO: (Martin) wxTreeCtrl documentation states that cookie is for re-entrancy an must be unique for all calls that belong together.
+	//        So, this needs to be initialized to some value?
+	//        (Which value, though... I'm inclined to just use 1 and 2 for here and below... but no clue if you've used those elsewhere)
     wxTreeItemIdValue cookie;
     wxTreeItemId item = m_CCTreeCtrlTop->GetFirstChild(parent, cookie);
 
@@ -1255,7 +1246,7 @@ void ClassBrowserBuilderThread::SelectSavedItem()
             && wxStrcmp(data->m_TokenName, saved->m_TokenName) == 0
             && data->m_TokenKind == saved->m_TokenKind )
         {
-            // TODO (Morten#1#): see above. Different value here, I'd assume?
+			// TODO: (Martin) see above. Different value here, I'd assume?
             wxTreeItemIdValue cookie2;
             parent = item;
             item   = m_CCTreeCtrlTop->GetFirstChild(item, cookie2);

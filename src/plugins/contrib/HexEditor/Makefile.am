@@ -1,4 +1,4 @@
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+INCLUDES = $(WX_CXXFLAGS) \
 		-I$(top_srcdir)/src/include \
 		-I$(top_srcdir)/src/sdk/wxscintilla/include
 
@@ -8,7 +8,7 @@ pluginlib_LTLIBRARIES = libHexEditor.la
 
 libHexEditor_la_LDFLAGS = -module -version-info 0:1:0 -shared -no-undefined -avoid-version
 
-libHexEditor_la_LIBADD = ../../../sdk/libcodeblocks.la $(WX_LIBS)
+libHexEditor_la_LIBADD = $(PLUGIN_WX_LIBS) ../../../sdk/libcodeblocks.la
 
 libHexEditor_la_SOURCES = \
 	CharacterView.cpp \
@@ -59,7 +59,8 @@ EXTRA_DIST = \
 	wxsmith/SearchDialog.wxs \
 	wxsmith/SelectStoredExpressionDlg.wxs \
 	wxsmith/TestCasesDlg.wxs \
-	$(srcdir)/*.cbp \
+	HexEditor-unix.cbp \
+	HexEditor-win.cbp \
 	manifest.xml
 
 pkgdata_DATA = HexEditor.zip

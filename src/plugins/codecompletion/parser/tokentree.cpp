@@ -49,6 +49,8 @@
 wxMutex s_TokenTreeMutex;
 
 TokenTree::TokenTree() :
+    m_StructUnionUnnamedCount(0),
+    m_EnumUnnamedCount(0),
     m_TokenTicketCount(255) // Reserve some space for the class browser
 {
     m_Tokens.clear();
@@ -93,8 +95,6 @@ void TokenTree::clear()
             delete token;
     }
     m_Tokens.clear();
-
-    m_TokenDocumentationMap.clear();
 }
 
 size_t TokenTree::size()
@@ -115,7 +115,7 @@ int TokenTree::insert(Token* newToken)
     if (!newToken)
         return -1;
 
-    return AddToken(newToken, -1); // -1 means we add a new slot to the Token list (vector)
+    return AddToken(newToken, -1);
 }
 
 int TokenTree::insert(int loc, Token* newToken)
@@ -186,83 +186,11 @@ int TokenTree::TokenExists(const wxString& name, const wxString& baseArgs, int p
         if (!curToken)
             continue;
 
-        // for a container token, their args member variable is used to store inheritance information
-        // so, don't compare args for tkAnyContainer
         if (   (curToken->m_ParentIndex == parent)
             && (curToken->m_TokenKind   == kind)
-            && (curToken->m_BaseArgs == baseArgs || kind & tkAnyContainer) )
+            && (curToken->m_BaseArgs    == baseArgs) )
         {
             return result;
-        }
-    }
-
-    return -1;
-}
-
-int TokenTree::TokenExists(const wxString& name, const TokenIdxSet& parents, short int kindMask)
-{
-    int idx = m_Tree.GetItemNo(name);
-    if (!idx)
-        return -1;
-
-    TokenIdxSet::const_iterator it;
-    TokenIdxSet& curList = m_Tree.GetItemAtPos(idx);
-    int result = -1;
-    for (it = curList.begin(); it != curList.end(); ++it)
-    {
-        result = *it;
-        if (result < 0 || (size_t)result >= m_Tokens.size())
-            continue;
-
-        const Token* curToken = m_Tokens[result];
-        if (!curToken)
-            continue;
-
-        if (curToken->m_TokenKind & kindMask)
-        {
-            for ( TokenIdxSet::const_iterator pIt = parents.begin();
-                  pIt != parents.end(); ++pIt )
-            {
-                if (curToken->m_ParentIndex == *pIt)
-                    return result;
-            }
-        }
-    }
-
-    return -1;
-}
-
-int TokenTree::TokenExists(const wxString& name, const wxString& baseArgs, const TokenIdxSet& parents, TokenKind kind)
-{
-    int idx = m_Tree.GetItemNo(name);
-    if (!idx)
-        return -1;
-
-    TokenIdxSet::const_iterator it;
-    TokenIdxSet& curList = m_Tree.GetItemAtPos(idx);
-    int result = -1;
-    for (it = curList.begin(); it != curList.end(); ++it)
-    {
-        result = *it;
-        if (result < 0 || (size_t)result >= m_Tokens.size())
-            continue;
-
-        const Token* curToken = m_Tokens[result];
-        if (!curToken)
-            continue;
-
-        // for a container token, their args member variable is used to store inheritance information
-        // so, don't compare args for tkAnyContainer
-        if (  curToken->m_TokenKind == kind
-            && (   curToken->m_BaseArgs == baseArgs
-                || kind & tkAnyContainer ))
-        {
-            for ( TokenIdxSet::const_iterator pIt = parents.begin();
-                  pIt != parents.end(); ++pIt )
-            {
-                if (curToken->m_ParentIndex == *pIt)
-                    return result;
-            }
         }
     }
 
@@ -338,33 +266,7 @@ size_t TokenTree::FindTokensInFile(const wxString& filename, TokenIdxSet& result
     return result.size();
 }
 
-void TokenTree::RenameToken(Token* token, const wxString& newName)
-{
-    if (!token)
-        return;
-    // remove the old token index from the TokenIdxSet mapped by old name.
-    int slotNo = m_Tree.GetItemNo(token->m_Name);
-    if (slotNo)
-    {
-        TokenIdxSet& curList = m_Tree.GetItemAtPos(slotNo);
-    // Note: As we have no way to actually delete keys in the TokenSearchTree,
-    // the previous name index path of the token will still exist, as well as its TokenIdxSet slot,
-    // but this slot will be empty and as result will lead to nothing.
-    // This is the same thing the RemoveToken procedure does.
-        curList.erase(token->m_Index);
-    };
-    token->m_Name = newName;
-
-    static TokenIdxSet tmpTokens = TokenIdxSet();
-
-    size_t tokenIdx = m_Tree.AddItem(newName, tmpTokens);
-    TokenIdxSet& curList = m_Tree.GetItemAtPos(tokenIdx);
-
-    // add the old token index to the TokenIdxSet mapped by new name, note Token index is not changed
-    curList.insert(token->m_Index);
-}
-
-int TokenTree::AddToken(Token* newToken, int forceIdx)
+int TokenTree::AddToken(Token* newToken, int fileIdx)
 {
     if (!newToken)
         return -1;
@@ -377,10 +279,10 @@ int TokenTree::AddToken(Token* newToken, int forceIdx)
     size_t tokenIdx = m_Tree.AddItem(name, tmpTokens);
     TokenIdxSet& curList = m_Tree.GetItemAtPos(tokenIdx);
 
-    int newItem = AddTokenToList(newToken, forceIdx);
+    int newItem = AddTokenToList(newToken, fileIdx);
     curList.insert(newItem);
 
-    size_t fIdx = newToken->m_FileIdx;
+    size_t fIdx = (fileIdx<0) ? newToken->m_FileIdx : (size_t)fileIdx;
     m_FileMap[fIdx].insert(newItem);
 
     // Add Token (if applicable) to the namespaces indexes
@@ -480,11 +382,7 @@ void TokenTree::RemoveToken(Token* oldToken)
         m_TopNameSpaces.erase(idx);
     }
 
-    // Step 6: Delete documentation associated with removed token
-
-    m_TokenDocumentationMap.erase(oldToken->m_Index);
-
-    // Step 7: Finally, remove it from the list.
+    // Step 6: Finally, remove it from the list.
 
     RemoveTokenFromList(idx);
 }
@@ -496,11 +394,7 @@ int TokenTree::AddTokenToList(Token* newToken, int forceidx)
 
     int result = -1;
 
-    // if the token index is specified, then just replace the specified slot to the newToken, this
-    // usually happens we construct the whole TokenTree from cache.
-    // other wise, we just append one to the vector or reused free slots stored in m_FreeTokens
-    // so, it is normal cases in any parsing stages.
-    if (forceidx >= 0)
+    if (forceidx >= 0) // Reading from cache?
     {
         if ((size_t)forceidx >= m_Tokens.size())
         {
@@ -510,7 +404,7 @@ int TokenTree::AddTokenToList(Token* newToken, int forceidx)
         m_Tokens[forceidx] = newToken;
         result = forceidx;
     }
-    else
+    else // For real-time parsing
     {
         if (m_FreeTokens.size())
         {
@@ -632,7 +526,7 @@ bool TokenTree::CheckChildRemove(const Token* token, int fileIdx)
         else
             return false;  // one child is belong to another file
     }
-    return true;           // no children should be reserved, so we can safely remove the token
+    return true;           // no children should be reserved, so we can safely remov the token
 }
 
 void TokenTree::RecalcFreeList()
@@ -892,8 +786,8 @@ void TokenTree::MarkFileTokensAsLocal(size_t fileIdx, bool local, void* userData
         Token* token = m_Tokens.at(*it);
         if (token)
         {
-            token->m_IsLocal  = local; // only the tokens belong to project files are marked as local
-            token->m_UserData = userData; // a pointer to the c::b project
+            token->m_IsLocal  = local;
+            token->m_UserData = userData;
         }
     }
 }
@@ -936,18 +830,4 @@ void TokenTree::FlagFileForReparsing(const wxString& filename)
 void TokenTree::FlagFileAsParsed(const wxString& filename)
 {
     m_FileStatusMap[ InsertFileOrGetIndex(filename) ] = fpsDone;
-}
-
-void TokenTree::AppendDocumentation(int tokenIdx, const wxString& doc)
-{
-    wxString& newDoc = m_TokenDocumentationMap[tokenIdx];
-    if (newDoc == doc) // Do not duplicate
-        return;
-    newDoc += doc;
-    newDoc.Shrink();
-}
-
-wxString TokenTree::GetDocumentation(int tokenIdx)
-{
-    return m_TokenDocumentationMap[tokenIdx];
 }

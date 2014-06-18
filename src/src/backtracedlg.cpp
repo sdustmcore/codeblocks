@@ -25,7 +25,6 @@
 #include "filefilters.h"
 
 #include "backtracedlg.h"
-#include "cbcolourmanager.h"
 #include "debuggermanager.h"
 
 namespace
@@ -68,11 +67,6 @@ BacktraceDlg::BacktraceDlg(wxWindow* parent) :
     m_list->InsertColumn(2, _("Function"), wxLIST_FORMAT_LEFT);
     m_list->InsertColumn(3, _("File"), wxLIST_FORMAT_LEFT, 128);
     m_list->InsertColumn(4, _("Line"), wxLIST_FORMAT_RIGHT, 64);
-
-    Manager::Get()->GetColourManager()->RegisterColour(_("Debugger"), _("Backtrace active frame background"),
-                                                       wxT("dbg_backtrace_active_background"), *wxRED);
-    Manager::Get()->GetColourManager()->RegisterColour(_("Debugger"), _("Backtrace active frame foreground"),
-                                                       wxT("dbg_backtrace_active_foreground"), *wxWHITE);
 }
 
 void BacktraceDlg::Reload()
@@ -80,10 +74,6 @@ void BacktraceDlg::Reload()
     cbDebuggerPlugin *plugin = Manager::Get()->GetDebuggerManager()->GetActiveDebugger();
     if (!plugin)
         return;
-
-    ColourManager &colours = *Manager::Get()->GetColourManager();
-    const wxColour &activeBackground = colours.GetColour(wxT("dbg_backtrace_active_background"));
-    const wxColour &activeForeground = colours.GetColour(wxT("dbg_backtrace_active_foreground"));
 
     m_list->Freeze();
     m_list->DeleteAllItems();
@@ -109,13 +99,11 @@ void BacktraceDlg::Reload()
         if (active_frame == frame->GetNumber())
         {
             active_frame_index = ii;
-            m_list->SetItemBackgroundColour(ii, activeBackground);
-            m_list->SetItemTextColour(ii, activeForeground);
+            m_list->SetItemBackgroundColour(ii, wxColor(255, 0, 0));
         }
     }
 
-    if (active_frame_index < m_list->GetItemCount())
-        m_list->EnsureVisible(active_frame_index);
+    m_list->EnsureVisible(active_frame_index);
     m_list->Thaw();
     m_list->SetColumnWidth(0, 32);
 
@@ -179,7 +167,10 @@ void BacktraceDlg::OnJump(cb_unused wxCommandEvent& event)
 
 void BacktraceDlg::OnSwitchFrame(cb_unused wxCommandEvent& event)
 {
-    if (!IsSwitchFrameEnabled())
+    cbDebuggerPlugin *plugin = Manager::Get()->GetDebuggerManager()->GetActiveDebugger();
+    if (!plugin)
+        return;
+    else if (!plugin->IsRunning() || !plugin->IsStopped())
         return;
 
     if (m_list->GetSelectedItemCount() == 0)
@@ -192,7 +183,7 @@ void BacktraceDlg::OnSwitchFrame(cb_unused wxCommandEvent& event)
     if (m_list->GetItemText(index).ToLong(&realFrameNr))
     {
         // switch to this frame
-        cbDebuggerPlugin *plugin = Manager::Get()->GetDebuggerManager()->GetActiveDebugger();
+        plugin = Manager::Get()->GetDebuggerManager()->GetActiveDebugger();
         if (plugin)
             plugin->SwitchToFrame(realFrameNr);
     }
@@ -204,7 +195,7 @@ void BacktraceDlg::OnDoubleClick(cb_unused wxListEvent& event)
 {
     bool jump = cbDebuggerCommonConfig::GetFlag(cbDebuggerCommonConfig::JumpOnDoubleClick);
     wxCommandEvent evt;
-    if (jump || !IsSwitchFrameEnabled())
+    if (jump)
         OnJump(evt);
     else
         OnSwitchFrame(evt);
@@ -289,11 +280,7 @@ void BacktraceDlg::OnSettingSwitchDefault(wxCommandEvent& event)
 
 void BacktraceDlg::OnUpdateUI(wxUpdateUIEvent &event)
 {
-    event.Enable(IsSwitchFrameEnabled());
-}
-
-bool BacktraceDlg::IsSwitchFrameEnabled() const
-{
     cbDebuggerPlugin *plugin = Manager::Get()->GetDebuggerManager()->GetActiveDebugger();
-    return plugin && plugin->IsRunning() && plugin->IsStopped();
+
+    event.Enable(plugin && plugin->IsRunning() && plugin->IsStopped());
 }

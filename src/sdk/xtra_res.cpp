@@ -15,7 +15,6 @@
     #include <wx/wx.h>
 #endif
 
-#include <wx/xml/xml.h>
 
 /////////////////////////////////////////////////////////////////////////////
 // Name:        xh_toolb.cpp
@@ -168,11 +167,7 @@ wxObject *wxToolBarAddOnXmlHandler::DoCreateResource()
             if (!(style & wxNO_BORDER)) style |= wxNO_BORDER;
             #endif
 
-            // XRC_MAKE_INSTANCE(toolbar, wxToolBar)
-            if (m_instance)
-                toolbar = wxStaticCast(m_instance, wxToolBar);
-            if (!toolbar)
-                toolbar = new wxToolBar;
+            XRC_MAKE_INSTANCE(toolbar, wxToolBar)
 
             toolbar->Create(m_parentAsWindow,
                              GetID(),

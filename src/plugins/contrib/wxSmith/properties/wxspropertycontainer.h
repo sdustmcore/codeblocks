@@ -26,8 +26,6 @@
 #include "wxsproperty.h"
 #include "wxsquickpropspanel.h"
 
-#include <prep.h>
-
 class wxsPropertyGridManager;
 
 /** \brief Base class for objects using properties
@@ -188,7 +186,7 @@ class wxsPropertyContainer
         }
 
         /** \brief Function building quick properties window */
-        virtual wxsQuickPropsPanel* OnCreateQuickProperties(cb_unused wxWindow* Parent) { return 0; }
+        virtual wxsQuickPropsPanel* OnCreateQuickProperties(wxWindow* Parent) { return 0; }
 
         /** \brief Function notifying that one of properties has changed
          *
@@ -204,7 +202,7 @@ class wxsPropertyContainer
          * Sub-container is other container called in OnEnumProperties using
          * SubContainer method.
          */
-        virtual void OnSubPropertyChanged(cb_unused wxsPropertyContainer* sc) {}
+        virtual void OnSubPropertyChanged(wxsPropertyContainer* sc) {}
 
         /** \brief Flag set when operating on property grid */
         static const long flPropGrid   = 0x40000000;
@@ -219,13 +217,12 @@ class wxsPropertyContainer
          *
          * \warning This function is not called for sub-containers.
          */
-        virtual void OnAddExtraProperties(cb_unused wxsPropertyGridManager* Grid) {}
+        virtual void OnAddExtraProperties(wxsPropertyGridManager* Grid) {}
 
         /** \brief Function notifying that some extra property (which could be added
          *         inside OnAddExtraProperties call) has changed.
          */
-        virtual void OnExtraPropertyChanged(cb_unused wxsPropertyGridManager* Grid,
-                                            cb_unused wxPGId                  Id) {}
+        virtual void OnExtraPropertyChanged(wxsPropertyGridManager* Grid,wxPGId Id) {}
 
     private:
 

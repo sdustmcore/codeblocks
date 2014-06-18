@@ -207,7 +207,7 @@ void ThreadSearchLoggerList::OnThreadSearchEvent(const ThreadSearchEvent& event)
     m_pListLog->Freeze();
     long index = m_IndexManager.GetInsertionIndex(filename.GetFullPath(), words.GetCount()/2);
     index += m_IndexOffset;
-    for (size_t i = 0; i + 1 < words.GetCount(); i += 2)
+    for (size_t i = 0; i < words.GetCount(); i += 2)
     {
         m_pListLog->InsertItem(index, filename.GetPath());     // Directory
         m_pListLog->SetItem(index, 1, filename.GetFullName()); // File name
@@ -293,10 +293,10 @@ void ThreadSearchLoggerList::ConnectEvents(wxEvtHandler* pEvtHandler)
             (wxObjectEventFunction)(wxEventFunction)(wxCommandEventFunction)
             &ThreadSearchLoggerList::OnLoggerListContextualMenu, NULL, this);
 
-    pEvtHandler->Connect(controlIDs.Get(ControlIDs::idMenuCtxDeleteItem), wxEVT_COMMAND_MENU_SELECTED,
+    pEvtHandler->Connect(idMenuCtxDeleteItem, wxEVT_COMMAND_MENU_SELECTED,
             wxCommandEventHandler(ThreadSearchLoggerList::OnDeleteListItem), NULL, this);
 
-    pEvtHandler->Connect(controlIDs.Get(ControlIDs::idMenuCtxDeleteAllItems), wxEVT_COMMAND_MENU_SELECTED,
+    pEvtHandler->Connect(idMenuCtxDeleteAllItems, wxEVT_COMMAND_MENU_SELECTED,
             wxCommandEventHandler(ThreadSearchLoggerList::OnDeleteAllListItems), NULL, this);
 #endif // wxUSE_MENUS
 }
@@ -323,10 +323,10 @@ void ThreadSearchLoggerList::DisconnectEvents(wxEvtHandler* pEvtHandler)
             (wxObjectEventFunction)(wxEventFunction)(wxCommandEventFunction)
             &ThreadSearchLoggerList::OnLoggerListContextualMenu, NULL, this);
 
-    pEvtHandler->Disconnect(controlIDs.Get(ControlIDs::idMenuCtxDeleteItem), wxEVT_COMMAND_MENU_SELECTED,
+    pEvtHandler->Disconnect(idMenuCtxDeleteItem, wxEVT_COMMAND_MENU_SELECTED,
             wxCommandEventHandler(ThreadSearchLoggerList::OnDeleteListItem), NULL, this);
 
-    pEvtHandler->Disconnect(controlIDs.Get(ControlIDs::idMenuCtxDeleteAllItems), wxEVT_COMMAND_MENU_SELECTED,
+    pEvtHandler->Disconnect(idMenuCtxDeleteAllItems, wxEVT_COMMAND_MENU_SELECTED,
             wxCommandEventHandler(ThreadSearchLoggerList::OnDeleteAllListItems), NULL, this);
 #endif // wxUSE_MENUS
 }
@@ -468,7 +468,7 @@ void ThreadSearchLoggerList::OnSearchEnd()
         m_pListLog->SetColumnWidth(ii, wxLIST_AUTOSIZE);
 }
 
-inline int Compare(long a, long b)
+int Compare(long a, long b)
 {
     return (a < b ? -1 : (a > b ? 1 : 0));
 }
@@ -480,7 +480,7 @@ struct ItemLine
     int type; //(0 - header, 1 - normal item, 2 - footer)
 };
 
-inline int wxCALLBACK SortLineAscending(wxIntPtr item1, wxIntPtr item2, wxIntPtr /*data*/)
+int wxCALLBACK SortLineAscending(long item1, long item2, long /*data*/)
 {
     ItemLine const &i1 = *reinterpret_cast<ItemLine const *>(item1);
     ItemLine const &i2 = *reinterpret_cast<ItemLine const *>(item2);
@@ -495,7 +495,7 @@ inline int wxCALLBACK SortLineAscending(wxIntPtr item1, wxIntPtr item2, wxIntPtr
     return Compare(i1.line, i2.line);
 }
 
-inline int wxCALLBACK SortLineDescending(wxIntPtr item1, wxIntPtr item2, wxIntPtr /*data*/)
+int wxCALLBACK SortLineDescending(long item1, long item2, long /*data*/)
 {
     ItemLine const &i1 = *reinterpret_cast<ItemLine const *>(item1);
     ItemLine const &i2 = *reinterpret_cast<ItemLine const *>(item2);
@@ -523,7 +523,7 @@ struct Item
         int c = directory.CompareTo(item.directory);
         if (c)
             return c;
-            c = filename.CompareTo(item.filename);
+        c = filename.CompareTo(item.filename);
 
         if (c)
             return c;
@@ -539,7 +539,7 @@ struct Item
     }
 };
 
-inline int wxCALLBACK SortDirectoryAscending(wxIntPtr item1, wxIntPtr item2, wxIntPtr /*data*/)
+int wxCALLBACK SortDirectoryAscending(long item1, long item2, long /*data*/)
 {
     Item const &i1 = *reinterpret_cast<Item const *>(item1);
     Item const &i2 = *reinterpret_cast<Item const *>(item2);
@@ -554,7 +554,7 @@ inline int wxCALLBACK SortDirectoryAscending(wxIntPtr item1, wxIntPtr item2, wxI
     return i1.CompareDirectory(i2);
 }
 
-inline int wxCALLBACK SortDirectoryDescending(wxIntPtr item1, wxIntPtr item2, wxIntPtr /*data*/)
+int wxCALLBACK SortDirectoryDescending(long item1, long item2, long /*data*/)
 {
     Item const &i1 = *reinterpret_cast<Item const *>(item1);
     Item const &i2 = *reinterpret_cast<Item const *>(item2);
@@ -569,7 +569,7 @@ inline int wxCALLBACK SortDirectoryDescending(wxIntPtr item1, wxIntPtr item2, wx
     return i2.CompareDirectory(i1);
 }
 
-inline int wxCALLBACK SortFilenameAscending(wxIntPtr item1, wxIntPtr item2, wxIntPtr /*data*/)
+int wxCALLBACK SortFilenameAscending(long item1, long item2, long /*data*/)
 {
     Item const &i1 = *reinterpret_cast<Item const *>(item1);
     Item const &i2 = *reinterpret_cast<Item const *>(item2);
@@ -584,7 +584,7 @@ inline int wxCALLBACK SortFilenameAscending(wxIntPtr item1, wxIntPtr item2, wxIn
     return i1.CompareFile(i2);
 }
 
-inline int wxCALLBACK SortFilenameDescending(wxIntPtr item1, wxIntPtr item2, wxIntPtr /*data*/)
+int wxCALLBACK SortFilenameDescending(long item1, long item2, long /*data*/)
 {
     Item const &i1 = *reinterpret_cast<Item const *>(item1);
     Item const &i2 = *reinterpret_cast<Item const *>(item2);
@@ -607,7 +607,7 @@ struct ItemText
     int type; //(0 - header, 1 - normal item, 2 - footer)
 };
 
-inline int wxCALLBACK SortTextAscending(wxIntPtr item1, wxIntPtr item2, wxIntPtr /*data*/)
+int wxCALLBACK SortTextAscending(long item1, long item2, long /*data*/)
 {
     ItemText const &i1 = *reinterpret_cast<ItemText const *>(item1);
     ItemText const &i2 = *reinterpret_cast<ItemText const *>(item2);
@@ -622,7 +622,7 @@ inline int wxCALLBACK SortTextAscending(wxIntPtr item1, wxIntPtr item2, wxIntPtr
     return i1.text.CompareTo(i2.text);
 }
 
-inline int wxCALLBACK SortTextDescending(wxIntPtr item1, wxIntPtr item2, wxIntPtr /*data*/)
+int wxCALLBACK SortTextDescending(long item1, long item2, long /*data*/)
 {
     ItemText const &i1 = *reinterpret_cast<ItemText const *>(item1);
     ItemText const &i2 = *reinterpret_cast<ItemText const *>(item2);
@@ -794,8 +794,6 @@ void ThreadSearchLoggerList::OnColumnClick(wxListEvent& event)
 
                 delete [] items;
             }
-            break;
-        default:
             break;
     }
 }

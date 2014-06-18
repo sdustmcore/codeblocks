@@ -1,13 +1,21 @@
 /*
  * This file is part of the Code::Blocks IDE and licensed under the GNU General Public License, version 3
  * http://www.gnu.org/licenses/gpl-3.0.html
+ * $Revision$
+ * $Id$
+ * $HeadURL$
  */
 
 #ifndef BUILDTARGETPANEL_H
 #define BUILDTARGETPANEL_H
 
+#include <wx/wxprec.h>
 
-//(*HeadersPCH(BuildTargetPanel)
+#ifdef __BORLANDC__
+    #pragma hdrstop
+#endif
+
+//(*Headers(BuildTargetPanel)
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>

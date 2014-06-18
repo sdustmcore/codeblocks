@@ -17,7 +17,7 @@ class ParserThreadedTask : public cbThreadedTask
 {
 public:
     ParserThreadedTask(Parser* parser, wxMutex& parserCS);
-    virtual int Execute();
+    int Execute();
 
 private:
     Parser*  m_Parser;
@@ -28,7 +28,7 @@ class MarkFileAsLocalThreadedTask : public cbThreadedTask
 {
 public:
     MarkFileAsLocalThreadedTask(Parser* parser, cbProject* project);
-    virtual int Execute();
+    int Execute();
 
 private:
     Parser*    m_Parser;

@@ -89,7 +89,6 @@ int idCBNoSort                 = wxNewId();
 int idCBSortByAlpabet          = wxNewId();
 int idCBSortByKind             = wxNewId();
 int idCBSortByScope            = wxNewId();
-int idCBSortByLine             = wxNewId();
 int idCBBottomTree             = wxNewId();
 int idThreadEvent              = wxNewId();
 
@@ -123,7 +122,6 @@ BEGIN_EVENT_TABLE(ClassBrowser, wxPanel)
     EVT_MENU(idCBSortByAlpabet,                          ClassBrowser::OnSetSortType)
     EVT_MENU(idCBSortByKind,                             ClassBrowser::OnSetSortType)
     EVT_MENU(idCBSortByScope,                            ClassBrowser::OnSetSortType)
-    EVT_MENU(idCBSortByLine,                             ClassBrowser::OnSetSortType)
     EVT_MENU(idCBBottomTree,                             ClassBrowser::OnCBViewMode)
 
     EVT_COMMAND(idThreadEvent, wxEVT_COMMAND_ENTER,      ClassBrowser::OnThreadEvent)
@@ -249,7 +247,7 @@ void ClassBrowser::UpdateClassBrowserView(bool checkHeaderSwap)
         activeProject = m_NativeParser->GetCurrentProject();
 
     if (!activeProject)
-        CCLogger::Get()->DebugLog(wxT("ClassBrowser::UpdateClassBrowserView(): No active project available."));
+        CCLogger::Get()->DebugLog(wxT("No active project available."));
 
     ThreadedBuildTree(activeProject); // (Re-) create tree UI
 
@@ -300,8 +298,8 @@ void ClassBrowser::ShowMenu(wxTreeCtrl* tree, wxTreeItemId id, cb_unused const w
             case tkTypedef:
             case tkVariable:
             case tkEnumerator:
-            case tkMacroDef:
-            case tkMacroUse:
+            case tkPreprocessor:
+            case tkMacro:
             case tkAnyContainer:
             case tkAnyFunction:
             case tkUndefined:
@@ -343,7 +341,6 @@ void ClassBrowser::ShowMenu(wxTreeCtrl* tree, wxTreeItemId id, cb_unused const w
     menu->AppendCheckItem(idCBSortByAlpabet, _("Sort alphabetically"));
     menu->AppendCheckItem(idCBSortByKind,    _("Sort by kind"));
     menu->AppendCheckItem(idCBSortByScope,   _("Sort by access"));
-    menu->AppendCheckItem(idCBSortByLine,    _("Sort by line"));
 
     const BrowserSortType& bst = options.sortType;
     switch (bst)
@@ -356,9 +353,6 @@ void ClassBrowser::ShowMenu(wxTreeCtrl* tree, wxTreeItemId id, cb_unused const w
             break;
         case bstScope:
             menu->Check(idCBSortByScope,   true);
-            break;
-        case bstLine:
-            menu->Check(idCBSortByLine,    true);
             break;
         case bstNone:
         default:
@@ -573,8 +567,8 @@ void ClassBrowser::OnTreeItemDoubleClick(wxTreeEvent& event)
             case tkTypedef:
             case tkVariable:
             case tkEnumerator:
-            case tkMacroDef:
-            case tkMacroUse:
+            case tkPreprocessor:
+            case tkMacro:
             case tkAnyContainer:
             case tkAnyFunction:
             case tkUndefined:
@@ -703,7 +697,6 @@ void ClassBrowser::OnSetSortType(wxCommandEvent& event)
     if      (event.GetId() == idCBSortByAlpabet) bst = bstAlphabet;
     else if (event.GetId() == idCBSortByKind)    bst = bstKind;
     else if (event.GetId() == idCBSortByScope)   bst = bstScope;
-    else if (event.GetId() == idCBSortByLine)    bst = bstLine;
     else                                         bst = bstNone;
 
     if (m_Parser)
@@ -959,12 +952,12 @@ void ClassBrowser::OnThreadEvent(wxCommandEvent& event)
         }
         case ClassBrowserBuilderThread::buildTreeStart:
         {
-            CCLogger::Get()->DebugLog(wxT("ClassBrowser::OnThreadEvent(): Updating class browser..."));
+            CCLogger::Get()->DebugLog(wxT("Updating class browser..."));
             break;
         }
         case ClassBrowserBuilderThread::buildTreeEnd:
         {
-            CCLogger::Get()->DebugLog(wxT("ClassBrowser::OnThreadEvent(): Class browser updated."));
+            CCLogger::Get()->DebugLog(wxT("Class browser updated."));
             break;
         }
         default:

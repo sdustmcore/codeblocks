@@ -18,7 +18,7 @@
 				<Linker>
 					<Add library="bfd" />
 					<Add library="iberty" />
-					<Add library="z" />
+					<Add library="intl" />
 					<Add directory="base/exchndl/lib" />
 				</Linker>
 			</Target>
@@ -98,8 +98,8 @@
 				<Compiler>
 					<Add option="-D__WX__" />
 					<Add option="-DWINVER=0x0501" />
-					<Add option="-DLINK_LEXERS" />
 					<Add option="-DSCI_LEXER" />
+					<Add option="-DLINK_LEXERS" />
 					<Add option="-DWXMAKINGDLL_SCI" />
 					<Add directory="sdk/wxscintilla/src/scintilla/include" />
 					<Add directory="sdk/wxscintilla/src/scintilla/src" />
@@ -144,7 +144,7 @@
 				<Option external_deps="base/tinyxml/libtxml.a;sdk/scripting/lib/libsquirrel.a;sdk/scripting/lib/libsqstdlib.a;sdk/scripting/lib/libsqplus.a;devel/libwxscintilla_cb.a;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --verbose -p debug" />
+				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --verbose" />
 				<Option createStaticLib="1" />
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
@@ -158,11 +158,6 @@
 					<Add directory="include/scripting/include" />
 					<Add directory="include/scripting/sqplus" />
 					<Add directory="include/mozilla_chardet" />
-					<Add directory="include/mozilla_chardet/mfbt" />
-					<Add directory="include/mozilla_chardet/nsprpub/pr/include" />
-					<Add directory="include/mozilla_chardet/xpcom" />
-					<Add directory="include/mozilla_chardet/xpcom/base" />
-					<Add directory="include/mozilla_chardet/xpcom/glue" />
 					<Add directory="sdk/wxpropgrid/include" />
 				</Compiler>
 				<Linker>
@@ -197,7 +192,7 @@
 				<Option external_deps="devel/libcodeblocks.a;" />
 				<Option type="0" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --no-splash-screen --verbose -p debug" />
+				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --no-splash-screen --verbose" />
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-DBUILDING_PLUGIN" />
@@ -205,11 +200,6 @@
 					<Add directory="include/scripting/include" />
 					<Add directory="include/scripting/sqplus" />
 					<Add directory="include/mozilla_chardet" />
-					<Add directory="include/mozilla_chardet/mfbt" />
-					<Add directory="include/mozilla_chardet/nsprpub/pr/include" />
-					<Add directory="include/mozilla_chardet/xpcom" />
-					<Add directory="include/mozilla_chardet/xpcom/base" />
-					<Add directory="include/mozilla_chardet/xpcom/glue" />
 				</Compiler>
 				<Linker>
 					<Add option="-Wl,--enable-auto-import" />
@@ -247,7 +237,7 @@
 				<Option external_deps="devel/libcodeblocks.a;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --no-splash-screen --verbose -p debug" />
+				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --no-splash-screen --verbose" />
 				<Option host_application="./codeblocks.exe" />
 				<Option run_host_application_in_terminal="0" />
 				<Option projectLinkerOptionsRelation="1" />
@@ -280,7 +270,7 @@
 				<Option external_deps="devel/libcodeblocks.a;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --no-splash-screen --verbose -p debug" />
+				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --no-splash-screen --verbose" />
 				<Option host_application="./codeblocks.exe" />
 				<Option run_host_application_in_terminal="0" />
 				<Option projectLinkerOptionsRelation="1" />
@@ -312,7 +302,7 @@
 				<Option external_deps="devel/libcodeblocks.a;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --no-splash-screen --verbose -p debug" />
+				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --no-splash-screen --verbose" />
 				<Option host_application="./codeblocks.exe" />
 				<Option run_host_application_in_terminal="0" />
 				<Option projectLinkerOptionsRelation="1" />
@@ -355,7 +345,7 @@
 				<Option external_deps="devel/libcodeblocks.a;plugins/compilergcc/depslib/libdepslib.a;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --no-splash-screen --verbose -p debug" />
+				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --no-splash-screen --verbose" />
 				<Option host_application="./codeblocks.exe" />
 				<Option run_host_application_in_terminal="0" />
 				<Option projectLinkerOptionsRelation="1" />
@@ -382,8 +372,6 @@
 					<Add after="cmd /c if not exist devel\share\CodeBlocks mkdir devel\share\CodeBlocks" />
 					<Add after="zip -jq9 devel\share\CodeBlocks\compiler.zip plugins\compilergcc\resources\manifest.xml plugins\compilergcc\resources\*.xrc" />
 					<Add after='cmd /c &quot;cd plugins\compilergcc\resources &amp; zip -0 -q ..\..\..\devel\share\CodeBlocks\compiler.zip images\*.png images\16x16\*.png&quot;' />
-					<Add after="cmd /c if not exist devel\share\CodeBlocks\compilers mkdir devel\share\CodeBlocks\compilers" />
-					<Add after="cmd /c xcopy /D /Y plugins\compilergcc\resources\compilers\*.* devel\share\CodeBlocks\compilers" />
 					<Mode after="always" />
 				</ExtraCommands>
 			</Target>
@@ -393,7 +381,7 @@
 				<Option external_deps="devel/libcodeblocks.a;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --no-splash-screen --verbose -p debug" />
+				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --no-splash-screen --verbose" />
 				<Option host_application="./codeblocks.exe" />
 				<Option run_host_application_in_terminal="0" />
 				<Option projectLinkerOptionsRelation="1" />
@@ -425,7 +413,7 @@
 				<Option external_deps="devel/libcodeblocks.a;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --no-splash-screen --verbose -p debug" />
+				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --no-splash-screen --verbose" />
 				<Option host_application="./codeblocks.exe" />
 				<Option run_host_application_in_terminal="0" />
 				<Option projectLinkerOptionsRelation="1" />
@@ -433,11 +421,6 @@
 					<Add option="-DBUILDING_PLUGIN" />
 					<Add directory="include" />
 					<Add directory="include/mozilla_chardet" />
-					<Add directory="include/mozilla_chardet/mfbt" />
-					<Add directory="include/mozilla_chardet/nsprpub/pr/include" />
-					<Add directory="include/mozilla_chardet/xpcom" />
-					<Add directory="include/mozilla_chardet/xpcom/base" />
-					<Add directory="include/mozilla_chardet/xpcom/glue" />
 				</Compiler>
 				<Linker>
 					<Add option="-Wl,--enable-auto-image-base" />
@@ -461,7 +444,7 @@
 				<Option external_deps="devel/libcodeblocks.a;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --no-splash-screen --verbose -p debug" />
+				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --no-splash-screen --verbose" />
 				<Option host_application="./codeblocks.exe" />
 				<Option run_host_application_in_terminal="0" />
 				<Option projectLinkerOptionsRelation="1" />
@@ -491,7 +474,7 @@
 				<Option external_deps="devel/libcodeblocks.a;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --no-splash-screen --verbose -p debug" />
+				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --no-splash-screen --verbose" />
 				<Option host_application="./codeblocks.exe" />
 				<Option run_host_application_in_terminal="0" />
 				<Option projectLinkerOptionsRelation="1" />
@@ -515,43 +498,13 @@
 					<Mode after="always" />
 				</ExtraCommands>
 			</Target>
-			<Target title="Occurrences Highlighting">
-				<Option output="devel/share/CodeBlocks/plugins/OccurrencesHighlighting" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="devel" />
-				<Option external_deps="devel/libcodeblocks.a;" />
-				<Option type="3" />
-				<Option compiler="gcc" />
-				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --no-splash-screen --verbose -p debug" />
-				<Option host_application="./codeblocks.exe" />
-				<Option run_host_application_in_terminal="0" />
-				<Option projectLinkerOptionsRelation="1" />
-				<Compiler>
-					<Add option="-DBUILDING_PLUGIN" />
-					<Add directory="include" />
-				</Compiler>
-				<Linker>
-					<Add option="-Wl,--enable-auto-image-base" />
-					<Add option="-Wl,--add-stdcall-alias" />
-					<Add option="-Wl,--enable-auto-import" />
-					<Add option="-Wl,--no-undefined" />
-					<Add option="-mthreads" />
-					<Add library="codeblocks" />
-					<Add library="wxmsw$(WX_VERSION)$(WX_SUFFIX)" />
-					<Add directory="devel" />
-				</Linker>
-				<ExtraCommands>
-					<Add after="cmd /c if not exist devel\share\CodeBlocks mkdir devel\share\CodeBlocks" />
-					<Add after="zip -j9 devel\share\CodeBlocks\OccurrencesHighlighting.zip plugins\occurrenceshighlighting\resources\manifest.xml plugins\occurrenceshighlighting\resources\*.xrc" />
-					<Mode after="always" />
-				</ExtraCommands>
-			</Target>
 			<Target title="Open files list">
 				<Option output="devel/share/CodeBlocks/plugins/openfileslist" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="devel" />
 				<Option external_deps="devel/libcodeblocks.a;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --no-splash-screen --verbose -p debug" />
+				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --no-splash-screen --verbose" />
 				<Option host_application="./codeblocks.exe" />
 				<Option run_host_application_in_terminal="0" />
 				<Option projectLinkerOptionsRelation="1" />
@@ -581,7 +534,7 @@
 				<Option external_deps="devel/libcodeblocks.a;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --no-splash-screen --verbose -p debug" />
+				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --no-splash-screen --verbose" />
 				<Option host_application="./codeblocks.exe" />
 				<Option run_host_application_in_terminal="0" />
 				<Option projectLinkerOptionsRelation="1" />
@@ -589,11 +542,6 @@
 					<Add option="-DBUILDING_PLUGIN" />
 					<Add directory="include" />
 					<Add directory="include/mozilla_chardet" />
-					<Add directory="include/mozilla_chardet/mfbt" />
-					<Add directory="include/mozilla_chardet/nsprpub/pr/include" />
-					<Add directory="include/mozilla_chardet/xpcom" />
-					<Add directory="include/mozilla_chardet/xpcom/base" />
-					<Add directory="include/mozilla_chardet/xpcom/glue" />
 				</Compiler>
 				<Linker>
 					<Add option="-Wl,--enable-auto-image-base" />
@@ -617,7 +565,7 @@
 				<Option external_deps="devel/libcodeblocks.a;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --no-splash-screen --verbose -p debug" />
+				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --no-splash-screen --verbose" />
 				<Option host_application="./codeblocks.exe" />
 				<Option run_host_application_in_terminal="0" />
 				<Option projectLinkerOptionsRelation="1" />
@@ -649,7 +597,7 @@
 				<Option external_deps="devel/libcodeblocks.a;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --no-splash-screen --verbose -p debug" />
+				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --no-splash-screen --verbose" />
 				<Option host_application="./codeblocks.exe" />
 				<Option run_host_application_in_terminal="0" />
 				<Option projectLinkerOptionsRelation="1" />
@@ -657,11 +605,6 @@
 					<Add option="-DBUILDING_PLUGIN" />
 					<Add directory="include" />
 					<Add directory="include/mozilla_chardet" />
-					<Add directory="include/mozilla_chardet/mfbt" />
-					<Add directory="include/mozilla_chardet/nsprpub/pr/include" />
-					<Add directory="include/mozilla_chardet/xpcom" />
-					<Add directory="include/mozilla_chardet/xpcom/base" />
-					<Add directory="include/mozilla_chardet/xpcom/glue" />
 				</Compiler>
 				<Linker>
 					<Add option="-Wl,--enable-auto-image-base" />
@@ -685,7 +628,7 @@
 				<Option external_deps="devel/libcodeblocks.a;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --no-splash-screen --verbose -p debug" />
+				<Option parameters="--debug-log --no-dde --no-check-associations --multiple-instance --no-splash-screen --verbose" />
 				<Option host_application="./codeblocks.exe" />
 				<Option run_host_application_in_terminal="0" />
 				<Option projectLinkerOptionsRelation="1" />
@@ -716,8 +659,8 @@
 			</Environment>
 		</Build>
 		<VirtualTargets>
-			<Add alias="All" targets="tinyXML;AutoRevision;ConsoleRunner;Squirrel;Squirrel std lib;SqPlus;scintilla;wxpropgrid;sdk;src;Abbreviations;AStyle;Autosave;Compiler depslib;Compiler;Debugger;Code-completion;Class wizard;Default MIME handler;Occurrences Highlighting;Open files list;Projects-workspaces importer;Scripted wizard;To-do;XP look &amp; feel;" />
-			<Add alias="Core app &amp; plugins" targets="sdk;src;AStyle;Autosave;Compiler depslib;Compiler;Debugger;Code-completion;Class wizard;Default MIME handler;Occurrences Highlighting;Open files list;Projects-workspaces importer;Scripted wizard;To-do;XP look &amp; feel;" />
+			<Add alias="All" targets="tinyXML;AutoRevision;ConsoleRunner;Squirrel;Squirrel std lib;SqPlus;scintilla;wxpropgrid;sdk;src;Abbreviations;AStyle;Autosave;Compiler depslib;Compiler;Debugger;Code-completion;Class wizard;Default MIME handler;Open files list;Projects-workspaces importer;Scripted wizard;To-do;XP look &amp; feel;" />
+			<Add alias="Core app &amp; plugins" targets="sdk;src;AStyle;Autosave;Compiler depslib;Compiler;Debugger;Code-completion;Class wizard;Default MIME handler;Open files list;Projects-workspaces importer;Scripted wizard;To-do;XP look &amp; feel;" />
 			<Add alias="Third-party libs" targets="tinyXML;AutoRevision;ConsoleRunner;Squirrel;Squirrel std lib;SqPlus;scintilla;wxpropgrid;Compiler depslib;" />
 		</VirtualTargets>
 		<Compiler>
@@ -736,6 +679,7 @@
 			<Add option="-DWX_PRECOMP" />
 			<Add option="-DwxUSE_UNICODE" />
 			<Add directory="$(#WX.include)" />
+			<Add directory="$(#WX)/contrib/include" />
 			<Add directory="$(#WX.lib)/gcc_dll$(WX_CFG)/msw$(WX_SUFFIX)" />
 			<Add directory="sdk/wxscintilla/include" />
 			<Add directory="sdk/wxpropgrid/include" />
@@ -743,6 +687,7 @@
 		</Compiler>
 		<ResourceCompiler>
 			<Add directory="$(#WX.include)" />
+			<Add directory="$(#WX)/contrib/include" />
 			<Add directory="$(#WX)/lib/gcc_dll$(WX_CFG)/msw$(WX_SUFFIX)" />
 		</ResourceCompiler>
 		<Linker>
@@ -802,9 +747,6 @@
 		<Unit filename="include/cbauibook.h">
 			<Option target="sdk" />
 		</Unit>
-		<Unit filename="include/cbcolourmanager.h">
-			<Option target="sdk" />
-		</Unit>
 		<Unit filename="include/cbdebugger_interfaces.h">
 			<Option target="sdk" />
 		</Unit>
@@ -838,6 +780,9 @@
 		<Unit filename="include/cbthreadpool.h">
 			<Option target="sdk" />
 		</Unit>
+		<Unit filename="include/cbthreadpool_extras.h">
+			<Option target="sdk" />
+		</Unit>
 		<Unit filename="include/cbtool.h">
 			<Option target="sdk" />
 		</Unit>
@@ -845,9 +790,6 @@
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="include/cbworkspace.h">
-			<Option target="sdk" />
-		</Unit>
-		<Unit filename="include/ccmanager.h">
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="include/compileoptionsbase.h">
@@ -895,6 +837,9 @@
 		<Unit filename="include/editarraystringdlg.h">
 			<Option target="sdk" />
 		</Unit>
+		<Unit filename="include/editkeywordsdlg.h">
+			<Option target="sdk" />
+		</Unit>
 		<Unit filename="include/editor_hooks.h">
 			<Option target="sdk" />
 		</Unit>
@@ -902,6 +847,9 @@
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="include/editorcolourset.h">
+			<Option target="sdk" />
+		</Unit>
+		<Unit filename="include/editorconfigurationdlg.h">
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="include/editorlexerloader.h">
@@ -994,30 +942,6 @@
 		<Unit filename="include/mozilla_chardet/JpCntx.h">
 			<Option target="sdk" />
 		</Unit>
-		<Unit filename="include/mozilla_chardet/mfbt/mozilla/Assertions.h">
-			<Option target="sdk" />
-		</Unit>
-		<Unit filename="include/mozilla_chardet/mfbt/mozilla/Attributes.h">
-			<Option target="sdk" />
-		</Unit>
-		<Unit filename="include/mozilla_chardet/mfbt/mozilla/Compiler.h">
-			<Option target="sdk" />
-		</Unit>
-		<Unit filename="include/mozilla_chardet/mfbt/mozilla/Likely.h">
-			<Option target="sdk" />
-		</Unit>
-		<Unit filename="include/mozilla_chardet/mfbt/mozilla/NullPtr.h">
-			<Option target="sdk" />
-		</Unit>
-		<Unit filename="include/mozilla_chardet/mfbt/mozilla/StandardInteger.h">
-			<Option target="sdk" />
-		</Unit>
-		<Unit filename="include/mozilla_chardet/mfbt/mozilla/Types.h">
-			<Option target="sdk" />
-		</Unit>
-		<Unit filename="include/mozilla_chardet/mfbt/mozilla/Util.h">
-			<Option target="sdk" />
-		</Unit>
 		<Unit filename="include/mozilla_chardet/nsBig5Prober.h">
 			<Option target="sdk" />
 		</Unit>
@@ -1034,6 +958,9 @@
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="include/mozilla_chardet/nsEUCTWProber.h">
+			<Option target="sdk" />
+		</Unit>
+		<Unit filename="include/mozilla_chardet/nsError.h">
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="include/mozilla_chardet/nsEscCharsetProber.h">
@@ -1069,43 +996,16 @@
 		<Unit filename="include/mozilla_chardet/nsUniversalDetector.h">
 			<Option target="sdk" />
 		</Unit>
-		<Unit filename="include/mozilla_chardet/nsprpub/pr/include/prcpucfg.h">
+		<Unit filename="include/mozilla_chardet/nscore.h">
 			<Option target="sdk" />
 		</Unit>
-		<Unit filename="include/mozilla_chardet/nsprpub/pr/include/prcpucfg_darwin.h">
+		<Unit filename="include/mozilla_chardet/prcpucfg.h">
 			<Option target="sdk" />
 		</Unit>
-		<Unit filename="include/mozilla_chardet/nsprpub/pr/include/prcpucfg_linux.h">
+		<Unit filename="include/mozilla_chardet/prmem.h">
 			<Option target="sdk" />
 		</Unit>
-		<Unit filename="include/mozilla_chardet/nsprpub/pr/include/prcpucfg_openbsd.h">
-			<Option target="sdk" />
-		</Unit>
-		<Unit filename="include/mozilla_chardet/nsprpub/pr/include/prcpucfg_win95.h">
-			<Option target="sdk" />
-		</Unit>
-		<Unit filename="include/mozilla_chardet/nsprpub/pr/include/prcpucfg_winnt.h">
-			<Option target="sdk" />
-		</Unit>
-		<Unit filename="include/mozilla_chardet/nsprpub/pr/include/prmem.h">
-			<Option target="sdk" />
-		</Unit>
-		<Unit filename="include/mozilla_chardet/nsprpub/pr/include/prtypes.h">
-			<Option target="sdk" />
-		</Unit>
-		<Unit filename="include/mozilla_chardet/xpcom/base/ErrorList.h">
-			<Option target="sdk" />
-		</Unit>
-		<Unit filename="include/mozilla_chardet/xpcom/base/nsError.h">
-			<Option target="sdk" />
-		</Unit>
-		<Unit filename="include/mozilla_chardet/xpcom/base/nscore.h">
-			<Option target="sdk" />
-		</Unit>
-		<Unit filename="include/mozilla_chardet/xpcom/glue/nsDebug.h">
-			<Option target="sdk" />
-		</Unit>
-		<Unit filename="include/mozilla_chardet/xpcom/glue/nsMemory.h">
+		<Unit filename="include/mozilla_chardet/prtypes.h">
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="include/multiselectdlg.h">
@@ -1135,6 +1035,9 @@
 		<Unit filename="include/projectbuildtarget.h">
 			<Option target="sdk" />
 		</Unit>
+		<Unit filename="include/projectdepsdlg.h">
+			<Option target="sdk" />
+		</Unit>
 		<Unit filename="include/projectfile.h">
 			<Option target="sdk" />
 		</Unit>
@@ -1151,6 +1054,9 @@
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="include/projectmanager.h">
+			<Option target="sdk" />
+		</Unit>
+		<Unit filename="include/projectoptionsdlg.h">
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="include/projectsfilemasksdlg.h">
@@ -1328,6 +1234,9 @@
 		<Unit filename="include/uservarmanager.h">
 			<Option target="sdk" />
 		</Unit>
+		<Unit filename="include/virtualbuildtargetsdlg.h">
+			<Option target="sdk" />
+		</Unit>
 		<Unit filename="include/workspaceloader.h">
 			<Option target="sdk" />
 		</Unit>
@@ -1483,12 +1392,6 @@
 		<Unit filename="plugins/codecompletion/coderefactoring.h">
 			<Option target="Code-completion" />
 		</Unit>
-		<Unit filename="plugins/codecompletion/doxygen_parser.cpp">
-			<Option target="Code-completion" />
-		</Unit>
-		<Unit filename="plugins/codecompletion/doxygen_parser.h">
-			<Option target="Code-completion" />
-		</Unit>
 		<Unit filename="plugins/codecompletion/insertclassmethoddlg.cpp">
 			<Option target="Code-completion" />
 		</Unit>
@@ -1612,10 +1515,28 @@
 		<Unit filename="plugins/compilergcc/advancedcompileroptionsdlg.h">
 			<Option target="Compiler" />
 		</Unit>
+		<Unit filename="plugins/compilergcc/compilerBCC.cpp">
+			<Option target="Compiler" />
+		</Unit>
+		<Unit filename="plugins/compilergcc/compilerBCC.h">
+			<Option target="Compiler" />
+		</Unit>
 		<Unit filename="plugins/compilergcc/compilerCYGWIN.cpp">
 			<Option target="Compiler" />
 		</Unit>
 		<Unit filename="plugins/compilergcc/compilerCYGWIN.h">
+			<Option target="Compiler" />
+		</Unit>
+		<Unit filename="plugins/compilergcc/compilerDMC.cpp">
+			<Option target="Compiler" />
+		</Unit>
+		<Unit filename="plugins/compilergcc/compilerDMC.h">
+			<Option target="Compiler" />
+		</Unit>
+		<Unit filename="plugins/compilergcc/compilerDMD.cpp">
+			<Option target="Compiler" />
+		</Unit>
+		<Unit filename="plugins/compilergcc/compilerDMD.h">
 			<Option target="Compiler" />
 		</Unit>
 		<Unit filename="plugins/compilergcc/compilerG95.cpp">
@@ -1636,16 +1557,34 @@
 		<Unit filename="plugins/compilergcc/compilerGNUARM.h">
 			<Option target="Compiler" />
 		</Unit>
+		<Unit filename="plugins/compilergcc/compilerGNUAVR.cpp">
+			<Option target="Compiler" />
+		</Unit>
+		<Unit filename="plugins/compilergcc/compilerGNUAVR.h">
+			<Option target="Compiler" />
+		</Unit>
 		<Unit filename="plugins/compilergcc/compilerGNUFortran.cpp">
 			<Option target="Compiler" />
 		</Unit>
 		<Unit filename="plugins/compilergcc/compilerGNUFortran.h">
 			<Option target="Compiler" />
 		</Unit>
-		<Unit filename="plugins/compilergcc/compilerIAR.cpp">
+		<Unit filename="plugins/compilergcc/compilerGNUMSP430.cpp">
 			<Option target="Compiler" />
 		</Unit>
-		<Unit filename="plugins/compilergcc/compilerIAR.h">
+		<Unit filename="plugins/compilergcc/compilerGNUMSP430.h">
+			<Option target="Compiler" />
+		</Unit>
+		<Unit filename="plugins/compilergcc/compilerGNUPOWERPC.cpp">
+			<Option target="Compiler" />
+		</Unit>
+		<Unit filename="plugins/compilergcc/compilerGNUPOWERPC.h">
+			<Option target="Compiler" />
+		</Unit>
+		<Unit filename="plugins/compilergcc/compilerGNUTRICORE.cpp">
+			<Option target="Compiler" />
+		</Unit>
+		<Unit filename="plugins/compilergcc/compilerGNUTRICORE.h">
 			<Option target="Compiler" />
 		</Unit>
 		<Unit filename="plugins/compilergcc/compilerICC.cpp">
@@ -1654,16 +1593,16 @@
 		<Unit filename="plugins/compilergcc/compilerICC.h">
 			<Option target="Compiler" />
 		</Unit>
-		<Unit filename="plugins/compilergcc/compilerKeilC51.cpp">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/compilerKeilC51.h">
-			<Option target="Compiler" />
-		</Unit>
 		<Unit filename="plugins/compilergcc/compilerLCC.cpp">
 			<Option target="Compiler" />
 		</Unit>
 		<Unit filename="plugins/compilergcc/compilerLCC.h">
+			<Option target="Compiler" />
+		</Unit>
+		<Unit filename="plugins/compilergcc/compilerLDC.cpp">
+			<Option target="Compiler" />
+		</Unit>
+		<Unit filename="plugins/compilergcc/compilerLDC.h">
 			<Option target="Compiler" />
 		</Unit>
 		<Unit filename="plugins/compilergcc/compilerMINGW.cpp">
@@ -1708,10 +1647,16 @@
 		<Unit filename="plugins/compilergcc/compilerOWgenerator.h">
 			<Option target="Compiler" />
 		</Unit>
-		<Unit filename="plugins/compilergcc/compilerXML.cpp">
+		<Unit filename="plugins/compilergcc/compilerSDCC.cpp">
 			<Option target="Compiler" />
 		</Unit>
-		<Unit filename="plugins/compilergcc/compilerXML.h">
+		<Unit filename="plugins/compilergcc/compilerSDCC.h">
+			<Option target="Compiler" />
+		</Unit>
+		<Unit filename="plugins/compilergcc/compilerTcc.cpp">
+			<Option target="Compiler" />
+		</Unit>
+		<Unit filename="plugins/compilergcc/compilerTcc.h">
 			<Option target="Compiler" />
 		</Unit>
 		<Unit filename="plugins/compilergcc/compiler_defs.cpp">
@@ -1724,12 +1669,6 @@
 			<Option target="Compiler" />
 		</Unit>
 		<Unit filename="plugins/compilergcc/compilererrors.h">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/compilerflagdlg.cpp">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/compilerflagdlg.h">
 			<Option target="Compiler" />
 		</Unit>
 		<Unit filename="plugins/compilergcc/compilergcc.cpp">
@@ -1857,9 +1796,6 @@
 		<Unit filename="plugins/compilergcc/resources/advanced_compiler_options.xrc">
 			<Option target="Compiler" />
 		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compiler_flag.xrc">
-			<Option target="Compiler" />
-		</Unit>
 		<Unit filename="plugins/compilergcc/resources/compiler_menu.xrc">
 			<Option target="Compiler" />
 		</Unit>
@@ -1870,174 +1806,6 @@
 			<Option target="Compiler" />
 		</Unit>
 		<Unit filename="plugins/compilergcc/resources/compiler_toolbar_16x16.xrc">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/compiler_avr-gcc.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/compiler_bcc.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/compiler_clang.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/compiler_dmc.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/compiler_dmd.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/compiler_ldc.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/compiler_msp430-gcc.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/compiler_null.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/compiler_pgifortran.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/compiler_ppc-gcc.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/compiler_sdcc.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/compiler_tcc.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/compiler_tricore-gcc.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_arm-elf-gcc.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_avr-gcc.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_bcc.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_clang.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_common_architecture.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_common_cmds.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_common_codegen.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_common_optimization.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_common_optimize-msvc.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_common_re-gf.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_common_re-iar.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_common_re-msvc.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_common_re.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_common_runtime.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_common_sort.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_common_warnings-msvc.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_common_warnings.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_cygwin.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_dmc.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_dmd.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_g95.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_gcc.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_gdc.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_gfortran.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_iar8051.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_iararm.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_icc.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_keilc51.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_keilcx51.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_lcc.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_ldc.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_msp430-gcc.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_msvc10.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_msvc8.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_msvctk.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_null.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_ow.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_pgifortran.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_ppc-gcc.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_sdcc.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_tcc.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/compilers/options_tricore-gcc.xml">
-			<Option target="Compiler" />
-		</Unit>
-		<Unit filename="plugins/compilergcc/resources/manifest.xml">
 			<Option target="Compiler" />
 		</Unit>
 		<Unit filename="plugins/debuggergdb/cdb_commands.h">
@@ -2159,33 +1927,6 @@
 		</Unit>
 		<Unit filename="plugins/defaultmimehandler/resources/manifest.xml">
 			<Option target="Default MIME handler" />
-		</Unit>
-		<Unit filename="plugins/occurrenceshighlighting/highlighter.cpp">
-			<Option target="Occurrences Highlighting" />
-		</Unit>
-		<Unit filename="plugins/occurrenceshighlighting/highlighter.h">
-			<Option target="Occurrences Highlighting" />
-		</Unit>
-		<Unit filename="plugins/occurrenceshighlighting/occurrenceshighlighting.cpp">
-			<Option target="Occurrences Highlighting" />
-		</Unit>
-		<Unit filename="plugins/occurrenceshighlighting/occurrenceshighlighting.h">
-			<Option target="Occurrences Highlighting" />
-		</Unit>
-		<Unit filename="plugins/occurrenceshighlighting/occurrenceshighlightingconfigurationpanel.cpp">
-			<Option target="Occurrences Highlighting" />
-		</Unit>
-		<Unit filename="plugins/occurrenceshighlighting/occurrenceshighlightingconfigurationpanel.h">
-			<Option target="Occurrences Highlighting" />
-		</Unit>
-		<Unit filename="plugins/occurrenceshighlighting/occurrencespanel.cpp">
-			<Option target="Occurrences Highlighting" />
-		</Unit>
-		<Unit filename="plugins/occurrenceshighlighting/occurrencespanel.h">
-			<Option target="Occurrences Highlighting" />
-		</Unit>
-		<Unit filename="plugins/occurrenceshighlighting/resources/occurrenceshighlightingconfigurationpanel.xrc">
-			<Option target="Occurrences Highlighting" />
 		</Unit>
 		<Unit filename="plugins/openfileslist/manifest.xml">
 			<Option target="Open files list" />
@@ -2520,9 +2261,6 @@
 		<Unit filename="sdk/cbauibook.cpp">
 			<Option target="sdk" />
 		</Unit>
-		<Unit filename="sdk/cbcolourmanager.cpp">
-			<Option target="sdk" />
-		</Unit>
 		<Unit filename="sdk/cbdebugger_interfaces.cpp">
 			<Option target="sdk" />
 		</Unit>
@@ -2554,9 +2292,6 @@
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="sdk/cbworkspace.cpp">
-			<Option target="sdk" />
-		</Unit>
-		<Unit filename="sdk/ccmanager.cpp">
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="sdk/compileoptionsbase.cpp">
@@ -2608,6 +2343,9 @@
 		<Unit filename="sdk/editarraystringdlg.cpp">
 			<Option target="sdk" />
 		</Unit>
+		<Unit filename="sdk/editkeywordsdlg.cpp">
+			<Option target="sdk" />
+		</Unit>
 		<Unit filename="sdk/editor_hooks.cpp">
 			<Option target="sdk" />
 		</Unit>
@@ -2615,6 +2353,9 @@
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="sdk/editorcolourset.cpp">
+			<Option target="sdk" />
+		</Unit>
+		<Unit filename="sdk/editorconfigurationdlg.cpp">
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="sdk/editorlexerloader.cpp">
@@ -2800,6 +2541,9 @@
 		<Unit filename="sdk/projectbuildtarget.cpp">
 			<Option target="sdk" />
 		</Unit>
+		<Unit filename="sdk/projectdepsdlg.cpp">
+			<Option target="sdk" />
+		</Unit>
 		<Unit filename="sdk/projectfile.cpp">
 			<Option target="sdk" />
 		</Unit>
@@ -2816,6 +2560,9 @@
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="sdk/projectmanager.cpp">
+			<Option target="sdk" />
+		</Unit>
+		<Unit filename="sdk/projectoptionsdlg.cpp">
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="sdk/projectsfilemasksdlg.cpp">
@@ -2854,6 +2601,9 @@
 		<Unit filename="sdk/resources/edit_tool.xrc">
 			<Option target="sdk" />
 		</Unit>
+		<Unit filename="sdk/resources/editor_configuration.xrc">
+			<Option target="sdk" />
+		</Unit>
 		<Unit filename="sdk/resources/editor_manager.xrc">
 			<Option target="sdk" />
 		</Unit>
@@ -2887,37 +2637,16 @@
 		<Unit filename="sdk/resources/lexers/lexer_OgreMaterial.xml">
 			<Option target="scintilla" />
 		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_ada.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_ada.xml">
-			<Option target="scintilla" />
-		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_angelscript.sample">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_angelscript.xml">
 			<Option target="scintilla" />
 		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_bash.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_bash.xml">
-			<Option target="scintilla" />
-		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_batch.sample">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_batch.xml">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_bibtex.xml">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_caml.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_caml.xml">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_cg.sample">
@@ -2930,12 +2659,6 @@
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_cmake.xml">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_coffee.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_coffee.xml">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_cpp.sample">
@@ -2968,12 +2691,6 @@
 		<Unit filename="sdk/resources/lexers/lexer_f77.xml">
 			<Option target="scintilla" />
 		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_fortran.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_fortran.xml">
-			<Option target="scintilla" />
-		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_glsl.sample">
 			<Option target="scintilla" />
 		</Unit>
@@ -2984,12 +2701,6 @@
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_gm.xml">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_haskell.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_haskell.xml">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_hitasm.sample">
@@ -3010,22 +2721,10 @@
 		<Unit filename="sdk/resources/lexers/lexer_java.xml">
 			<Option target="scintilla" />
 		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_javascript.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_javascript.xml">
-			<Option target="scintilla" />
-		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_latex.sample">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_latex.xml">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_lisp.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_lisp.xml">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_lua.sample">
@@ -3058,28 +2757,10 @@
 		<Unit filename="sdk/resources/lexers/lexer_nsis.xml">
 			<Option target="scintilla" />
 		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_objc.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_objc.xml">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_pascal.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_pascal.xml">
-			<Option target="scintilla" />
-		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_perl.sample">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_perl.xml">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_postscript.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_postscript.xml">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_prg.sample">
@@ -3106,46 +2787,10 @@
 		<Unit filename="sdk/resources/lexers/lexer_rc.xml">
 			<Option target="scintilla" />
 		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_ruby.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_ruby.xml">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_smalltalk.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_smalltalk.xml">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_sql.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_sql.xml">
-			<Option target="scintilla" />
-		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_squirrel.sample">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_squirrel.xml">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_vbscript.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_vbscript.xml">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_verilog.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_verilog.xml">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_vhdl.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_vhdl.xml">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_xml.sample">
@@ -3160,7 +2805,13 @@
 		<Unit filename="sdk/resources/plugins_configuration.xrc">
 			<Option target="sdk" />
 		</Unit>
+		<Unit filename="sdk/resources/project_deps.xrc">
+			<Option target="sdk" />
+		</Unit>
 		<Unit filename="sdk/resources/project_manager_file_types.xrc">
+			<Option target="sdk" />
+		</Unit>
+		<Unit filename="sdk/resources/project_options.xrc">
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="sdk/resources/projectfile_options.xrc">
@@ -3170,6 +2821,9 @@
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="sdk/resources/select_target.xrc">
+			<Option target="sdk" />
+		</Unit>
+		<Unit filename="sdk/resources/virtualbuildtargetsdlg.xrc">
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="sdk/scripting/bindings/sc_consts.cpp">
@@ -3301,6 +2955,9 @@
 		<Unit filename="sdk/uservarmanager.cpp">
 			<Option target="sdk" />
 		</Unit>
+		<Unit filename="sdk/virtualbuildtargetsdlg.cpp">
+			<Option target="sdk" />
+		</Unit>
 		<Unit filename="sdk/workspaceloader.cpp">
 			<Option target="sdk" />
 		</Unit>
@@ -3368,9 +3025,6 @@
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/wxscintilla/src/ScintillaWX.h">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/wxscintilla/src/scintilla/cppcheck.suppress">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/wxscintilla/src/scintilla/include/ILexer.h">
@@ -3463,12 +3117,6 @@
 		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexD.cxx">
 			<Option target="scintilla" />
 		</Unit>
-		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexDMAP.cxx">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexDMIS.cxx">
-			<Option target="scintilla" />
-		</Unit>
 		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexECL.cxx">
 			<Option target="scintilla" />
 		</Unit>
@@ -3505,13 +3153,7 @@
 		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexInno.cxx">
 			<Option target="scintilla" />
 		</Unit>
-		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexKVIrc.cxx">
-			<Option target="scintilla" />
-		</Unit>
 		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexKix.cxx">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexLaTeX.cxx">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexLisp.cxx">
@@ -3607,16 +3249,10 @@
 		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexRuby.cxx">
 			<Option target="scintilla" />
 		</Unit>
-		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexRust.cxx">
-			<Option target="scintilla" />
-		</Unit>
 		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexSML.cxx">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexSQL.cxx">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexSTTXT.cxx">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexScriptol.cxx">
@@ -3676,12 +3312,6 @@
 		<Unit filename="sdk/wxscintilla/src/scintilla/lexlib/Accessor.h">
 			<Option target="scintilla" />
 		</Unit>
-		<Unit filename="sdk/wxscintilla/src/scintilla/lexlib/CharacterCategory.cxx">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/wxscintilla/src/scintilla/lexlib/CharacterCategory.h">
-			<Option target="scintilla" />
-		</Unit>
 		<Unit filename="sdk/wxscintilla/src/scintilla/lexlib/CharacterSet.cxx">
 			<Option target="scintilla" />
 		</Unit>
@@ -3727,16 +3357,10 @@
 		<Unit filename="sdk/wxscintilla/src/scintilla/lexlib/SparseState.h">
 			<Option target="scintilla" />
 		</Unit>
-		<Unit filename="sdk/wxscintilla/src/scintilla/lexlib/StringCopy.h">
-			<Option target="scintilla" />
-		</Unit>
 		<Unit filename="sdk/wxscintilla/src/scintilla/lexlib/StyleContext.cxx">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/wxscintilla/src/scintilla/lexlib/StyleContext.h">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/wxscintilla/src/scintilla/lexlib/SubStyles.h">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/wxscintilla/src/scintilla/lexlib/WordList.cxx">
@@ -3755,18 +3379,6 @@
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/wxscintilla/src/scintilla/src/CallTip.h">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/wxscintilla/src/scintilla/src/CaseConvert.cxx">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/wxscintilla/src/scintilla/src/CaseConvert.h">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/wxscintilla/src/scintilla/src/CaseFolder.cxx">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/wxscintilla/src/scintilla/src/CaseFolder.h">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/wxscintilla/src/scintilla/src/Catalogue.cxx">
@@ -3865,6 +3477,9 @@
 		<Unit filename="sdk/wxscintilla/src/scintilla/src/RunStyles.h">
 			<Option target="scintilla" />
 		</Unit>
+		<Unit filename="sdk/wxscintilla/src/scintilla/src/SVector.h">
+			<Option target="scintilla" />
+		</Unit>
 		<Unit filename="sdk/wxscintilla/src/scintilla/src/ScintillaBase.cxx">
 			<Option target="scintilla" />
 		</Unit>
@@ -3890,9 +3505,6 @@
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/wxscintilla/src/scintilla/src/UniConversion.h">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/wxscintilla/src/scintilla/src/UnicodeFromUTF8.h">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/wxscintilla/src/scintilla/src/ViewStyle.cxx">
@@ -4012,18 +3624,6 @@
 		<Unit filename="src/dlgaboutplugin.h">
 			<Option target="src" />
 		</Unit>
-		<Unit filename="src/editkeywordsdlg.cpp">
-			<Option target="src" />
-		</Unit>
-		<Unit filename="src/editkeywordsdlg.h">
-			<Option target="src" />
-		</Unit>
-		<Unit filename="src/editorconfigurationdlg.cpp">
-			<Option target="src" />
-		</Unit>
-		<Unit filename="src/editorconfigurationdlg.h">
-			<Option target="src" />
-		</Unit>
 		<Unit filename="src/environmentsettingsdlg.cpp">
 			<Option target="src" />
 		</Unit>
@@ -4034,12 +3634,6 @@
 			<Option target="src" />
 		</Unit>
 		<Unit filename="src/examinememorydlg.h">
-			<Option target="src" />
-		</Unit>
-		<Unit filename="src/find_replace.cpp">
-			<Option target="src" />
-		</Unit>
-		<Unit filename="src/find_replace.h">
 			<Option target="src" />
 		</Unit>
 		<Unit filename="src/infopane.cpp">
@@ -4074,30 +3668,6 @@
 		<Unit filename="src/printdlg.h">
 			<Option target="src" />
 		</Unit>
-		<Unit filename="src/projectdepsdlg.cpp">
-			<Option target="src" />
-		</Unit>
-		<Unit filename="src/projectdepsdlg.h">
-			<Option target="src" />
-		</Unit>
-		<Unit filename="src/projectmanagerui.cpp">
-			<Option target="src" />
-		</Unit>
-		<Unit filename="src/projectmanagerui.h">
-			<Option target="src" />
-		</Unit>
-		<Unit filename="src/projectoptionsdlg.cpp">
-			<Option target="src" />
-		</Unit>
-		<Unit filename="src/projectoptionsdlg.h">
-			<Option target="src" />
-		</Unit>
-		<Unit filename="src/recentitemslist.cpp">
-			<Option target="src" />
-		</Unit>
-		<Unit filename="src/recentitemslist.h">
-			<Option target="src" />
-		</Unit>
 		<Unit filename="src/resources/app_compiler_settings.xrc">
 			<Option target="src" />
 		</Unit>
@@ -4122,12 +3692,6 @@
 		<Unit filename="src/resources/dlg_about_plugin.xrc">
 			<Option target="src" />
 		</Unit>
-		<Unit filename="src/resources/edit_keywords.xrc">
-			<Option target="src" />
-		</Unit>
-		<Unit filename="src/resources/editor_configuration.xrc">
-			<Option target="src" />
-		</Unit>
 		<Unit filename="src/resources/env_settings.xrc">
 			<Option target="src" />
 		</Unit>
@@ -4149,12 +3713,6 @@
 		<Unit filename="src/resources/print_dialog.xrc">
 			<Option target="src" />
 		</Unit>
-		<Unit filename="src/resources/project_deps.xrc">
-			<Option target="src" />
-		</Unit>
-		<Unit filename="src/resources/project_options.xrc">
-			<Option target="src" />
-		</Unit>
 		<Unit filename="src/resources/resources.rc">
 			<Option compilerVar="WINDRES" />
 			<Option target="src" />
@@ -4163,9 +3721,6 @@
 			<Option target="src" />
 		</Unit>
 		<Unit filename="src/resources/start_here/start_here.html">
-			<Option target="src" />
-		</Unit>
-		<Unit filename="src/resources/virtualbuildtargetsdlg.xrc">
 			<Option target="src" />
 		</Unit>
 		<Unit filename="src/scriptconsole.cpp">
@@ -4202,12 +3757,6 @@
 			<Option target="src" />
 		</Unit>
 		<Unit filename="src/threadsdlg.h">
-			<Option target="src" />
-		</Unit>
-		<Unit filename="src/virtualbuildtargetsdlg.cpp">
-			<Option target="src" />
-		</Unit>
-		<Unit filename="src/virtualbuildtargetsdlg.h">
 			<Option target="src" />
 		</Unit>
 		<Unit filename="src/watchesdlg.cpp">

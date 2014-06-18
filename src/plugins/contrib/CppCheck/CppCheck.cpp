@@ -219,58 +219,29 @@ int CppCheck::Execute()
     }
     Input.Close();
 
-    MacrosManager*      MacrosMgr = Manager::Get()->GetMacrosManager();
-    ProjectBuildTarget* Target    = Project->GetBuildTarget(Project->GetActiveBuildTarget());
-
     // project include dirs
     wxString IncludeList;
     const wxArrayString& IncludeDirs = Project->GetIncludeDirs();
+    MacrosManager* MacrosMgr = Manager::Get()->GetMacrosManager();
+    ProjectBuildTarget* target = Project->GetBuildTarget(Project->GetActiveBuildTarget());
     for (unsigned int Dir = 0; Dir < IncludeDirs.GetCount(); ++Dir)
     {
         wxString IncludeDir(IncludeDirs[Dir]);
-        if (Target)
-            MacrosMgr->ReplaceMacros(IncludeDir, Target);
+        if (target)
+            MacrosMgr->ReplaceMacros(IncludeDir, target);
         else
             MacrosMgr->ReplaceMacros(IncludeDir);
         IncludeList += _T("-I\"") + IncludeDir + _T("\" ");
     }
-    if (Target)
+    if (target)
     {
         // target include dirs
-        const wxArrayString& targetIncludeDirs = Target->GetIncludeDirs();
+        const wxArrayString& targetIncludeDirs = target->GetIncludeDirs();
         for (unsigned int Dir = 0; Dir < targetIncludeDirs.GetCount(); ++Dir)
         {
             wxString IncludeDir(targetIncludeDirs[Dir]);
-            MacrosMgr->ReplaceMacros(IncludeDir, Target);
+            MacrosMgr->ReplaceMacros(IncludeDir, target);
             IncludeList += _T("-I\"") + IncludeDir + _T("\" ");
-        }
-    }
-
-    // project #defines
-    wxString DefineList;
-    const wxArrayString& Defines = Project->GetCompilerOptions();
-    for (unsigned int Opt = 0; Opt < Defines.GetCount(); ++Opt)
-    {
-        wxString Define(Defines[Opt]);
-        if (Target)
-            MacrosMgr->ReplaceMacros(Define, Target);
-        else
-            MacrosMgr->ReplaceMacros(Define);
-
-        if ( Define.StartsWith(_T("-D")) )
-            DefineList += Define + _T(" ");
-    }
-    if (Target)
-    {
-        // target #defines
-        const wxArrayString& targetDefines = Target->GetCompilerOptions();
-        for (unsigned int Opt = 0; Opt < targetDefines.GetCount(); ++Opt)
-        {
-            wxString Define(targetDefines[Opt]);
-            MacrosMgr->ReplaceMacros(Define, Target);
-
-            if ( Define.StartsWith(_T("-D")) )
-                DefineList += Define + _T(" ");
         }
     }
 
@@ -286,7 +257,7 @@ int CppCheck::Execute()
                          + cfg->Read(_T("cppcheck_args"), _T("--verbose --enable=all --enable=style --xml"))
                          + _T(" --file-list=") + InputFileName;
     if (!IncludeList.IsEmpty())
-        CommandLine += _T(" ") + IncludeList.Trim() + _T(" ") + DefineList.Trim();
+        CommandLine += _T(" ") + IncludeList.Trim();
     AppendToLog(CommandLine);
 
     wxArrayString Output, Errors;

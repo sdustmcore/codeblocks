@@ -78,25 +78,11 @@ namespace
             return nullptr;
         if (recreate)
         {
-            wxMenu *menu = item->GetMenu();
-            int pos = wxNOT_FOUND;
-            for (size_t ii = 0; ii < menu->GetMenuItemCount(); ++ii)
+            wxMenu *subMenu = item->GetSubMenu();
+            while (subMenu->GetMenuItemCount() > 0)
             {
-                if (item == menu->FindItemByPosition(ii))
-                {
-                    pos = ii;
-                    break;
-                }
-            }
-            if (pos != wxNOT_FOUND)
-            {
-                wxMenu *newSubMenu = new wxMenu;
-                wxMenuItem *newItem = new wxMenuItem(menu, item->GetId(), item->GetItemLabelText(), item->GetHelp(),
-                                                     item->GetKind(), newSubMenu);
-                menu->Insert(pos, newItem);
-
-                menu->Destroy(item);
-                return newItem->GetSubMenu();
+                wxMenuItemList& list=subMenu->GetMenuItems();
+                subMenu->Remove(list.GetFirst()->GetData());
             }
         }
         return item ? item->GetSubMenu() : nullptr;
@@ -144,7 +130,7 @@ END_EVENT_TABLE()
 
 
 DebuggerMenuHandler::DebuggerMenuHandler() :
-    m_activeDebugger(nullptr),
+    m_activeDebugger(NULL),
     m_disableContinue(false)
 {
 }
@@ -163,14 +149,10 @@ struct CommonItem : cbDebuggerWindowMenuItem
 
     void OnClick(bool enable)
     {
-        CodeBlocksDockEvent evt(enable ? cbEVT_SHOW_DOCK_WINDOW : cbEVT_HIDE_DOCK_WINDOW);
         DebuggerManager *manager = Manager::Get()->GetDebuggerManager();
-        DlgType *dialog = (manager->*(m_getWindowFunc))();
-        if (dialog)
-        {
-            evt.pWindow = dialog->GetWindow();
-            Manager::Get()->ProcessEvent(evt);
-        }
+        CodeBlocksDockEvent evt(enable ? cbEVT_SHOW_DOCK_WINDOW : cbEVT_HIDE_DOCK_WINDOW);
+        evt.pWindow = (manager->*(m_getWindowFunc))()->GetWindow();
+        Manager::Get()->ProcessEvent(evt);
 
         if (enable && manager->GetActiveDebugger())
             manager->GetActiveDebugger()->RequestUpdate(m_requestUpdate);
@@ -181,8 +163,8 @@ struct CommonItem : cbDebuggerWindowMenuItem
     }
     virtual bool IsChecked()
     {
-        DlgType *dialog = (Manager::Get()->GetDebuggerManager()->*(m_getWindowFunc))();
-        return dialog && IsWindowReallyShown(dialog->GetWindow());
+        DebuggerManager *manager = Manager::Get()->GetDebuggerManager();
+        return IsWindowReallyShown((manager->*(m_getWindowFunc))()->GetWindow());
     }
 private:
     cbDebuggerFeature::Flags m_enableFeature;
@@ -207,21 +189,16 @@ void DebuggerMenuHandler::RegisterDefaultWindowItems()
         virtual void OnClick(bool enable)
         {
             CodeBlocksDockEvent evt(enable ? cbEVT_SHOW_DOCK_WINDOW : cbEVT_HIDE_DOCK_WINDOW);
-            cbBreakpointsDlg *dialog = Manager::Get()->GetDebuggerManager()->GetBreakpointDialog();
-            if (dialog)
-            {
-                evt.pWindow = dialog->GetWindow();
-                Manager::Get()->ProcessEvent(evt);
-            }
+            evt.pWindow = Manager::Get()->GetDebuggerManager()->GetBreakpointDialog()->GetWindow();
+            Manager::Get()->ProcessEvent(evt);
         }
         virtual bool IsEnabled()
         {
-            return Manager::Get()->GetDebuggerManager()->GetBreakpointDialog();
+            return true;
         }
         virtual bool IsChecked()
         {
-            cbBreakpointsDlg *dialog = Manager::Get()->GetDebuggerManager()->GetBreakpointDialog();
-            return dialog && IsWindowReallyShown(dialog->GetWindow());
+            return IsWindowReallyShown(Manager::Get()->GetDebuggerManager()->GetBreakpointDialog()->GetWindow());
         }
     };
     struct Watches : CommonItem<cbWatchesDlg>
@@ -232,7 +209,7 @@ void DebuggerMenuHandler::RegisterDefaultWindowItems()
         }
         virtual bool IsEnabled()
         {
-            return Manager::Get()->GetDebuggerManager()->GetWatchesDialog();
+            return true;
         }
     };
 
@@ -364,11 +341,11 @@ void DebuggerMenuHandler::RebuildMenus()
     menu->AppendRadioItem(idMenuDebugActiveTargetsDefault, _("Target's default"),
                           _("Use the debugger associated with the compiler for the active target"));
 
-    const DebuggerManager::RegisteredPlugins &allDebugger = dbgManager->GetAllDebuggers();
-    for (DebuggerManager::RegisteredPlugins::const_iterator it = allDebugger.begin(); it != allDebugger.end(); ++it)
+    DebuggerManager::RegisteredPlugins &allDebugger = dbgManager->GetAllDebuggers();
+    for (DebuggerManager::RegisteredPlugins::iterator it = allDebugger.begin(); it != allDebugger.end(); ++it)
     {
-        const DebuggerManager::ConfigurationVector &configs = it->second.GetConfigurations();
-        for (DebuggerManager::ConfigurationVector::const_iterator itConf = configs.begin(); itConf != configs.end(); ++itConf)
+        DebuggerManager::ConfigurationVector &configs = it->second.GetConfigurations();
+        for (DebuggerManager::ConfigurationVector::iterator itConf = configs.begin(); itConf != configs.end(); ++itConf)
         {
             long id = (*itConf)->GetMenuId();
             if (id == wxID_ANY)
@@ -463,7 +440,7 @@ void DebuggerMenuHandler::OnUpdateUI(wxUpdateUIEvent& event)
         otherPlugin = true;
     }
 
-    if (mbar && Manager::Get()->GetDebuggerManager()->HasMenu())
+    if (mbar)
     {
         bool hasBreaks = Support(m_activeDebugger, cbDebuggerFeature::Breakpoints);
 
@@ -523,7 +500,7 @@ void DebuggerMenuHandler::OnStart(cb_unused wxCommandEvent& event)
         m_disableContinue = true;
 
         ProjectManager *manager = Manager::Get()->GetProjectManager();
-        if (manager->GetIsRunning() == nullptr)
+        if (manager->GetIsRunning() == NULL)
         {
             manager->SetIsRunning(m_activeDebugger);
 
@@ -531,7 +508,7 @@ void DebuggerMenuHandler::OnStart(cb_unused wxCommandEvent& event)
             LogActiveConfig();
 
             if (!m_activeDebugger->Debug(false))
-                manager->SetIsRunning(nullptr);
+                manager->SetIsRunning(NULL);
         }
         m_disableContinue = false;
     }
@@ -602,14 +579,14 @@ void DebuggerMenuHandler::OnStep(cb_unused wxCommandEvent& event)
     {
         m_disableContinue = true;
         ProjectManager *manager = Manager::Get()->GetProjectManager();
-        if (manager->GetIsRunning() == nullptr)
+        if (manager->GetIsRunning() == NULL)
         {
             manager->SetIsRunning(m_activeDebugger);
             m_activeDebugger->ClearLog();
             LogActiveConfig();
 
             if (!m_activeDebugger->Debug(true))
-                manager->SetIsRunning(nullptr);
+                manager->SetIsRunning(NULL);
         }
         m_disableContinue = false;
     }
@@ -631,7 +608,7 @@ void DebuggerMenuHandler::OnRunToCursor(cb_unused wxCommandEvent& event)
     const wxString &line_text = ed->GetControl()->GetLine(ed->GetControl()->GetCurrentLine());
 
     ProjectManager *manager = Manager::Get()->GetProjectManager();
-    if (manager->GetIsRunning() == nullptr || manager->GetIsRunning() == m_activeDebugger)
+    if (manager->GetIsRunning() == NULL || manager->GetIsRunning() == m_activeDebugger)
     {
         manager->SetIsRunning(m_activeDebugger);
         if (!m_activeDebugger->IsRunning())
@@ -641,7 +618,7 @@ void DebuggerMenuHandler::OnRunToCursor(cb_unused wxCommandEvent& event)
         }
         HideValueTooltip();
         if (!m_activeDebugger->RunToCursor(ed->GetFilename(), ed->GetControl()->GetCurrentLine() + 1, line_text))
-            manager->SetIsRunning(nullptr);
+            manager->SetIsRunning(NULL);
     }
 }
 
@@ -731,15 +708,88 @@ void DebuggerMenuHandler::OnAddWatch(cb_unused wxCommandEvent& event)
     }
 }
 
+void DebuggerMenuHandler::OnBacktrace(wxCommandEvent& event)
+{
+    DebuggerManager *manager = Manager::Get()->GetDebuggerManager();
+    CodeBlocksDockEvent evt(event.IsChecked() ? cbEVT_SHOW_DOCK_WINDOW : cbEVT_HIDE_DOCK_WINDOW);
+    evt.pWindow = manager->GetBacktraceDialog()->GetWindow();
+    Manager::Get()->ProcessEvent(evt);
+
+    if (event.IsChecked() && manager->GetActiveDebugger())
+        manager->GetActiveDebugger()->RequestUpdate(cbDebuggerPlugin::Backtrace);
+}
+
+void DebuggerMenuHandler::OnBreakpoints(wxCommandEvent& event)
+{
+    CodeBlocksDockEvent evt(event.IsChecked() ? cbEVT_SHOW_DOCK_WINDOW : cbEVT_HIDE_DOCK_WINDOW);
+    evt.pWindow = Manager::Get()->GetDebuggerManager()->GetBreakpointDialog()->GetWindow();
+    Manager::Get()->ProcessEvent(evt);
+}
+
+void DebuggerMenuHandler::OnCPURegisters(wxCommandEvent& event)
+{
+    DebuggerManager *manager = Manager::Get()->GetDebuggerManager();
+    CodeBlocksDockEvent evt(event.IsChecked() ? cbEVT_SHOW_DOCK_WINDOW : cbEVT_HIDE_DOCK_WINDOW);
+    evt.pWindow = manager->GetCPURegistersDialog()->GetWindow();
+    Manager::Get()->ProcessEvent(evt);
+
+    if (event.IsChecked() && manager->GetActiveDebugger())
+        manager->GetActiveDebugger()->RequestUpdate(cbDebuggerPlugin::CPURegisters);
+}
+
+void DebuggerMenuHandler::OnDisassembly(wxCommandEvent& event)
+{
+    DebuggerManager *manager = Manager::Get()->GetDebuggerManager();
+    CodeBlocksDockEvent evt(event.IsChecked() ? cbEVT_SHOW_DOCK_WINDOW : cbEVT_HIDE_DOCK_WINDOW);
+    evt.pWindow = manager->GetDisassemblyDialog()->GetWindow();
+    Manager::Get()->ProcessEvent(evt);
+
+    if (event.IsChecked() && manager->GetActiveDebugger())
+        manager->GetActiveDebugger()->RequestUpdate(cbDebuggerPlugin::Disassembly);
+}
+
+void DebuggerMenuHandler::OnExamineMemory(wxCommandEvent& event)
+{
+    DebuggerManager *manager = Manager::Get()->GetDebuggerManager();
+    CodeBlocksDockEvent evt(event.IsChecked() ? cbEVT_SHOW_DOCK_WINDOW : cbEVT_HIDE_DOCK_WINDOW);
+    evt.pWindow = manager->GetExamineMemoryDialog()->GetWindow();
+    Manager::Get()->ProcessEvent(evt);
+
+    if (event.IsChecked() && manager->GetActiveDebugger())
+        manager->GetActiveDebugger()->RequestUpdate(cbDebuggerPlugin::ExamineMemory);
+}
+
+void DebuggerMenuHandler::OnThreads(wxCommandEvent& event)
+{
+    DebuggerManager *manager = Manager::Get()->GetDebuggerManager();
+    CodeBlocksDockEvent evt(event.IsChecked() ? cbEVT_SHOW_DOCK_WINDOW : cbEVT_HIDE_DOCK_WINDOW);
+    evt.pWindow = manager->GetThreadsDialog()->GetWindow();
+    Manager::Get()->ProcessEvent(evt);
+
+    if (event.IsChecked() && manager->GetActiveDebugger())
+        manager->GetActiveDebugger()->RequestUpdate(cbDebuggerPlugin::Threads);
+}
+
+void DebuggerMenuHandler::OnWatches(wxCommandEvent& event)
+{
+    CodeBlocksDockEvent evt(event.IsChecked() ? cbEVT_SHOW_DOCK_WINDOW : cbEVT_HIDE_DOCK_WINDOW);
+    evt.pWindow = Manager::Get()->GetDebuggerManager()->GetWatchesDialog()->GetWindow();
+    Manager::Get()->ProcessEvent(evt);
+
+    cbDebuggerPlugin *activeDebugger = Manager::Get()->GetDebuggerManager()->GetActiveDebugger();
+    if (activeDebugger && event.IsChecked())
+        activeDebugger->RequestUpdate(cbDebuggerPlugin::Watches);
+}
+
 void DebuggerMenuHandler::OnActiveDebuggerClick(wxCommandEvent& event)
 {
     DebuggerManager *manager = Manager::Get()->GetDebuggerManager();
-    const DebuggerManager::RegisteredPlugins &plugins = manager->GetAllDebuggers();
+    DebuggerManager::RegisteredPlugins &plugins = manager->GetAllDebuggers();
 
-    for(DebuggerManager::RegisteredPlugins::const_iterator it = plugins.begin(); it != plugins.end(); ++it)
+    for(DebuggerManager::RegisteredPlugins::iterator it = plugins.begin(); it != plugins.end(); ++it)
     {
-        const DebuggerManager::ConfigurationVector &configs = it->second.GetConfigurations();
-        for (DebuggerManager::ConfigurationVector::const_iterator itConf = configs.begin(); itConf != configs.end(); ++itConf)
+        DebuggerManager::ConfigurationVector &configs = it->second.GetConfigurations();
+        for (DebuggerManager::ConfigurationVector::iterator itConf = configs.begin(); itConf != configs.end(); ++itConf)
         {
             if((*itConf)->GetMenuId() == event.GetId())
             {
@@ -774,7 +824,7 @@ BEGIN_EVENT_TABLE(DebuggerToolbarHandler, wxEvtHandler)
 END_EVENT_TABLE()
 
 DebuggerToolbarHandler::DebuggerToolbarHandler(DebuggerMenuHandler *menuHandler) :
-    m_Toolbar(nullptr),
+    m_Toolbar(NULL),
     m_menuHandler(menuHandler)
 {
 }
@@ -784,7 +834,7 @@ wxToolBar* DebuggerToolbarHandler::GetToolbar(bool create)
     if (!m_Toolbar)
     {
         if (!create)
-            return nullptr;
+            return NULL;
 
         m_Toolbar = Manager::Get()->CreateEmptyToolbar();
         wxString my_16x16 = Manager::isToolBar16x16(m_Toolbar) ? _T("_16x16") : _T("");
@@ -811,26 +861,22 @@ void DebuggerToolbarHandler::OnUpdateUI(wxUpdateUIEvent& event)
         stopped = plugin->IsStopped();
         isRunning = plugin->IsRunning();
     }
+    cbEditor* ed = Manager::Get()->GetEditorManager()->GetBuiltinActiveEditor();
 
-    if (m_Toolbar)
-    {
-        cbEditor* ed = Manager::Get()->GetEditorManager()->GetBuiltinActiveEditor();
+    cbPlugin *runningPlugin = manager->GetIsRunning();
+    if (runningPlugin != NULL && runningPlugin != plugin)
+        en = false;
 
-        cbPlugin *runningPlugin = manager->GetIsRunning();
-        if (runningPlugin != NULL && runningPlugin != plugin)
-            en = false;
-
-        m_Toolbar->EnableTool(idMenuDebug, (!isRunning || stopped) && en);
-        m_Toolbar->EnableTool(idMenuRunToCursor, en && ed && stopped);
-        m_Toolbar->EnableTool(idMenuNext, isRunning && en && stopped);
-        m_Toolbar->EnableTool(idMenuNextInstr, isRunning && en && stopped);
-        m_Toolbar->EnableTool(idMenuStepIntoInstr, isRunning && en && stopped);
-        m_Toolbar->EnableTool(idMenuStep, en && stopped);
-        m_Toolbar->EnableTool(idMenuStepOut, isRunning && en && stopped);
-        m_Toolbar->EnableTool(idToolbarStop, isRunning && en);
-        m_Toolbar->EnableTool(idMenuBreak, isRunning && !stopped && en);
-        m_Toolbar->EnableTool(idDebuggerToolInfo, plugin && plugin->ToolMenuEnabled());
-    }
+    m_Toolbar->EnableTool(idMenuDebug, (!isRunning || stopped) && en);
+    m_Toolbar->EnableTool(idMenuRunToCursor, en && ed && stopped);
+    m_Toolbar->EnableTool(idMenuNext, isRunning && en && stopped);
+    m_Toolbar->EnableTool(idMenuNextInstr, isRunning && en && stopped);
+    m_Toolbar->EnableTool(idMenuStepIntoInstr, isRunning && en && stopped);
+    m_Toolbar->EnableTool(idMenuStep, en && stopped);
+    m_Toolbar->EnableTool(idMenuStepOut, isRunning && en && stopped);
+    m_Toolbar->EnableTool(idToolbarStop, isRunning && en);
+    m_Toolbar->EnableTool(idMenuBreak, isRunning && !stopped && en);
+    m_Toolbar->EnableTool(idDebuggerToolInfo, plugin && plugin->ToolMenuEnabled());
 
     // allow other UpdateUI handlers to process this event
     // *very* important! don't forget it...

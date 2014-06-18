@@ -203,26 +203,15 @@ void SurfaceImpl::Init(SurfaceID hDC_, WindowID /*wid*/)
 /* C::B end */
 }
 
-/* C::B begin */
-#if wxCHECK_VERSION(2,9,5)
-void SurfaceImpl::InitPixMap(int width, int height, Surface *WXUNUSED(surface_), WindowID winid)
-#else
-void SurfaceImpl::InitPixMap(int width, int height, Surface *WXUNUSED(surface_), WindowID /*winid*/)
-#endif
-/* C::B end */
+void SurfaceImpl::InitPixMap(int width, int height, Surface *WXUNUSED(surface_), WindowID /*wid*/)
 {
     Release();
     hDC = new wxMemoryDC();
     hDCOwned = true;
     if (width < 1) width = 1;
     if (height < 1) height = 1;
-/* C::B begin */
-#if wxCHECK_VERSION(2,9,5)
-    bitmap = new wxBitmap();
-    bitmap->CreateScaled(width, height,wxBITMAP_SCREEN_DEPTH,((wxWindow*)winid)->GetContentScaleFactor());
-#else
     bitmap = new wxBitmap(width, height);
-#endif
+/* C::B begin */
     (static_cast<wxMemoryDC*>(hDC))->SelectObject(*bitmap);
 /* C::B end */
 }
@@ -310,14 +299,12 @@ void SurfaceImpl::Polygon(Point *pts, int npts, ColourDesired fore, ColourDesire
     PenColour(fore);
     BrushColour(back);
 /* C::B begin */
-    wxPoint *p = new wxPoint[npts];
-
-    for (int i=0; i<npts; i++) {
-        p[i].x = pts[i].x;
-        p[i].y = pts[i].y;
-    }
-    hDC->DrawPolygon(npts, p);
-    delete [] p;
+    // Since Point now has float as x and y, it seems no longer to be interchangeable with wxPoint,
+    // and the polygon is not drawn, so we convert it explicitely
+    wxPoint points[npts];
+    for (int i = 0; i < npts; ++i)
+        points[i] = wxPoint(pts[i].x, pts[i].y);
+    hDC->DrawPolygon(npts, points);
 /* C::B end */
 }
 
@@ -378,9 +365,7 @@ void SurfaceImpl::AlphaRectangle(PRectangle rc, int cornerSize,
     return;
 #else
 
-/* C::B begin */
 #if defined(wxHAS_RAW_BITMAP) || defined(wxHAVE_RAW_BITMAP)
-/* C::B end */
 
     // TODO:  do something with cornerSize
     wxUnusedVar(cornerSize);
@@ -391,72 +376,68 @@ void SurfaceImpl::AlphaRectangle(PRectangle rc, int cornerSize,
     if (!bmp.IsOk())
         return;
 /* C::B end */
-
-    // This block is needed to ensure that the changes done to the bitmap via
-    // pixel data object are committed before the bitmap is drawn.
-    {
-        wxAlphaPixelData pixData(bmp);
+    wxAlphaPixelData pixData(bmp);
 /* C::B begin */
-        #if !wxCHECK_VERSION(2, 9, 0)
-        pixData.UseAlpha(); // wx/rawbmp.h:669 - Call can simply be removed.
-        #endif
+    #if !wxCHECK_VERSION(2, 9, 0)
+    pixData.UseAlpha(); // wx/rawbmp.h:669 - Call can simply be removed.
+    #endif
 /* C::B end */
 
-        // Set the fill pixels
-        ColourDesired cdf(fill.AsLong());
-        int red   = cdf.GetRed();
-        int green = cdf.GetGreen();
-        int blue  = cdf.GetBlue();
+    // Set the fill pixels
+    ColourDesired cdf(fill.AsLong());
+    int red   = cdf.GetRed();
+    int green = cdf.GetGreen();
+    int blue  = cdf.GetBlue();
 
-        wxAlphaPixelData::Iterator p(pixData);
-        for (y=0; y<r.height; y++) {
-            p.MoveTo(pixData, 0, y);
-            for (x=0; x<r.width; x++) {
-                p.Red()   = wxPy_premultiply(red,   alphaFill);
-                p.Green() = wxPy_premultiply(green, alphaFill);
-                p.Blue()  = wxPy_premultiply(blue,  alphaFill);
-                p.Alpha() = alphaFill;
-                ++p;
-            }
-        }
-
-        // Set the outline pixels
-        ColourDesired cdo(outline.AsLong());
-        red   = cdo.GetRed();
-        green = cdo.GetGreen();
-        blue  = cdo.GetBlue();
+    wxAlphaPixelData::Iterator p(pixData);
+    for (y=0; y<r.height; y++) {
+        p.MoveTo(pixData, 0, y);
         for (x=0; x<r.width; x++) {
-            p.MoveTo(pixData, x, 0);
-/* C::B begin */
-            if (p.m_ptr) {
-                p.Red()   = wxPy_premultiply(red,   alphaOutline);
-                p.Green() = wxPy_premultiply(green, alphaOutline);
-                p.Blue()  = wxPy_premultiply(blue,  alphaOutline);
-                p.Alpha() = alphaOutline;
-                p.MoveTo(pixData, x, r.height-1);
-                p.Red()   = wxPy_premultiply(red,   alphaOutline);
-                p.Green() = wxPy_premultiply(green, alphaOutline);
-                p.Blue()  = wxPy_premultiply(blue,  alphaOutline);
-                p.Alpha() = alphaOutline;
-            }
-/* C::B end */
+            p.Red()   = wxPy_premultiply(red,   alphaFill);
+            p.Green() = wxPy_premultiply(green, alphaFill);
+            p.Blue()  = wxPy_premultiply(blue,  alphaFill);
+            p.Alpha() = alphaFill;
+            ++p;
         }
-        for (y=0; y<r.height; y++) {
-            p.MoveTo(pixData, 0, y);
+    }
+
+    // Set the outline pixels
+    ColourDesired cdo(outline.AsLong());
+    red   = cdo.GetRed();
+    green = cdo.GetGreen();
+    blue  = cdo.GetBlue();
+
+    for (x=0; x<r.width; x++) {
+        p.MoveTo(pixData, x, 0);
 /* C::B begin */
-            if (p.m_ptr) {
-                p.Red()   = wxPy_premultiply(red,   alphaOutline);
-                p.Green() = wxPy_premultiply(green, alphaOutline);
-                p.Blue()  = wxPy_premultiply(blue,  alphaOutline);
-                p.Alpha() = alphaOutline;
-                p.MoveTo(pixData, r.width-1, y);
-                p.Red()   = wxPy_premultiply(red,   alphaOutline);
-                p.Green() = wxPy_premultiply(green, alphaOutline);
-                p.Blue()  = wxPy_premultiply(blue,  alphaOutline);
-                p.Alpha() = alphaOutline;
-            }
-/* C::B end */
+        if (p.m_ptr) {
+            p.Red()   = wxPy_premultiply(red,   alphaOutline);
+            p.Green() = wxPy_premultiply(green, alphaOutline);
+            p.Blue()  = wxPy_premultiply(blue,  alphaOutline);
+            p.Alpha() = alphaOutline;
+            p.MoveTo(pixData, x, r.height-1);
+            p.Red()   = wxPy_premultiply(red,   alphaOutline);
+            p.Green() = wxPy_premultiply(green, alphaOutline);
+            p.Blue()  = wxPy_premultiply(blue,  alphaOutline);
+            p.Alpha() = alphaOutline;
         }
+/* C::B end */
+    }
+    for (y=0; y<r.height; y++) {
+        p.MoveTo(pixData, 0, y);
+/* C::B begin */
+        if (p.m_ptr) {
+            p.Red()   = wxPy_premultiply(red,   alphaOutline);
+            p.Green() = wxPy_premultiply(green, alphaOutline);
+            p.Blue()  = wxPy_premultiply(blue,  alphaOutline);
+            p.Alpha() = alphaOutline;
+            p.MoveTo(pixData, r.width-1, y);
+            p.Red()   = wxPy_premultiply(red,   alphaOutline);
+            p.Green() = wxPy_premultiply(green, alphaOutline);
+            p.Blue()  = wxPy_premultiply(blue,  alphaOutline);
+            p.Alpha() = alphaOutline;
+        }
+/* C::B end */
     }
 
     // Draw the bitmap
@@ -474,9 +455,7 @@ void SurfaceImpl::AlphaRectangle(PRectangle rc, int cornerSize,
 #endif
 }
 
-/* C::B begin */
 #if defined(wxHAS_RAW_BITMAP) || defined(wxHAVE_RAW_BITMAP)
-/* C::B end */
 wxBitmap BitmapFromRGBAImage(int width, int height, const unsigned char *pixelsImage)
 {
     int x, y;
@@ -516,9 +495,7 @@ wxBitmap BitmapFromRGBAImage(int width, int height, const unsigned char *pixelsI
 void SurfaceImpl::DrawRGBAImage(PRectangle rc, int width, int height,
                                 const unsigned char *pixelsImage)
 {
-/* C::B begin */
 #if defined(wxHAS_RAW_BITMAP) || defined(wxHAVE_RAW_BITMAP)
-/* C::B end */
     wxRect r = wxRectFromPRectangle(rc);
     wxBitmap bmp = BitmapFromRGBAImage(width, height, pixelsImage);
 /* C::B begin */
@@ -612,7 +589,6 @@ void SurfaceImpl::MeasureWidths(Font &font, const char *s, int len, XYPOSITION *
     hDC->GetPartialTextExtents(str, tpos);
 
 #if wxUSE_UNICODE
-/* C::B begin */
     // Map the widths for UCS-2 characters back to the UTF-8 input string
     // NOTE:  I don't think this is right for when sizeof(wxChar) > 2, ie wxGTK2
     // so figure it out and fix it!
@@ -634,13 +610,14 @@ void SurfaceImpl::MeasureWidths(Font &font, const char *s, int len, XYPOSITION *
 #else
 
     // If not unicode then just use the widths we have
+/* C::B begin */
 #if defined(wxUSE_STL) || defined(wxUSE_STD_CONTAINERS)
+/* C::B end */
     std::copy(tpos.begin(), tpos.end(), positions);
 #else
     memcpy(positions, tpos.begin(), len * sizeof(int));
 #endif
 #endif
-/* C::B end */
 }
 
 
@@ -959,21 +936,13 @@ public:
 /* C::B end */
 
 /* C::B begin */
-#ifdef __WXGTK__
-        lv = new wxSCIListBox(this,   id, wxDefaultPosition, wxDefaultSize,
-#else
         lv = new wxSCIListBox(parent, id, wxDefaultPosition, wxDefaultSize,
-#endif
                               wxLC_REPORT | wxLC_SINGLE_SEL | wxLC_NO_HEADER | wxSIMPLE_BORDER);
 /* C::B end */
         lv->SetCursor(wxCursor(wxCURSOR_ARROW));
         lv->InsertColumn(0, wxEmptyString);
         lv->InsertColumn(1, wxEmptyString);
 
-/* C::B begin */
-        // this focus hack makes the selection unreadable for Ubuntu themes,
-        // so do not attempt under GTK
-#ifndef __WXGTK__
         // NOTE: We need to fool the wxListView into thinking that it has the
         // focus so it will use the normal selection colour and will look
         // "right" to the user.  But since the wxPopupWindow or its children
@@ -982,8 +951,6 @@ public:
         // then reparent it back to the popup.
         lv->SetFocus();
         lv->Reparent(this);
-#endif
-/* C::B end */
 #ifdef __WXMSW__
         lv->Show();
 #endif
@@ -1317,25 +1284,12 @@ void ListBoxImpl::Create(Window &parent, int ctrlID, Point location_, int lineHe
     lineHeight =  lineHeight_;
     unicodeMode = unicodeMode_;
     maxStrWidth = 0;
-
-/* C::B begin */
-    if (wid == 0)
-        wid = new wxSCIListBoxWin(GETWIN(parent.GetID()), ctrlID, location_);
-    else if (GETLBW(wid)->GetParent() != GETWIN(parent.GetID()))
-        GETLBW(wid)->Reparent(GETWIN(parent.GetID()));
-    // ScintillaBase::AutoCompleteStart() calls SetPositionRelative() after filling
-    // the autocomp box, so no need to move yet
-    if (!GETLBW(wid)->IsShown()) // prevent jiggling on rebuild when already visible
-        GETLBW(wid)->SetPosition(wxPoint(location_.x,location_.y));
-    GETLBW(wid)->SetId(ctrlID);
-    GETLB(wid)->SetId(ctrlID);
-/* C::B end */
-
+    wid = new wxSCIListBoxWin (GETWIN(parent.GetID()), ctrlID, location_);
     if (imgList != NULL)
         GETLB(wid)->SetImageList(imgList, wxIMAGE_LIST_SMALL);
-/* C::B begin */
-    (void) technology_;
-/* C::B end */
+    /* C::B begin */
+	(void) technology_;
+    /* C::B end */
 }
 
 
@@ -1358,11 +1312,6 @@ int ListBoxImpl::GetVisibleRows() const
 
 PRectangle ListBoxImpl::GetDesiredRect()
 {
-/* C::B begin */
-    // maximum width of listbox:
-    static const int cMaxWidth = 1000;
-/* C::B end */
-
     // wxListCtrl doesn't have a DoGetBestSize, so instead we kept track of
     // the max size in Append and calculate it here...
     int maxw = maxStrWidth * aveCharWidth;
@@ -1372,10 +1321,8 @@ PRectangle ListBoxImpl::GetDesiredRect()
     if (maxw == 0) maxw = 100;
     maxw += aveCharWidth * 3 +
             GETLBW(wid)->IconWidth() + wxSystemSettings::GetMetric(wxSYS_VSCROLL_X);
-/* C::B begin */
-    if (maxw > cMaxWidth)
-        maxw = cMaxWidth;
-/* C::B end */
+    if (maxw > 350)
+        maxw = 350;
 
     // estimate a desired height
     int count = GETLB(wid)->GetItemCount();
@@ -1383,10 +1330,8 @@ PRectangle ListBoxImpl::GetDesiredRect()
         wxRect rect;
         GETLB(wid)->GetItemRect(0, rect);
         maxh = count * rect.GetHeight();
-/* C::B begin */
-        if (maxh > desiredVisibleRows*lineHeight)
-            maxh = desiredVisibleRows*lineHeight;
-/* C::B end */
+        if (maxh > 140)  // TODO:  Use desiredVisibleRows??
+            maxh = 140;
 
         // Try to make the size an exact multiple of some number of lines
         int lines = maxh / rect.GetHeight();
@@ -1545,12 +1490,12 @@ void ListBoxImpl::RegisterRGBAImage(int type, int width, int height,
     wxBitmap bmp = BitmapFromRGBAImage(width, height, pixelsImage);
     RegisterImageHelper(type, bmp);
 #endif
-/* C::B begin */
-    (void) type;
-    (void) width;
-    (void) height;
-    (void) pixelsImage;
-/* C::B end */
+    /* C::B begin */
+	(void) type;
+	(void) width;
+	(void) height;
+	(void) pixelsImage;
+    /* C::B end */
 }
 
 
@@ -1675,35 +1620,10 @@ ColourDesired Platform::ChromeHighlight()
     return ColourDesired(c.Red(), c.Green(), c.Blue());
 }
 
-/* C::B begin */
-#if !wxCHECK_VERSION(2,9,2)
-#define wxCRT_StrlenA    strlen
-#define wxCRT_StrncpyA   strncpy
-// this is a function new in 2.9 so we don't care about backwards compatibility and
-// so don't need to support wchar_t/char overloads
-inline size_t wxStrlcpy(char *dest, const char *src, size_t n)
-{
-    const size_t len = wxCRT_StrlenA(src);
-
-    if ( n )
-    {
-        if ( n-- > len )
-            n = len;
-        wxCRT_StrncpyA(dest, src, n);
-        dest[n] = '\0';
-    }
-
-    return len;
-}
-#undef wxCRT_StrlenA
-#undef wxCRT_StrncpyA
-#endif
-/* C::B end */
-
 const char *Platform::DefaultFont()
 {
     static char buf[128];
-    wxStrlcpy(buf, wxNORMAL_FONT->GetFaceName().mbc_str(), WXSIZEOF(buf));
+    strcpy(buf, wxNORMAL_FONT->GetFaceName().mbc_str());
     return buf;
 }
 

@@ -41,8 +41,8 @@ const long ScriptConsole::ID_BITMAPBUTTON3 = wxNewId();
 const long ScriptConsole::ID_PANEL1 = wxNewId();
 //*)
 
-static ScriptConsole* s_Console = nullptr;
-static SQPRINTFUNCTION s_OldPrintFunc = nullptr;
+static ScriptConsole* s_Console = 0;
+static SQPRINTFUNCTION s_OldPrintFunc = 0;
 
 static void ScriptConsolePrintFunc(HSQUIRRELVM /*v*/, const SQChar * s, ...)
 {
@@ -124,7 +124,7 @@ ScriptConsole::~ScriptConsole()
 {
     if (s_Console == this)
     {
-        s_Console = nullptr;
+        s_Console = 0;
         if (SquirrelVM::GetVMPtr())
             sq_setprintfunc(SquirrelVM::GetVMPtr(), s_OldPrintFunc);
     }

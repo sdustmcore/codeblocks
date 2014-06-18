@@ -1,4 +1,4 @@
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+INCLUDES = $(WX_CXXFLAGS) \
 		-I$(top_srcdir)/src/include \
 		-I$(top_srcdir)/src/sdk/wxscintilla/include \
 		$(WXPROPGRID_INCLUDE) \
@@ -25,7 +25,7 @@ pluginlib_LTLIBRARIES = libwxsmithcontribitems.la
 
 libwxsmithcontribitems_la_LDFLAGS = -module -version-info 0:1:0 -shared -no-undefined -avoid-version
 
-libwxsmithcontribitems_la_LIBADD = ../../../sdk/libcodeblocks.la \
+libwxsmithcontribitems_la_LIBADD = $(PLUGIN_WX_LIBS) ../../../sdk/libcodeblocks.la \
 		       ../wxSmith/libwxsmithlib.la \
 			../wxContribItems/wxchart/libwxchartctrl.la \
 			../wxContribItems/wxFlatNotebook/libwxflatnotebook.la \
@@ -34,8 +34,7 @@ libwxsmithcontribitems_la_LIBADD = ../../../sdk/libcodeblocks.la \
 			../wxContribItems/KWIC/libwxkwic.la \
 			../wxContribItems/wxTreeList/libwxtreelist.la \
 			../wxContribItems/wxthings/libwxcustombutton.la \
-			../wxContribItems/wxled/libwxled.la \
-			$(WX_LIBS)
+			../wxContribItems/wxled/libwxled.la
 
 EXTRA_DIST = $(srcdir)/wxchart/*.xpm \
 		$(srcdir)/wxchart/*.png \
@@ -80,7 +79,6 @@ libwxsmithcontribitems_la_SOURCES = \
 ./wxled/wxsLed.cpp \
 ./wxled/wxsLedNumber.cpp \
 ./wxled/wxsLedPanel.cpp \
-./wxled/wxsStateLed.cpp \
 ./wxSmithContribItems.cpp
 
 noinst_HEADERS = \
@@ -104,5 +102,4 @@ noinst_HEADERS = \
 ./wxled/wxsLed.h \
 ./wxled/wxsLedNumber.h \
 ./wxled/wxsLedPanel.h \
-./wxled/wxsStateLed.h \
 ./wxSmithContribItems.h

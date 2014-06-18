@@ -13,7 +13,6 @@
 // PLAT_GTK_WIN32 is defined additionally when running PLAT_GTK under Win32
 // PLAT_WIN = Win32 API on Win32 OS
 // PLAT_WX is wxWindows on any supported platform
-// PLAT_TK = Tcl/TK on Linux or Win32
 
 #define PLAT_GTK 0
 #define PLAT_GTK_WIN32 0
@@ -23,8 +22,7 @@
 #define PLAT_WX  0
 #define PLAT_QT 0
 #define PLAT_FOX 0
-#define PLAT_CURSES 0
-#define PLAT_TK 0
+#define PLAT_NCURSES 0
 
 #if defined(FOX)
 #undef PLAT_FOX
@@ -34,17 +32,13 @@
 #undef PLAT_WX
 #define PLAT_WX  1
 
-#elif defined(CURSES)
-#undef PLAT_CURSES
-#define PLAT_CURSES 1
+#elif defined(NCURSES)
+#undef PLAT_NCURSES
+#define PLAT_NCURSES 1
 
 #elif defined(SCINTILLA_QT)
 #undef PLAT_QT
 #define PLAT_QT 1
-
-#elif defined(TK)
-#undef PLAT_TK
-#define PLAT_TK 1
 
 #elif defined(GTK)
 #undef PLAT_GTK
@@ -77,9 +71,7 @@ namespace Scintilla {
 
 typedef float XYPOSITION;
 typedef double XYACCUMULATOR;
-inline int RoundXYPosition(XYPOSITION xyPos) {
-	return int(xyPos + 0.5);
-}
+//#define XYPOSITION int
 
 // Underlying the implementation of the platform classes are platform specific types.
 // Sometimes these need to be passed around by client code so they are defined here
@@ -94,7 +86,7 @@ typedef void *IdlerID;
 
 /**
  * A geometric point class.
- * Point is similar to the Win32 POINT and GTK+ GdkPoint types.
+ * Point is exactly the same as the Win32 POINT and GTK+ GdkPoint so can be used interchangeably.
  */
 class Point {
 public:
@@ -104,10 +96,6 @@ public:
 	explicit Point(XYPOSITION x_=0, XYPOSITION y_=0) : x(x_), y(y_) {
 	}
 
-	static Point FromInts(int x_, int y_) {
-		return Point(static_cast<XYPOSITION>(x_), static_cast<XYPOSITION>(y_));
-	}
-
 	// Other automatically defined methods (assignment, copy constructor, destructor) are fine
 
 	static Point FromLong(long lpoint);
@@ -115,7 +103,7 @@ public:
 
 /**
  * A geometric rectangle class.
- * PRectangle is similar to the Win32 RECT.
+ * PRectangle is exactly the same as the Win32 RECT so can be used interchangeably.
  * PRectangles contain their top and left sides, but not their right and bottom sides.
  */
 class PRectangle {
@@ -125,30 +113,25 @@ public:
 	XYPOSITION right;
 	XYPOSITION bottom;
 
-	explicit PRectangle(XYPOSITION left_=0, XYPOSITION top_=0, XYPOSITION right_=0, XYPOSITION bottom_ = 0) :
+	PRectangle(XYPOSITION left_=0, XYPOSITION top_=0, XYPOSITION right_=0, XYPOSITION bottom_ = 0) :
 		left(left_), top(top_), right(right_), bottom(bottom_) {
-	}
-
-	static PRectangle FromInts(int left_, int top_, int right_, int bottom_) {
-		return PRectangle(static_cast<XYPOSITION>(left_), static_cast<XYPOSITION>(top_),
-			static_cast<XYPOSITION>(right_), static_cast<XYPOSITION>(bottom_));
 	}
 
 	// Other automatically defined methods (assignment, copy constructor, destructor) are fine
 
-	bool operator==(PRectangle &rc) const {
+	bool operator==(PRectangle &rc) {
 		return (rc.left == left) && (rc.right == right) &&
 			(rc.top == top) && (rc.bottom == bottom);
 	}
-	bool Contains(Point pt) const {
+	bool Contains(Point pt) {
 		return (pt.x >= left) && (pt.x <= right) &&
 			(pt.y >= top) && (pt.y <= bottom);
 	}
-	bool Contains(PRectangle rc) const {
+	bool Contains(PRectangle rc) {
 		return (rc.left >= left) && (rc.right <= right) &&
 			(rc.top >= top) && (rc.bottom <= bottom);
 	}
-	bool Intersects(PRectangle other) const {
+	bool Intersects(PRectangle other) {
 		return (right > other.left) && (left < other.right) &&
 			(bottom > other.top) && (top < other.bottom);
 	}
@@ -158,9 +141,9 @@ public:
 		right += xDelta;
 		bottom += yDelta;
 	}
-	XYPOSITION Width() const { return right - left; }
-	XYPOSITION Height() const { return bottom - top; }
-	bool Empty() const {
+	XYPOSITION Width() { return right - left; }
+	XYPOSITION Height() { return bottom - top; }
+	bool Empty() {
 		return (Height() <= 0) || (Width() <= 0);
 	}
 };
@@ -216,15 +199,15 @@ public:
 		return co;
 	}
 
-	unsigned int GetRed() const {
+	unsigned int GetRed() {
 		return co & 0xff;
 	}
 
-	unsigned int GetGreen() const {
+	unsigned int GetGreen() {
 		return (co >> 8) & 0xff;
 	}
 
-	unsigned int GetBlue() const {
+	unsigned int GetBlue() {
 		return (co >> 16) & 0xff;
 	}
 };
@@ -356,10 +339,22 @@ typedef void (*CallBackAction)(void*);
 class Window {
 protected:
 	WindowID wid;
+#if PLAT_MACOSX
+	void *windowRef;
+	void *control;
+#endif
 public:
 	Window() : wid(0), cursorLast(cursorInvalid) {
+#if PLAT_MACOSX
+	  windowRef = 0;
+	  control = 0;
+#endif
 	}
 	Window(const Window &source) : wid(source.wid), cursorLast(cursorInvalid) {
+#if PLAT_MACOSX
+	  windowRef = 0;
+	  control = 0;
+#endif
 	}
 	virtual ~Window();
 	Window &operator=(WindowID wid_) {
@@ -382,6 +377,10 @@ public:
 	void SetCursor(Cursor curs);
 	void SetTitle(const char *s);
 	PRectangle GetMonitorRect(Point pt);
+#if PLAT_MACOSX
+	void SetWindow(void *ref) { windowRef = ref; }
+	void SetControl(void *_control) { control = _control; }
+#endif
 private:
 	Cursor cursorLast;
 };
@@ -455,16 +454,6 @@ public:
 	static DynamicLibrary *Load(const char *modulePath);
 };
 
-#if defined(__clang__)
-# if __has_feature(attribute_analyzer_noreturn)
-#  define CLANG_ANALYZER_NORETURN __attribute__((analyzer_noreturn))
-# else
-#  define CLANG_ANALYZER_NORETURN
-# endif
-#else
-# define CLANG_ANALYZER_NORETURN
-#endif
-
 /**
  * Platform class used to retrieve system wide parameters such as double click speed
  * and chrome colour. Not a creatable object, more of a module with several functions.
@@ -509,7 +498,7 @@ public:
 	}
 	static void DebugPrintf(const char *format, ...);
 	static bool ShowAssertionPopUps(bool assertionPopUps_);
-	static void Assert(const char *c, const char *file, int line) CLANG_ANALYZER_NORETURN;
+	static void Assert(const char *c, const char *file, int line);
 	static int Clamp(int val, int minVal, int maxVal);
 };
 
@@ -527,8 +516,15 @@ public:
 }
 #endif
 
+// Shut up annoying Visual C++ warnings:
+#ifdef _MSC_VER
+#pragma warning(disable: 4244 4309 4514 4710)
+#endif
+
 #if defined(__GNUC__) && defined(SCINTILLA_QT)
+#pragma GCC diagnostic ignored "-Wmissing-braces"
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#pragma GCC diagnostic ignored "-Wchar-subscripts"
 #endif
 
 #endif

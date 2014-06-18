@@ -39,7 +39,7 @@
 #ifdef __WXMSW__
 
 #include <stdio.h>
-#include "wx/msw/wrapwin.h"     // Wraps windows.h
+#include <windows.h>
 
 #include "wx/msw/private.h"
 

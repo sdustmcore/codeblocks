@@ -75,18 +75,14 @@ void ThreadSearchLoggerTree::ConnectEvents(wxEvtHandler* pEvtHandler)
             &ThreadSearchLoggerTree::OnLoggerTreeDoubleClick, NULL, this);
 
 #if wxUSE_MENUS
-    #if   defined ( __WXGTK__ )
-    pEvtHandler->Connect(id, wxEVT_COMMAND_TREE_ITEM_RIGHT_CLICK,
-    #else
     pEvtHandler->Connect(id, wxEVT_COMMAND_TREE_ITEM_MENU,
-    #endif
             (wxObjectEventFunction)(wxEventFunction)(wxCommandEventFunction)
             &ThreadSearchLoggerTree::OnLoggerTreeContextualMenu, NULL, this);
 
-    pEvtHandler->Connect(controlIDs.Get(ControlIDs::idMenuCtxDeleteItem), wxEVT_COMMAND_MENU_SELECTED,
+    pEvtHandler->Connect(idMenuCtxDeleteItem, wxEVT_COMMAND_MENU_SELECTED,
             wxCommandEventHandler(ThreadSearchLoggerTree::OnDeleteTreeItem), NULL, this);
 
-    pEvtHandler->Connect(controlIDs.Get(ControlIDs::idMenuCtxDeleteAllItems), wxEVT_COMMAND_MENU_SELECTED,
+    pEvtHandler->Connect(idMenuCtxDeleteAllItems, wxEVT_COMMAND_MENU_SELECTED,
             wxCommandEventHandler(ThreadSearchLoggerTree::OnDeleteAllTreeItems), NULL, this);
 #endif // wxUSE_MENUS
 }
@@ -105,18 +101,14 @@ void ThreadSearchLoggerTree::DisconnectEvents(wxEvtHandler* pEvtHandler)
             &ThreadSearchLoggerTree::OnLoggerTreeDoubleClick, NULL, this);
 
 #if wxUSE_MENUS
-    #if   defined ( __WXGTK__ )
-    pEvtHandler->Disconnect(id, wxEVT_COMMAND_TREE_ITEM_RIGHT_CLICK,
-    #else
     pEvtHandler->Disconnect(id, wxEVT_COMMAND_TREE_ITEM_MENU,
-    #endif
             (wxObjectEventFunction)(wxEventFunction)(wxCommandEventFunction)
             &ThreadSearchLoggerTree::OnLoggerTreeContextualMenu, NULL, this);
 
-    pEvtHandler->Disconnect(controlIDs.Get(ControlIDs::idMenuCtxDeleteItem), wxEVT_COMMAND_MENU_SELECTED,
+    pEvtHandler->Disconnect(idMenuCtxDeleteItem, wxEVT_COMMAND_MENU_SELECTED,
             wxCommandEventHandler(ThreadSearchLoggerTree::OnDeleteTreeItem), NULL, this);
 
-    pEvtHandler->Disconnect(controlIDs.Get(ControlIDs::idMenuCtxDeleteAllItems), wxEVT_COMMAND_MENU_SELECTED,
+    pEvtHandler->Disconnect(idMenuCtxDeleteAllItems, wxEVT_COMMAND_MENU_SELECTED,
             wxCommandEventHandler(ThreadSearchLoggerTree::OnDeleteAllTreeItems), NULL, this);
 #endif // wxUSE_MENUS
 }
@@ -124,8 +116,6 @@ void ThreadSearchLoggerTree::DisconnectEvents(wxEvtHandler* pEvtHandler)
 
 void ThreadSearchLoggerTree::OnLoggerTreeClick(wxTreeEvent& event)
 {
-    if (m_pTreeLog->GetCount() == 0)
-        return;
     // Manages list log left single click
     wxTreeItemId itemId = event.GetItem();
     if ( itemId.IsOk() && hasResultLineForTreeItem(itemId) )
@@ -341,7 +331,7 @@ void ThreadSearchLoggerTree::OnSearchBegin(const ThreadSearchFindData& findData)
 }
 
 
-void ThreadSearchLoggerTree::OnDeleteTreeItem(cb_unused wxCommandEvent& event)
+void ThreadSearchLoggerTree::OnDeleteTreeItem(wxCommandEvent& event)
 {
     if ( m_ToDeleteItemId.IsOk() )
     {
@@ -354,6 +344,7 @@ void ThreadSearchLoggerTree::OnDeleteTreeItem(cb_unused wxCommandEvent& event)
         }
         DeleteTreeItem(m_ToDeleteItemId);
     }
+    event.Skip();
 }
 
 

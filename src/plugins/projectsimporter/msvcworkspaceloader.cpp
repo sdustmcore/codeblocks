@@ -57,8 +57,7 @@ bool MSVCWorkspaceLoader::Open(const wxString& filename, wxString& Title)
         case wxID_NO:
             askForCompiler = true;
             break;
-        case wxID_CANCEL: // fall-through
-        default:
+        case wxID_CANCEL:
             return false;
     }
     switch (cbMessageBox(_("Do you want to import all configurations (e.g. Debug/Release) from the "
@@ -70,8 +69,7 @@ bool MSVCWorkspaceLoader::Open(const wxString& filename, wxString& Title)
             askForTargets = false; break;
         case wxID_NO:
             askForTargets = true; break;
-        case wxID_CANCEL: // fall-through
-        default:
+        case wxID_CANCEL:
             return false;
     }
 

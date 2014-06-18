@@ -16,7 +16,7 @@
     #include "macrosmanager.h"
 #endif
 
-namespace { static const bool case_sensitive = platform::windows ? false : true; }
+namespace { static const bool case_sensitive = platform::windows ? false : true; };
 
 CompileOptionsBase::CompileOptionsBase()
     : m_Platform(spAll),
@@ -458,15 +458,6 @@ bool CompileOptionsBase::UnsetVar(const wxString& key)
 void CompileOptionsBase::UnsetAllVars()
 {
     m_Vars.clear();
-}
-
-bool CompileOptionsBase::HasVar(const wxString& key) const
-{
-    StringHash::const_iterator it = m_Vars.find(key);
-    if (it != m_Vars.end())
-        return true;
-
-    return false;
 }
 
 const wxString& CompileOptionsBase::GetVar(const wxString& key) const

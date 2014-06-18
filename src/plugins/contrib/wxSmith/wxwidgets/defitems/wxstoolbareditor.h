@@ -117,7 +117,6 @@ class wxsToolBarEditor: public wxPanel
                     m_OriginalPos(CopyFrom.m_OriginalPos),
                     m_Type(CopyFrom.m_Type),
                     m_Id(CopyFrom.m_Id),
-                    m_Variable(CopyFrom.m_Variable),
                     m_Label(CopyFrom.m_Label),
                     m_Bitmap(CopyFrom.m_Bitmap),
                     m_Bitmap2(CopyFrom.m_Bitmap2),
@@ -129,7 +128,6 @@ class wxsToolBarEditor: public wxPanel
                 int m_OriginalPos;
                 ItemType m_Type;
                 wxString m_Id;
-                wxString m_Variable;
                 wxString m_Label;
                 wxsBitmapData m_Bitmap;
                 wxsBitmapData m_Bitmap2;

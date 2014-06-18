@@ -35,18 +35,18 @@ namespace ScriptBindings
     void gWarningLog(const wxString& msg){ Manager::Get()->GetLogManager()->LogWarning(msg); }
     void gLog(const wxString& msg){ Manager::Get()->GetLogManager()->Log(msg); }
     int gMessage(const wxString& msg, const wxString& caption, int buttons){ return cbMessageBox(msg, caption, buttons); }
-    void gShowMessage(const wxString& msg){ cbMessageBox(msg, _("Script message"), wxICON_INFORMATION | wxOK); }
-    void gShowMessageWarn(const wxString& msg){ cbMessageBox(msg, _("Script warning"), wxICON_WARNING | wxOK); }
-    void gShowMessageError(const wxString& msg){ cbMessageBox(msg, _("Script error"), wxICON_ERROR | wxOK); }
-    void gShowMessageInfo(const wxString& msg){ cbMessageBox(msg, _("Script information"), wxICON_INFORMATION | wxOK); }
+    void gShowMessage(const wxString& msg){ cbMessageBox(msg, _("Script message")); }
+    void gShowMessageWarn(const wxString& msg){ cbMessageBox(msg, _("Script warning"), wxICON_WARNING); }
+    void gShowMessageError(const wxString& msg){ cbMessageBox(msg, _("Script error"), wxICON_ERROR); }
+    void gShowMessageInfo(const wxString& msg){ cbMessageBox(msg, _("Script information"), wxICON_INFORMATION); }
     wxString gReplaceMacros(const wxString& buffer){ return Manager::Get()->GetMacrosManager()->ReplaceMacros(buffer); }
 
     SQInteger IsNull(HSQUIRRELVM v)
     {
         StackHandler sa(v);
-        SQUserPointer up = nullptr;
-        sq_getinstanceup(v, 2, &up, nullptr);
-        return sa.Return(up == nullptr);
+        SQUserPointer up = 0;
+        sq_getinstanceup(v, 2, &up, 0);
+        return sa.Return(up == 0L);
     }
 
     ProjectManager* getPM()
@@ -97,7 +97,7 @@ namespace ScriptBindings
     {
         // this code is partially based on MenuItemsManager::CreateFromString()
         wxMenuBar* mbar = Manager::Get()->GetAppFrame()->GetMenuBar();
-        wxMenu* menu = nullptr;
+        wxMenu* menu = 0;
         size_t pos = 0;
         while (true)
         {

@@ -572,9 +572,7 @@ int DoxyBlocks::GenerateDocuments(cbProject *prj)
     if(!sDoxygenPath.IsEmpty()){
         cmd = sDoxygenPath;
     }
-    wxString doxygenFileFullPath = fnDoxyfile.GetFullPath();
-    QuoteStringIfNeeded(doxygenFileFullPath);
-    const long ret = wxExecute(cmd + wxT(" ") + doxygenFileFullPath, sOutput, sErrors);
+    const long ret = wxExecute(cmd + wxT(" ") + fnDoxyfile.GetFullPath(), sOutput, sErrors);
     if(ret != -1){
         // Write doxygen logfile to the log or remove it if it's empty
         if(wxFile::Exists(fnDoxygenLog.GetFullPath())){

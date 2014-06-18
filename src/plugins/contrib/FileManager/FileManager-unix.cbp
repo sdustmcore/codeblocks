@@ -2,17 +2,16 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="File Manager Plugin (Unix)" />
+		<Option title="File Manager Plugin (unix)" />
 		<Option pch_mode="0" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="default">
-				<Option platforms="Unix;" />
-				<Option output="../../../devel/share/codeblocks/plugins/libFileManager" prefix_auto="0" extension_auto="1" />
+				<Option output="../../../devel/share/codeblocks/plugins/FileManager" prefix_auto="1" extension_auto="1" />
 				<Option object_output="../../../.objs/plugins/contrib/FileManager" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --multiple-instance -ni -ns -v -p debug" />
+				<Option parameters="--debug-log --multiple-instance -ni -ns -v" />
 				<Option host_application="../../../devel/codeblocks" />
 				<Option run_host_application_in_terminal="0" />
 				<Compiler>
@@ -33,7 +32,8 @@
 			<Add option="-Wswitch-default" />
 			<Add option="-Wextra" />
 			<Add option="-Wall" />
-			<Add option="-ansi" />
+			<Add option="-Ulinux" />
+			<Add option="-Uunix" />
 			<Add option="`wx-config --cflags`" />
 			<Add option="`pkg-config --cflags gamin`" />
 			<Add option="-Winvalid-pch" />
@@ -46,16 +46,10 @@
 			<Add directory="../../../include" />
 			<Add directory="../../../sdk/wxscintilla/include" />
 			<Add directory="../../../include/mozilla_chardet" />
-			<Add directory="../../../include/mozilla_chardet/mfbt" />
-			<Add directory="../../../include/mozilla_chardet/nsprpub/pr/include" />
-			<Add directory="../../../include/mozilla_chardet/xpcom" />
-			<Add directory="../../../include/mozilla_chardet/xpcom/base" />
-			<Add directory="../../../include/mozilla_chardet/xpcom/glue" />
 		</Compiler>
 		<Linker>
 			<Add option="`wx-config --libs`" />
 			<Add option="`pkg-config --libs gamin`" />
-			<Add option="-Wl,--no-undefined" />
 			<Add library="codeblocks" />
 			<Add directory="../../../devel" />
 		</Linker>

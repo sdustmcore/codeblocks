@@ -21,7 +21,7 @@
 #include <wx/url.h>
 #include <wx/encconv.h>
 
-template<> FileManager* Mgr<FileManager>::instance = nullptr;
+template<> FileManager* Mgr<FileManager>::instance = 0;
 template<> bool  Mgr<FileManager>::isShutdown = false;
 
 // ***** class: LoaderBase *****
@@ -29,30 +29,30 @@ LoaderBase::~LoaderBase()
 {
     WaitReady();
     delete[] data;
-}
+};
 
 bool LoaderBase::Sync()
 {
     WaitReady();
     return data;
-}
+};
 
 char* LoaderBase::GetData()
 {
     WaitReady();
     return data;
-}
+};
 
 size_t LoaderBase::GetLength()
 {
     WaitReady();
     return len;
-}
+};
 
 // ***** class: FileLoader *****
 void FileLoader::operator()()
 {
-    if (!wxFile::Access(fileName, wxFile::read) || wxFileName::DirExists(fileName))
+    if (!wxFile::Access(fileName, wxFile::read))
     {
         Ready();
         return;
@@ -71,7 +71,7 @@ void FileLoader::operator()()
     if (file.Read(data, len) == wxInvalidOffset)
     {
         delete[] data;
-        data = nullptr;
+        data = 0;
         len = 0;
     }
     Ready();
@@ -91,7 +91,7 @@ void URLLoader::operator()()
 
     std::auto_ptr<wxInputStream> stream(url.GetInputStream());
 
-    if (stream.get() == nullptr || stream->IsOk() == false)
+    if (stream.get() == 0 || stream->IsOk() == false)
     {
         Ready();
         return;
@@ -126,6 +126,7 @@ FileManager::FileManager()
 
 FileManager::~FileManager()
 {
+//  delayedDeleteThread.Die();
 //  fileLoaderThread.Die();
 //  uncLoaderThread.Die();
 //  urlLoaderThread.Die();
@@ -174,105 +175,150 @@ LoaderBase* FileManager::Load(const wxString& file, bool reuseEditors)
     return fl;
 }
 
-
-namespace platform
+bool FileManager::Save(const wxString& name, const char* data, size_t len)
 {
-#if defined ( __WIN32__ ) || defined ( _WIN64 )
-    // Yes this is ugly. Feel free to come up with a better idea if you have one.
-	// Using the obvious wxRenameFile (or the underlying wxRename) is no option under Windows, since
-	// wxRename is simply a fuckshit wrapper around a CRT function which does not work the way
-	// the wxRename author assumes (MSVCRT rename fails if the target exists, instead of overwriting).
-	inline bool move(wxString const& old_name, wxString const& new_name)
-	{
-		// hopefully I got the unintellegible conversion stuff correct... at least it seems to work...
-		return ::MoveFileEx(wxFNCONV(old_name), wxFNCONV(new_name), MOVEFILE_REPLACE_EXISTING);
-	}
-#else
-	inline bool move(wxString const& old_name, wxString const& new_name)
-	{
-		return ::wxRenameFile(old_name, new_name, true);
-	};
-#endif
-}
-
-
-// FileManager::SaveUTF8 (formerly const char* overload of FileManager::Save) uses wxFile::Save without any conversions.
-// It is only suitable e.g. for saving a TiXmlDocument (UTF8 data), but not for editors or projects, which contain wide char data.
-// Therefore it is now a private member and has been renamed to prevent accidential use.
-//
-// FileManager::Save uses FileManager::WriteWxStringToFile to write data, its operation is otherwise exactly identical.
-//
-// 1. If file does not exist, create in exclusive mode, save, return success or failure. Exclusive mode is presumably "safer".
-// 2. Otherwise (file exists), save to temporary.
-// 3. Attempt to atomically replace original with temporary.
-// 4. If this fails, rename temporary to document failure.
-// 5. No more delayed deletes -- This requires special paths for when the application shuts down
-//    and only lends to race conditions and a possible crash-on-exit.
-//    If you can't trust your computer to sync data to disk properly, you already lost.
-
-bool FileManager::SaveUTF8(const wxString& name, const char* data, size_t len)
-{
-    if (wxFileExists(name) == false)
+    if (wxFileExists(name) == false) // why bother if we don't need to
     {
-        return wxFile(name, wxFile::write_excl).Write(data, len) == len;
+        wxFile f(name, wxFile::write);
+        if (!f.IsOpened())
+            return false;
+        return f.Write(data, len);
     }
-	else
-	{
-		wxString temp(name);
-		temp.append(wxT(".temp"));
 
-		if(wxFile(temp, wxFile::write).Write(data, len) == len)
-		{
-			if(platform::move(temp, name))
-			{
-				return true;
-			}
-			else
-			{
-				wxString failed(name);
-				failed.append(wxT(".save-failed"));
-				platform::move(temp, failed);
-			}
-		}
-		return false;
-	}
+    if (platform::windows) // work around broken Windows readonly flag
+    {
+        wxFile f;
+        if (!f.Open(name, wxFile::read_write))
+            return false;
+    }
+
+    wxString tempName(name + _T(".cbTemp"));
+    do
+    {
+        if ( !wxCopyFile(name, tempName) )
+        {
+            return false;
+        }
+
+        wxFile f(name, wxFile::write);
+        if ( !f.IsOpened() )
+            return false;
+
+        if (f.Write(data, len) != len)
+        {
+            f.Close();
+            // Keep the backup file as the original file has been destroyed
+            //wxRemoveFile(tempName);
+            return false;
+        }
+
+        f.Close();
+
+    } while (false);
+
+    if (Manager::IsAppShuttingDown())
+    {
+        // app shut down, forget delayed deletion
+        wxRemoveFile(tempName);
+    }
+    else
+    {
+        // issue a delayed deletion of the back'd up (old) file
+        delayedDeleteThread.Queue(new DelayedDelete(tempName));
+    }
+
+    return true;
 }
 
 bool FileManager::Save(const wxString& name, const wxString& data, wxFontEncoding encoding, bool bom)
 {
-    if (wxFileExists(name) == false)
+    if (wxFileExists(name) == false) // why bother if we don't need to
     {
-		wxFile f(name, wxFile::write_excl);
+        wxFile f(name, wxFile::write);
+        if (!f.IsOpened())
+            return false;
         return WriteWxStringToFile(f, data, encoding, bom);
     }
-	else
-	{
-		wxString temp(name);
-		temp.append(wxT(".temp"));
 
-		wxFile f(temp, wxFile::write);
-		if(WriteWxStringToFile(f, data, encoding, bom))
-		{
-			f.Close();
-			if(platform::move(temp, name))
-			{
-				return true;
-			}
-			else
-			{
-				wxString failed(name);
-				failed.append(wxT(".save-failed"));
-				platform::move(temp, failed);
-			}
-		}
-		return false;
-	}
+    if (platform::windows)
+    {
+        wxFile f;
+        if (!f.Open(name, wxFile::read_write))
+            return false;
+    }
+
+    wxString tempName(name + _T(".cbTemp"));
+    do
+    {
+        if (!wxCopyFile(name, tempName))
+        {
+            return false;
+        }
+
+        wxFile f(name, wxFile::write);
+        if ( !f.IsOpened() )
+            return false;
+
+        if (WriteWxStringToFile(f, data, encoding, bom) == false)
+        {
+            f.Close();
+            // Keep the backup file as the original file has been destroyed
+            //wxRemoveFile(tempName);
+            return false;
+        }
+
+        f.Close();
+
+    } while (false);
+
+    if (Manager::IsAppShuttingDown())
+    {
+        // app shut down, forget delayed deletion
+        wxRemoveFile(tempName);
+    }
+    else
+    {
+        // issue a delayed deletion of the back'd up (old) file
+        delayedDeleteThread.Queue(new DelayedDelete(tempName));
+    }
+    return true;
 }
 
+bool FileManager::ReplaceFile(const wxString& old_file, const wxString& new_file)
+{
+    wxString backup_file(old_file + _T(".backup"));
+
+    // rename the old file into a backup file
+    if (wxRenameFile(old_file, backup_file))
+    {
+        // now rename the new created (temporary) file to the "old" filename
+        if (wxRenameFile(new_file, old_file))
+        {
+            if (Manager::IsAppShuttingDown())
+            {
+                // app shut down, forget delayed deletion
+                wxRemoveFile(backup_file);
+            }
+            else
+            {
+                // issue a delayed deletion of the back'd up (old) file
+                delayedDeleteThread.Queue(new DelayedDelete(backup_file));
+            }
+            return true;
+        }
+        else
+        {
+            // if final rename operation failed, restore the old file from backup
+            wxRenameFile(backup_file, old_file);
+        }
+    }
+
+    return false;
+}
 
 bool FileManager::WriteWxStringToFile(wxFile& f, const wxString& data, wxFontEncoding encoding, bool bom)
 {
-    const char* mark = nullptr;
+    const char* mark = 0;
     size_t mark_length = 0;
     if (bom)
     {
@@ -399,7 +445,7 @@ bool FileManager::WriteWxStringToFile(wxFile& f, const wxString& data, wxFontEnc
         }
     }
 
-    return f.Write(buf, size) == size;
+    return f.Write(buf, size);
 
 #else
 

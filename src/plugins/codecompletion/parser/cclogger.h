@@ -57,6 +57,7 @@ private:
     int           m_LogId;
     int           m_DebugLogId;
     int           m_AddTokenId;
+    wxMutex       m_CCLoggerMutex;
 };
 
 // For tracking, either uncomment:

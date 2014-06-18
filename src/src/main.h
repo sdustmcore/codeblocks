@@ -17,9 +17,7 @@
 #include "manager.h"
 #include "cbexception.h"
 #include "cbplugin.h"
-#include "find_replace.h"
 #include "sdk_events.h"
-#include "recentitemslist.h"
 #include "scripting/bindings/sc_base_types.h"
 #include "scrollingdialog.h"
 
@@ -35,7 +33,6 @@ class DebuggerMenuHandler;
 class DebuggerToolbarHandler;
 class InfoPane;
 class wxGauge;
-class ProjectManagerUI;
 
 struct ToolbarInfo
 {
@@ -90,26 +87,13 @@ class MainFrame : public wxFrame
         // open the filename (based on what it is)
         bool OpenGeneric(const wxString& filename, bool addToHistory = true);
 
-        void StartupDone();
-
-        ProjectManagerUI* GetProjectManagerUI() { return m_pPrjManUI; }
-    private:
         // event handlers
 
         void OnEraseBackground(wxEraseEvent& event);
         void OnSize(wxSizeEvent& event);
         void OnApplicationClose(wxCloseEvent& event);
         void OnStartHereLink(wxCommandEvent& event);
-
-        // the two functions below are used to show context menu to toggle toolbar view status
-        // OnMouseRightUp is handler for right click on MainFrame's free area which is not covered by
-        // any sub panels, OnToolBarRightClick is used to response the mouse right click command
-        // on the toolbar.
-        void OnMouseRightUp(wxMouseEvent& event);
-        void OnToolBarRightClick(wxCommandEvent& event);
-
-        // common function to show context menu for toggle toolbars
-        void PopupToggleToolbarMenu();
+        void OnStartHereVarSubst(wxCommandEvent& event);
 
         // File->New submenu entries handler
         void OnFileNewWhat(wxCommandEvent& event);
@@ -187,15 +171,11 @@ class MainFrame : public wxFrame
         void OnEditInsertNewLine(wxCommandEvent& event);
         void OnEditGotoLineEnd(wxCommandEvent& event);
         void OnEditSelectAll(wxCommandEvent& event);
-        void OnEditSelectNext(wxCommandEvent& event);
-        void OnEditSelectNextSkip(wxCommandEvent& event);
         void OnEditCommentSelected(wxCommandEvent& event);
         void OnEditUncommentSelected(wxCommandEvent& event);
-        void OnEditToggleCommentSelected(wxCommandEvent& event);
-        void OnEditStreamCommentSelected(wxCommandEvent& event);
-        void OnEditBoxCommentSelected(wxCommandEvent& event);
-        void OnEditShowCallTip(wxCommandEvent& event);
-        void OnEditCompleteCode(wxCommandEvent& event);
+        void OnEditToggleCommentSelected(wxCommandEvent & event);
+        void OnEditStreamCommentSelected(wxCommandEvent & event);
+        void OnEditBoxCommentSelected(wxCommandEvent & event);
 
         void OnEditBookmarksToggle(wxCommandEvent& event);
         void OnEditBookmarksNext(wxCommandEvent& event);
@@ -229,8 +209,6 @@ class MainFrame : public wxFrame
         void OnHelpTips(wxCommandEvent& event);
         void OnHelpPluginMenu(wxCommandEvent& event);
 
-        void OnViewToolbarsFit(wxCommandEvent& event);
-        void OnViewToolbarsOptimize(wxCommandEvent& event);
         void OnToggleBar(wxCommandEvent& event);
         void OnToggleStatusBar(wxCommandEvent& event);
         void OnFocusEditor(wxCommandEvent& event);
@@ -292,6 +270,7 @@ class MainFrame : public wxFrame
         void OnPageChanged(wxNotebookEvent& event);
         void OnShiftTab(wxCommandEvent& event);
         void OnCtrlAltTab(wxCommandEvent& event);
+        void StartupDone();
         void OnNotebookDoubleClick(CodeBlocksEvent& event);
     protected:
         void CreateIDE();
@@ -316,12 +295,15 @@ class MainFrame : public wxFrame
         void AddPluginInPluginsMenu(cbPlugin* plugin);
         void AddPluginInHelpPluginsMenu(cbPlugin* plugin);
         wxMenuItem* AddPluginInMenus(wxMenu* menu, cbPlugin* plugin, wxObjectEventFunction callback, int pos = -1, bool checkable = false);
+        void RemovePluginFromMenus(const wxString& pluginName);
 
         void LoadViewLayout(const wxString& name, bool isTemp = false);
         void SaveViewLayout(const wxString& name, const wxString& layout, const wxString& layoutMP, bool select = false);
         void DoSelectLayout(const wxString& name);
         void DoFixToolbarsLayout();
         bool DoCheckCurrentLayoutForChanges(bool canCancel = true);
+
+        void AskToRemoveFileFromHistory(wxFileHistory* hist, int id, bool cannot_open = true);
 
         void AddEditorInWindowMenu(const wxString& filename, const wxString& title);
         void RemoveEditorFromWindowMenu(const wxString& filename);
@@ -349,30 +331,32 @@ class MainFrame : public wxFrame
         void LoadWindowSize();
 
         void InitializeRecentFilesHistory();
+        void AddToRecentFilesHistory(const wxString& filename);
+        void AddToRecentProjectsHistory(const wxString& filename);
         void TerminateRecentFilesHistory();
         #if wxUSE_STATUSBAR
         virtual wxStatusBar *OnCreateStatusBar(int number, long style, wxWindowID id, const wxString& name);
         #endif
-    protected:
-        RecentItemsList m_filesHistory, m_projectsHistory;
+
+        wxFileHistory* m_pFilesHistory;
+        wxFileHistory* m_pProjectsHistory;
 
         /// "Close FullScreen" button. Only shown when in FullScreen view
         wxButton* m_pCloseFullScreenBtn;
 
-        EditorManager*    m_pEdMan;
-        ProjectManager*   m_pPrjMan;
-        ProjectManagerUI* m_pPrjManUI;
-        LogManager*       m_pLogMan;
-        InfoPane*         m_pInfoPane;
+        EditorManager*  m_pEdMan;
+        ProjectManager* m_pPrjMan;
+        LogManager*     m_pLogMan;
+        InfoPane*       m_pInfoPane;
 
-        wxToolBar* m_pToolbar; // main toolbar
-        PluginToolbarsMap m_PluginsTools; // plugin -> toolbar map
+        wxToolBar* m_pToolbar;
+        PluginToolbarsMap m_PluginsTools;
 
         PluginIDsMap m_PluginIDsMap;
         wxMenu* m_ToolsMenu;
         wxMenu* m_PluginsMenu;
         wxMenu* m_HelpPluginsMenu;
-        bool    m_ScanningForPlugins; // this variable is used to delay the UI construction
+        bool    m_ScanningForPlugins;
 
         bool m_SmallToolBar;
         bool m_StartupDone;
@@ -396,8 +380,6 @@ class MainFrame : public wxFrame
 
         DebuggerMenuHandler*    m_debuggerMenuHandler;
         DebuggerToolbarHandler* m_debuggerToolbarHandler;
-
-        FindReplace m_findReplace;
 
         DECLARE_EVENT_TABLE()
 };

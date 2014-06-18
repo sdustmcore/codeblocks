@@ -54,8 +54,8 @@ class DLLIMPORT cbEditor : public EditorBase
           * <em>Note: you cannot create a cbEditor object directly. Instead
           * use EditorManager's methods to do it...</em>
           */
-        cbEditor(wxWindow* parent, const wxString& filename, EditorColourSet* theme = nullptr);
-        cbEditor(wxWindow* parent, LoaderBase* fileLdr, const wxString& filename, EditorColourSet* theme = nullptr);
+        cbEditor(wxWindow* parent, const wxString& filename, EditorColourSet* theme = 0L);
+        cbEditor(wxWindow* parent, LoaderBase* fileLdr, const wxString& filename, EditorColourSet* theme = 0L);
         /** cbEditor destructor. */
         ~cbEditor();
     public:
@@ -316,8 +316,7 @@ class DLLIMPORT cbEditor : public EditorBase
         bool DoFoldLine(int line, int fold); // 0=unfold, 1=fold, 2=toggle
         void SetMarkerStyle(int marker, int markerType, wxColor fore, wxColor back);
         void UnderlineFoldedLines(bool underline);
-        cbStyledTextCtrl* CreateEditor();
-        void ConnectEvents(cbStyledTextCtrl* stc);
+        cbStyledTextCtrl* CreateEditor(bool connectEvents = true);
         void SetEditorStyle();
         void SetEditorStyleBeforeFileOpen();
         void SetEditorStyleAfterFileOpen();
@@ -338,11 +337,6 @@ class DLLIMPORT cbEditor : public EditorBase
         void OnEditorModified(wxScintillaEvent& event);
         void OnUserListSelection(wxScintillaEvent& event);
         void OnZoom(wxScintillaEvent& event);
-        /** notify all the registered EditorHook functions
-         * @param event indicates which event is received by the cbEditor
-         * You should bind OnScintillaEvent to every wxScintillaEvent events, either directly or
-         * indirectly, see cbEditor::ConnectEvents() for more details.
-         */
         void OnScintillaEvent(wxScintillaEvent& event);
         void OnClose(wxCloseEvent& event);
 
@@ -353,7 +347,7 @@ class DLLIMPORT cbEditor : public EditorBase
 
         void DestroySplitView();
 
-        void DoInitializations(const wxString& filename, LoaderBase* fileLdr = nullptr);
+        void DoInitializations(const wxString& filename, LoaderBase* fileLdr = 0);
 
         void BreakpointMarkerToggle(int line);
 
@@ -365,6 +359,7 @@ class DLLIMPORT cbEditor : public EditorBase
         cbStyledTextCtrl* m_pControl2;
         cbStyledTextCtrl* m_foldBackup;
         SplitType m_SplitType;
+        int m_ID;
         bool m_Modified;
         int m_Index;
         wxTimer m_timerWait;

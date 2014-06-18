@@ -23,7 +23,6 @@
 #include "wxseditenumproperty.h"
 
 #include <globals.h>
-#include <prep.h>
 
 // Helper macro for fetching variable
 #define VALUE   wxsVARIABLE(Object,Offset,wxString)
@@ -32,7 +31,7 @@ wxsEditEnumProperty::wxsEditEnumProperty(const wxString &PGName,
         const wxString &DataName,
         long _Offset,
         const wxChar **_Names,
-        bool _UpdateEntries,
+        bool _UpdateEnteries,
         const wxString &_Default,
         bool _XmlStoreEmpty,
         bool _UseNamesInXml,
@@ -41,7 +40,7 @@ wxsEditEnumProperty::wxsEditEnumProperty(const wxString &PGName,
     Offset(_Offset),
     Default(_Default),
     XmlStoreEmpty(_XmlStoreEmpty),
-    UpdateEntries(_UpdateEntries),
+    UpdateEnteries(_UpdateEnteries),
     Names(_Names),
     UseNamesInXml(_UseNamesInXml)
 {
@@ -80,9 +79,7 @@ void wxsEditEnumProperty::PGCreate(wxsPropertyContainer *Object, wxPropertyGridM
  * \date 27/8/10
  * Updated by Cryogen to use the item name rather than the enumerator value under wxPropertyGrid 1.4.
  */
-bool wxsEditEnumProperty::PGRead(cb_unused wxsPropertyContainer *Object,
-                                 wxPropertyGridManager *Grid, wxPGId Id,
-                                 cb_unused long Index)
+bool wxsEditEnumProperty::PGRead(wxsPropertyContainer *Object, wxPropertyGridManager *Grid, wxPGId Id, long Index)
 {
     VALUE = Grid->GetPropertyValueAsString(Id);
     VALUE.Replace(_T("\\n"), _T("\n"));
@@ -99,17 +96,16 @@ bool wxsEditEnumProperty::PGRead(cb_unused wxsPropertyContainer *Object,
  * \return bool
  *
  */
-bool wxsEditEnumProperty::PGWrite(cb_unused wxsPropertyContainer *Object,
-                                  wxPropertyGridManager *Grid, wxPGId Id,
-                                  cb_unused long Index)
+bool wxsEditEnumProperty::PGWrite(wxsPropertyContainer *Object, wxPropertyGridManager *Grid, wxPGId Id, long Index)
 {
     wxString Fixed = VALUE;
 
     Fixed.Replace(_T("\n"), _T("\\n"));
-   if ( UpdateEntries )
+   if ( UpdateEnteries )
     {
         #if wxCHECK_VERSION(2, 9, 0)
-        wxPGChoices(Id->GetChoices()).Set(Names,Values);
+        wxPGChoices choices = Grid->GetGrid()->GetSelection()->GetChoices();
+        choices.Set(Names,Values);
         #else
         Grid->GetPropertyChoices(Id).Set(Names,Values);
         #endif
@@ -125,8 +121,7 @@ bool wxsEditEnumProperty::PGWrite(cb_unused wxsPropertyContainer *Object,
  * \return bool
  *
  */
-bool wxsEditEnumProperty::XmlRead(cb_unused wxsPropertyContainer *Object,
-                                  TiXmlElement *Element)
+bool wxsEditEnumProperty::XmlRead(wxsPropertyContainer *Object, TiXmlElement *Element)
 {
     if(!Element)
     {
@@ -186,8 +181,7 @@ bool wxsEditEnumProperty::XmlRead(cb_unused wxsPropertyContainer *Object,
  * \return bool
  *
  */
-bool wxsEditEnumProperty::XmlWrite(cb_unused wxsPropertyContainer *Object,
-                                   TiXmlElement *Element)
+bool wxsEditEnumProperty::XmlWrite(wxsPropertyContainer *Object, TiXmlElement *Element)
 {
     if(XmlStoreEmpty || (VALUE != Default))
     {
@@ -224,8 +218,7 @@ bool wxsEditEnumProperty::XmlWrite(cb_unused wxsPropertyContainer *Object,
  * \return bool
  *
  */
-bool wxsEditEnumProperty::PropStreamRead(cb_unused wxsPropertyContainer *Object,
-                                         wxsPropertyStream *Stream)
+bool wxsEditEnumProperty::PropStreamRead(wxsPropertyContainer *Object, wxsPropertyStream *Stream)
 {
     return Stream->GetString(GetDataName(), VALUE, Default);
 }
@@ -237,8 +230,7 @@ bool wxsEditEnumProperty::PropStreamRead(cb_unused wxsPropertyContainer *Object,
  * \return bool
  *
  */
-bool wxsEditEnumProperty::PropStreamWrite(cb_unused wxsPropertyContainer *Object,
-                                          wxsPropertyStream *Stream)
+bool wxsEditEnumProperty::PropStreamWrite(wxsPropertyContainer *Object, wxsPropertyStream *Stream)
 {
     return Stream->PutString(GetDataName(), VALUE, Default);
 }

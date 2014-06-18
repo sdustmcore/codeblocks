@@ -6,19 +6,11 @@
 #if ( !defined(PREP_H) && defined(__cplusplus) )
 #define PREP_H
 
-#include <stdint.h>
-
-#include <wx/defs.h> // wxIntPtr
 #ifndef wxMAJOR_VERSION
     #include <wx/version.h>
 #endif
 
-#ifndef __has_feature
-    #define __has_feature(x) 0
-#endif
-
-#if    !(__GNUC__ == 4 && __GNUC_MINOR__ >= 6 && defined __GXX_EXPERIMENTAL_CXX0X__) \
-    && !(defined(__clang__) && __has_feature(cxx_nullptr))
+#if !(__GNUC__ == 4 && __GNUC_MINOR__ >= 6 && defined __GXX_EXPERIMENTAL_CXX0X__)
     // it is a const object...
     const class nullptr_t
     {
@@ -39,7 +31,6 @@
         const nullptr_t& operator=(const nullptr_t&);
     } nullptr_;
     #define nullptr nullptr_
-    #define MOZ_HAVE_CXX11_NULLPTR // prevents mozilla/NullPtr.h from defining nullptr.
 
     template<typename T> inline bool operator==(const nullptr_t& lhs, T const& rhs) { return  lhs.equals(rhs); }
     template<typename T> inline bool operator==(T const& lhs, const nullptr_t& rhs) { return  rhs.equals(lhs); }
@@ -127,8 +118,8 @@ template <typename T> unsigned int array_size(const T& array) { enum {result = s
     to set a pointer to zero in the destructor, as it can never be used again).
     In _all_ other cases, use Delete(), which prevents accidential double-deletes.
 */
-template<typename T>inline void Delete(T*& p){delete p; p = nullptr;}
-template<typename T>inline void DeleteArray(T*& p){delete[] p; p = nullptr;}
+template<typename T>inline void Delete(T*& p){delete p; p = 0;}
+template<typename T>inline void DeleteArray(T*& p){delete[] p; p = 0;}
 
 
 
@@ -215,6 +206,14 @@ namespace platform
     const bool cocoa = true;
     #else
     const bool cocoa = false;
+    #endif
+
+    #if defined ( linux )
+        #undef linux
+    #endif
+
+    #if defined ( unix )
+        #undef unix
     #endif
 
     const bool windows = (id == platform_windows);
@@ -373,61 +372,48 @@ namespace compatibility
 
 class ID
 {
-    wxIntPtr value;
+    unsigned int value;
 
-    ID(wxIntPtr in) : value(in) {};
+    ID(unsigned int in) : value(in) {};
 
     template<typename> friend ID GetID();
-    friend ID ConstructID(wxIntPtr);
+    friend ID ConstructID(unsigned int);
 
 public:
 
-    ID() : value ((wxIntPtr) -1) {};
+    ID() : value ((unsigned) -1) {};
 
-    operator wxIntPtr() const { return value; };
-    operator void*() const { return reinterpret_cast<void*>(static_cast<uintptr_t>(value)); };
+    operator unsigned int() const { return value; };
+    operator void*() const { return reinterpret_cast<void*>(value); };
 
-    bool Valid() const { return value != ((wxIntPtr) -1); };
+    bool Valid() const { return value != ((unsigned) -1); };
     bool operator!() const { return !Valid(); };
 
     friend bool operator==(ID a, ID b)    { return a.value      == b.value; };
-    friend bool operator==(ID a, int b)   { return a.value      == (wxIntPtr) b; };
+    friend bool operator==(ID a, int b)   { return a.value      == (unsigned) b; };
 
     friend bool operator!=(ID a, ID b)    { return a.value      != b.value; };
-    friend bool operator!=(ID a, int b)   { return a.value      != (wxIntPtr) b; };
+    friend bool operator!=(ID a, int b)   { return a.value      != (unsigned) b; };
 };
 
 
 template<typename whatever> inline ID GetID()
 {
-    static wxIntPtr id = (wxIntPtr) -1;
+    static unsigned int id = (unsigned int) -1;
     return ID(++id);
 }
 
 inline ID GetID() { return GetID<void>(); }
-inline ID ConstructID(wxIntPtr i) { return ID(i); }
+inline ID ConstructID(unsigned int i) { return ID(i); }
 
-// Just included to possibly set _LIBCPP_VERSION
-#include <ciso646>
-
-#if __cplusplus >= 201103L || defined(_LIBCPP_VERSION)
-#include <memory>
-#else
 #include <tr1/memory>
-#endif
 
 // Add std::shared_ptr in a namespace, so different implementations can be used with different compilers
 namespace cb
 {
-#if __cplusplus >= 201103L || defined(_LIBCPP_VERSION)
-    using std::shared_ptr;
-    using std::static_pointer_cast;
-    using std::weak_ptr;
-#else
     using std::tr1::shared_ptr;
     using std::tr1::static_pointer_cast;
     using std::tr1::weak_ptr;
-#endif
 }
 
 #if defined(__APPLE__) && defined(__MACH__)

@@ -33,6 +33,7 @@
 #include "Accessor.h"
 #endif
 #include "ContractionState.h"
+#include "SVector.h"
 #include "CellBuffer.h"
 #include "CallTip.h"
 #include "KeyMap.h"
@@ -168,18 +169,7 @@ public:
     void DoLeftButtonMove(SCI_NAMESPACE_PREFIX(Point) pt);
     void DoMiddleButtonUp(SCI_NAMESPACE_PREFIX(Point) pt);
 /* C::B end */
-/* C::B begin */
-#if !wxCHECK_VERSION(2,9,4)
-    enum wxMouseWheelAxis
-    {
-        wxMOUSE_WHEEL_VERTICAL,
-        wxMOUSE_WHEEL_HORIZONTAL
-    };
-#endif
-/* C::B end */
-    void DoMouseWheel(wxMouseWheelAxis axis, int rotation, int delta,
-                      int linesPerAction, int columnsPerAction,
-                      bool ctrlDown, bool isPageScroll);
+    void DoMouseWheel(int rotation, int delta, int linesPerAction, int ctrlDown, bool isPageScroll);
     void DoAddChar(int key);
     int  DoKeyDown(const wxKeyEvent& event, bool* consumed);
     void DoTick() { Tick(); }
@@ -225,8 +215,7 @@ private:
 /* C::B end */
 #endif
 
-    int                 wheelVRotation;
-    int                 wheelHRotation;
+    int                 wheelRotation;
 
     // For use in creating a system caret
     bool HasCaretSizeChanged();

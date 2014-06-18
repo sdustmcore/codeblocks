@@ -151,9 +151,7 @@ private:
 	wxBitmap GetZoomInBitmap();
 	wxBitmap GetZoomOutBitmap();
 
-/* C::B begin */
     DECLARE_DYNAMIC_CLASS(wxChartCtrl)
-/* C::B end */
     DECLARE_EVENT_TABLE()
 };
 

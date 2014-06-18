@@ -25,8 +25,6 @@
 #include "wxwidgets/wxssizer.h"
 #include "wxwidgets/wxsitemeditor.h"
 
-#include <prep.h>
-
 //(*InternalHeaders(wxsSettings)
 #include <wx/intl.h>
 #include <wx/string.h>
@@ -66,7 +64,7 @@ BEGIN_EVENT_TABLE(wxsSettings,cbConfigurationPanel)
     //*)
 END_EVENT_TABLE()
 
-wxsSettings::wxsSettings(wxWindow* parent,cb_unused wxWindowID id)
+wxsSettings::wxsSettings(wxWindow* parent,wxWindowID id)
 {
     //(*Initialize(wxsSettings)
     wxStaticText* StaticText10;
@@ -358,7 +356,7 @@ wxsSettings::~wxsSettings()
     //*)
 }
 
-void wxsSettings::OnDragTargetColClick(cb_unused wxCommandEvent& event)
+void wxsSettings::OnDragTargetColClick(wxCommandEvent& event)
 {
     wxColour Col = ::wxGetColourFromUser(this,m_DragTargetCol->GetBackgroundColour());
     if ( Col.Ok() )
@@ -367,7 +365,7 @@ void wxsSettings::OnDragTargetColClick(cb_unused wxCommandEvent& event)
     }
 }
 
-void wxsSettings::OnDragParentColClick(cb_unused wxCommandEvent& event)
+void wxsSettings::OnDragParentColClick(wxCommandEvent& event)
 {
     wxColour Col = ::wxGetColourFromUser(this,m_DragParentCol->GetBackgroundColour());
     if ( Col.Ok() )
@@ -433,7 +431,6 @@ void wxsSettings::OnApply()
                          wxsSizerFlagsProperty::AlignBottom; break;
         case 8: Flags |= wxsSizerFlagsProperty::AlignRight |
                          wxsSizerFlagsProperty::AlignBottom; break;
-        default: break;
     }
 
     cfg->Write(_T("/defsizer/proportion"), (int)spinProportion->GetValue());
@@ -444,7 +441,7 @@ void wxsSettings::OnApply()
     wxsItemEditor::ConfigChanged();
 }
 
-void wxsSettings::OnUseGridClick(cb_unused wxCommandEvent& event)
+void wxsSettings::OnUseGridClick(wxCommandEvent& event)
 {
     m_GridSize->Enable(m_UseGrid->GetValue());
 }

@@ -43,6 +43,8 @@ public:
 	int edgeColumn;
 	char *chars;
 	unsigned char *styles;
+	int styleBitsSet;
+	char *indicators;
 	XYPOSITION *positions;
 	char bracePreviousStyles[2];
 
@@ -55,22 +57,19 @@ public:
 	int lines;
 	XYPOSITION wrapIndent; // In pixels
 
-	explicit LineLayout(int maxLineLength_);
+	LineLayout(int maxLineLength_);
 	virtual ~LineLayout();
 	void Resize(int maxLineLength_);
 	void Free();
 	void Invalidate(validLevel validity_);
 	int LineStart(int line) const;
 	int LineLastVisible(int line) const;
-	Range SubLineRange(int line) const;
 	bool InLine(int offset, int line) const;
 	void SetLineStart(int line, int start);
 	void SetBracesHighlight(Range rangeLine, Position braces[],
 		char bracesMatchStyle, int xHighlight, bool ignoreStyle);
 	void RestoreBracesHighlight(Range rangeLine, Position braces[], bool ignoreStyle);
 	int FindBefore(XYPOSITION x, int lower, int upper) const;
-	int FindPositionFromX(XYPOSITION x, Range range, bool charPosition) const;
-	Point PointFromPosition(int posInLine, int lineHeight) const;
 	int EndLineStyle() const;
 };
 
@@ -78,11 +77,13 @@ public:
  */
 class LineLayoutCache {
 	int level;
-	std::vector<LineLayout *>cache;
+	int length;
+	int size;
+	LineLayout **cache;
 	bool allInvalidated;
 	int styleClock;
 	int useCount;
-	void Allocate(size_t length_);
+	void Allocate(int length_);
 	void AllocateForLevel(int linesOnScreen, int linesInDoc);
 public:
 	LineLayoutCache();
@@ -113,42 +114,9 @@ public:
 	void Set(unsigned int styleNumber_, const char *s_, unsigned int len_, XYPOSITION *positions_, unsigned int clock);
 	void Clear();
 	bool Retrieve(unsigned int styleNumber_, const char *s_, unsigned int len_, XYPOSITION *positions_) const;
-	static unsigned int Hash(unsigned int styleNumber_, const char *s, unsigned int len);
+	static int Hash(unsigned int styleNumber_, const char *s, unsigned int len);
 	bool NewerThan(const PositionCacheEntry &other) const;
 	void ResetClock();
-};
-
-class Representation {
-public:
-	std::string stringRep;
-	explicit Representation(const char *value="") : stringRep(value) {
-	}
-};
-
-typedef std::map<int, Representation> MapRepresentation;
-
-class SpecialRepresentations {
-	MapRepresentation mapReprs;
-	short startByteHasReprs[0x100];
-public:
-	SpecialRepresentations();
-	void SetRepresentation(const char *charBytes, const char *value);
-	void ClearRepresentation(const char *charBytes);
-	Representation *RepresentationFromCharacter(const char *charBytes, size_t len);
-	bool Contains(const char *charBytes, size_t len) const;
-	void Clear();
-};
-
-struct TextSegment {
-	int start;
-	int length;
-	Representation *representation;
-	TextSegment(int start_=0, int length_=0, Representation *representation_=0) :
-		start(start_), length(length_), representation(representation_) {
-	}
-	int end() const {
-		return start + length;
-	}
 };
 
 // Class to break a line of text into shorter runs at sensible places.
@@ -158,16 +126,14 @@ class BreakFinder {
 	int lineEnd;
 	int posLineStart;
 	int nextBreak;
-	std::vector<int> selAndEdge;
+	int *selAndEdge;
+	unsigned int saeSize;
+	unsigned int saeLen;
 	unsigned int saeCurrentPos;
 	int saeNext;
 	int subBreak;
 	Document *pdoc;
-	EncodingFamily encodingFamily;
-	SpecialRepresentations *preprs;
 	void Insert(int val);
-	// Private so BreakFinder objects can not be copied
-	BreakFinder(const BreakFinder &);
 public:
 	// If a whole run is longer than lengthStartSubdivision then subdivide
 	// into smaller runs at spaces or punctuation.
@@ -175,24 +141,23 @@ public:
 	// Try to make each subdivided run lengthEachSubdivision or shorter.
 	enum { lengthEachSubdivision = 100 };
 	BreakFinder(LineLayout *ll_, int lineStart_, int lineEnd_, int posLineStart_,
-		int xStart, bool breakForSelection, Document *pdoc_, SpecialRepresentations *preprs_);
+		int xStart, bool breakForSelection, Document *pdoc_);
 	~BreakFinder();
-	TextSegment Next();
-	bool More() const;
+	int First() const;
+	int Next();
 };
 
 class PositionCache {
-	std::vector<PositionCacheEntry> pces;
+	PositionCacheEntry *pces;
+	size_t size;
 	unsigned int clock;
 	bool allClear;
-	// Private so PositionCache objects can not be copied
-	PositionCache(const PositionCache &);
 public:
 	PositionCache();
 	~PositionCache();
 	void Clear();
 	void SetSize(size_t size_);
-	size_t GetSize() const { return pces.size(); }
+	size_t GetSize() const { return size; }
 	void MeasureWidths(Surface *surface, ViewStyle &vstyle, unsigned int styleNumber,
 		const char *s, unsigned int len, XYPOSITION *positions, Document *pdoc);
 };

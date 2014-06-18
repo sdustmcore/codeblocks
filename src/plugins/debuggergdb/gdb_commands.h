@@ -29,7 +29,6 @@
 #include <macrosmanager.h>
 #include <scriptingmanager.h>
 #include <sqplus.h>
-#include <scripting/bindings/sc_base_types.h>
 
 #include "debugger_defs.h"
 #include "debuggergdb.h"
@@ -164,7 +163,7 @@ static wxRegEx reDisassemblySource(_T("([0-9]+)[ \t](.*)"));
 //  ebx at 0x22ff6c, ebp at 0x22ff78, esi at 0x22ff70, edi at 0x22ff74, eip at 0x22ff7c
 static wxRegEx reDisassemblyInit(_T("^[ \t]*Stack level [0-9]+, frame at (0x[A-Fa-f0-9]+):"));
 //  rip = 0x400931 in Bugtest<int> (/src/_cb_dbg/disassembly/main.cpp:6);
-static wxRegEx reDisassemblyInitSymbol(_T("[ \t]*[er]ip[ \t]+=[ \t]+0x[0-9a-f]+[ \t]+in[ \t]+(.+)\\((.+):([0-9]+)\\);"));
+static wxRegEx reDisassemblyInitSymbol(_T("[ \t]*[er]ip[ \t]+=[ \t]+0x[0-9a-f]+[ \t]+in[ \t]+(.+)\\((.+):[0-9]+\\);"));
 static wxRegEx reDisassemblyInitFunc(_T("eip = (0x[A-Fa-f0-9]+) in ([^;]*)"));
 // or32 variant
 #ifdef __WXMSW__
@@ -222,6 +221,8 @@ static wxRegEx reNextI(_T("\x1a\x1a(([a-zA-Z]:)?.*?):([0-9]*):([0-9]*):(middle|b
 #else
                        wxRE_EXTENDED);
 #endif
+
+DECLARE_INSTANCE_TYPE(wxString);
 
 /**
   * Command to add a search directory for source files in debugger's paths.
@@ -755,14 +756,8 @@ class GdbCmd_Threads : public DebuggerCmd
                     wxString num = reInfoThreads.GetMatch(lines[i], 2);
                     wxString info = reInfoThreads.GetMatch(lines[i], 3);
 
-                    #if defined(_WIN64)
-                    long long int number;
-                    num.ToLongLong(&number, 10);
-                    #else
                     long number;
                     num.ToLong(&number, 10);
-                    #endif
-
                     DebuggerDriver::ThreadsContainer &threads = m_pDriver->GetThreads();
                     threads.push_back(cb::shared_ptr<cbThread>(new cbThread(!active.empty(), number, info)));
                 }
@@ -894,13 +889,6 @@ class GdbCmd_FindWatchType : public DebuggerCmd
                 m_pDriver->QueueCommand(new GdbCmd_FindWatchType(m_pDriver, m_watch, false), DebuggerDriver::High);
                 return;
             }
-            if (output.StartsWith(wxT("No symbol \"")) && output.EndsWith(wxT("\" in current context.")))
-            {
-                m_watch->RemoveChildren();
-                m_watch->SetType(wxEmptyString);
-                m_watch->SetValue(_("Not available in current context!"));
-                return;
-            }
 
             // examples:
             // type = wxString
@@ -1025,16 +1013,7 @@ class GdbCmd_TooltipEvaluation : public DebuggerCmd
 
             ParseGDBWatchValue(watch, contents);
             if (!m_Address.empty() && m_autoDereferenced)
-            {
-                // Add the address of the expression only if the value is empty, this
-                // way we won't override the value of the dereferenced expression.
-                wxString value;
-                watch->GetValue(value);
-                if (value.empty())
-                    watch->SetValue(m_Address);
-                else if (!value.Contains(m_Address))
-                    watch->SetValue(m_Address + wxT(": ") + value);
-            }
+                watch->SetValue(m_Address);
             watch->SetForTooltip(true);
             if (watch->GetChildCount() > 0)
                 watch->Expand(true);
@@ -1129,44 +1108,6 @@ class GdbCmd_FindTooltipType : public DebuggerCmd
         }
 };
 bool GdbCmd_FindTooltipType::singleUsage = false;
-
-class GdbCmd_LocalsFuncArgs : public DebuggerCmd
-{
-        cb::shared_ptr<GDBWatch> m_watch;
-        bool m_doLocals;
-    public:
-        GdbCmd_LocalsFuncArgs(DebuggerDriver* driver, cb::shared_ptr<GDBWatch> watch, bool doLocals) :
-            DebuggerCmd(driver),
-            m_watch(watch),
-            m_doLocals(doLocals)
-        {
-            if (m_doLocals)
-                m_Cmd = wxT("info locals");
-            else
-                m_Cmd = wxT("info args");
-        }
-        void ParseOutput(const wxString& output)
-        {
-            if ((m_doLocals && output == wxT("No locals.")) || (!m_doLocals && output == wxT("No arguments.")))
-            {
-                m_watch->RemoveChildren();
-                return;
-            }
-
-            std::vector<GDBLocalVariable> watchStrings;
-            TokenizeGDBLocals(watchStrings, output);
-
-            m_watch->MarkChildsAsRemoved();
-            for (std::vector<GDBLocalVariable>::const_iterator it = watchStrings.begin(); it != watchStrings.end(); ++it)
-            {
-                if (it->error)
-                    continue;
-                cb::shared_ptr<GDBWatch> watch = AddChild(m_watch, it->name);
-                ParseGDBWatchValue(watch, it->value);
-            }
-            m_watch->RemoveMarkedChildren();
-        }
-};
 
 /**
   * Command to change the current frame.
@@ -1283,15 +1224,9 @@ class GdbCmd_Backtrace : public DebuggerCmd
             // #0  main (argc=1, argv=0x3e2440) at my main.cpp:15
             if (reBTX.Matches(line))
             {
-                #if defined(_WIN64)
-                size_t number, address;
-                reBTX.GetMatch(line, 1).ToULongLong(&number);
-                reBTX.GetMatch(line, 2).ToULongLong(&address, 16);
-                #else
                 unsigned long number, address;
                 reBTX.GetMatch(line, 1).ToULong(&number);
                 reBTX.GetMatch(line, 2).ToULong(&address, 16);
-                #endif
 
                 sf.SetNumber(number);
                 sf.SetAddress(address);
@@ -1299,30 +1234,17 @@ class GdbCmd_Backtrace : public DebuggerCmd
             }
             else if (reBT1.Matches(line))
             {
-                #if defined(_WIN64)
-                size_t number, address;
-                reBT1.GetMatch(line, 1).ToULongLong(&number);
-                reBT1.GetMatch(line, 2).ToULongLong(&address, 16);
-                #else
                 unsigned long number, address;
                 reBT1.GetMatch(line, 1).ToULong(&number);
                 reBT1.GetMatch(line, 2).ToULong(&address, 16);
-                #endif
-
                 sf.SetNumber(number);
                 sf.SetAddress(address);
                 sf.SetSymbol(reBT1.GetMatch(line, 3) + reBT1.GetMatch(line, 4));
             }
             else if (reBT0.Matches(line))
             {
-                #if defined(_WIN64)
-                size_t number;
-                reBT0.GetMatch(line, 1).ToULongLong(&number);
-                #else
                 unsigned long number;
                 reBT0.GetMatch(line, 1).ToULong(&number);
-                #endif
-
                 sf.SetNumber(number);
                 sf.SetAddress(0);
                 sf.SetSymbol(reBT0.GetMatch(line, 2));
@@ -1330,16 +1252,9 @@ class GdbCmd_Backtrace : public DebuggerCmd
             }
             else if (reBT4.Matches(line))
             {
-                #if defined(_WIN64)
-                size_t number, address;
-                reBT4.GetMatch(line, 1).ToULongLong(&number);
-                reBT4.GetMatch(line, 2).ToULongLong(&address, 16);
-                #else
                 unsigned long number, address;
                 reBT4.GetMatch(line, 1).ToULong(&number);
                 reBT4.GetMatch(line, 2).ToULong(&address, 16);
-                #endif
-
                 sf.SetNumber(number);
                 sf.SetAddress(address);
                 sf.SetSymbol(reBT4.GetMatch(line, 3));
@@ -1482,13 +1397,8 @@ class GdbCmd_InfoRegisters : public DebuggerCmd
 
                     if (!reg.IsEmpty() && !addr.IsEmpty())
                     {
-                        #if defined(_WIN64)
-                        size_t addrL;
-                        addr.ToULongLong(&addrL, 16);
-                        #else
                         unsigned long int addrL;
                         addr.ToULong(&addrL, 16);
-                        #endif
                         dialog->SetRegisterValue(reg, addrL);
                     }
                 }
@@ -1573,13 +1483,8 @@ class GdbCmd_Disassembly : public DebuggerCmd
                 }
                 else if (reDisassembly.Matches(lines[i]))
                 {
-                    #if defined(_WIN64)
-                    size_t addr;
-                    reDisassembly.GetMatch(lines[i], 1).ToULongLong(&addr, 16);
-                    #else
                     unsigned long int addr;
                     reDisassembly.GetMatch(lines[i], 1).ToULong(&addr, 16);
-                    #endif
                     dialog->AddAssemblerLine(addr, reDisassembly.GetMatch(lines[i], 2));
                 }
                 else if (m_mixedMode && reDisassemblySource.Matches(lines[i]))
@@ -1923,13 +1828,8 @@ class GdbCmd_StepOrNextInstruction : public DebuggerContinueBaseCmd
             if (addrstr.empty())
                 return;
 
-            #if defined(_WIN64)
-            size_t addr;
-            addrstr.ToULongLong(&addr, 16);
-            #else
             unsigned long int addr;
             addrstr.ToULong(&addr, 16);
-            #endif
             if (!dialog->SetActiveAddress(addr))
                 m_pDriver->QueueCommand(new GdbCmd_DisassemblyInit(m_pDriver,disasm_flavour ,addrstr));
         }
@@ -1948,53 +1848,6 @@ class GdbCmd_StepIntoInstruction : public GdbCmd_StepOrNextInstruction
         GdbCmd_StepIntoInstruction(GDB_driver* driver)
             : GdbCmd_StepOrNextInstruction(driver, _T("stepi"))
         {
-        }
-};
-
-/** Command which tries to find the current cursor position.
-  * It is executed if the gdb prompt is detected, but no cursor information is parsed prior it.
-  */
-class GdbCmd_FindCursor : public DebuggerCmd
-{
-    public:
-        GdbCmd_FindCursor(GDB_driver *driver) :
-            DebuggerCmd(driver, wxT("info frame"))
-        {
-        }
-
-        void ParseOutput(const wxString& output)
-        {
-            const wxArrayString &lines = GetArrayFromString(output, _T('\n'));
-            if (lines.Count() <= 2)
-                return;
-            size_t firstLine = 0;
-            for (; firstLine < lines.Count() && !reDisassemblyInit.Matches(lines[firstLine]); ++firstLine)
-                ;
-            firstLine++;
-            if (firstLine < lines.Count())
-            {
-                wxString symbol, file, line;
-                if (reDisassemblyInitSymbol.Matches(lines[firstLine]))
-                {
-                    symbol = reDisassemblyInitSymbol.GetMatch(lines[firstLine], 1);
-                    file = reDisassemblyInitSymbol.GetMatch(lines[firstLine], 2);
-                    line = reDisassemblyInitSymbol.GetMatch(lines[firstLine], 3);
-                }
-
-                const wxString &addr = reDisassemblyInit.GetMatch(output, 1);
-                long longAddress;
-                addr.ToULong((unsigned long int*)&longAddress, 16);
-
-                Cursor cursor = m_pDriver->GetCursor();
-                cursor.address =  addr;
-                cursor.changed = true;
-                cursor.file = file;
-                cursor.function = symbol;
-                if (!line.ToLong(&cursor.line))
-                    cursor.line = -1;
-                m_pDriver->SetCursor(cursor);
-                m_pDriver->NotifyCursorChanged();
-            }
         }
 };
 

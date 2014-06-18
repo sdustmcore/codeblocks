@@ -98,15 +98,14 @@ wxWindow* ToDoListView::CreateControl(wxWindow* parent)
     wxSizer* bs = new wxBoxSizer(wxVERTICAL);
     bs->Add(control, 1, wxEXPAND);
     wxArrayString choices;
-    choices.Add(_("Current file"));        // index = 0;
-    choices.Add(_("Open files"));          // 1
-    choices.Add(_("Active target files")); // 2
-    choices.Add(_("All project files"));   // 3
+    choices.Add(_("Current file"));
+    choices.Add(_("Open files"));
+    choices.Add(_("All project files"));
     wxBoxSizer* hbs = new wxBoxSizer(wxHORIZONTAL);
 
     hbs->Add(new wxStaticText(m_pPanel, wxID_ANY, _("Scope:")), 0, wxTOP, 4);
 
-    m_pSource = new wxComboBox(m_pPanel, idSource, wxEmptyString, wxDefaultPosition, wxDefaultSize, choices, wxCB_READONLY);
+    m_pSource = new wxComboBox(m_pPanel, idSource, wxEmptyString, wxDefaultPosition, wxDefaultSize, 3, &choices[0], wxCB_READONLY);
     int source = Manager::Get()->GetConfigManager(_T("todo_list"))->ReadInt(_T("source"), 0);
     m_pSource->SetSelection(source);
     hbs->Add(m_pSource, 0, wxLEFT | wxRIGHT, 8);
@@ -153,8 +152,8 @@ void ToDoListView::Parse()
     if (m_Ignore || (m_pPanel && !m_pPanel->IsShownOnScreen()) )
         return; // Reentrancy
 
-    Clear(); // clear the gui
-    m_ItemsMap.clear(); // clear the data
+    Clear();
+    m_ItemsMap.clear();
     m_Items.Clear();
 
     switch (m_pSource->GetSelection())
@@ -176,43 +175,7 @@ void ToDoListView::Parse()
             }
             break;
         }
-        case 2: // active target files
-        {
-            // loop all project files
-            // but be aware: if a file is opened, use the open file because
-            // it might not be the same on the disk...
-            cbProject* prj = Manager::Get()->GetProjectManager()->GetActiveProject();
-            if (!prj)
-                return;
-            ProjectBuildTarget *target = prj->GetBuildTarget(prj->GetActiveBuildTarget());
-            if (!target)
-                return;
-            wxProgressDialog pd(_T("Todo Plugin: Processing all files in the active target.."),
-                                _T("Processing a target of a big project may take large amount of time.\n\n"
-                                   "Please be patient!\n"),
-                                target->GetFilesCount(),
-                                Manager::Get()->GetAppWindow(),
-                                wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
-            int i = 0;
-            for (FilesList::iterator it = target->GetFilesList().begin();
-                 it != target->GetFilesList().end();
-                 ++it)
-            {
-                ProjectFile* pf = *it;
-                wxString filename = pf->file.GetFullPath();
-                cbEditor* ed = Manager::Get()->GetEditorManager()->IsBuiltinOpen(filename);
-                if (ed)
-                    ParseEditor(ed);
-                else
-                    ParseFile(filename);
-                if (!pd.Update(i++))
-                {
-                    break;
-                }
-            }
-            break;
-        }
-        case 3: // all project files
+        case 2: // all project files
         {
             // loop all project files
             // but be aware: if a file is opened, use the open file because
@@ -243,8 +206,6 @@ void ToDoListView::Parse()
             }
             break;
         }
-        default:
-            break;
     }
     FillList();
 }
@@ -307,25 +268,22 @@ void ToDoListView::FillList()
         cbEditor* ed = Manager::Get()->GetEditorManager()->GetBuiltinEditor(Manager::Get()->GetEditorManager()->GetActiveEditor());
         if (ed)
             filename = ed->GetFilename();
-        // m_Items only contains items belong to m_ItemsMap[filename]
         for (unsigned int i = 0; i < m_ItemsMap[filename].size(); i++)
             m_Items.Add(m_ItemsMap[filename][i]);
     }
     else
-    {   // m_Items contains all the items belong to m_ItemsMap
+    {
         for (it = m_ItemsMap.begin();it != m_ItemsMap.end();++it)
         {
             for (unsigned int i = 0; i < it->second.size(); i++)
                 m_Items.Add(it->second[i]);
         }
     }
-    // m_Items are all the elements going to show in the GUI, so sort it
+
     SortList();
-    // since m_Items is sorted already, we now show them up
     FillListControl();
 
     control->Thaw();
-    // reset the user selection list
     LoadUsers();
 }
 
@@ -373,24 +331,8 @@ void ToDoListView::SortList()
                     else
                         swap =  0;
                     break;
-                case 5: // date
-                    {
-                        wxDateTime date1;
-                        wxDateTime date2;
-                        date1.ParseDate(item1.date.c_str());
-                        date2.ParseDate(item2.date.c_str());
-                        if      (date1 > date2)
-                            swap =  1;
-                        else if (date1 < date2)
-                            swap = -1;
-                        else
-                            swap =  0;
-                        break;
-                    }
-                case 6: // filename
+                case 5: // filename
                     swap = item1.filename.CmpNoCase(item2.filename);
-                    break;
-                default:
                     break;
             }// switch
 
@@ -424,8 +366,7 @@ void ToDoListView::FillListControl()
             control->SetItem(idx, 2, item.user);
             control->SetItem(idx, 3, item.priorityStr);
             control->SetItem(idx, 4, item.lineStr);
-            control->SetItem(idx, 5, item.date);
-            control->SetItem(idx, 6, item.filename);
+            control->SetItem(idx, 5, item.filename);
             control->SetItemData(idx, i);
         }
     }
@@ -567,33 +508,13 @@ void ToDoListView::ParseBuffer(const wxString& buffer, const wxString& filename)
                             const wxString allowedChars = _T("0123456789");
                             if ((int)allowedChars.Index(c1) != wxNOT_FOUND)
                                 item.priorityStr << c1;
-                            // skip to start of date
-                            while (pos < buffer.length() && buffer.GetChar(pos) != _T('\r') && buffer.GetChar(pos) != _T('\n') )
-                            {
-                                wxChar c2 = buffer.GetChar(pos);
-                                if ( c2 == _T('#'))
-                                {
-                                    pos++;
-                                    break;
-                                }
-                                if ( c2 == _T(')') )
-                                    break;
-                                pos++;
-                            }
-                            // look for date
+                            // skip to start of text
                             while (pos < buffer.length() && buffer.GetChar(pos) != _T('\r') && buffer.GetChar(pos) != _T('\n') )
                             {
                                 wxChar c2 = buffer.GetChar(pos++);
                                 if (c2 == _T(')'))
                                     break;
-                                item.date << c2;
                             }
-
-                            break;
-                        }
-                        else if (c1 == _T(')'))
-                        {
-                            ++pos;
                             break;
                         }
                         else
@@ -615,11 +536,6 @@ void ToDoListView::ParseBuffer(const wxString& buffer, const wxString& filename)
                 item.text.Trim(false);
                 item.user.Trim();
                 item.user.Trim(false);
-                wxDateTime date;
-                if ( !date.ParseDate(item.date.wx_str()) )
-                {
-                    item.date.clear(); // not able to parse date so clear the string
-                }
                 item.line = CalculateLineNumber(buffer, pos, oldline, oldlinepos);
                 item.lineStr << wxString::Format(_T("%d"), item.line + 1); // 1-based line number for list
                 m_ItemsMap[filename].push_back(item);
@@ -694,26 +610,17 @@ void ToDoListView::OnDoubleClick(cb_unused wxCommandEvent& event)
     if (file.IsEmpty() || line < 0)
         return;
 
-    // when double clicked, jump to file/line selected. Note that the opened file should already be
-    // parsed, so no need to refresh the list in any reason.
-    bool savedIgnore = m_Ignore;
-    m_Ignore = true; // no need to parse the files
-
-    // If the file is already opened in the editor, no need to open it again, just do a switch. Note
-    // that Open(file) will also send an Activated event.
-    cbEditor* ed = (cbEditor*)Manager::Get()->GetEditorManager()->IsBuiltinOpen(file);
-    if (!ed)
-        ed = Manager::Get()->GetEditorManager()->Open(file); //this will send a editor activated event
-
+    // jump to file/line selected
+    cbEditor* ed = Manager::Get()->GetEditorManager()->Open(file);
     if (ed)
     {
-        ed->Activate(); //this does not run FillList, because m_Ignore is true here
+        bool old_ignore = m_Ignore;
+        m_Ignore = true;
+        ed->Activate();
         ed->GotoLine(line);
-        // FIXME (ollydbg#1#06/03/14): if the List is rebuild (m_Items rebuild), does the idx remain
-        // the same value?
         FocusEntry(idx);
+        m_Ignore = old_ignore;
     }
-    m_Ignore = savedIgnore;
 }
 
 void ToDoListView::OnColClick(wxListEvent& event)
@@ -769,9 +676,7 @@ void CheckListDialog::OkOnButtonClick(cb_unused wxCommandEvent& event)
 
 bool CheckListDialog::IsChecked(wxString item)
 {
-    int result = m_checkList->FindString(item, true);
-    result = (result == wxNOT_FOUND) ? 0 : result;
-    return m_checkList->IsChecked(result);
+    return m_checkList->IsChecked(m_checkList->FindString(item, true));
 }
 
 wxArrayString CheckListDialog::GetChecked()

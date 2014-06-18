@@ -430,16 +430,10 @@ class CdbCmd_Backtrace : public DebuggerCmd
                     cbStackFrame sf;
                     sf.MakeValid(true);
 
-                    #if defined(_WIN64)
-                    size_t number, address;
-                    reBT1.GetMatch(lines[i], 1).ToULongLong(&number);
-                    reBT1.GetMatch(lines[i], 2).ToULongLong(&address, 16); // match 2 or 3 ???
-                    #else
                     unsigned long int number, address;
+
                     reBT1.GetMatch(lines[i], 1).ToULong(&number);
                     reBT1.GetMatch(lines[i], 2).ToULong(&address, 16); // match 2 or 3 ???
-                    #endif
-
                     sf.SetNumber(number);
                     sf.SetAddress(address);
                     sf.SetSymbol(reBT1.GetMatch(lines[i], 4));

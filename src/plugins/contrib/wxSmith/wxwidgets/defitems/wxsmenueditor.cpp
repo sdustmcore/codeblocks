@@ -27,8 +27,6 @@
 #include "wxsmenubar.h"
 #include "../wxsitemresdata.h"
 
-#include <prep.h>
-
 //(*InternalHeaders(wxsMenuEditor)
 #include <wx/intl.h>
 #include <wx/string.h>
@@ -444,9 +442,6 @@ void wxsMenuEditor::SelectItem(MenuItem* NewSelection)
             case wxsMenuItem::Break:
                 m_TypeBreak->SetValue(true);
                 break;
-
-            default:
-                break;
         }
 
         m_Id->Enable(UseId);
@@ -648,7 +643,7 @@ wxsMenuEditor::Type wxsMenuEditor::CorrectType(MenuItem* Item,bool& UseId,bool& 
     return wxsMenuItem::Normal;
 }
 
-void wxsMenuEditor::OnTypeChanged(cb_unused wxCommandEvent& event)
+void wxsMenuEditor::OnTypeChanged(wxCommandEvent& event)
 {
     MenuItem* Selected = m_Selected;
     SelectItem(Selected);
@@ -657,7 +652,7 @@ void wxsMenuEditor::OnTypeChanged(cb_unused wxCommandEvent& event)
     m_Content->SetItemText(m_Selected->m_TreeId,GetItemTreeName(m_Selected));
 }
 
-void wxsMenuEditor::OnButtonUpClick(cb_unused wxCommandEvent& event)
+void wxsMenuEditor::OnButtonUpClick(wxCommandEvent& event)
 {
     if ( !m_Selected ) return;
 
@@ -713,7 +708,7 @@ void wxsMenuEditor::OnButtonUpClick(cb_unused wxCommandEvent& event)
     UpdateMenuContent();
 }
 
-void wxsMenuEditor::OnButtonDownClick(cb_unused wxCommandEvent& event)
+void wxsMenuEditor::OnButtonDownClick(wxCommandEvent& event)
 {
     if ( !m_Selected ) return;
 
@@ -773,7 +768,7 @@ wxsMenuEditor::MenuItem* wxsMenuEditor::GetPrevious(MenuItem* Item)
     return 0;
 }
 
-void wxsMenuEditor::OnButtonNewClick(cb_unused wxCommandEvent& event)
+void wxsMenuEditor::OnButtonNewClick(wxCommandEvent& event)
 {
     MenuItem* NewItem = new MenuItem;
     NewItem->m_Type = wxsMenuItem::Normal;
@@ -801,7 +796,7 @@ void wxsMenuEditor::OnButtonNewClick(cb_unused wxCommandEvent& event)
     UpdateMenuContent();
 }
 
-void wxsMenuEditor::OnButtonDelClick(cb_unused wxCommandEvent& event)
+void wxsMenuEditor::OnButtonDelClick(wxCommandEvent& event)
 {
     if ( !m_Selected ) return;
 
@@ -860,7 +855,7 @@ void wxsMenuEditor::OnButtonDelClick(cb_unused wxCommandEvent& event)
     UpdateMenuContent();
 }
 
-void wxsMenuEditor::OnButtonLeftClick(cb_unused wxCommandEvent& event)
+void wxsMenuEditor::OnButtonLeftClick(wxCommandEvent& event)
 {
     if ( !m_Selected ) return;
     if ( !m_Selected->m_Parent ) return;
@@ -884,7 +879,7 @@ void wxsMenuEditor::OnButtonLeftClick(cb_unused wxCommandEvent& event)
     UpdateMenuContent();
 }
 
-void wxsMenuEditor::OnButtonRightClick(cb_unused wxCommandEvent& event)
+void wxsMenuEditor::OnButtonRightClick(wxCommandEvent& event)
 {
     if ( !m_Selected ) return;
 
@@ -916,7 +911,7 @@ void wxsMenuEditor::OnButtonRightClick(cb_unused wxCommandEvent& event)
     UpdateMenuContent();
 }
 
-void wxsMenuEditor::OnLabelChanged(cb_unused wxCommandEvent& event)
+void wxsMenuEditor::OnLabelChanged(wxCommandEvent& event)
 {
     if ( m_BlockRead ) return;
     SelectItem(m_Selected);

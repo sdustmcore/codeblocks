@@ -22,10 +22,6 @@ class cbStyledTextCtrl : public wxScintilla
     public:
         cbStyledTextCtrl(wxWindow* pParent, int id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = 0);
         virtual ~cbStyledTextCtrl();
-
-        /** Don't use this. It throws an exception if you do. */
-        void operator=(const cbStyledTextCtrl& /*rhs*/);
-
         wxDateTime GetLastFocusTime() const {return m_lastFocusTime;}
         wxString GetLastSelectedText() const {return m_lastSelectedText;}
 
@@ -45,13 +41,11 @@ class cbStyledTextCtrl : public wxScintilla
         static std::map<int, std::set<int> > &GetPreprocessorLexerStyles();
         static std::map<int, std::set<int> > &GetCommentLexerStyles();
 
-        void MakeNearbyLinesVisible(int line);
     private:
         void OnContextMenu(wxContextMenuEvent& event);
         void OnKillFocus(wxFocusEvent& event);
         void OnSetFocus(wxFocusEvent& event);
         void OnMouseMiddleDown(wxMouseEvent& event);
-        void OnMouseMiddleClick(wxMouseEvent& event);
         void OnKeyDown(wxKeyEvent& event);
         void OnKeyUp(wxKeyEvent& event);
         void OnMouseLeftUp(wxMouseEvent& event);
@@ -64,7 +58,6 @@ class cbStyledTextCtrl : public wxScintilla
         wxLongLong m_lastFocusTime;
         int m_bracePosition;
         int m_lastPosition;
-        int m_middleClickPos;
         bool m_tabSmartJump;
         wxString m_lastSelectedText;
         bool m_braceShortcutState;

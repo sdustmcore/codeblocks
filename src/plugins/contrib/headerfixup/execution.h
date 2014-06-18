@@ -74,20 +74,26 @@ protected:
 
   //(*Declarations(Execution)
   wxCheckBox* m_Protocol;
+  wxBoxSizer* sizMain;
   wxRadioBox* m_Scope;
   wxBoxSizer* sizRunExit;
   wxButton* m_Invert;
+  wxBoxSizer* sizRight;
+  wxStaticBoxSizer* sizHeaderSets;
   wxStaticBoxSizer* sizExecute;
   wxCheckBox* m_Ignore;
+  wxBoxSizer* sizLeft;
   wxRadioBox* m_Options;
   wxButton* m_Exit;
   wxButton* m_SelectAll;
   wxButton* m_SelectNone;
   wxCheckBox* m_ObsoleteLog;
   wxGauge* m_Progress;
+  wxStaticBoxSizer* sizAdvancedOptions;
   wxButton* m_Run;
   wxRadioBox* m_FileType;
   wxCheckBox* m_Simulation;
+  wxBoxSizer* sizAllNoneInvert;
   wxCheckBox* m_FwdDecl;
   wxCheckListBox* m_Sets;
   //*)
@@ -97,7 +103,7 @@ private:
   void LoadSettings();
   void SaveSettings();
 
-  void ToggleControls(bool DoEnable);
+  void ToggleControls(bool Disable);
   int RunScan(const wxArrayString& FilesToProcess, const wxArrayString& Groups);
 
   void AddFilesFromProject(wxArrayString& Files, cbProject* Project);

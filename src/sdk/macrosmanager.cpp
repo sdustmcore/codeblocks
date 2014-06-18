@@ -33,19 +33,16 @@
 
 #include "scripting/sqplus/sqplus.h"
 #include "scripting/bindings/scriptbindings.h"
-
+#include "prep.h"
 #include "cbstyledtextctrl.h"
 
 using namespace std;
 
-template<> MacrosManager* Mgr<MacrosManager>::instance = nullptr;
+template<> MacrosManager* Mgr<MacrosManager>::instance = 0;
 template<> bool  Mgr<MacrosManager>::isShutdown = false;
 
 static const wxString const_COIN(_T("COIN"));
 static const wxString const_RANDOM(_T("RANDOM"));
-static const wxString toNativePath(_T("$TO_NATIVE_PATH{"));
-static const wxString toUnixPath(_T("$TO_UNIX_PATH{"));
-static const wxString toWindowsPath(_T("$TO_WINDOWS_PATH{"));
 
 MacrosManager::MacrosManager()
 {
@@ -73,8 +70,8 @@ wxString MacrosManager::ReplaceMacros(const wxString& buffer, ProjectBuildTarget
 
 void MacrosManager::Reset()
 {
-    m_LastProject          = nullptr;
-    m_LastTarget           = nullptr;
+    m_LastProject          = 0;
+    m_LastTarget           = 0;
     m_ActiveEditorFilename = wxEmptyString;
     m_ActiveEditorLine     = -1;
     m_ActiveEditorColumn   = -1;
@@ -107,7 +104,7 @@ void MacrosManager::Reset()
                                 wxRE_EXTENDED);
 #endif
     m_UserVarMan = Manager::Get()->GetUserVariableManager();
-    srand(time(nullptr));
+    srand(time(0));
     assert(m_RE_Unix.IsValid());
     assert(m_RE_DOS.IsValid());
 }
@@ -198,20 +195,6 @@ wxString GetSelectedText()
     return wxEmptyString;
 }
 
-namespace
-{
-template<typename T>
-void ReadMacros(MacrosMap &macros, T *object)
-{
-    if (object)
-    {
-        const StringHash& v = object->GetAllVars();
-        for (StringHash::const_iterator it = v.begin(); it != v.end(); ++it)
-            macros[it->first.Upper()] = it->second;
-    }
-}
-} // namespace
-
 void MacrosManager::RecalcVars(cbProject* project, EditorBase* editor, ProjectBuildTarget* target)
 {
     m_ActiveEditorFilename = wxEmptyString; // invalidate
@@ -247,7 +230,7 @@ void MacrosManager::RecalcVars(cbProject* project, EditorBase* editor, ProjectBu
         m_ProjectDir      = wxEmptyString;
         m_ProjectFiles    = wxEmptyString;
         m_Makefile        = wxEmptyString;
-        m_LastProject     = nullptr;
+        m_LastProject     = 0;
         ClearProjectKeys();
         m_Macros[_T("PROJECTFILE")]          = wxEmptyString;
         m_Macros[_T("PROJECT_FILE")]         = wxEmptyString;
@@ -269,7 +252,7 @@ void MacrosManager::RecalcVars(cbProject* project, EditorBase* editor, ProjectBu
     }
     else if (project != m_LastProject)
     {
-        m_LastTarget      = nullptr; // reset last target when project changes
+        m_LastTarget      = 0; // reset last target when project changes
         m_ProjectWxFileName.Assign(project->GetFilename());
         m_ProjectFilename = UnixFilename(m_ProjectWxFileName.GetFullName());
         m_ProjectName     = project->GetTitle();
@@ -315,19 +298,27 @@ void MacrosManager::RecalcVars(cbProject* project, EditorBase* editor, ProjectBu
             m_Macros[title + _T("_OUTPUT_FILE")]     = UnixFilename(it_target->GetOutputFilename());
             m_Macros[title + _T("_OUTPUT_DIR")]      = UnixFilename(it_target->GetBasePath());
             m_Macros[title + _T("_OUTPUT_BASENAME")] = wxFileName(it_target->GetOutputFilename()).GetName();
-            m_Macros[title + _T("_PARAMETERS")]      = it_target->GetExecutionParameters();
         }
         m_LastProject = project;
     }
 
-    // get compiler variables
     if (target)
     {
         const Compiler* compiler = CompilerFactory::GetCompiler(target->GetCompilerID());
-        ReadMacros(m_Macros, compiler);
+        if (compiler)
+        {
+            const StringHash& v = compiler->GetAllVars();
+            for (StringHash::const_iterator it = v.begin(); it != v.end(); ++it)
+                m_Macros[it->first.Upper()] = it->second;
+        }
     }
 
-    ReadMacros(m_Macros, project);
+    if (project)
+    {
+        const StringHash& v = project->GetAllVars();
+        for (StringHash::const_iterator it = v.begin(); it != v.end(); ++it)
+            m_Macros[it->first.Upper()] = it->second;
+    }
 
     if (!target)
     {
@@ -336,7 +327,7 @@ void MacrosManager::RecalcVars(cbProject* project, EditorBase* editor, ProjectBu
         m_TargetOutputBaseName = wxEmptyString;
         m_TargetOutputFilename = wxEmptyString;
         m_TargetFilename       = wxEmptyString;
-        m_LastTarget           = nullptr;
+        m_LastTarget           = 0;
     }
     else if (target != m_LastTarget)
     {
@@ -351,7 +342,9 @@ void MacrosManager::RecalcVars(cbProject* project, EditorBase* editor, ProjectBu
 
     if (target)
     {
-        ReadMacros(m_Macros, target);
+        const StringHash& v = target->GetAllVars();
+        for (StringHash::const_iterator it = v.begin(); it != v.end(); ++it)
+            m_Macros[it->first.Upper()] = it->second;
 
         if (Compiler* c = CompilerFactory::GetCompiler(target->GetCompilerID()))
         {
@@ -460,13 +453,11 @@ void MacrosManager::ReplaceMacros(wxString& buffer, ProjectBuildTarget* target, 
     wxString replace;
 
     if (buffer.find(_T("$if")) != wxString::npos)
+    while (m_RE_If.Matches(buffer))
     {
-        while (m_RE_If.Matches(buffer))
-        {
-            search = m_RE_If.GetMatch(buffer, 0);
-            replace = EvalCondition(m_RE_If.GetMatch(buffer, 1), m_RE_If.GetMatch(buffer, 3), m_RE_If.GetMatch(buffer, 5), target);
-            buffer.Replace(search, replace, false);
-        }
+        search = m_RE_If.GetMatch(buffer, 0);
+        replace = EvalCondition(m_RE_If.GetMatch(buffer, 1), m_RE_If.GetMatch(buffer, 3), m_RE_If.GetMatch(buffer, 5), target);
+        buffer.Replace(search, replace, false);
     }
 
     while (m_RE_Script.Matches(buffer))
@@ -496,44 +487,15 @@ void MacrosManager::ReplaceMacros(wxString& buffer, ProjectBuildTarget* target, 
         buffer.Replace(search, replace, false);
     }
 
-    int index = wxNOT_FOUND;
-    while ((index = buffer.Index(toNativePath)) != wxNOT_FOUND)
-    {
-        int end = MatchBrace(buffer, index + toNativePath.Length() - 1);
-        wxString content = buffer.Mid(index + toNativePath.Length(), end - index - toNativePath.Length());
-        ReplaceMacros(content, target, true);
-        buffer.Replace(buffer.Mid(index, end - index + 1), UnixFilename(content), false);
-    }
-
-    while ((index = buffer.Index(toUnixPath)) != wxNOT_FOUND)
-    {
-        int end = MatchBrace(buffer, index + toUnixPath.Length() - 1);
-        wxString content = buffer.Mid(index + toUnixPath.Length(), end - index - toUnixPath.Length());
-        ReplaceMacros(content, target, true);
-        buffer.Replace(buffer.Mid(index, end - index + 1), UnixFilename(content, wxPATH_UNIX), false);
-    }
-
-    while ((index = buffer.Index(toWindowsPath)) != wxNOT_FOUND)
-    {
-        int end = MatchBrace(buffer, index + toWindowsPath.Length() - 1);
-        wxString content = buffer.Mid(index + toWindowsPath.Length(), end - index - toWindowsPath.Length());
-        ReplaceMacros(content, target, true);
-        buffer.Replace(buffer.Mid(index, end - index + 1), UnixFilename(content, wxPATH_WIN), false);
-    }
-
     while (m_RE_RemoveQuotes.Matches(buffer))
     {
         search = m_RE_RemoveQuotes.GetMatch(buffer, 0);
-        wxString content = m_RE_RemoveQuotes.GetMatch(buffer, 1).Trim().Trim(false);
-        if (content.StartsWith(wxT("$")))
-            ReplaceMacros(content, target, subrequest);
+        const wxString content = m_RE_RemoveQuotes.GetMatch(buffer, 1);
         if (content.Len()>2 && content.StartsWith(wxT("\"")) && content.EndsWith(wxT("\"")))
         {
             replace = content.Mid(1,content.Len()-2); // with first and last char (the quotes) removed
             buffer.Replace(search, replace, false);
         }
-        else
-            buffer.Replace(search, content, false);
     }
 
     while (m_RE_Unix.Matches(buffer))
@@ -655,20 +617,4 @@ wxString MacrosManager::EvalCondition(const wxString& in_cond, const wxString& t
         condCode = NE;
 
     return condCode & compare ? true_clause : false_clause;
-}
-
-int MacrosManager::MatchBrace(const wxString& buffer, int index)
-{
-    int depth = 0;
-    while (index < (int)buffer.Length())
-    {
-        if (buffer[index] == wxT('{'))
-            ++depth;
-        else if (buffer[index] == wxT('}'))
-            --depth;
-        if (depth == 0)
-            break;
-        ++index;
-    }
-    return index;
 }

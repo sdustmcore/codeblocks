@@ -50,25 +50,6 @@ void cbTreeCtrl::SetCompareFunction(const int ptvs)
         Compare = &filesSort;
 }
 
-wxTreeItemId cbTreeCtrl::GetPrevVisible(const wxTreeItemId& item) const
-{
-    wxTreeItemId previous = GetPrevSibling(item);
-    if (previous.IsOk())
-    {
-        while (ItemHasChildren(previous) && IsExpanded(previous))
-        {
-            wxTreeItemId child = GetLastChild(previous);
-            if (!child.IsOk())
-                break;
-            else
-                previous = child;
-        }
-    }
-    else
-        previous = GetItemParent(item);
-    return previous;
-}
-
 #ifndef __WXMSW__
 /*
     Under wxGTK, wxTreeCtrl is not sending an EVT_COMMAND_RIGHT_CLICK
@@ -83,7 +64,7 @@ void cbTreeCtrl::OnRightClick(wxMouseEvent& event)
     if (flags & (wxTREE_HITTEST_ABOVE | wxTREE_HITTEST_BELOW | wxTREE_HITTEST_NOWHERE))
     {
         // "proxy" the call
-        wxCommandEvent e(wxEVT_COMMAND_RIGHT_CLICK, GetID());
+        wxCommandEvent e(wxEVT_COMMAND_RIGHT_CLICK, ID_ProjectManager);
         wxPostEvent(GetParent(), e);
     }
     else

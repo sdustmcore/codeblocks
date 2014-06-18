@@ -22,25 +22,25 @@
 // For compilers that support precompilation, includes <wx/wx.h>
 #include <wx/wxprec.h>
 
-#include "cbeditor.h"
-
 #ifndef WX_PRECOMP
     #include <wx/wx.h>
 #endif
+
+#include <editor_hooks.h>
 
 class wxSpellCheckEngineInterface;
 class SpellCheckHelper;
 class cbStyledTextCtrl;
 
 
-class OnlineSpellChecker
+class OnlineSpellChecker : public EditorHooks::HookFunctorBase
 {
     public:
         OnlineSpellChecker(wxSpellCheckEngineInterface *pSpellChecker, SpellCheckHelper *pSpellHelp);
         virtual ~OnlineSpellChecker();
         virtual void Call(cbEditor*, wxScintillaEvent&) const;
 
-        int GetIndicator()const;
+        const int GetIndicator()const;
         const wxColor GetIndicatorColor()const;
         void EnableOnlineChecks(bool check = true);
     private:

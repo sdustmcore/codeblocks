@@ -1,12 +1,10 @@
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+INCLUDES = $(WX_CXXFLAGS) \
 			-I$(srcdir)/include \
 			-I$(srcdir)/src/scintilla/include \
 			-I$(srcdir)/src/scintilla/lexlib \
-			-I$(srcdir)/src/scintilla/src \
-			-DSCI_LEXER \
-			-DLINK_LEXERS \
-			-DGTK \
-			-D__WX__
+			-I$(srcdir)/src/scintilla/src
+
+AM_CPPFLAGS = -DSCI_LEXER -DLINK_LEXERS -DGTK -D__WX__
 
 noinst_LTLIBRARIES = libwxscintilla.la
 
@@ -38,8 +36,6 @@ libwxscintilla_la_SOURCES = src/PlatWX.cpp \
 			src/scintilla/lexers/LexCrontab.cxx \
 			src/scintilla/lexers/LexCsound.cxx \
 			src/scintilla/lexers/LexD.cxx \
-			src/scintilla/lexers/LexDMAP.cxx \
-			src/scintilla/lexers/LexDMIS.cxx \
 			src/scintilla/lexers/LexECL.cxx \
 			src/scintilla/lexers/LexEScript.cxx \
 			src/scintilla/lexers/LexEiffel.cxx \
@@ -53,8 +49,6 @@ libwxscintilla_la_SOURCES = src/PlatWX.cpp \
 			src/scintilla/lexers/LexHaskell.cxx \
 			src/scintilla/lexers/LexInno.cxx \
 			src/scintilla/lexers/LexKix.cxx \
-			src/scintilla/lexers/LexKVIrc.cxx \
-			src/scintilla/lexers/LexLaTeX.cxx \
 			src/scintilla/lexers/LexLisp.cxx \
 			src/scintilla/lexers/LexLout.cxx \
 			src/scintilla/lexers/LexLua.cxx \
@@ -86,7 +80,6 @@ libwxscintilla_la_SOURCES = src/PlatWX.cpp \
 			src/scintilla/lexers/LexR.cxx \
 			src/scintilla/lexers/LexRebol.cxx \
 			src/scintilla/lexers/LexRuby.cxx \
-			src/scintilla/lexers/LexRust.cxx \
 			src/scintilla/lexers/LexSML.cxx \
 			src/scintilla/lexers/LexSQL.cxx \
 			src/scintilla/lexers/LexScriptol.cxx \
@@ -94,7 +87,6 @@ libwxscintilla_la_SOURCES = src/PlatWX.cpp \
 			src/scintilla/lexers/LexSorcus.cxx \
 			src/scintilla/lexers/LexSpecman.cxx \
 			src/scintilla/lexers/LexSpice.cxx \
-			src/scintilla/lexers/LexSTTXT.cxx \
 			src/scintilla/lexers/LexTACL.cxx \
 			src/scintilla/lexers/LexTADS3.cxx \
 			src/scintilla/lexers/LexTAL.cxx \
@@ -108,7 +100,6 @@ libwxscintilla_la_SOURCES = src/PlatWX.cpp \
 			src/scintilla/lexers/LexVisualProlog.cxx \
 			src/scintilla/lexers/LexYAML.cxx \
 			src/scintilla/lexlib/Accessor.cxx \
-			src/scintilla/lexlib/CharacterCategory.cxx \
 			src/scintilla/lexlib/CharacterSet.cxx \
 			src/scintilla/lexlib/LexerBase.cxx \
 			src/scintilla/lexlib/LexerModule.cxx \
@@ -119,8 +110,6 @@ libwxscintilla_la_SOURCES = src/PlatWX.cpp \
 			src/scintilla/lexlib/WordList.cxx \
 			src/scintilla/src/AutoComplete.cxx \
 			src/scintilla/src/CallTip.cxx \
-			src/scintilla/src/CaseConvert.cxx \
-			src/scintilla/src/CaseFolder.cxx \
 			src/scintilla/src/Catalogue.cxx \
 			src/scintilla/src/CellBuffer.cxx \
 			src/scintilla/src/CharClassify.cxx \
@@ -151,7 +140,6 @@ noinst_HEADERS = src/PlatWX.h \
 			src/scintilla/include/Scintilla.h \
 			src/scintilla/include/ScintillaWidget.h \
 			src/scintilla/lexlib/Accessor.h \
-			src/scintilla/lexlib/CharacterCategory.h \
 			src/scintilla/lexlib/CharacterSet.h \
 			src/scintilla/lexlib/LexAccessor.h \
 			src/scintilla/lexlib/LexerBase.h \
@@ -161,14 +149,10 @@ noinst_HEADERS = src/PlatWX.h \
 			src/scintilla/lexlib/OptionSet.h \
 			src/scintilla/lexlib/PropSetSimple.h \
 			src/scintilla/lexlib/SparseState.h \
-			src/scintilla/lexlib/StringCopy.h \
 			src/scintilla/lexlib/StyleContext.h \
-			src/scintilla/lexlib/SubStyles.h \
 			src/scintilla/lexlib/WordList.h \
 			src/scintilla/src/AutoComplete.h \
 			src/scintilla/src/CallTip.h \
-			src/scintilla/src/CaseConvert.h \
-			src/scintilla/src/CaseFolder.h \
 			src/scintilla/src/Catalogue.h \
 			src/scintilla/src/CellBuffer.h \
 			src/scintilla/src/CharClassify.h \
@@ -190,8 +174,8 @@ noinst_HEADERS = src/PlatWX.h \
 			src/scintilla/src/Selection.h \
 			src/scintilla/src/SplitVector.h \
 			src/scintilla/src/Style.h \
+			src/scintilla/src/SVector.h \
 			src/scintilla/src/UniConversion.h \
-			src/scintilla/src/UnicodeFromUTF8.h \
 			src/scintilla/src/ViewStyle.h \
 			src/scintilla/src/XPM.h
 
@@ -205,9 +189,10 @@ EXTRA_DIST = $(srcdir)/Readme \
 	$(srcdir)/build/wxscintilla.* \
 	$(srcdir)/src/scintilla/*.txt \
 	$(srcdir)/src/scintilla/README \
+	$(srcdir)/src/scintilla/include/*.py \
 	$(srcdir)/src/scintilla/include/*.iface \
-	$(srcdir)/src/scintilla/src/*.properties \
-	$(srcdir)/src/scintilla/cppcheck.suppress
+	$(srcdir)/src/scintilla/src/*.py \
+	$(srcdir)/src/scintilla/src/*.properties
 
 # add upper-case copy
 CLEANFILES = README

@@ -37,8 +37,8 @@
 // this is the plugins SDK version number
 // it will change when the SDK interface breaks
 #define PLUGIN_SDK_VERSION_MAJOR   1
-#define PLUGIN_SDK_VERSION_MINOR   23
-#define PLUGIN_SDK_VERSION_RELEASE 0
+#define PLUGIN_SDK_VERSION_MINOR   13
+#define PLUGIN_SDK_VERSION_RELEASE 14
 
 // class decls
 class wxMenuBar;
@@ -112,7 +112,7 @@ class PLUGIN_EXPORT cbPlugin : public wxEvtHandler
           * @param parent The parent window.
           * @return A pointer to the plugin's cbConfigurationPanel. It is deleted by the caller.
           */
-        virtual cbConfigurationPanel* GetConfigurationPanel(cb_optional wxWindow* parent){ return nullptr; }
+        virtual cbConfigurationPanel* GetConfigurationPanel(cb_optional wxWindow* parent){ return 0; }
 
         /** Return plugin's configuration panel for projects.
           * The panel returned from this function will be added in the project's
@@ -121,7 +121,7 @@ class PLUGIN_EXPORT cbPlugin : public wxEvtHandler
           * @param project The project that is being edited.
           * @return A pointer to the plugin's cbConfigurationPanel. It is deleted by the caller.
           */
-        virtual cbConfigurationPanel* GetProjectConfigurationPanel(cb_optional wxWindow* parent, cb_optional cbProject* project){ return nullptr; }
+        virtual cbConfigurationPanel* GetProjectConfigurationPanel(cb_optional wxWindow* parent, cb_optional cbProject* project){ return 0; }
 
         /** This method is called by Code::Blocks and is used by the plugin
           * to add any menu items it needs on Code::Blocks's menu bar.\n
@@ -151,7 +151,7 @@ class PLUGIN_EXPORT cbPlugin : public wxEvtHandler
           * @param menu pointer to the popup menu
           * @param data pointer to FileTreeData object (to access/modify the file tree)
           */
-        virtual void BuildModuleMenu(cb_optional const ModuleType type, cb_optional wxMenu* menu, cb_optional const FileTreeData* data = nullptr) { }
+        virtual void BuildModuleMenu(cb_optional const ModuleType type, cb_optional wxMenu* menu, cb_optional const FileTreeData* data = 0) { }
 
         /** This method is called by Code::Blocks and is used by the plugin
           * to add any toolbar items it needs on Code::Blocks's toolbar.\n
@@ -273,7 +273,7 @@ class PLUGIN_EXPORT cbCompilerPlugin: public cbPlugin
           * should ask the user which target to "run" (except maybe if there is
           * only one build target in the project).
           */
-        virtual int Run(ProjectBuildTarget* target = nullptr) = 0;
+        virtual int Run(ProjectBuildTarget* target = 0L) = 0;
 
         /** Same as Run(ProjectBuildTarget*) but with a wxString argument. */
         virtual int Run(const wxString& target) = 0;
@@ -286,7 +286,7 @@ class PLUGIN_EXPORT cbCompilerPlugin: public cbPlugin
           * @param target The specific build target to "clean". If NULL, it
           * cleans all the build targets of the current project.
           */
-        virtual int Clean(ProjectBuildTarget* target = nullptr) = 0;
+        virtual int Clean(ProjectBuildTarget* target = 0L) = 0;
 
         /** Same as Clean(ProjectBuildTarget*) but with a wxString argument. */
         virtual int Clean(const wxString& target) = 0;
@@ -300,7 +300,7 @@ class PLUGIN_EXPORT cbCompilerPlugin: public cbPlugin
           * @param target The specific build target to "distclean". If NULL, it
           * cleans all the build targets of the current project.
           */
-        virtual int DistClean(ProjectBuildTarget* target = nullptr) = 0;
+        virtual int DistClean(ProjectBuildTarget* target = 0L) = 0;
 
         /** Same as DistClean(ProjectBuildTarget*) but with a wxString argument. */
         virtual int DistClean(const wxString& target) = 0;
@@ -310,7 +310,7 @@ class PLUGIN_EXPORT cbCompilerPlugin: public cbPlugin
           * @param target The specific build target to build. If NULL, it
           * builds all the targets of the current project.
           */
-        virtual int Build(ProjectBuildTarget* target = nullptr) = 0;
+        virtual int Build(ProjectBuildTarget* target = 0L) = 0;
 
         /** Same as Build(ProjectBuildTarget*) but with a wxString argument. */
         virtual int Build(const wxString& target) = 0;
@@ -324,7 +324,7 @@ class PLUGIN_EXPORT cbCompilerPlugin: public cbPlugin
           * @param target The specific build target to rebuild. If NULL, it
           * rebuilds all the build targets of the current project.
           */
-        virtual int Rebuild(ProjectBuildTarget* target = nullptr) = 0;
+        virtual int Rebuild(ProjectBuildTarget* target = 0L) = 0;
 
         /** Same as Rebuild(ProjectBuildTarget*) but with a wxString argument. */
         virtual int Rebuild(const wxString& target) = 0;
@@ -364,7 +364,7 @@ class PLUGIN_EXPORT cbCompilerPlugin: public cbPlugin
           * @param project The selected project (can be NULL).
           * @param target The selected target (can be NULL).
           */
-        virtual int Configure(cbProject* project, ProjectBuildTarget* target = nullptr) = 0;
+        virtual int Configure(cbProject* project, ProjectBuildTarget* target = 0L) = 0;
     private:
 };
 
@@ -403,7 +403,7 @@ class PLUGIN_EXPORT cbDebuggerPlugin: public cbPlugin
         virtual void OnRelease(bool appShutDown);
 
         virtual void BuildMenu(wxMenuBar* menuBar);
-        virtual void BuildModuleMenu(const ModuleType type, wxMenu* menu, const FileTreeData* data = nullptr);
+        virtual void BuildModuleMenu(const ModuleType type, wxMenu* menu, const FileTreeData* data = 0);
         virtual bool BuildToolBar(wxToolBar* toolBar);
 
         /** @brief Notify the debugger that lines were added or removed in an editor.
@@ -518,7 +518,6 @@ class PLUGIN_EXPORT cbDebuggerPlugin: public cbPlugin
         virtual bool SetWatchValue(cb::shared_ptr<cbWatch> watch, const wxString& value) = 0;
         virtual void ExpandWatch(cb::shared_ptr<cbWatch> watch) = 0;
         virtual void CollapseWatch(cb::shared_ptr<cbWatch> watch) = 0;
-        virtual void UpdateWatch(cb::shared_ptr<cbWatch> watch) = 0;
 
         struct WatchesDisabledMenuItems
         {
@@ -629,6 +628,9 @@ class PLUGIN_EXPORT cbDebuggerPlugin: public cbPlugin
         void MarkAsStopped();
 
     private:
+        wxString GetConsoleTty(int ConsolePid);
+
+    private:
         void OnEditorOpened(CodeBlocksEvent& event);
         void OnProjectActivated(CodeBlocksEvent& event);
         void OnProjectClosed(CodeBlocksEvent& event);
@@ -674,7 +676,7 @@ class PLUGIN_EXPORT cbToolPlugin : public cbPlugin
         // "Hide" some virtual members, that are not needed in cbToolPlugin
         void BuildMenu(cb_unused wxMenuBar* menuBar){}
         void RemoveMenu(cb_unused wxMenuBar* menuBar){}
-        void BuildModuleMenu(cb_unused const ModuleType type, cb_unused wxMenu* menu, cb_unused const FileTreeData* data = nullptr){}
+        void BuildModuleMenu(cb_unused const ModuleType type, cb_unused wxMenu* menu, cb_unused const FileTreeData* data = 0){}
         bool BuildToolBar(cb_unused wxToolBar* toolBar){ return false; }
         void RemoveToolBar(cb_unused wxToolBar* toolBar){}
 };
@@ -719,216 +721,40 @@ class PLUGIN_EXPORT cbMimePlugin : public cbPlugin
         // "Hide" some virtual members, that are not needed in cbMimePlugin
         void BuildMenu(cb_unused wxMenuBar* menuBar){}
         void RemoveMenu(cb_unused wxMenuBar* menuBar){}
-        void BuildModuleMenu(cb_unused const ModuleType type, cb_unused wxMenu* menu, cb_unused const FileTreeData* data = nullptr){}
+        void BuildModuleMenu(cb_unused const ModuleType type, cb_unused wxMenu* menu, cb_unused const FileTreeData* data = 0){}
         bool BuildToolBar(cb_unused wxToolBar* toolBar){ return false; }
         void RemoveToolBar(cb_unused wxToolBar* toolBar){}
 };
 
-class wxHtmlLinkEvent;
-
 /** @brief Base class for code-completion plugins
   *
-  * The main operations of a code-completion plugin are executed by CCManager
-  * at the appropriate times. Smaller CC plugins *should* not have need to
-  * register very many (if any) events/editor hooks.
+  * This interface is subject to change, so not much info here...
   */
 class PLUGIN_EXPORT cbCodeCompletionPlugin : public cbPlugin
 {
     public:
         cbCodeCompletionPlugin();
-
-        /** Level of functionality a CC plugin is able to provide. */
-        enum CCProviderStatus
-        {
-            ccpsInactive, //!< CC plugin provides no functionality.
-            ccpsActive,   //!< CC plugin provides specialized functionality.
-            ccpsUniversal //!< CC plugin provides generic functionality.
-        };
-
-        /** Structure representing a generic token, passed between CC plugins and CCManager. */
-        struct CCToken
-        {
-            /** @brief Convenience constructor.
-              *
-              * Represents a generic token, passed between CC plugins and CCManager.
-              *
-              * @param _id Internal identifier for a CC plugin to reference the token in its data structure.
-              * @param dispNm The string CCManager will use to display this token.
-              * @param categ The category corresponding to the index of the registered image (during autocomplete).
-              *              Negative values are reserved for CCManager.
-              */
-            CCToken(int _id, const wxString& dispNm, int categ = -1) :
-                id(_id), category(categ), weight(5), displayName(dispNm), name(dispNm) {}
-
-            /** @brief Construct a fully specified CCToken.
-              *
-              * Represents a generic token, passed between CC plugins and CCManager.
-              *
-              * @param _id Internal identifier for a CC plugin to reference the token in its data structure.
-              * @param dispNm The verbose string CCManager will use to display this token.
-              * @param nm Minimal name of the token that CCManager may choose to display in restricted circumstances.
-              * @param _weight Lower numbers are placed earlier in listing, 5 is default; try to keep 0-10.
-              * @param categ The category corresponding to the index of the registered image (during autocomplete).
-              *              Negative values are reserved for CCManager.
-              */
-            CCToken(int _id, const wxString& dispNm, const wxString& nm, int _weight, int categ = -1) :
-                id(_id), category(categ), weight(_weight), displayName(dispNm), name(nm) {}
-
-            int id;               //!< CCManager will pass this back unmodified. Use it as an internal identifier for the token.
-            int category;         //!< The category corresponding to the index of the registered image (during autocomplete).
-            int weight;           //!< Lower numbers are placed earlier in listing, 5 is default; try to keep 0-10.
-            wxString displayName; //!< Verbose string representing the token.
-            wxString name;        //!< Minimal name of the token.
-        };
-
-        /** Structure representing an individual calltip with an optional highlighted range */
-        struct CCCallTip
-        {
-            /** @brief Convenience constructor.
-              *
-              * Represents an individual calltip to be processed and displayed by CCManager.
-              *
-              * @param tp The content of the calltip.
-              */
-            CCCallTip(const wxString& tp) :
-                hlStart(-1), hlEnd(-1), tip(tp) {}
-
-            /** @brief Construct a calltip, specifying a highlighted range
-              *
-              * Represents an individual calltip, containing a highlighted range (generally the
-              * active parameter), to be processed and displayed by CCManager.
-              *
-              * @param tp The content of the calltip.
-              * @param highlightStart The start index of the desired highlighted range.
-              * @param highlightEndThe end index of the desired highlighted range.
-              */
-            CCCallTip(const wxString& tp, int highlightStart, int highlightEnd) :
-                hlStart(highlightStart), hlEnd(highlightEnd), tip(tp) {}
-
-            int hlStart;  //!< The start index of the desired highlighted range.
-            int hlEnd;    //!< The end index of the desired highlighted range.
-            wxString tip; //!< The content of the calltip.
-        };
-
-        /** @brief Does this plugin handle code completion for the editor <tt>ed</tt>?
+        virtual wxArrayString GetCallTips() = 0;
+        virtual int CodeComplete() = 0;
+        virtual void ShowCallTip() = 0;
+        /** @brief Does this plugin handle code completion for the editor cb?
           *
-          * The plugin should check the lexer, the <tt>HighlightLanguage</tt>, the file extension,
-          * or some combination of these. Do @em not call @c CCManager::GetProviderFor()
-          * from this function.
+          * A plugin should override this function to indicate whether it will
+          * provide completion and call tips for the editor. The plugin should
+          * then prepare to handle codecomplete and calltip menu messages if
+          * it returns true. To implement this function, plugins will usually
+          * check the mimetype of the file or the current lexer (highlight
+          * language).
           *
-          * @param ed The editor being checked.
-          * @return The level of functionality this plugin is able to supply.
-          */
-        virtual CCProviderStatus GetProviderStatusFor(cbEditor* ed) = 0;
-
-        /** @brief Supply content for the autocompletion list.
+          * Note: Currently the core CC plugin provides a default CodeCompletion
+          * implementation for any file type that is not provided for by any
+          * other CC plugins. The calltip and main menu options that can be handled
+          * by any CC plugin is also supplied by the core CC plugin.
           *
-          * CCManager takes care of calling this during most relevant situations. If the
-          * autocompletion mechanism is required at a time that CCManager does not initiate, call
-          * @code
-          * CodeBlocksEvent evt(cbEVT_COMPLETE_CODE);
-          * Manager::Get()->ProcessEvent(evt);
-          * @endcode
-          *
-          * @param isAuto Passed as @c true if autocompletion was launched by typing an 'interesting'
-          *               character such as '<tt>&gt;</tt>' (for '<tt>-&gt;</tt>'). It is the plugin's job
-          *               to filter out incorrect calls of this.
-          * @param ed The context of this codecompletion call.
-          * @param[in,out] tknStart The assumed beginning of the token to be autocompleted. Change this variable
-          *                         if the plugin calculates a different starting location.
-          * @param[in,out] tknEnd The current position/end of the known part of the token to be completed. The
-          *                       plugin is allowed to change this (but it is not recommended).
-          * @return Completable tokens, or empty vector to cancel autocompletion.
-          */
-        virtual std::vector<CCToken> GetAutocompList(bool isAuto, cbEditor* ed, int& tknStart, int& tknEnd) = 0;
-
-        /** @brief Supply html formatted documentation for the passed token.
-          *
-          * Refer to http://docs.wxwidgets.org/stable/overview_html.html#overview_html_supptags for
-          * the available formatting. When selecting colours, prefer use of the ones CCManager has
-          * registered with ColourManager, which are (TODO: register colours). Returning an empty
-          * string will cancel the documentation popup.
-          *
-          * @param token The token to document.
-          * @return Either an html document or an empty string (if no documentation available).
-          */
-        virtual wxString GetDocumentation(const CCToken& token) = 0;
-
-        /** @brief Supply content for the calltip at the specified location.
-          *
-          * The output parameter @c argsPos is required to be set to the same (but unique) position
-          * for each unique calltip. This position is the location corresponding to the beginning of
-          * the argument list:
-          * @code
-          * int endOfWord = stc->WordEndPosition(pos, true);
-          *                                     ^
-          * @endcode
-          * Each returned CCCallTip is allowed to have embedded '\\n' line breaks.
-          *
-          * @param pos The location in the editor that the calltip is requested for.
-          * @param style The scintilla style of the cbStyledTextCtrl at the given location. (TODO: This
-          *              is unusual, remove it?)
-          * @param ed The context of this calltip request.
-          * @param[out] argsPos The location in the editor of the beginning of the argument list. @em Required.
-          * @return Each entry in this vector is guaranteed either a new line or a separate page in the calltip.
-          *         CCManager will decide if lines should be further split (for formatting to fit the monitor).
-          */
-        virtual std::vector<CCCallTip> GetCallTips(int pos, int style, cbEditor* ed, int& argsPos) = 0;
-
-        /** @brief Supply the definition of the token at the specified location.
-          *
-          * The token(s) returned by this function are used to display tooltips.
-          *
-          * @param pos The location being queried.
-          * @param ed The context of the request.
-          * @param[out] allowCallTip Allow CCManager to consider displaying a calltip if the results from this
-          *                          function are unsuitable/empty. True by default.
-          * @return A list of the token(s) that match the specified location, an empty vector if none.
-          */
-        virtual std::vector<CCToken> GetTokenAt(int pos, cbEditor* ed, bool& allowCallTip) = 0;
-
-        /** @brief Callback to handle a click on a link in the documentation popup.
-         *
-         * Handle a link command by, for example, showing the definition of a member function, or opening
-         * an editor to the location of the declaration.
-         *
-         * @param event The generated event (it is the plugin's responsibility to Skip(), if desired).
-         * @param[out] dismissPopup If set to true, the popup will be hidden.
-         * @return If non-empty, the popup's content will be set to this html formatted string.
-         */
-        virtual wxString OnDocumentationLink(wxHtmlLinkEvent& event, bool& dismissPopup) = 0;
-
-        /** @brief Callback for inserting the selected autocomplete entry into the editor.
-          *
-          * The default implementation executes (wx)Scintilla's insert. Override and call
-          * @c ed->GetControl()->AutoCompCancel() for different @c wxEVT_SCI_AUTOCOMP_SELECTION behaviour.
-          *
-          * @param token The CCToken corresponding to the selected entry.
-          * @param ed The editor to operate in.
-          */
-        virtual void DoAutocomplete(const CCToken& token, cbEditor* ed);
-
-        /** @brief Callback for inserting the selected autocomplete entry into the editor.
-          *
-          * This function is only called if CCManager fails to retrieve the CCToken associated with the
-          * selection (which should never happen). The default implementation creates a CCToken and passes
-          * it to <tt>DoAutocomplete(const CCToken&, cbEditor*)</tt><br>
-          * Override for different behaviour.
-          *
-          * @param token A string corresponding to the selected entry.
-          * @param ed The editor to operate in.
-          */
-        virtual void DoAutocomplete(const wxString& token, cbEditor* ed);
-
-    protected:
-        /** @brief Has this plugin been selected to provide content for the editor.
-          *
-          * Convenience function; asks CCManager if this plugin is granted jurisdiction over the editor.
-          *
-          * @param ed The editor to check.
-          * @return Is provider for the editor.
-          */
-        bool IsProviderFor(cbEditor* ed);
+          * @param cb The editor for which code completion
+          * @return return true if the plugin handles completion for this editor,
+          * false otherwise*/
+        virtual bool IsProviderFor(cbEditor* cb) { (void) cb; return false; }  // purposely not marked 'cb_optional', override should use param
 };
 
 /** @brief Base class for wizard plugins
@@ -982,12 +808,12 @@ class PLUGIN_EXPORT cbWizardPlugin : public cbPlugin
           *                         If the wizard created a file, that would be the file's name.
           * @return a pointer to the generated cbProject or ProjectBuildTarget. NULL for everything else (failure too).
           * You should dynamic-cast this to the correct type based on GetOutputType() 's value. */
-        virtual CompileTargetBase* Launch(int index, wxString* createdFilename = nullptr) = 0; // do your work ;)
+        virtual CompileTargetBase* Launch(int index, wxString* createdFilename = 0) = 0; // do your work ;)
     private:
         // "Hide" some virtual members, that are not needed in cbCreateWizardPlugin
         void BuildMenu(cb_unused wxMenuBar* menuBar){}
         void RemoveMenu(cb_unused wxMenuBar* menuBar){}
-        void BuildModuleMenu(cb_unused const ModuleType type, cb_unused wxMenu* menu, cb_unused const FileTreeData* data = nullptr){}
+        void BuildModuleMenu(cb_unused const ModuleType type, cb_unused wxMenu* menu, cb_unused const FileTreeData* data = 0){}
         bool BuildToolBar(cb_unused wxToolBar* toolBar){ return false; }
         void RemoveToolBar(cb_unused wxToolBar* toolBar){}
 };
@@ -1007,7 +833,7 @@ class cbSmartIndentPlugin : public cbPlugin
         // "Hide" some virtual members, that are not needed in cbSmartIndentPlugin
         void BuildMenu(cb_unused wxMenuBar* menuBar){}
         void RemoveMenu(cb_unused wxMenuBar* menuBar){}
-        void BuildModuleMenu(cb_unused const ModuleType type, cb_unused wxMenu* menu, cb_unused const FileTreeData* data = nullptr){}
+        void BuildModuleMenu(cb_unused const ModuleType type, cb_unused wxMenu* menu, cb_unused const FileTreeData* data = 0){}
         bool BuildToolBar(cb_unused wxToolBar* toolBar){ return false; }
         void RemoveToolBar(cb_unused wxToolBar* toolBar){}
     protected:
@@ -1030,7 +856,7 @@ class cbSmartIndentPlugin : public cbPlugin
 
         /** forward search to the next character which is not a whitespace **/
         wxChar GetLastNonWhitespaceChar(cbEditor* ed, int position = -1) const;
-        wxChar GetNextNonWhitespaceCharOnLine(cbStyledTextCtrl* stc, int position = -1, int *pos = nullptr) const;
+        wxChar GetNextNonWhitespaceCharOnLine(cbStyledTextCtrl* stc, int position = -1, int *pos = 0) const;
 
         int FindBlockStart(cbStyledTextCtrl* stc, int position, wxChar blockStart, wxChar blockEnd, bool skipNested = true) const;
         int FindBlockStart(cbStyledTextCtrl* stc, int position, wxString blockStart, wxString blockEnd, bool CaseSensitive = true) const;
@@ -1042,7 +868,7 @@ class cbSmartIndentPlugin : public cbPlugin
         int GetFirstBraceInLine(cbStyledTextCtrl* stc, int string_style)const;
 
         /** Get the last non-whitespace character from position in line */
-        wxChar GetNextNonWhitespaceCharOfLine(cbStyledTextCtrl* stc, int position = -1, int *pos = nullptr)const;
+        wxChar GetNextNonWhitespaceCharOfLine(cbStyledTextCtrl* stc, int position = -1, int *pos = 0)const;
         bool AutoIndentEnabled()const;
         bool SmartIndentEnabled()const;
         bool BraceSmartIndentEnabled()const;

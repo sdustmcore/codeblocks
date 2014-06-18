@@ -28,7 +28,7 @@
 #include "cbstyledtextctrl.h"
 
 // needed for initialization of variables
-inline int editorbase_RegisterId(int id)
+int editorbase_RegisterId(int id)
 {
     wxRegisterId(id);
     return id;
@@ -176,15 +176,14 @@ bool EditorBase::QueryClose()
         msg.Printf(_("File %s is modified...\nDo you want to save the changes?"), GetFilename().c_str());
         switch (cbMessageBox(msg, _("Save file"), wxICON_QUESTION | wxYES_NO | wxCANCEL))
         {
-            case wxID_YES:
-                if (!Save())
-                    return false;
-                break;
-            case wxID_NO:
-                break;
-            case wxID_CANCEL:
-            default:
+        case wxID_YES:
+            if (!Save())
                 return false;
+            break;
+        case wxID_NO:
+            break;
+        case wxID_CANCEL:
+            return false;
         }
         SetModified(false);
     }
@@ -209,7 +208,7 @@ bool EditorBase::ThereAreOthers() const
 
 wxMenu* EditorBase::CreateContextSubMenu(long id) // For context menus
 {
-    wxMenu* menu = nullptr;
+    wxMenu* menu = 0;
 
     if (id == idSwitchTo)
     {
@@ -222,12 +221,12 @@ wxMenu* EditorBase::CreateContextSubMenu(long id) // For context menus
                 continue;
             id = idSwitchFile1+i;
             m_SwitchTo[id] = other;
-            menu->Append(id, (other->GetModified() ? wxT("*") : wxEmptyString) + other->GetShortName());
+            menu->Append(id, other->GetShortName());
         }
         if (!menu->GetMenuItemCount())
         {
             delete menu;
-            menu = nullptr;
+            menu = 0;
         }
     }
     return menu;
@@ -310,7 +309,7 @@ void EditorBase::DisplayContextMenu(const wxPoint& position, ModuleType type)
         AddToContextMenu(popup, type, false);
 
         // ask other editors / plugins if they need to add any entries in this menu...
-        FileTreeData* ftd = new FileTreeData(nullptr, FileTreeData::ftdkUndefined);
+        FileTreeData* ftd = new FileTreeData(0, FileTreeData::ftdkUndefined);
         ftd->SetFolder(m_Filename);
         Manager::Get()->GetPluginManager()->AskPluginsForModuleMenu(type, popup, ftd);
         delete ftd;

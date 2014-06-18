@@ -22,8 +22,6 @@
 
 #include "wxsmenuitem.h"
 
-#include <prep.h>
-
 namespace
 {
     class InfoHandler: public wxsItemInfo
@@ -165,13 +163,12 @@ void wxsMenuItem::OnBuildCreatingCode()
             BuildSetupWindowCode();
             break;
 
-        case wxsUnknownLanguage: // fall-through
         default:
             wxsCodeMarks::Unknown(_T("wxsMenuItem::OnBuildCreatingCode"),GetLanguage());
     }
 }
 
-void wxsMenuItem::OnEnumToolProperties(cb_unused long Flags)
+void wxsMenuItem::OnEnumToolProperties(long Flags)
 {
 
     switch ( m_Type )

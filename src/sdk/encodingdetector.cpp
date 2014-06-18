@@ -20,10 +20,7 @@
 
 #include "encodingdetector.h"
 #include "filemanager.h"
-
-#include "nsError.h"
 #include "nsUniversalDetector.h"
-
 #include <wx/encconv.h>
 
 /* ----------------------------------------------
@@ -74,15 +71,9 @@ EncodingDetector::~EncodingDetector()
 
 void EncodingDetector::Report(const char *aCharset)
 {
-    m_MozillaResult = cbC2U(aCharset);
-
-    if (m_UseLog)
-        Manager::Get()->GetLogManager()->DebugLog(F(_T("Mozilla universal detection engine detected '%s'."), m_MozillaResult.wx_str()));
-
-    if (m_MozillaResult == _T("gb18030")) // hack, because wxWidgets only knows cp936
-        m_MozillaResult = _T("cp936");
-    else if (m_MozillaResult.Contains(wxT("*ASCII*"))) // remove our "specials"
-        m_MozillaResult = wxEmptyString;
+    mResult = cbC2U(aCharset);
+    if (mResult == _T("gb18030")) // hack, because wxWidgets only knows cp936
+        mResult = _T("cp936");
 }
 
 bool EncodingDetector::IsOK() const
@@ -108,6 +99,17 @@ wxFontEncoding EncodingDetector::GetFontEncoding() const
 wxString EncodingDetector::GetWxStr() const
 {
     return m_ConvStr;
+}
+
+const wxString& EncodingDetector::DoIt(const char* aBuf, PRUint32 aLen)
+{
+    Reset();
+    nsresult rv = HandleData(aBuf, aLen);
+    if (NS_FAILED(rv))
+        mResult=_T("failed");
+    else
+        DataEnd();
+    return mResult;
 }
 
 bool EncodingDetector::DetectEncoding(const wxString& filename, bool convert_to_wxstring)
@@ -183,22 +185,8 @@ bool EncodingDetector::DetectEncoding(const wxByte* buffer, size_t size, bool co
         }
         else
         {
-            //{ MOZILLA nsUniversalDetector START
-            // If we still have no results try Mozilla (taken from nsUdetXPCOMWrapper.cpp):
-            Reset(); nsresult res = HandleData((char*)buffer, size);
-            if (res==NS_OK)
-                DataEnd();
-            else
-            {
-                m_MozillaResult = wxEmptyString;
-                if (m_UseLog)
-                    Manager::Get()->GetLogManager()->DebugLog(F(_T("Mozilla universal detection failed with %d."), res));
-            }
-            //} MOZILLA nsUniversalDetector END
-
-            if ( !m_MozillaResult.IsEmpty() )
-                m_Encoding = wxFontMapper::Get()->CharsetToEncoding(m_MozillaResult, false);
-
+            // if we still have no results try Mozilla's detection
+            m_Encoding = wxFontMapper::Get()->CharsetToEncoding( DoIt((char*)buffer, size), false );
             if (m_Encoding == wxFONTENCODING_DEFAULT)
             {
                 wxString enc_name = Manager::Get()->GetConfigManager(_T("editor"))->Read(_T("/default_encoding"), wxLocale::GetSystemEncodingName());
@@ -213,7 +201,6 @@ bool EncodingDetector::DetectEncoding(const wxByte* buffer, size_t size, bool co
                     Manager::Get()->GetLogManager()->DebugLog(msg);
                 }
             }
-
             if (m_Encoding < 0)
             {
                 // Use user-specified one; as a fallback
@@ -489,7 +476,7 @@ bool EncodingDetector::ConvertToWxString(const wxByte* buffer, size_t size)
             if (m_UseLog && outlen>0)
             {
                 logmsg.Printf(_T("Conversion succeeded using wxEncodingConverter "
-                                 "(buffer size = %lu, converted size = %lu."), static_cast<unsigned long>(size), static_cast<unsigned long>(outlen));
+                                 "(buffer size = %d, converted size = %d."), size, outlen);
                 logmgr->DebugLog(logmsg);
             }
         }
@@ -503,7 +490,7 @@ bool EncodingDetector::ConvertToWxString(const wxByte* buffer, size_t size)
                 if (m_UseLog && outlen>0)
                 {
                     logmsg.Printf(_T("Conversion succeeded using wxCSConv "
-                                     "(buffer size = %lu, converted size = %lu."), static_cast<unsigned long>(size), static_cast<unsigned long>(outlen));
+                                     "(buffer size = %d, converted size = %d."), size, outlen);
                     logmgr->DebugLog(logmsg);
                 }
             }

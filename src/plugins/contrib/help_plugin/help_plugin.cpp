@@ -134,11 +134,7 @@ namespace
       link.pszWindow    = NULL;
       link.fIndexOnFail = TRUE;
 
-      #if defined(_WIN64) | defined(WIN64)
-      fp_htmlHelp(0L, (const wxChar*)m_filename, cbHH_KEYWORD_LOOKUP, (DWORDLONG)&link);
-      #else
       fp_htmlHelp(0L, (const wxChar*)m_filename, cbHH_KEYWORD_LOOKUP, (DWORD)&link);
-      #endif
     }
     else // do it the wx way then (which is the same thing, except for the 0L in the call to fp_htmlHelp)
     {
@@ -186,8 +182,11 @@ HelpPlugin::~HelpPlugin()
 #endif
 }
 
-void HelpPlugin::SetManPageDirs(MANFrame *manFrame)
+void HelpPlugin::OnAttach()
 {
+    // load configuration (only saved in our config dialog)
+    HelpCommon::LoadHelpFilesVector(m_Vector);
+
     const wxString man_prefix = _T("man:");
     wxString all_man_dirs(man_prefix);
 
@@ -202,19 +201,12 @@ void HelpPlugin::SetManPageDirs(MANFrame *manFrame)
             all_man_dirs += i->second.name.Mid(man_prefix.Length());
         }
     }
-    manFrame->SetDirs(all_man_dirs);
-}
-
-void HelpPlugin::OnAttach()
-{
-    // load configuration (only saved in our config dialog)
-    HelpCommon::LoadHelpFilesVector(m_Vector);
 
     wxBitmap zoominbmp = wxXmlResource::Get()->LoadBitmap(_T("ZoomInBitmap"));
     wxBitmap zoomoutbmp = wxXmlResource::Get()->LoadBitmap(_T("ZoomOutBitmap"));
 
     m_manFrame = new MANFrame(Manager::Get()->GetAppWindow(), wxID_ANY, zoominbmp, zoomoutbmp);
-    SetManPageDirs(m_manFrame);
+    m_manFrame->SetDirs(all_man_dirs);
     CodeBlocksDockEvent evt(cbEVT_ADD_DOCK_WINDOW);
     evt.name = _T("MANViewer");
     evt.title = _("Man/Html pages viewer");
@@ -251,8 +243,6 @@ void HelpPlugin::Reload()
     // reload configuration (saved in the config dialog)
     HelpCommon::LoadHelpFilesVector(m_Vector);
     BuildHelpMenu();
-    if (m_manFrame)
-        SetManPageDirs(m_manFrame);
 }
 
 void HelpPlugin::OnRelease(bool /*appShutDown*/)
@@ -538,7 +528,7 @@ void HelpPlugin::LaunchHelp(const wxString &c_helpfile, bool isExecutable, bool 
   // Operate on man pages
   if (helpfile.Mid(0, man_prefix.size()).CmpNoCase(man_prefix) == 0)
   {
-    if (reinterpret_cast<MANFrame *>(m_manFrame)->SearchManPage(keyword))
+    if (reinterpret_cast<MANFrame *>(m_manFrame)->SearchManPage(c_helpfile, keyword))
       Manager::Get()->GetLogManager()->DebugLog(_T("Couldn't find man page"));
     else
       Manager::Get()->GetLogManager()->DebugLog(_T("Launching man page"));

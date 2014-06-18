@@ -11,7 +11,7 @@
 				<Option object_output="..\..\..\.objs\plugins\contrib\headerfixup" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --multiple-instance -na -ns -nd -p debug" />
+				<Option parameters="--debug-log --multiple-instance -na -ns -nd" />
 				<Option host_application="..\..\..\devel\codeblocks.exe" />
 				<Compiler>
 					<Add option="$(#CB_RELEASE_TYPE)" />
@@ -30,6 +30,7 @@
 					<Add option="-DwxUSE_UNICODE" />
 					<Add directory="$(#WX.include)" />
 					<Add directory="$(#WX.lib)\gcc_dll$(WX_CFG)\msw$(WX_SUFFIX)" />
+					<Add directory="$(#WX)\contrib\include" />
 					<Add directory="..\..\..\include" />
 					<Add directory="..\..\..\sdk\wxscintilla\include" />
 				</Compiler>

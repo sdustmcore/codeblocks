@@ -5,8 +5,6 @@
 #include <wx/hashmap.h>
 
 #define COMPILER_SIMPLE_LOG     _T("SLOG:")
-#define COMPILER_NOTE_LOG       _T("SLOG:NLOG:")
-#define COMPILER_WARNING_LOG    _T("SLOG:WLOG:")
 #define COMPILER_TARGET_CHANGE  _T("TGT:")
 #define COMPILER_WAIT           _T("WAIT")
 #define COMPILER_WAIT_LINK      _T("LINK")
@@ -33,31 +31,32 @@ class DirectCommands
                        int          logPageIndex = 0);
         ~DirectCommands();
 
-        wxArrayString GetPreBuildCommands(ProjectBuildTarget* target) const;
-        wxArrayString GetPostBuildCommands(ProjectBuildTarget* target) const;
-        wxArrayString CompileFile(ProjectBuildTarget* target, ProjectFile* pf, bool force = false) const;
-        wxArrayString GetCompileFileCommand(ProjectBuildTarget* target, ProjectFile* pf) const;
-        wxArrayString GetCompileSingleFileCommand(const wxString& filename) const;
-        wxArrayString GetCompileCommands(ProjectBuildTarget* target, bool force = false) const;
-        wxArrayString GetTargetCompileCommands(ProjectBuildTarget* target, bool force = false) const;
-        wxArrayString GetLinkCommands(ProjectBuildTarget* target, bool force = false) const;
-        wxArrayString GetTargetLinkCommands(ProjectBuildTarget* target, bool force = false) const;
-        wxArrayString GetCleanCommands(ProjectBuildTarget* target, bool distclean = false) const;
-        wxArrayString GetCleanSingleFileCommand(const wxString& filename) const;
-        wxArrayString GetTargetCleanCommands(ProjectBuildTarget* target, bool distclean = false) const;
+        wxArrayString GetPreBuildCommands(ProjectBuildTarget* target);
+        wxArrayString GetPostBuildCommands(ProjectBuildTarget* target);
+        wxArrayString CompileFile(ProjectBuildTarget* target, ProjectFile* pf, bool force = false);
+        wxArrayString GetCompileFileCommand(ProjectBuildTarget* target, ProjectFile* pf);
+        wxArrayString GetCompileSingleFileCommand(const wxString& filename);
+        wxArrayString GetCompileCommands(ProjectBuildTarget* target, bool force = false);
+        wxArrayString GetTargetCompileCommands(ProjectBuildTarget* target, bool force = false);
+        wxArrayString GetLinkCommands(ProjectBuildTarget* target, bool force = false);
+        wxArrayString GetTargetLinkCommands(ProjectBuildTarget* target, bool force = false);
+        wxArrayString GetCleanCommands(ProjectBuildTarget* target, bool distclean = false);
+        wxArrayString GetCleanSingleFileCommand(const wxString& filename);
+        wxArrayString GetTargetCleanCommands(ProjectBuildTarget* target, bool distclean = false);
 
         bool m_doYield;
     protected:
-        bool         AreExternalDepsOutdated(ProjectBuildTarget* target, const wxString& buildOutput, wxArrayString* filesMissing) const;
-        bool         IsObjectOutdated(ProjectBuildTarget* target, const pfDetails& pfd, wxString* errorStr = 0) const;
-        void         DepsSearchStart(ProjectBuildTarget* target) const;
-        MyFilesArray GetProjectFilesSortedByWeight(ProjectBuildTarget* target, bool compile, bool link) const;
-        void         AddCommandsToArray(const wxString& cmds, wxArrayString& array, bool isWaitCmd = false, bool isLinkCmd = false) const;
+        bool         AreExternalDepsOutdated(ProjectBuildTarget* target, const wxString& buildOutput, wxArrayString* filesMissing);
+        bool         IsObjectOutdated(ProjectBuildTarget* target, const pfDetails& pfd, wxString* errorStr = 0);
+        void         DepsSearchStart(ProjectBuildTarget* target);
+        MyFilesArray GetProjectFilesSortedByWeight(ProjectBuildTarget* target, bool compile, bool link);
+        void         AddCommandsToArray(const wxString& cmds, wxArrayString& array, bool isWaitCmd = false, bool isLinkCmd = false);
 
         int                       m_PageIndex;
         CompilerGCC*              m_pCompilerPlugin;
         Compiler*                 m_pCompiler;
         cbProject*                m_pProject;
+        ProjectBuildTarget*       m_pCurrTarget; // temp
         CompilerCommandGenerator* m_pGenerator;
     private:
 };

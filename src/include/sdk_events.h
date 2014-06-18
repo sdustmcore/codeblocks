@@ -9,7 +9,6 @@
 #include <wx/event.h>
 #include <wx/intl.h>
 #include "settings.h"
-#include "prep.h"
 
 class cbProject;
 class EditorBase;
@@ -20,7 +19,7 @@ class Logger;
 class EVTIMPORT CodeBlocksEvent : public wxCommandEvent
 {
 	public:
-		CodeBlocksEvent(wxEventType commandType = wxEVT_NULL, int id = 0, cbProject* project = nullptr, EditorBase* editor = nullptr, cbPlugin* plugin = nullptr, EditorBase* old_editor = nullptr)
+		CodeBlocksEvent(wxEventType commandType = wxEVT_NULL, int id = 0, cbProject* project = 0L, EditorBase* editor = 0L, cbPlugin* plugin = 0L, EditorBase* old_editor = 0L)
 			: wxCommandEvent(commandType, id),
 			m_pProject(project),
 			m_pEditor(editor),
@@ -96,7 +95,7 @@ class EVTIMPORT CodeBlocksDockEvent : public wxEvent
         CodeBlocksDockEvent(wxEventType commandType = wxEVT_NULL, int id = 0)
             : wxEvent(id, commandType),
             title(_("Untitled")),
-            pWindow(nullptr),
+            pWindow(0),
             desiredSize(100, 100),
             floatingSize(150, 150),
             minimumSize(40, 40),
@@ -182,9 +181,9 @@ typedef void (wxEvtHandler::*CodeBlocksLayoutEventFunction)(CodeBlocksLayoutEven
 class EVTIMPORT CodeBlocksLogEvent : public wxEvent
 {
     public:
-        CodeBlocksLogEvent(wxEventType commandType = wxEVT_NULL, Logger* logger = nullptr, const wxString& title = wxEmptyString, wxBitmap *icon = nullptr);
-        CodeBlocksLogEvent(wxEventType commandType, wxWindow* window, const wxString& title = wxEmptyString, wxBitmap *icon = nullptr);
-        CodeBlocksLogEvent(wxEventType commandType, int logIndex, const wxString& title = wxEmptyString, wxBitmap *icon = nullptr);
+        CodeBlocksLogEvent(wxEventType commandType = wxEVT_NULL, Logger* logger = 0, const wxString& title = wxEmptyString, wxBitmap *icon = 0);
+        CodeBlocksLogEvent(wxEventType commandType, wxWindow* window, const wxString& title = wxEmptyString, wxBitmap *icon = 0);
+        CodeBlocksLogEvent(wxEventType commandType, int logIndex, const wxString& title = wxEmptyString, wxBitmap *icon = 0);
         CodeBlocksLogEvent(const CodeBlocksLogEvent& rhs);
 
 		virtual wxEvent *Clone() const { return new CodeBlocksLogEvent(*this); }
@@ -198,50 +197,6 @@ class EVTIMPORT CodeBlocksLogEvent : public wxEvent
 		DECLARE_DYNAMIC_CLASS(CodeBlocksLogEvent)
 };
 typedef void (wxEvtHandler::*CodeBlocksLogEventFunction)(CodeBlocksLogEvent&);
-
-
-// Thread event, this is basically a derived wxCommandEvent but enforce a deep copy of its
-// m_cmdString member. wxEVT_COMMAND_MENU_SELECTED is reused and event handlers are matched by
-// ids. This is just to conserve the old code, an alternative is use some
-// new event type like: cbEVT_THREAD_LOG_MESSAGE, cbEVT_THREAD_LOGDEBUG_MESSAGE
-// cbEVT_THREAD_SYSTEM_HEADER_UPDATE.
-
-class CodeBlocksThreadEvent : public wxCommandEvent
-{
-public:
-    CodeBlocksThreadEvent(wxEventType eventType = wxEVT_NULL, int id = wxID_ANY)
-        : wxCommandEvent(eventType,id)
-        { }
-
-    CodeBlocksThreadEvent(const CodeBlocksThreadEvent& event)
-        : wxCommandEvent(event)
-    {
-        // make sure our string member (which uses COW, aka refcounting) is not
-        // shared by other wxString instances:
-        SetString(GetString().c_str());
-    }
-
-    virtual wxEvent *Clone() const
-    {
-        return new CodeBlocksThreadEvent(*this);
-    }
-
-
-private:
-    DECLARE_DYNAMIC_CLASS_NO_ASSIGN(CodeBlocksThreadEvent)
-};
-
-typedef void ( wxEvtHandler::*CodeblocksThreadEventFunction) ( CodeBlocksThreadEvent&);
-
-#define CodeBlocksThreadEventHandler(func)  \
-	(wxObjectEventFunction)(wxEventFunction) \
-	wxStaticCastEvent(CodeblocksThreadEventFunction, &func)
-
-
-#define EVT_CODEBLOCKS_THREAD(id, fn) \
-    DECLARE_EVENT_TABLE_ENTRY(wxEVT_COMMAND_MENU_SELECTED, id, wxID_ANY, \
-    (wxObjectEventFunction) (wxEventFunction) (CodeblocksThreadEventFunction) \
-    wxStaticCastEvent( ThreadEventFunction, & fn ), (wxObject *) NULL ),
 
 //
 // if you add more event types, remember to add event sinks in Manager...

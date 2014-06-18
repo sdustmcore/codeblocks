@@ -22,12 +22,11 @@ IMPLEMENT_DYNAMIC_CLASS(CodeBlocksEvent, wxEvent)
 IMPLEMENT_DYNAMIC_CLASS(CodeBlocksDockEvent, wxEvent)
 IMPLEMENT_DYNAMIC_CLASS(CodeBlocksLayoutEvent, wxEvent)
 IMPLEMENT_DYNAMIC_CLASS(CodeBlocksLogEvent, wxEvent)
-IMPLEMENT_DYNAMIC_CLASS(CodeBlocksThreadEvent, wxCommandEvent)
 
 
 CodeBlocksLogEvent::CodeBlocksLogEvent(wxEventType commandType, Logger* logger_in, const wxString& title_in, wxBitmap *icon_in)
     : wxEvent(wxID_ANY, commandType),
-    logger(logger_in), logIndex(-1), icon(icon_in), title(title_in), window(nullptr)
+    logger(logger_in), logIndex(-1), icon(icon_in), title(title_in), window(0)
 {
     // special case for add
     if (commandType == cbEVT_ADD_LOG_WINDOW && logger)
@@ -47,14 +46,14 @@ CodeBlocksLogEvent::CodeBlocksLogEvent(wxEventType commandType, Logger* logger_i
 
 CodeBlocksLogEvent::CodeBlocksLogEvent(wxEventType commandType, int logIndex_in, const wxString& title_in, wxBitmap *icon_in)
     : wxEvent(wxID_ANY, commandType),
-    logger(nullptr), logIndex(logIndex_in), icon(icon_in), title(title_in), window(nullptr)
+    logger(0), logIndex(logIndex_in), icon(icon_in), title(title_in), window(0)
 {
     logger = Manager::Get()->GetLogManager()->Slot(logIndex).GetLogger();
 }
 
 CodeBlocksLogEvent::CodeBlocksLogEvent(wxEventType commandType, wxWindow* window_in, const wxString& title_in, wxBitmap *icon_in)
     : wxEvent(wxID_ANY, commandType),
-    logger(nullptr), logIndex(-1), icon(icon_in), title(title_in), window(window_in)
+    logger(0), logIndex(-1), icon(icon_in), title(title_in), window(window_in)
 {
 }
 

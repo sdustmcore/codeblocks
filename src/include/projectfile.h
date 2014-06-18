@@ -10,7 +10,6 @@
 
 #include "settings.h"
 #include "globals.h"
-#include "prep.h"
 #include <wx/dynarray.h>
 #include <wx/filename.h>
 #include <wx/treectrl.h>
@@ -67,11 +66,6 @@ class ProjectFile
           * @param targetName The build target's name to remove this file from. */
         void RemoveBuildTarget(const wxString& targetName);
 
-        /**
-         * @return An array of strings, containing the names of all the build
-         * targets this file belongs to. */
-        const wxArrayString& GetBuildTargets() const;
-
         /** Show the file properties dialog.
           * @param parent The parent window for the dialog (can be NULL).
           * @return True if the user closed the dialog with "OK", false if closed it with "Cancel".
@@ -94,7 +88,7 @@ class ProjectFile
 
         /** This is called automatically when adding/removing build targets.
           * @param target A pointer to the build target whose file details should be updated. */
-        void UpdateFileDetails(ProjectBuildTarget* target = nullptr);
+        void UpdateFileDetails(ProjectBuildTarget* target = 0);
 
         /** Access the file details for this project file for the specified target.
           * @param target A pointer to the build target whose file details should be updated.
@@ -208,9 +202,6 @@ class ProjectFile
 
         /** Returns the wxTreeItemId for the file */
         const wxTreeItemId& GetTreeItemId() const { return m_TreeItemId; }
-
-        /** Sets the tree item id for the file. Should not be called by users! */
-        void SetTreeItemId(wxTreeItemId id) { m_TreeItemId = id; }
 
         /** Compare relative names of projectfiles.
           * Static helper function to sort array of projectfiles.

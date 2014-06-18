@@ -58,7 +58,7 @@ int CBProfilerExecDlg::Execute(wxString exename, wxString dataname, struct_confi
     int pid = -1;
 
     { // begin lifetime of wxBusyInfo
-      wxBusyInfo wait(_("Please wait, while running gprof..."), parent);
+      wxBusyInfo wait(_("Please wait, while running gprof..."), this);
       Manager::Get()->GetLogManager()->DebugLog(F(_T("Profiler: Running command %s"), cmd.wx_str()));
       pid = wxExecute(cmd, gprof_output, gprof_errors);
     } // end lifetime of wxBusyInfo
@@ -141,7 +141,7 @@ void CBProfilerExecDlg::EndModal(int retCode)
 }
 
 // Sorting function of the flat profile columns
-int wxCALLBACK SortFunction(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
+int wxCALLBACK SortFunction(long item1, long item2, long sortData)
 {
     CBProfilerExecDlg *dialog = (CBProfilerExecDlg*) sortData;
 
@@ -209,7 +209,7 @@ void CBProfilerExecDlg::OnColumnClick(wxListEvent& event)
         sortAscending = !sortAscending;
 
     sortColumn = event.GetColumn();
-    outputFlatProfileArea->SortItems(SortFunction, (wxIntPtr)this);
+    outputFlatProfileArea->SortItems(SortFunction, (long)this);
 }
 
 void CBProfilerExecDlg::ParseMisc(const wxArrayString& msg, wxProgressDialog &progress, const size_t maxcount, size_t &count)
@@ -360,8 +360,8 @@ void CBProfilerExecDlg::ParseFlatProfile(const wxArrayString& msg, wxProgressDia
             // manually parse for space positions
             if (need_parsing)
             {
-                int cnt=0; int i=0; int len = TOKEN.Len();
-                while (i < len && cnt < 6) {
+                int count=0; int i=0; int len = TOKEN.Len();
+                while (i < len && count < 6) {
                     // we start with spaces
                     while (TOKEN[i] == ' ' && ++i < len);
                     if (i>=len) break;
@@ -369,7 +369,7 @@ void CBProfilerExecDlg::ParseFlatProfile(const wxArrayString& msg, wxProgressDia
                     while (TOKEN[i] != ' ' && ++i < len);
                     if (i>=len) break;
                     // found a new space position
-                    spacePos[cnt++] = i;
+                    spacePos[count++] = i;
                 }
             }
         }

@@ -7,40 +7,38 @@
  * $HeadURL$
  */
 
-#include <sdk.h>
-#ifndef CB_PRECOMP
-    #include <wx/button.h>
-    #include <wx/checkbox.h>
-    #include <wx/checklst.h>
-    #include <wx/combobox.h>
-    #include <wx/dir.h>
-    #include <wx/intl.h>
-    #include <wx/listbox.h>
-    #include <wx/panel.h>
-    #include <wx/radiobox.h>
-    #include <wx/sizer.h>
-    #include <wx/spinctrl.h>
-    #include <wx/stattext.h>
-    #include <wx/wizard.h>
-    #include <wx/xrc/xmlres.h>
-    
-    #include <wx/wxscintilla.h> // CB Header
-    #include <cbexception.h>
-    #include <cbproject.h>
-    #include <compiler.h>
-    #include <compilerfactory.h>
-    #include <configmanager.h>
-    #include <filefilters.h>
-    #include <globals.h>
-    #include <infowindow.h>
-    #include <manager.h>
-    #include <projectbuildtarget.h>
-    #include <projectmanager.h>
-    #include <scriptingmanager.h>
-#endif // CB_PRECOMP
-#include <scripting/bindings/sc_base_types.h>
+#if defined(__GNUG__) && !defined(__APPLE__)
+    #pragma implementation "wiz.h"
+#endif
 
 #include "wiz.h"
+#include <wx/dir.h>
+#include <wx/intl.h>
+#include <wx/xrc/xmlres.h>
+#include <wx/wizard.h>
+#include <wx/stattext.h>
+#include <wx/button.h>
+#include <wx/panel.h>
+#include <wx/checkbox.h>
+#include <wx/combobox.h>
+#include <wx/wxscintilla.h>
+
+#include <globals.h>
+#include <cbexception.h>
+#include <manager.h>
+#include <configmanager.h>
+#include <projectmanager.h>
+#include <scriptingmanager.h>
+#include <compilerfactory.h>
+#include <compiler.h>
+#include <cbproject.h>
+#include <projectbuildtarget.h>
+#include <prep.h>
+#include <filefilters.h>
+#include <infowindow.h>
+
+#include <scripting/bindings/sc_base_types.h>
+
 #include "wizpage.h"
 
 #include <wx/arrimpl.cpp>
@@ -528,8 +526,8 @@ CompileTargetBase* Wiz::RunProjectWizard(wxString* pFilename)
         *pFilename = theproject->GetFilename();
 
     // finally, make sure everything looks ok
-    Manager::Get()->GetProjectManager()->GetUI().RebuildTree();
-    Manager::Get()->GetProjectManager()->GetUI().GetTree()->Expand(theproject->GetProjectNode());
+    Manager::Get()->GetProjectManager()->RebuildTree();
+    Manager::Get()->GetProjectManager()->GetTree()->Expand(theproject->GetProjectNode());
     return theproject;
 }
 
@@ -728,8 +726,18 @@ wxString Wiz::GenerateFile(const wxString& basePath, const wxString& filename, c
     // create the file with the passed contents
     wxFileName::Mkdir(fname.GetPath(),0777,wxPATH_MKDIR_FULL);
     wxFile f(fname.GetFullPath(), wxFile::write);
+    // read EOL mode
+    static const int default_eol = platform::windows ? wxSCI_EOL_CRLF : wxSCI_EOL_LF; // Windows takes CR+LF, other platforms LF only
+    int eolmode = Manager::Get()->GetConfigManager(_T("editor"))->ReadInt(_T("/eol/eolmode"), default_eol);
+    wxString eol_str;
+    switch (eolmode)
+    {
+      case wxSCI_EOL_CR:  eol_str = _T("\r"); break;
+      case wxSCI_EOL_LF:  eol_str = _T("\n"); break;
+      default:            eol_str = _T("\r\n"); // means wxSCI_EOL_CRLF
+    }
 
-    if ( cbWrite(f, contents + GetEOLStr(), wxFONTENCODING_UTF8) )
+    if ( cbWrite(f, contents + eol_str, wxFONTENCODING_UTF8) )
         return fname.GetFullPath(); // success
 
     return wxEmptyString; // failed
@@ -982,71 +990,6 @@ void Wiz::SetListboxSelection(const wxString& name, int sel)
     }
 }
 
-wxString Wiz::GetCheckListboxChecked(const wxString& name)
-{
-    wxWizardPage* page = m_pWizard->GetCurrentPage();
-    if (page)
-    {
-        wxCheckListBox* clb = dynamic_cast<wxCheckListBox*>(page->FindWindowByName(name, page));
-        if (clb)
-        {
-            wxString result;
-            unsigned int i;
-            for (i = 0; i < clb->GetCount(); ++i)
-            {
-                if (clb->IsChecked(i))
-                    result.Append(wxString::Format(_T("%u;"), i));
-            }
-            return result;
-        }
-    }
-    return wxEmptyString;
-}
-
-wxString Wiz::GetCheckListboxStringChecked(const wxString& name)
-{
-    wxWizardPage* page = m_pWizard->GetCurrentPage();
-    if (page)
-    {
-        wxCheckListBox* clb = dynamic_cast<wxCheckListBox*>(page->FindWindowByName(name, page));
-        if (clb)
-        {
-            wxString result;
-            unsigned int i;
-            for (i = 0; i < clb->GetCount(); ++i)
-            {
-                if (clb->IsChecked(i))
-                    result.Append(wxString::Format(_T("%s;"), clb->GetString(i).wx_str()));
-            }
-            return result;
-        }
-    }
-    return wxEmptyString;
-}
-
-bool Wiz::IsCheckListboxItemChecked(const wxString& name, unsigned int item)
-{
-    wxWizardPage* page = m_pWizard->GetCurrentPage();
-    if (page)
-    {
-        wxCheckListBox* clb = dynamic_cast<wxCheckListBox*>(page->FindWindowByName(name, page));
-        if (clb)
-            return clb->IsChecked(item);
-    }
-    return false;
-}
-
-void Wiz::CheckCheckListboxItem(const wxString& name, unsigned int item, bool check)
-{
-    wxWizardPage* page = m_pWizard->GetCurrentPage();
-    if (page)
-    {
-        wxCheckListBox* clb = dynamic_cast<wxCheckListBox*>(page->FindWindowByName(name, page));
-        if (clb)
-            clb->Check(item, check);
-    }
-}
-
 void Wiz::CheckCheckbox(const wxString& name, bool check)
 {
     wxWizardPage* page = m_pWizard->GetCurrentPage();
@@ -1091,29 +1034,6 @@ wxString Wiz::GetTextControlValue(const wxString& name)
             return win->GetValue();
     }
     return wxEmptyString;
-}
-
-void Wiz::SetSpinControlValue(const wxString& name, int value)
-{
-    wxWizardPage* page = m_pWizard->GetCurrentPage();
-    if (page)
-    {
-        wxSpinCtrl* win = dynamic_cast<wxSpinCtrl*>(page->FindWindowByName(name, page));
-        if (win)
-            win->SetValue(value);
-    }
-}
-
-int Wiz::GetSpinControlValue(const wxString& name)
-{
-    wxWizardPage* page = m_pWizard->GetCurrentPage();
-    if (page)
-    {
-        wxSpinCtrl* win = dynamic_cast<wxSpinCtrl*>(page->FindWindowByName(name, page));
-        if (win)
-            return win->GetValue();
-    }
-    return -1;
 }
 
 void Wiz::AddInfoPage(const wxString& pageId, const wxString& intro_msg)
@@ -1268,11 +1188,10 @@ void Wiz::AddWizard(TemplateOutputType otype,
     wxString typS;
     switch (otype)
     {
-        case totProject: typS = _T("Project");      break;
-        case totTarget:  typS = _T("Build-target"); break;
-        case totFiles:   typS = _T("File(s)");      break;
-        case totUser:    typS = _T("User");         break;
-        case totCustom:  typS = _T("Custom");       break;
+        case totProject: typS = _T("Project"); break;
+        case totTarget: typS = _T("Build-target"); break;
+        case totFiles: typS = _T("File(s)"); break;
+        case totCustom: typS = _T("Custom"); break;
         default: break;
     }
 
@@ -1493,8 +1412,6 @@ void Wiz::RegisterWizard()
             func(&Wiz::EnableWindow, "EnableWindow").
             func(&Wiz::SetTextControlValue, "SetTextControlValue").
             func(&Wiz::GetTextControlValue, "GetTextControlValue").
-            func(&Wiz::SetSpinControlValue, "SetSpinControlValue").
-            func(&Wiz::GetSpinControlValue, "GetSpinControlValue").
             func(&Wiz::CheckCheckbox, "CheckCheckbox").
             func(&Wiz::IsCheckboxChecked, "IsCheckboxChecked").
             func(&Wiz::FillComboboxWithCompilers, "FillComboboxWithCompilers").
@@ -1508,10 +1425,6 @@ void Wiz::RegisterWizard()
             func(&Wiz::GetListboxSelections, "GetListboxSelections").
             func(&Wiz::GetListboxStringSelections, "GetListboxStringSelections").
             func(&Wiz::SetListboxSelection, "SetListboxSelection").
-            func(&Wiz::GetCheckListboxChecked, "GetCheckListboxChecked").
-            func(&Wiz::GetCheckListboxStringChecked, "GetCheckListboxStringChecked").
-            func(&Wiz::IsCheckListboxItemChecked, "IsCheckListboxItemChecked").
-            func(&Wiz::CheckCheckListboxItem, "CheckCheckListboxItem").
             // get various common info
             func(&Wiz::GetWizardType, "GetWizardType").
             func(&Wiz::FindTemplateFile, "FindTemplateFile").

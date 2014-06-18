@@ -22,7 +22,7 @@
 				<Option object_output="../../../.objs/plugins/contrib/wxSmith" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --multiple-instance -na -ns -nd -p debug" />
+				<Option parameters="--debug-log --multiple-instance -na -ns -nd" />
 				<Option host_application="..\..\..\devel\codeblocks.exe" />
 				<Option run_host_application_in_terminal="0" />
 				<Linker>
@@ -64,11 +64,6 @@
 			<Add directory="..\..\..\include\scripting\sqplus" />
 			<Add directory="..\..\..\include\scripting\bindings" />
 			<Add directory="..\..\..\include\mozilla_chardet" />
-			<Add directory="..\..\..\include\mozilla_chardet\mfbt" />
-			<Add directory="..\..\..\include\mozilla_chardet\nsprpub\pr\include" />
-			<Add directory="..\..\..\include\mozilla_chardet\xpcom" />
-			<Add directory="..\..\..\include\mozilla_chardet\xpcom\base" />
-			<Add directory="..\..\..\include\mozilla_chardet\xpcom\glue" />
 		</Compiler>
 		<ResourceCompiler>
 			<Add directory="$(#WX.include)" />

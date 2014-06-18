@@ -263,14 +263,13 @@ inline size_t SearchTreeNode::GetItemNo(size_t depth)
 
 size_t SearchTreeNode::AddItemNo(size_t depth, size_t itemno)
 {
-    // do a search in the item map, the key is the depth, the value is the associated number
     SearchTreeItemsMap::const_iterator found = m_Items.find(depth);
-    if (found == m_Items.end()) // the specified depth not found, so we add one
+    if (found == m_Items.end())
         m_Items[depth]=itemno;
-    else if (found->second==0)  // find an item of specified depth, but its value is not correct, so fix it.
+    else if (found->second==0)
         m_Items[depth]=itemno;
     else
-        itemno = found->second; // item already exists in the node, just return its associated value
+        itemno = found->second;
     return itemno;
 }
 
@@ -321,29 +320,7 @@ inline unsigned int SearchTreeNode::GetLabelStartDepth() const
     return (m_Depth - m_LabelLen);
 }
 
-/** Let's give an example about the algorithm of GetDeepestMatchingPosition, see the tree below
- *   - "" (0)
- *         \- "p" (4)
- *                 +- "hysi" (2)
- *                 |          +- "cs" (1)
- *                 |          \- "ology" (3)
- *                 \- "sychic" (5)
- *
- * Now, suppose that
- * the label is a long string "0123456789psychic"
- *                                       |@
- * '|' donates the StringStartDepth position, '@' donates the current Node's start depth.
- * Now, we have a string s = "psychABC", we should actually starting comparing the two string from "s".
- * compare the two strings:
- *
- *       0123456789psychic
- *                 psychABC
- *                  ^   ~
- * Here, '^' donates the m_LabelStart of current node, '~' donates the deepest match point.
- */
-inline unsigned int SearchTreeNode::GetDeepestMatchingPosition(BasicSearchTree* tree,
-                                                               const wxString& s,
-                                                               unsigned int StringStartDepth)
+inline unsigned int SearchTreeNode::GetDeepestMatchingPosition(BasicSearchTree* tree, const wxString& s,unsigned int StringStartDepth)
 {
     if (StringStartDepth >= GetDepth())
         return GetDepth();
@@ -351,7 +328,7 @@ inline unsigned int SearchTreeNode::GetDeepestMatchingPosition(BasicSearchTree* 
     if (StringStartDepth + s.length() <= GetLabelStartDepth())
         return StringStartDepth + s.length();
     // StringStartDepth + s.length() = string's depth. It must be greater
-    // than the label's start depth, otherwise there's an error.
+    //   than the label's start depth, otherwise there's an error.
     // Example: If StringStartDepth = 0, s.length() = 1, then string's depth = 1.
     // If the parent node's depth = 1, it means the comparison should belong
     // to the parent node's edge (the first character in the  tree), not this one.
@@ -398,8 +375,6 @@ void SearchTreeNode::UpdateItems(BasicSearchTree* tree)
     size_t mindepth = parentnode->GetDepth();
     SearchTreeItemsMap::const_iterator i;
     newmap.clear();
-    // some of the items should be moved to parent's item map, because the parent node's depth
-    // is changed
     for (i = m_Items.begin();i!=m_Items.end();i++)
     {
         if (i->first <= mindepth)
@@ -613,7 +588,6 @@ bool BasicSearchTree::FindNode(const wxString& s, nSearchTreeNode nparent, Searc
     do
     {
         parentnode = m_Nodes[nparent];
-        // FIXME (ollydbg#1#): Do not check s.IsEmpty() here, because it was checked before
         if (s.IsEmpty() || curpos >= s.length() ) // If string is empty, return the node and its vertex's length
         {
             if (result)
@@ -655,11 +629,7 @@ bool BasicSearchTree::FindNode(const wxString& s, nSearchTreeNode nparent, Searc
     return found;
 }
 
-SearchTreeNode* BasicSearchTree::CreateNode(unsigned int depth,
-                                            nSearchTreeNode parent,
-                                            nSearchTreeLabel label,
-                                            unsigned int labelstart,
-                                            unsigned int labellen)
+SearchTreeNode* BasicSearchTree::CreateNode(unsigned int depth,nSearchTreeNode parent,nSearchTreeLabel label, unsigned int labelstart, unsigned int labellen)
 {
     return new SearchTreeNode(depth,parent,label,labelstart,labellen);
 }
@@ -675,7 +645,7 @@ SearchTreePoint BasicSearchTree::AddNode(const wxString& s, nSearchTreeNode npar
 
         // If necessary, split the edge with a new node 'middle'
         // If result is exactly a node, middle will be just result.n.
-        nSearchTreeNode middle = SplitBranch(result.n, result.depth);
+        nSearchTreeNode middle = SplitBranch(result.n,result.depth);
 
         // Now add the node to the middle node
         SearchTreeNode* newnode;
@@ -822,20 +792,17 @@ size_t BasicSearchTree::FindMatches(const wxString& s, std::set<size_t>& result,
 
 size_t BasicSearchTree::insert(const wxString& s)
 {
-    // there are already m_Points[0]---m_Points[size()-1], so we add a new item number which is size()
     size_t itemno = m_Points.size();
     size_t result = 0;
     SearchTreePoint resultpos;
-    resultpos = AddNode(s, 0); //the second argument 0 means the root node
-    // add a pair (resultpos.depth -> itemno) to the result node
+    resultpos = AddNode(s, 0);
     result = m_Nodes[resultpos.n]->AddItemNo(resultpos.depth, itemno);
-    // m_Points.size() may be extended by one after AddNode() did add a true item point
-    if (m_Points.size() < result)   // FIXME (ollydbg#1#): How does this happen?
+    if (m_Points.size() < result)
     {
         m_Points.resize(result,SearchTreePoint(0,0));
         m_Points[result] = resultpos;
     }
-    else if (m_Points.size() == result) //record the new added item point in this case
+    else if (m_Points.size() == result)
         m_Points.push_back(resultpos);
 
     return result;
@@ -1043,7 +1010,7 @@ wxString BasicSearchTree::SerializeLabel(nSearchTreeLabel labelno)
     wxString label = m_Labels[labelno];
     result = SearchTreeNode::SerializeString(label);
     return result;
-}
+};
 
 wxString BasicSearchTree::SerializeLabels()
 {

@@ -3,12 +3,14 @@
  * http://www.gnu.org/licenses/gpl-3.0.html
  */
 
+#ifdef __WXMSW__ // For Windows Only
+
 #ifndef COMPILEROWGENERATOR_H
 #define COMPILEROWGENERATOR_H
 
 #include <compilercommandgenerator.h>
 
-//Overridden to fix OpenWatcom Linking Problem (@Biplab)
+//Overriden to fix OpenWatcom Linking Problem (@Biplab)
 
 class CompilerOWGenerator : public CompilerCommandGenerator
 {
@@ -35,3 +37,5 @@ class CompilerOWGenerator : public CompilerCommandGenerator
 
 
 #endif // COMPILEROWGENERATOR_H
+
+#endif // __WXMSW__

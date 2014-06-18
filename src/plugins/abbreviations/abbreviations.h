@@ -1,8 +1,3 @@
-/*
- * This file is part of the Code::Blocks IDE and licensed under the GNU General Public License, version 3
- * http://www.gnu.org/licenses/gpl-3.0.html
- */
-
 #ifndef ABBREVIATIONS_H_INCLUDED
 #define ABBREVIATIONS_H_INCLUDED
 
@@ -16,10 +11,6 @@
 #include <cbplugin.h> // for "class cbPlugin"
 
 WX_DECLARE_STRING_HASH_MAP(wxString, AutoCompleteMap);
-
-WX_DECLARE_STRING_HASH_MAP(AutoCompleteMap*, AutoCompLanguageMap);
-
-extern wxString defaultLanguageStr;
 
 class Abbreviations : public cbPlugin
 {
@@ -114,9 +105,6 @@ private:
     void LoadAutoCompleteConfig();
     void SaveAutoCompleteConfig();
 
-    void ClearAutoCompLanguageMap();
-    AutoCompleteMap* GetCurrentACMap(cbEditor* ed);
-
 private:
     void OnEditAutoComplete(cb_unused wxCommandEvent& event);
     void OnEditMenuUpdateUI(wxUpdateUIEvent& event);
@@ -126,8 +114,8 @@ public:
 
 private:
     friend class AbbreviationsConfigPanel;
-    AutoCompLanguageMap m_AutoCompLanguageMap;
 
+    AutoCompleteMap m_AutoCompleteMap;
     int             m_EditorHookId;
     bool            m_IsAutoCompVisible; //!< is AutoComp opened by Abbreviations
 private:

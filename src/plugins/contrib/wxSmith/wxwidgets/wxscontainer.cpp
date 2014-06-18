@@ -230,7 +230,6 @@ void wxsContainer::AddChildrenCode()
             return;
         }
 
-        case wxsUnknownLanguage:
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsContainer::AddChildrenCode"),GetLanguage());

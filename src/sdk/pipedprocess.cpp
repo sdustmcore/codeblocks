@@ -16,7 +16,7 @@
     #include "globals.h"
 #endif
 
-// The following class is created to override wxTextStream::ReadLine()
+// The folowing class is created to override wxTextStream::ReadLine()
 class cbTextInputStream : public wxTextInputStream
 {
     protected:
@@ -39,7 +39,7 @@ class cbTextInputStream : public wxTextInputStream
         ~cbTextInputStream(){}
 
 
-        // The following function was copied verbatim from wxTextStream::NextChar()
+        // The folowing function was copied verbatim from wxTextStream::NextChar()
         // The only change, is the removal of the MB2WC function
         // With PipedProcess we work with compilers/debuggers which (usually) don't
         // send us unicode (at least GDB).
@@ -48,17 +48,17 @@ class cbTextInputStream : public wxTextInputStream
         #if wxUSE_UNICODE
             wxChar wbuf[2];
             memset((void*)m_lastBytes, 0, 10);
-            for (size_t inlen = 0; inlen < 9; inlen++)
+            for(size_t inlen = 0; inlen < 9; inlen++)
             {
                 // actually read the next character
                 m_lastBytes[inlen] = m_input.GetC();
 
-                if (m_input.LastRead() <= 0)
+                if(m_input.LastRead() <= 0)
                     return wxEOT;
                 if (m_allowMBconversion)
                 {
                     int retlen = (int) m_conv->MB2WC(wbuf, m_lastBytes, 2); // returns -1 for failure
-                    if (retlen >= 0) // res == 0 could happen for '\0' char
+                    if(retlen >= 0) // res == 0 could happen for '\0' char
                         return wbuf[0];
                 }
                 else
@@ -69,14 +69,14 @@ class cbTextInputStream : public wxTextInputStream
         #else
             m_lastBytes[0] = m_input.GetC();
 
-            if (m_input.LastRead() <= 0)
+            if(m_input.LastRead() <= 0)
                 return wxEOT;
 
             return m_lastBytes[0];
         #endif
         }
 
-        // The following function was copied verbatim from wxTextStream::ReadLine()
+        // The folowing function was copied verbatim from wxTextStream::ReadLine()
         // The only change, is the addition of m_input.CanRead() in the while()
         wxString ReadLine()
         {
@@ -85,7 +85,7 @@ class cbTextInputStream : public wxTextInputStream
             while ( m_input.CanRead() && !m_input.Eof() )
             {
                 wxChar c = NextChar();
-                if (m_input.LastRead() <= 0)
+                if(m_input.LastRead() <= 0)
                     break;
 
                 if ( !m_input )
@@ -152,16 +152,16 @@ void PipedProcess::SendString(const wxString& text)
 void PipedProcess::ForfeitStreams()
 {
     char buf[4096];
-    if ( IsErrorAvailable() )
+    if (IsErrorAvailable())
     {
         wxInputStream *in = GetErrorStream();
-        while (in->Read(&buf, sizeof(buf)).LastRead())
+        while(in->Read(&buf, sizeof(buf)).LastRead())
             ;
     }
-    if ( IsInputAvailable() )
+    if (IsInputAvailable())
     {
         wxInputStream *in = GetInputStream();
-        while (in->Read(&buf, sizeof(buf)).LastRead())
+        while(in->Read(&buf, sizeof(buf)).LastRead())
             ;
     }
 }
@@ -213,7 +213,7 @@ void PipedProcess::OnTerminate(int /*pid*/, int status)
     wxPostEvent(m_Parent, event);
 
     if (m_pvThis)
-        *m_pvThis = nullptr;
+        *m_pvThis = 0L;
     delete this;
 }
 

@@ -8,13 +8,6 @@
 
 #include "settings.h"
 
-//uncomment the below line if you want to do the hook performance measure
-//#define EDITOR_HOOK_PERFORMANCE_MEASURE
-
-#ifdef EDITOR_HOOK_PERFORMANCE_MEASURE
-    #include <typeinfo> // typeid
-#endif // EDITOR_HOOK_PERFORMANCE_MEASURE
-
 class cbEditor;
 class cbSmartIndentPlugin;
 class wxScintillaEvent;
@@ -22,17 +15,12 @@ class wxScintillaEvent;
 /** Provides static functions to add hooks to the editor modification operations. */
 namespace EditorHooks
 {
-    /** Abstract base hook functor interface. Similar to cbEventFunctor class*/
+    /** Abstract base hook functor interface. */
     class DLLIMPORT HookFunctorBase
     {
         public:
             virtual ~HookFunctorBase(){}
             virtual void Call(cbEditor*, wxScintillaEvent&) const = 0;
-
-#ifdef EDITOR_HOOK_PERFORMANCE_MEASURE
-            virtual const char* GetTypeName() const = 0;
-#endif // EDITOR_HOOK_PERFORMANCE_MEASURE
-
     };
 
     /** Functor class for use as a editor modification operations hook.
@@ -47,7 +35,7 @@ namespace EditorHooks
       * EditorHooks::UnregisterHook(id, true);
       *
       * Member functions used as hook callbacks must have the following signature:
-      * void YourFunctionName(cbEditor*, wxScintillaEvent&)
+      * void YourFunctionName(cbEditor*, wxScintillaEvent*)
       */
     template<class T> class HookFunctor : public HookFunctorBase
     {
@@ -60,15 +48,6 @@ namespace EditorHooks
                 if (m_pObj && m_pFunc)
                     (m_pObj->*m_pFunc)(editor, event);
             }
-
-#ifdef EDITOR_HOOK_PERFORMANCE_MEASURE
-            /** return the name (usually mangled C++ name for the member function) */
-            virtual const char* GetTypeName() const
-            {
-                return typeid(m_pFunc).name();
-            }
-#endif // EDITOR_HOOK_PERFORMANCE_MEASURE
-
         protected:
             T* m_pObj;
             Func m_pFunc;
@@ -112,17 +91,9 @@ namespace EditorHooks
               * @param event  The wxScintilla event fired to react accordingly (see cbEditor::CreateEditor, namely scintilla_events)
               */
             virtual void Call(cbEditor* editor, wxScintillaEvent& event) const;
-
-#ifdef EDITOR_HOOK_PERFORMANCE_MEASURE
-            virtual const char* GetTypeName() const
-            {
-                return typeid(m_plugin).name();
-            }
-#endif // EDITOR_HOOK_PERFORMANCE_MEASURE
-
         private:
             cbSmartIndentPlugin* m_plugin;
     };
-}
+};
 
 #endif // EDITOR_HOOKS_H

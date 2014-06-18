@@ -46,23 +46,18 @@ void CompilerOptions::ClearOptions()
     m_Options.Clear();
 }
 
-void CompilerOptions::AddOption(CompOption* coption, int index)
+void CompilerOptions::AddOption(CompOption* coption)
 {
-    if (index == -1)
-        m_Options.Add(coption);
-    else
-        m_Options.Insert(coption, index);
+    m_Options.Add(coption);
 }
 
 void CompilerOptions::AddOption(const wxString& name,
                                 const wxString& option,
                                 const wxString& category,
                                 const wxString& additionalLibs,
+                                bool doChecks,
                                 const wxString& checkAgainst,
-                                const wxString& checkMessage,
-                                const wxString& supersedes,
-                                bool exclusive,
-                                int index)
+                                const wxString& checkMessage)
 {
     if (name.IsEmpty() || (option.IsEmpty() && additionalLibs.IsEmpty()))
         return;
@@ -80,18 +75,10 @@ void CompilerOptions::AddOption(const wxString& name,
     coption->additionalLibs = additionalLibs;
     coption->enabled = false;
     coption->category = category;
+    coption->doChecks = doChecks;
     coption->checkAgainst = checkAgainst;
     coption->checkMessage = checkMessage;
-    coption->supersedes = supersedes;
-    coption->exclusive = exclusive;
-    AddOption(coption, index);
-}
-
-void CompilerOptions::RemoveOption(int index)
-{
-    CompOption* coption = m_Options.Item(index);
-    delete coption;
-    m_Options.RemoveAt(index);
+    AddOption(coption);
 }
 
 CompOption* CompilerOptions::GetOptionByName(const wxString& name)
@@ -102,7 +89,7 @@ CompOption* CompilerOptions::GetOptionByName(const wxString& name)
         if (coption->name == name)
             return coption;
     }
-    return nullptr;
+    return 0L;
 }
 
 CompOption* CompilerOptions::GetOptionByOption(const wxString& option)
@@ -113,7 +100,7 @@ CompOption* CompilerOptions::GetOptionByOption(const wxString& option)
         if (coption->option == option)
             return coption;
     }
-    return nullptr;
+    return 0L;
 }
 
 CompOption* CompilerOptions::GetOptionByAdditionalLibs(const wxString& libs)
@@ -124,5 +111,5 @@ CompOption* CompilerOptions::GetOptionByAdditionalLibs(const wxString& libs)
         if (coption->additionalLibs == libs)
             return coption;
     }
-    return nullptr;
+    return 0L;
 }

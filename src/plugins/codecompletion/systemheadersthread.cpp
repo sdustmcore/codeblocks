@@ -49,15 +49,6 @@
     #define TRACE2(format, args...)
 #endif
 
-
-// when finished collecting all files, the thread are going to die, send this event
-long idSystemHeadersThreadFinish = wxNewId();
-// when collect all files under one path, send this event
-long idSystemHeadersThreadUpdate = wxNewId();
-// could not open the path, send an error event
-long idSystemHeadersThreadError  = wxNewId();
-
-
 // internal class declaration of HeaderDirTraverser (implementation below)
 
 class HeaderDirTraverser : public wxDirTraverser
@@ -66,39 +57,18 @@ public:
     HeaderDirTraverser(wxThread* thread, wxCriticalSection* critSect,
                        SystemHeadersMap& headersMap, const wxString& searchDir);
     virtual ~HeaderDirTraverser();
-
-    /** call back function when we meet a file */
     virtual wxDirTraverseResult OnFile(const wxString& filename);
-
-    /** call back function when we meet a dir */
     virtual wxDirTraverseResult OnDir(const wxString& dirname);
-
-    /** this function will be called every time we meet a file or a dir, and we count the file and
-     * dir, we temporary leave the critical section to give other thread a change to access the file
-     * maps.
-     */
     void AddLock(bool is_file);
 
 private:
-    /* the thread call Traverse() on this instance*/
     wxThread*               m_Thread;
-    /* critical section to protect accessing m_SystemHeadersMap */
     wxCriticalSection*      m_SystemHeadersThreadCS;
-    /* dir to files map, for example, you are two dirs c:/a and c:/b
-     * so the map looks like: (usually the relative file path is stored
-     * c:/a  ---> {c:/a/a1.h, c:/a/a2.h} ---> {a1.h, a2.h}
-     * c:/b  ---> {c:/b/b1.h, c:/b/b2.h} ---> {b1.h, b2.h}
-     */
     const SystemHeadersMap& m_SystemHeadersMap;
-    /* top level dir we are traversing header files */
     const wxString&         m_SearchDir;
-    /* string set for header files */
     StringSet&              m_Headers;
-    /** indicates whether the critical section is entered or not, used in AddLock() function*/
     bool                    m_Locked;
-    /* numbers of dirs in the traversing */
     size_t                  m_Dirs;
-    /* numbers of files in the traversing */
     size_t                  m_Files;
 };
 
@@ -137,17 +107,16 @@ void* SystemHeadersThread::Entry()
             }
         }
     }
-    // collect header files in each dir, this is done by HeaderDirTraverser
+
     for (size_t i=0; i<dirs.GetCount(); ++i)
     {
         if ( TestDestroy() )
             break;
 
-        // check the dir is ready for traversing
         wxDir dir(dirs[i]);
         if ( !dir.IsOpened() )
         {
-            CodeBlocksThreadEvent evt(wxEVT_COMMAND_MENU_SELECTED, idSystemHeadersThreadError);
+            wxCommandEvent evt(wxEVT_COMMAND_MENU_SELECTED, SystemHeadersThreadHelper::idSystemHeadersThreadError);
             evt.SetClientData(this);
             evt.SetString(wxString::Format(_T("SystemHeadersThread: Unable to open: %s"), dirs[i].wx_str()));
             wxPostEvent(m_Parent, evt);
@@ -164,7 +133,7 @@ void* SystemHeadersThread::Entry()
         if ( TestDestroy() )
             break;
 
-        CodeBlocksThreadEvent evt(wxEVT_COMMAND_MENU_SELECTED, idSystemHeadersThreadUpdate);
+        wxCommandEvent evt(wxEVT_COMMAND_MENU_SELECTED, SystemHeadersThreadHelper::idSystemHeadersThreadUpdate);
         evt.SetClientData(this);
         evt.SetString(wxString::Format(_T("SystemHeadersThread: %s , %lu"), dirs[i].wx_str(), static_cast<unsigned long>(m_SystemHeadersMap[dirs[i]].size())));
         wxPostEvent(m_Parent, evt);
@@ -172,7 +141,7 @@ void* SystemHeadersThread::Entry()
 
     if ( !TestDestroy() )
     {
-        CodeBlocksThreadEvent evt(wxEVT_COMMAND_MENU_SELECTED, idSystemHeadersThreadFinish);
+        wxCommandEvent evt(wxEVT_COMMAND_MENU_SELECTED, SystemHeadersThreadHelper::idSystemHeadersThreadCompleted);
         evt.SetClientData(this);
         if (!dirs.IsEmpty())
             evt.SetString(wxString::Format(_T("SystemHeadersThread: Total number of paths: %lu"), static_cast<unsigned long>(dirs.GetCount())));
@@ -209,12 +178,10 @@ HeaderDirTraverser::~HeaderDirTraverser()
 
 wxDirTraverseResult HeaderDirTraverser::OnFile(const wxString& filename)
 {
-    // HeaderDirTraverser is used in a worker thread, so call TestDestroy() as often as it can to
-    // quickly terminate the thread
     if (m_Thread->TestDestroy())
         return wxDIR_STOP;
 
-    AddLock(true); // true means we are adding a file
+    AddLock(true);
 
     wxFileName fn(filename);
     if (!fn.HasExt() || fn.GetExt().GetChar(0) == _T('h'))
@@ -230,12 +197,10 @@ wxDirTraverseResult HeaderDirTraverser::OnFile(const wxString& filename)
 
 wxDirTraverseResult HeaderDirTraverser::OnDir(const wxString& dirname)
 {
-    // HeaderDirTraverser is used in a worker thread, so call TestDestroy() as often as it can to
-    // quickly terminate the thread
     if (m_Thread->TestDestroy())
         return wxDIR_STOP;
 
-    AddLock(false); // false means we are adding a dir
+    AddLock(false);
 
     wxString path(dirname);
     if (path.Last() != wxFILE_SEP_PATH)
@@ -249,10 +214,7 @@ wxDirTraverseResult HeaderDirTraverser::OnDir(const wxString& dirname)
 
 void HeaderDirTraverser::AddLock(bool is_file)
 {
-    if (is_file)
-        m_Files++;
-    else
-        m_Dirs++;
+    if (is_file) m_Files++; else m_Dirs++;
 
     if ((m_Files+m_Dirs) % 100 == 1)
     {

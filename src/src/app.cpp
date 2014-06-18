@@ -41,8 +41,6 @@
 #include "cbstyledtextctrl.h"
 #include <wx/ipc.h>
 
-#include "projectmanagerui.h"
-
 #include <sqplus.h>
 
 #ifndef __WXMSW__
@@ -68,7 +66,7 @@
 #endif
 
 #ifndef __WXMAC__
-inline wxString GetResourcesDir(){ return wxEmptyString; }
+wxString GetResourcesDir(){ return wxEmptyString; };
 #endif
 
 namespace
@@ -93,11 +91,7 @@ class DDEConnection : public wxConnection
 {
     public:
         DDEConnection(MainFrame* frame) : m_Frame(frame) { ; }
-#if wxCHECK_VERSION(2, 9, 5)
-        bool OnExecute(const wxString& topic, const void *data, size_t size, wxIPCFormat format);
-#else
         bool OnExecute(const wxString& topic, wxChar *data, int size, wxIPCFormat format);
-#endif
         bool OnDisconnect();
     private:
         MainFrame* m_Frame;
@@ -105,16 +99,12 @@ class DDEConnection : public wxConnection
 
 wxConnectionBase* DDEServer::OnAcceptConnection(const wxString& topic)
 {
-    return topic == DDE_TOPIC ? new DDEConnection(m_Frame) : nullptr;
+    return topic == DDE_TOPIC ? new DDEConnection(m_Frame) : 0L;
 }
 
-#if wxCHECK_VERSION(2, 9, 5)
-bool DDEConnection::OnExecute(cb_unused const wxString& topic, const void *data, cb_unused size_t size, cb_unused wxIPCFormat format)
-#else
 bool DDEConnection::OnExecute(cb_unused const wxString& topic, wxChar *data, cb_unused int size, cb_unused wxIPCFormat format)
-#endif
 {
-    wxString strData((wxChar*)data);
+    wxString strData(data);
 
     if (strData.StartsWith(_T("[IfExec_Open(\"")))
         return false; // let Shell Open handle the request as we *know* that we have registered the Shell Open command, too
@@ -168,12 +158,12 @@ bool DDEConnection::OnDisconnect()
     return true;
 }
 
-DDEServer* g_DDEServer = nullptr;
+DDEServer* g_DDEServer = 0L;
 
 class DDEClient: public wxClient {
     public:
         DDEClient(void) {}
-        wxConnectionBase *OnMakeConnection(void) { return new DDEConnection(nullptr); }
+        wxConnectionBase *OnMakeConnection(void) { return new DDEConnection(0l); }
 };
 
 #if wxUSE_CMDLINE_PARSER
@@ -212,8 +202,6 @@ const wxCmdLineEntryDesc cmdLineDesc[] =
       wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
     { wxCMD_LINE_OPTION, CMD_ENTRY(""),   CMD_ENTRY("prefix"),                CMD_ENTRY("the shared data dir prefix"),
       wxCMD_LINE_VAL_STRING, wxCMD_LINE_NEEDS_SEPARATOR },
-    { wxCMD_LINE_OPTION, CMD_ENTRY(""),   CMD_ENTRY("user-data-dir"),         CMD_ENTRY("set a custom location for user settings and plugins"),
-      wxCMD_LINE_VAL_STRING, wxCMD_LINE_NEEDS_SEPARATOR },
     { wxCMD_LINE_OPTION, CMD_ENTRY("p"),  CMD_ENTRY("personality"),           CMD_ENTRY("the personality to use: \"ask\" or <personality-name>"),
       wxCMD_LINE_VAL_STRING, wxCMD_LINE_NEEDS_SEPARATOR },
     { wxCMD_LINE_SWITCH, CMD_ENTRY(""),   CMD_ENTRY("no-log"),                CMD_ENTRY("turn off the application log"),
@@ -249,12 +237,12 @@ const wxCmdLineEntryDesc cmdLineDesc[] =
 class Splash
 {
     public:
-        Splash(const bool show) : m_pSplash(nullptr)
+        Splash(const bool show) : m_pSplash(0)
         {
             if (show)
             {
-                wxBitmap bmp = cbLoadBitmap(ConfigManager::ReadDataPath() + _T("/images/splash_1312.png"));
-                m_pSplash = new cbSplashScreen(bmp, -1, nullptr, -1, wxNO_BORDER | wxFRAME_NO_TASKBAR | wxFRAME_SHAPED);
+                wxBitmap bmp = cbLoadBitmap(ConfigManager::ReadDataPath() + _T("/images/splash_1211.png"));
+                m_pSplash = new cbSplashScreen(bmp, -1, 0, -1, wxNO_BORDER | wxFRAME_NO_TASKBAR | wxFRAME_SHAPED);
                 Manager::Yield();
             }
         }
@@ -267,13 +255,13 @@ class Splash
             if (m_pSplash)
             {
                 m_pSplash->Destroy();
-                m_pSplash = nullptr;
+                m_pSplash = 0;
             }
         }
     private:
         cbSplashScreen* m_pSplash;
 };
-} // namespace
+}; // namespace
 
 IMPLEMENT_APP(CodeBlocksApp) // TODO: This gives a "redundant declaration" warning, though I think it's false. Dig through macro and check.
 
@@ -283,11 +271,7 @@ BEGIN_EVENT_TABLE(CodeBlocksApp, wxApp)
 END_EVENT_TABLE()
 
 #ifdef __WXMAC__
-#if wxCHECK_VERSION(2,9,0)
-#include "wx/osx/core/cfstring.h"
-#else
 #include "wx/mac/corefoundation/cfstring.h"
-#endif
 #include "wx/intl.h"
 
 #include <CoreFoundation/CFBundle.h>
@@ -302,27 +286,14 @@ static wxString GetResourcesDir()
     CFRelease(resourcesURL);
     CFStringRef cfStrPath = CFURLCopyFileSystemPath(absoluteURL,kCFURLPOSIXPathStyle);
     CFRelease(absoluteURL);
-    #if wxCHECK_VERSION(2,9,0)
-      return wxCFStringRef(cfStrPath).AsString(wxLocale::GetSystemEncoding());
-    #else
-      return wxMacCFStringHolder(cfStrPath).AsString(wxLocale::GetSystemEncoding());
-    #endif
+    return wxMacCFStringHolder(cfStrPath).AsString(wxLocale::GetSystemEncoding());
 }
 #endif
 
 bool CodeBlocksApp::LoadConfig()
 {
-    if (ParseCmdLine(nullptr) == -1) // only abort if '--help' was passed in the command line
+    if (ParseCmdLine(0L) == -1) // only abort if '--help' was passed in the command line
         return false;
-
-    if (m_UserDataDir!=wxEmptyString)
-    {
-        // if --user-data-dir=path was specified we tell
-        //ConfigManager (and CfgMgrBldr) about it, which will propagate
-        //it through the app and plugins
-        if ( !ConfigManager::SetUserDataFolder(m_UserDataDir) )
-            return false;
-    }
 
     ConfigManager *cfg = Manager::Get()->GetConfigManager(_T("app"));
 
@@ -389,8 +360,6 @@ void CodeBlocksApp::InitAssociations()
             case ASC_ASSOC_DLG_YES_ALL_FILES:
                 Associations::SetAll();
                 break;
-            default:
-                break;
             };
         }
     }
@@ -447,7 +416,7 @@ MainFrame* CodeBlocksApp::InitFrame()
 
     MainFrame *frame = new MainFrame();
     wxUpdateUIEvent::SetUpdateInterval(100);
-    SetTopWindow(nullptr);
+    SetTopWindow(0);
 
     if (g_DDEServer && m_DDE)
         g_DDEServer->SetFrame(frame); // Set m_Frame in DDE-Server
@@ -489,7 +458,7 @@ void CodeBlocksApp::InitLocale()
     else
         info = wxLocale::GetLanguageInfo(wxLANGUAGE_DEFAULT);
 
-    if (info == nullptr) // should never happen, but who knows...
+    if (info == 0) // should never happen, but who knows...
         return;
 
     m_locale.Init(info->Language);
@@ -518,16 +487,12 @@ void CodeBlocksApp::InitLocale()
 
 bool CodeBlocksApp::OnInit()
 {
-#ifdef __WXMSW__
-    InitCommonControls();
-#endif
-
     wxLog::EnableLogging(true);
 
     SetAppName(_T("codeblocks"));
 
     s_Loading              = true;
-    m_pBatchBuildDialog    = nullptr;
+    m_pBatchBuildDialog    = 0;
     m_BatchExitCode        = 0;
     m_Batch                = false;
     m_BatchNotify          = false;
@@ -581,7 +546,7 @@ bool CodeBlocksApp::OnInit()
         {
             // Create a new client
             DDEClient *client = new DDEClient;
-            DDEConnection* connection = nullptr;
+            DDEConnection* connection = 0l;
             wxLogNull ln; // own error checking implemented -> avoid debug warnings
             connection = (DDEConnection *)client->MakeConnection(_T("localhost"), F(DDE_SERVICE, wxGetUserId().wx_str()), DDE_TOPIC);
 
@@ -641,10 +606,10 @@ bool CodeBlocksApp::OnInit()
         // Now we can start the DDE-/IPC-Server, if we did it earlier we would connect to ourselves
         if (m_DDE && !m_Batch)
         {
-            g_DDEServer = new DDEServer(nullptr);
+            g_DDEServer = new DDEServer(0L);
             g_DDEServer->Create(F(DDE_SERVICE, wxGetUserId().wx_str()));
         }
-        m_pSingleInstance = nullptr;
+        m_pSingleInstance = 0;
         if (   Manager::Get()->GetConfigManager(_T("app"))->ReadBool(_T("/environment/single_instance"), true)
             && !parser.Found(_T("multiple-instance")) )
         {
@@ -668,7 +633,7 @@ bool CodeBlocksApp::OnInit()
 
         Manager::SetBatchBuild(m_Batch || !m_Script.IsEmpty());
         Manager::Get()->GetScriptingManager();
-        MainFrame* frame = nullptr;
+        MainFrame* frame = 0;
         frame = InitFrame();
         m_Frame = frame;
 
@@ -936,30 +901,28 @@ int CodeBlocksApp::BatchJob()
             compiler->CleanWorkspace(m_BatchTarget);
     }
 
-    // The batch build log might have been deleted in
+    // the batch build log might have been deleted in
     // CodeBlocksApp::OnBatchBuildDone().
-    // If it has not, it's still compiling.
-    if (m_pBatchBuildDialog)
-    {
-        // If operation is "--clean", there is no need to display the dialog
-        // as the operation is synchronous and it already has finished by the
-        // time the call to Clean() returned.
-        if (!m_Clean)
-            m_pBatchBuildDialog->ShowModal();
-
-        if ( m_pBatchBuildDialog->IsModal() )
-            m_pBatchBuildDialog->EndModal(wxID_OK);
-        else
-        {
-            m_pBatchBuildDialog->Destroy();
-            m_pBatchBuildDialog = nullptr;
-        }
-    }
+    // if it hasn't, it's still compiling
+    //
+    // also note that if operation is "--clean", there is no need
+    // to display the dialog as the operation is synchronous and it
+    // already has finished by the time the call to Clean() returned...
+    if (!m_Clean && m_pBatchBuildDialog)
+        m_pBatchBuildDialog->ShowModal();
 
     if (tbIcon)
     {
         tbIcon->RemoveIcon();
         delete tbIcon;
+    }
+
+    if (m_pBatchBuildDialog->IsModal())
+        m_pBatchBuildDialog->EndModal(wxID_OK);
+    else
+    {
+        m_pBatchBuildDialog->Destroy();
+        m_pBatchBuildDialog = 0;
     }
 
     return 0;
@@ -997,7 +960,7 @@ void CodeBlocksApp::OnBatchBuildDone(CodeBlocksEvent& event)
         else
         {
             m_pBatchBuildDialog->Destroy();
-            m_pBatchBuildDialog = nullptr;
+            m_pBatchBuildDialog = 0;
         }
     }
 }
@@ -1111,7 +1074,6 @@ int CodeBlocksApp::ParseCmdLine(MainFrame* handlerFrame)
                 {
                     wxString val;
                     parser.Found(_T("prefix"), &m_Prefix);
-                    parser.Found(_T("user-data-dir"), &m_UserDataDir);
 #ifdef __WXMSW__
                     m_DDE = !parser.Found(_T("no-dde"));
                     m_Assocs = !parser.Found(_T("no-check-associations"));
@@ -1171,9 +1133,9 @@ void CodeBlocksApp::SetupPersonality(const wxString& personality)
 
         const wxArrayString items(Manager::Get()->GetPersonalityManager()->GetPersonalitiesList());
 
-        wxSingleChoiceDialog dlg(nullptr, _("Please choose which personality (profile) to load:"),
-                                          _("Personalities (profiles)"),
-                                          items);
+        wxSingleChoiceDialog dlg(0, _("Please choose which personality (profile) to load:"),
+                                    _("Personalities (profiles)"),
+                                    items);
 
         if (dlg.ShowModal() == wxID_OK)
             Manager::Get()->GetPersonalityManager()->SetPersonality(dlg.GetStringSelection());
@@ -1273,12 +1235,10 @@ void CodeBlocksApp::OnAppActivate(wxActivateEvent& event)
         // so : idEditorManagerCheckFiles, EditorManager::OnCheckForModifiedFiles just exist for this workaround
         wxCommandEvent evt(wxEVT_COMMAND_MENU_SELECTED, idEditorManagerCheckFiles);
         wxPostEvent(Manager::Get()->GetEditorManager(), evt);
-        ProjectManagerUI *prjManUI = m_Frame->GetProjectManagerUI();
-        if (prjManUI)
-            prjManUI->CheckForExternallyModifiedProjects();
+        Manager::Get()->GetProjectManager()->CheckForExternallyModifiedProjects();
     }
     cbEditor* ed = Manager::Get()->GetEditorManager()
-                 ? Manager::Get()->GetEditorManager()->GetBuiltinActiveEditor() : nullptr;
+                 ? Manager::Get()->GetEditorManager()->GetBuiltinActiveEditor() : 0;
     if (ed)
     {
         // hack for linux: without it, the editor loses the caret every second activate o.O

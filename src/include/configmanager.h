@@ -54,10 +54,10 @@ namespace ConfigManagerContainer
 {
     typedef std::map<wxString, wxString> StringToStringMap;
     typedef std::map<int, wxString> IntToStringMap;
-    typedef std::set<wxString> StringSet;
+    typedef std::set<wxString> StringSet;;
 
     typedef std::map<wxString, ISerializable*> SerializableObjectMap;
-}
+};
 
 
 /* ------------------------------------------------------------------------------------------------------------------*/
@@ -83,11 +83,10 @@ enum SearchDirs
 
     sdAllGlobal       = 0xf000, ///< Convenience value meaning "all sd*Global values"
 
-    sdAllKnown        = 0xffff  ///< All known dirs (i.e. all of the above)
+    sdAllKnown        = 0xffff, ///< All known dirs (i.e. all of the above)
 };
 
 
-class CodeBlocksApp;
 
 /* ------------------------------------------------------------------------------------------------------------------
 *  ConfigManager class
@@ -95,7 +94,6 @@ class CodeBlocksApp;
 class DLLIMPORT ConfigManager
 {
     friend class CfgMgrBldr;
-    friend class CodeBlocksApp;
 
     TiXmlDocument *doc;
     TiXmlElement* root;
@@ -108,29 +106,17 @@ class DLLIMPORT ConfigManager
     inline void Collapse(wxString& str) const;
     wxString InvalidNameMessage(const wxString& what, const wxString& sub, TiXmlElement *localPath) const;
     static void InitPaths();
-    static inline wxString GetUserConfigDir();
 
     static wxString config_folder;
     static wxString home_folder;
     static wxString data_path_user;
     static wxString data_path_global;
-
 #ifdef CB_AUTOCONF
     static wxString plugin_path_global;
 #endif
     static wxString app_path;
     static wxString temp_folder;
     static bool relo;
-    static wxString alternate_user_data_path;
-    static bool has_alternate_user_data_path;
-
-protected:
-    //For use by the CodeBlocksApp when the --user-data-dir switch is set
-    //all of the user config and user plugin data will be set relative to this path
-    static bool SetUserDataFolder(const wxString &user_data_path);
-
-    //Used by CfgMgrBldr internally by ConfigManager
-    static wxString GetUserDataFolder();
 
 public:
 
@@ -170,12 +156,12 @@ public:
     * Query "standard" paths that work across platforms.
     * NEVER hard-code a path like "C:\CodeBlocks\share\data". Always use one of the following functions to compose a path.
     */
-    static wxString GetHomeFolder() { return GetFolder(sdHome); }
-    static wxString GetConfigFolder(){ return GetFolder(sdConfig); }
+    static wxString GetHomeFolder() { return home_folder; }
+    static wxString GetConfigFolder(){ return config_folder; }
     static wxString GetPluginsFolder(bool global = true){ return GetFolder(global ? sdPluginsGlobal : sdPluginsUser); }
     static wxString GetScriptsFolder(bool global = true){ return GetFolder(global ? sdScriptsGlobal : sdScriptsUser); }
-    static wxString GetDataFolder(bool global = true){ return GetFolder(global ? sdDataGlobal : sdDataUser); }
-    static wxString GetExecutableFolder(){ return GetFolder(sdBase); }
+    static wxString GetDataFolder(bool global = true){ return global ? data_path_global : data_path_user; }
+    static wxString GetExecutableFolder(){ return app_path; }
     static wxString GetTempFolder(){ return GetFolder(sdTemp); }
 
     /*
@@ -308,7 +294,7 @@ public:
                 obj->SerializeIn(wxBase64::Decode(cbC2U(e->FirstChild()->ToText()->Value())));
                 (*map)[cbC2U(e->Value())] = obj;
             }
-    }
+    };
 };
 
 /** Wrapper class for reading or writing config values, without the need for the full path.

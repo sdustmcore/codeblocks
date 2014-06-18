@@ -26,8 +26,6 @@
 #include "wxsparent.h"
 #include "wxsflags.h"
 
-#include <prep.h>
-
 using namespace wxsFlags;
 
 /** \brief Structure containing additional parameters for each widget insidee sizer */
@@ -108,7 +106,7 @@ class wxsSizer: public wxsParent
          * to Quick Props panel. This should be used to properties
          * that are used in one sizer type only.
          */
-        virtual void OnAddSizerQPP(cb_unused wxsAdvQPP* QPP) {}
+        virtual void OnAddSizerQPP(wxsAdvQPP* QPP) {}
 
     private:
 

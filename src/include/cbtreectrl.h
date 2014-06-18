@@ -23,10 +23,6 @@ class cbTreeCtrl : public wxTreeCtrl
         cbTreeCtrl();
         cbTreeCtrl(wxWindow* parent, int id);
         void SetCompareFunction(const int ptvs);
-/*
-        GetPrevVisible appears to be faulty, so override.
-*/
-        virtual wxTreeItemId GetPrevVisible(const wxTreeItemId& item) const;
     protected:
 #ifndef __WXMSW__
 /*

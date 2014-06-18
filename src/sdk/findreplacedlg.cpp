@@ -143,19 +143,7 @@ FindReplaceDlg::FindReplaceDlg(wxWindow* parent, const wxString& initial, bool h
     // load search path options
     XRCCTRL(*this, "txtSearchPath", wxTextCtrl)->SetValue(cfg->Read(CONF_GROUP _T("/search_path"),
                                                                     (active_project ? active_project->GetBasePath() : wxT(""))));
-	if(cfg->Exists(CONF_GROUP _T("/search_mask")))
-	{
-		// Migrate from previous config setting of "search_mask" string (since it used to be a textbox)
-		// to new config setting of "search_masks" array for the combobox
-		XRCCTRL(*this, "cmbSearchMask", wxComboBox)->Append(cfg->Read(CONF_GROUP _T("/search_mask")));
-		cfg->UnSet(CONF_GROUP _T("/search_mask"));
-	}
-	else
-	{
-		FillComboWithLastValues(XRCCTRL(*this, "cmbSearchMask", wxComboBox), CONF_GROUP _T("/search_masks"));
-	}
-    XRCCTRL(*this, "cmbSearchMask", wxComboBox)->SetSelection(0);
-
+    XRCCTRL(*this, "txtSearchMask", wxTextCtrl)->SetValue(cfg->Read(CONF_GROUP _T("/search_mask")));
     XRCCTRL(*this, "chkSearchRecursively", wxCheckBox)->SetValue(cfg->ReadBool(CONF_GROUP _T("/search_recursive"), false));
     XRCCTRL(*this, "chkSearchHidden", wxCheckBox)->SetValue(cfg->ReadBool(CONF_GROUP _T("/search_hidden"), false));
 
@@ -169,11 +157,9 @@ FindReplaceDlg::FindReplaceDlg(wxWindow* parent, const wxString& initial, bool h
             chProject->SetSelection(i);
             chTarget->Clear();
             chTarget->AppendString(_("All project files"));
+            chTarget->SetSelection(0);
             for(int j=0;j<active_project->GetBuildTargetsCount();++j)
                 chTarget->AppendString(active_project->GetBuildTarget(j)->GetTitle());
-            const int targIdx = chTarget->FindString(active_project->GetActiveBuildTarget(), true);
-            chTarget->SetSelection(   cfg->ReadBool(CONF_GROUP _T("/target_scope_all"), true)
-                                   || targIdx < 0 ? 0 : targIdx );
         }
     }
 
@@ -241,7 +227,7 @@ FindReplaceDlg::FindReplaceDlg(wxWindow* parent, const wxString& initial, bool h
         XRCCTRL(*this, "chkDelOldSearchRes2",    wxCheckBox)->Show();
     }
 
-    m_findPage = nullptr;
+    m_findPage = 0;
     if (findReplaceInFilesOnly)
     {
         // Remove, but don't destroy the Find/Replace page until this dialog is destroyed.
@@ -324,12 +310,11 @@ FindReplaceDlg::~FindReplaceDlg()
     cfg->Write(CONF_GROUP _T("/delete_old_searches2"), XRCCTRL(*this, "chkDelOldSearchRes2", wxCheckBox)->GetValue());
 
     cfg->Write(CONF_GROUP _T("/search_path"),      XRCCTRL(*this, "txtSearchPath",        wxTextCtrl)->GetValue());
-    SaveComboValues(XRCCTRL(*this, "cmbSearchMask", wxComboBox), CONF_GROUP _T("/search_masks"));
+    cfg->Write(CONF_GROUP _T("/search_mask"),      XRCCTRL(*this, "txtSearchMask",        wxTextCtrl)->GetValue());
     cfg->Write(CONF_GROUP _T("/search_recursive"), XRCCTRL(*this, "chkSearchRecursively", wxCheckBox)->GetValue());
     cfg->Write(CONF_GROUP _T("/search_hidden"),    XRCCTRL(*this, "chkSearchHidden",      wxCheckBox)->GetValue());
-    cfg->Write(CONF_GROUP _T("/target_scope_all"),(XRCCTRL(*this, "chTarget",             wxChoice)->GetSelection() == 0));
 
-    if (m_findPage!=nullptr)
+    if (m_findPage!=0)
         m_findPage->Destroy();
 
     Disconnect(XRCID("nbReplace"), wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED, wxNotebookEventHandler(FindReplaceDlg::OnReplaceChange));
@@ -491,7 +476,7 @@ wxString FindReplaceDlg::GetSearchPath() const
 
 wxString FindReplaceDlg::GetSearchMask() const
 {
-    return XRCCTRL(*this, "cmbSearchMask", wxComboBox)->GetValue();
+    return XRCCTRL(*this, "txtSearchMask", wxTextCtrl)->GetValue();
 }
 
 int FindReplaceDlg::GetProject() const
@@ -534,7 +519,7 @@ void FindReplaceDlg::OnScopeChange(cb_unused wxCommandEvent& event)
             XRCCTRL(*this, "pnSearchProject", wxPanel)->Hide();
             break;
     }
-    if (m_findPage==nullptr)
+    if (m_findPage==0)
         (XRCCTRL(*this, "nbReplace", wxNotebook)->GetPage(1))->Layout();
     else
         (XRCCTRL(*this, "nbReplace", wxNotebook)->GetPage(0))->Layout();
@@ -543,7 +528,7 @@ void FindReplaceDlg::OnScopeChange(cb_unused wxCommandEvent& event)
 void FindReplaceDlg::OnBrowsePath(cb_unused wxCommandEvent& event)
 {
     wxString txtSearchPath = XRCCTRL(*this, "txtSearchPath", wxTextCtrl)->GetValue();
-    wxString dir = ChooseDirectory(nullptr, _("Select search path"), txtSearchPath);
+    wxString dir = ChooseDirectory(0, _("Select search path"), txtSearchPath);
     if (!dir.IsEmpty())
         XRCCTRL(*this, "txtSearchPath", wxTextCtrl)->SetValue(dir);
 }
@@ -556,13 +541,11 @@ void FindReplaceDlg::OnSearchProject(cb_unused wxCommandEvent& event)
     if (i<0)
         return;
     cbProject *active_project=(*Manager::Get()->GetProjectManager()->GetProjects())[i];
-    const bool targAll = (chTarget->GetSelection() == 0);
     chTarget->Clear();
     chTarget->AppendString(_("All project files"));
+    chTarget->SetSelection(0);
     for(int j=0;j<active_project->GetBuildTargetsCount();++j)
         chTarget->AppendString(active_project->GetBuildTarget(j)->GetTitle());
-    const int targIdx = chTarget->FindString(active_project->GetActiveBuildTarget(), true);
-    chTarget->SetSelection(targAll || targIdx < 0 ? 0 : targIdx);
 }
 
 void FindReplaceDlg::OnReplaceChange(wxNotebookEvent& event)
@@ -654,7 +637,7 @@ void FindReplaceDlg::OnMultiChange(wxCommandEvent& event)
     wxCheckBox* chkFixEOLs2   = XRCCTRL(*this, "chkFixEOLs2",   wxCheckBox);
 
     bool      enabledMultiLine = false;
-    wxWindow* ctrlToFocus      = nullptr;
+    wxWindow* ctrlToFocus      = 0;
     if (event.GetId() == XRCID("chkMultiLine1"))
     {
         enabledMultiLine = chkMultiLine1->GetValue();
@@ -689,7 +672,7 @@ void FindReplaceDlg::OnMultiChange(wxCommandEvent& event)
 
     //After hiding/showing panels, redo the layout in the notebook pages
     (XRCCTRL(*this, "nbReplace", wxNotebook)->GetPage(0))->Layout();
-    if (m_findPage==nullptr)
+    if (m_findPage==0)
         (XRCCTRL(*this, "nbReplace", wxNotebook)->GetPage(1))->Layout();
 
     Refresh();

@@ -12,8 +12,7 @@ namespace nsHeaderFixUp
 {
   bool IsInsideMultilineComment(wxString& Line);
   bool IsInsideString          (wxString& Line);
-  bool IsNextChar(const wxChar&   NextCharInLine,
-                  const wxChar&   ThisChar,
+  bool IsNextChar(const wxString& ThisChar,const wxChar& NextCharInLine,
                   const wxString& RemainingLine);
 }
 

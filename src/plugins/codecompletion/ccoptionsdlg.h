@@ -13,16 +13,15 @@
 #include "parser/parser.h"
 
 class CodeCompletion;
-class DocumentationHelper;
 
 class CCOptionsDlg : public cbConfigurationPanel
 {
 public:
-    CCOptionsDlg(wxWindow* parent, NativeParser* np, CodeCompletion* cc, DocumentationHelper* dh);
+    CCOptionsDlg(wxWindow* parent, NativeParser* np, CodeCompletion* cc);
     virtual ~CCOptionsDlg();
 
     virtual wxString GetTitle() const          { return _("Code completion"); }
-    virtual wxString GetBitmapBaseName() const { return _T("codecompletion"); }
+    virtual wxString GetBitmapBaseName() const { return _T("generic-plugin"); }
     virtual void OnApply();
     virtual void OnCancel()                    { ; }
 
@@ -39,10 +38,9 @@ private:
     void UpdateCCDelayLabel();
     bool ValidateReplacementToken(wxString& from, wxString& to);
 
-    NativeParser*        m_NativeParser;
-    CodeCompletion*      m_CodeCompletion;
-    ParserBase&          m_Parser;
-    DocumentationHelper* m_Documentation;
+    NativeParser*   m_NativeParser;
+    CodeCompletion* m_CodeCompletion;
+    ParserBase&     m_Parser;
 
     DECLARE_EVENT_TABLE()
 };

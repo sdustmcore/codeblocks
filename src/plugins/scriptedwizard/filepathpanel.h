@@ -1,13 +1,22 @@
 /*
  * This file is part of the Code::Blocks IDE and licensed under the GNU General Public License, version 3
  * http://www.gnu.org/licenses/gpl-3.0.html
+ *
+ * $Revision$
+ * $Id$
+ * $HeadURL$
  */
 
 #ifndef FILEPATHPANEL_H
 #define FILEPATHPANEL_H
 
+#include <wx/wxprec.h>
 
-//(*HeadersPCH(FilePathPanel)
+#ifdef __BORLANDC__
+    #pragma hdrstop
+#endif
+
+//(*Headers(FilePathPanel)
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>

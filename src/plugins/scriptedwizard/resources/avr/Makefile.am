@@ -7,8 +7,4 @@ dist_pkgdata_DATA = logo.png \
 
 filesdir	= $(pkgdatadir)/files
 
-dist_files_DATA	= files/main.c \
-		files/FuseExt.c \
-		files/FuseFuse0to4.c \
-		files/FuseHigh.c \
-		files/FuseLow.c
+dist_files_DATA	= files/main.c

@@ -10,6 +10,7 @@
 // Author:      Robin Dunn
 //
 // Created:     13-Jan-2000
+// RCS-ID:      $Id$
 // Copyright:   (c) 2000 by Total Control Software
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -49,11 +50,7 @@
 #if wxUSE_FFILE
     #include "wx/ffile.h"
 #elif wxUSE_FILE
-    #include "wx/file.h"
-#endif
-
-#ifdef __WXGTK__
-    #include "wx/dcbuffer.h"
+    #include "wx/ffile.h"
 #endif
 
 #include "ScintillaWX.h"
@@ -134,8 +131,6 @@ wxDEFINE_EVENT( wxEVT_STC_INDICATOR_RELEASE, wxStyledTextEvent );
 wxDEFINE_EVENT( wxEVT_STC_AUTOCOMP_CANCELLED, wxStyledTextEvent );
 wxDEFINE_EVENT( wxEVT_STC_AUTOCOMP_CHAR_DELETED, wxStyledTextEvent );
 wxDEFINE_EVENT( wxEVT_STC_HOTSPOT_RELEASE_CLICK, wxStyledTextEvent );
-wxDEFINE_EVENT( wxEVT_STC_CLIPBOARD_COPY, wxStyledTextEvent );
-wxDEFINE_EVENT( wxEVT_STC_CLIPBOARD_PASTE, wxStyledTextEvent );
 
 
 
@@ -357,8 +352,8 @@ void wxStyledTextCtrl::StyleSetFont(int styleNum, wxFont& font) {
 #endif
     int            size     = font.GetPointSize();
     wxString       faceName = font.GetFaceName();
-    bool           bold     = font.GetWeight() == wxFONTWEIGHT_BOLD;
-    bool           italic   = font.GetStyle() != wxFONTSTYLE_NORMAL;
+    bool           bold     = font.GetWeight() == wxBOLD;
+    bool           italic   = font.GetStyle() != wxNORMAL;
     bool           under    = font.GetUnderlined();
     wxFontEncoding encoding = font.GetEncoding();
 
@@ -526,7 +521,7 @@ void wxStyledTextCtrl::DoSetValue(const wxString& value, int flags)
     else
         SetText(value);
 
-    // We don't send wxEVT_TEXT anyhow, so ignore the
+    // We don't send wxEVT_COMMAND_TEXT_UPDATED anyhow, so ignore the
     // SetValue_SendEvent bit of the flags
 }
 
@@ -572,7 +567,7 @@ wxStyledTextCtrl::DoLoadFile(const wxString& filename, int WXUNUSED(fileType))
     if ( file.IsOpened() )
     {
         wxString text;
-        if ( file.ReadAll(&text, wxConvAuto()) )
+        if ( file.ReadAll(&text, *wxConvCurrent) )
         {
             // Detect the EOL: we use just the first line because there is not
             // much we can do if the file uses inconsistent EOLs anyhow, we'd
@@ -628,17 +623,10 @@ bool wxStyledTextCtrl::LoadFile(const wxString& filename)
 #endif // !wxUSE_TEXTCTRL
 
 #if wxUSE_DRAG_AND_DROP
-wxDragResult wxStyledTextCtrl::DoDragEnter(wxCoord x, wxCoord y, wxDragResult def) {
-    return m_swx->DoDragEnter(x, y, def);
-}
-
 wxDragResult wxStyledTextCtrl::DoDragOver(wxCoord x, wxCoord y, wxDragResult def) {
-    return m_swx->DoDragOver(x, y, def);
+        return m_swx->DoDragOver(x, y, def);
 }
 
-void wxStyledTextCtrl::DoDragLeave() {
-    m_swx->DoDragLeave();
-}
 
 bool wxStyledTextCtrl::DoDropText(long x, long y, const wxString& data) {
     return m_swx->DoDropText(x, y, data);
@@ -655,7 +643,7 @@ bool wxStyledTextCtrl::GetUseAntiAliasing() {
 }
 
 void wxStyledTextCtrl::AnnotationClearLine(int line) {
-    SendMsg(SCI_ANNOTATIONSETTEXT, line, (sptr_t)NULL);
+    SendMsg(SCI_ANNOTATIONSETTEXT, line, NULL);
 }
 
 
@@ -762,11 +750,7 @@ void wxStyledTextCtrl::AppendTextRaw(const char* text, int length)
 // Event handlers
 
 void wxStyledTextCtrl::OnPaint(wxPaintEvent& WXUNUSED(evt)) {
-#ifdef __WXGTK__
-    wxBufferedPaintDC dc(this);
-#else
     wxPaintDC dc(this);
-#endif
     m_swx->DoPaint(&dc, GetUpdateRegion().GetBox());
 }
 
@@ -841,11 +825,9 @@ void wxStyledTextCtrl::OnContextMenu(wxContextMenuEvent& evt) {
 
 void wxStyledTextCtrl::OnMouseWheel(wxMouseEvent& evt)
 {
-    m_swx->DoMouseWheel(evt.GetWheelAxis(),
-                        evt.GetWheelRotation(),
+    m_swx->DoMouseWheel(evt.GetWheelRotation(),
                         evt.GetWheelDelta(),
                         evt.GetLinesPerAction(),
-                        evt.GetColumnsPerAction(),
                         evt.ControlDown(),
                         evt.IsPageScroll());
 }
@@ -972,7 +954,7 @@ static void SetEventText(wxStyledTextEvent& evt, const char* text,
                          size_t length) {
     if(!text) return;
 
-    evt.SetString(stc2wx(text, length));
+    evt.SetText(stc2wx(text, length));
 }
 
 
@@ -1174,6 +1156,7 @@ wxStyledTextEvent::wxStyledTextEvent(const wxStyledTextEvent& event):
     m_key =           event.m_key;
     m_modifiers =     event.m_modifiers;
     m_modificationType = event.m_modificationType;
+    m_text =          event.m_text;
     m_length =        event.m_length;
     m_linesAdded =    event.m_linesAdded;
     m_line =          event.m_line;
@@ -1195,6 +1178,7 @@ wxStyledTextEvent::wxStyledTextEvent(const wxStyledTextEvent& event):
     m_updated =      event.m_updated;
 
 #if wxUSE_DRAG_AND_DROP
+    m_dragText =     event.m_dragText;
     m_dragFlags =    event.m_dragFlags;
     m_dragResult =   event.m_dragResult;
 #endif
@@ -1205,7 +1189,7 @@ wxStyledTextEvent::wxStyledTextEvent(const wxStyledTextEvent& event):
 
 /*static*/ wxVersionInfo wxStyledTextCtrl::GetLibraryVersionInfo()
 {
-    return wxVersionInfo("Scintilla", 3, 3, 9, "Scintilla 3.3.9");
+    return wxVersionInfo("Scintilla", 3, 21, 0, "Scintilla 3.21");
 }
 
 #endif // wxUSE_STC

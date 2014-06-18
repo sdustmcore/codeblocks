@@ -8,45 +8,36 @@
  */
 
 #include <sdk.h>
-
-#ifndef CB_PRECOMP
-    #include <wx/button.h>
-    #include <wx/menu.h>
-    #include <wx/radiobut.h>
-    #include <wx/xrc/xmlres.h>
-    #include <wx/intl.h>
-    #include <wx/listctrl.h>
-    #include <wx/combobox.h>
-    #include <wx/choice.h>
-    #include <wx/checkbox.h>
-    #include <wx/checklst.h>
-    #include <wx/radiobox.h>
-    #include <wx/spinctrl.h>
-    #include <wx/colordlg.h>
-    #include <wx/msgdlg.h>
-    #include <wx/imaglist.h>
-    #include <wx/settings.h>
-    #include <wx/stattext.h>
-
-    #include <manager.h>
-    #include <configmanager.h>
-    #include <editormanager.h>
-    #include <pluginmanager.h>
-    #include <logmanager.h>
-    #include "appglobals.h"
-    #include "globals.h"
-    #include "associations.h"
-    #include "cbauibook.h"
-#endif
-
 #include <wx/aui/aui.h>
+#include <wx/button.h>
+#include <wx/menu.h>
+#include <wx/choice.h>
+#include <wx/radiobut.h>
+#include <wx/xrc/xmlres.h>
+#include <manager.h>
+#include <configmanager.h>
+#include <editormanager.h>
+#include <pluginmanager.h>
+#include <wx/intl.h>
 #include <wx/listbook.h>
+#include <wx/listctrl.h>
+#include <wx/combobox.h>
+#include <wx/checkbox.h>
+#include <wx/checklst.h>
+#include <wx/radiobox.h>
+#include <wx/spinctrl.h>
+#include <wx/colordlg.h>
+#include <wx/msgdlg.h>
+#include <wx/imaglist.h>
+#include <wx/settings.h>
+#include <wx/stattext.h>
+#include "appglobals.h"
+#include "globals.h"
+#include "associations.h"
+#include "cbauibook.h"
 
-#include "annoyingdialog.h"
 #include "configurationpanel.h"
 #include "environmentsettingsdlg.h"
-#include "cbcolourmanager.h"
-
 #ifdef __WXMSW__
     #include "associations.h"
 #endif
@@ -63,9 +54,8 @@ const wxString base_imgs[] =
     _T("view"),
     _T("notebook-appearance"),
     _T("colours"),
-    _T("colours"),
     _T("dialogs"),
-    _T("net")
+    _T("net"),
 };
 const int IMAGES_COUNT = sizeof(base_imgs) / sizeof(wxString);
 
@@ -81,6 +71,8 @@ BEGIN_EVENT_TABLE(EnvironmentSettingsDlg, wxScrollingDialog)
     EVT_BUTTON(XRCID("btnAuiInactiveCaptionGradientColour"), EnvironmentSettingsDlg::OnChooseColour)
     EVT_BUTTON(XRCID("btnAuiInactiveCaptionTextColour"), EnvironmentSettingsDlg::OnChooseColour)
     EVT_BUTTON(XRCID("btnResetDefaultColours"), EnvironmentSettingsDlg::OnResetDefaultColours)
+    EVT_BUTTON(XRCID("btnLogWarningTextColour"), EnvironmentSettingsDlg::OnChooseColour)
+    EVT_BUTTON(XRCID("btnLogErrorTextColour"), EnvironmentSettingsDlg::OnChooseColour)
     EVT_CHECKBOX(XRCID("chkUseIPC"), EnvironmentSettingsDlg::OnUseIpcCheck)
     EVT_CHECKBOX(XRCID("chkDoPlace"), EnvironmentSettingsDlg::OnPlaceCheck)
     EVT_CHECKBOX(XRCID("chkPlaceHead"), EnvironmentSettingsDlg::OnHeadCheck)
@@ -89,16 +81,12 @@ BEGIN_EVENT_TABLE(EnvironmentSettingsDlg, wxScrollingDialog)
     EVT_RADIOBOX(XRCID("rbSettingsIconsSize"), EnvironmentSettingsDlg::OnSettingsIconsSize)
     EVT_CHECKBOX(XRCID("chkDblClkMaximizes"), EnvironmentSettingsDlg::OnDblClickMaximizes)
     EVT_CHECKBOX(XRCID("chkNBUseMousewheel"), EnvironmentSettingsDlg::OnUseTabMousewheel)
-
-    EVT_CHOICE(XRCID("chCategory"), EnvironmentSettingsDlg::OnChooseAppColourCategory)
-    EVT_LISTBOX(XRCID("lstColours"), EnvironmentSettingsDlg::OnChooseAppColourItem)
-    EVT_BUTTON(XRCID("btnColour"), EnvironmentSettingsDlg::OnClickAppColour)
-    EVT_BUTTON(XRCID("btnDefaultColour"), EnvironmentSettingsDlg::OnClickAppColour)
+    EVT_LISTBOOK_PAGE_CHANGING(XRCID("nbMain"), EnvironmentSettingsDlg::OnPageChanging)
+    EVT_LISTBOOK_PAGE_CHANGED(XRCID("nbMain"), EnvironmentSettingsDlg::OnPageChanged)
 END_EVENT_TABLE()
 
 EnvironmentSettingsDlg::EnvironmentSettingsDlg(wxWindow* parent, wxAuiDockArt* art)
-    : m_pArt(art),
-    m_pImageList(nullptr)
+    : m_pArt(art)
 {
     ConfigManager *cfg = Manager::Get()->GetConfigManager(_T("app"));
     ConfigManager *pcfg = Manager::Get()->GetConfigManager(_T("project_manager"));
@@ -106,11 +94,15 @@ EnvironmentSettingsDlg::EnvironmentSettingsDlg(wxWindow* parent, wxAuiDockArt* a
     ConfigManager *acfg = Manager::Get()->GetConfigManager(_T("an_dlg"));
 
     wxXmlResource::Get()->LoadObject(this, parent, _T("dlgEnvironmentSettings"),_T("wxScrollingDialog"));
-
+    int sel = cfg->ReadInt(_T("/environment/settings_size"), 0);
+    wxListbook* lb = XRCCTRL(*this, "nbMain", wxListbook);
+    SetSettingsIconsStyle(lb->GetListView(), (SettingsIconsStyle)sel);
     LoadListbookImages();
 
-    Connect(XRCID("nbMain"),wxEVT_COMMAND_LISTBOOK_PAGE_CHANGING,wxListbookEventHandler(EnvironmentSettingsDlg::OnPageChanging));
-    Connect(XRCID("nbMain"),wxEVT_COMMAND_LISTBOOK_PAGE_CHANGED, wxListbookEventHandler(EnvironmentSettingsDlg::OnPageChanged ));
+    // this setting is not available under wxGTK
+    #ifndef __WXMSW__
+    XRCCTRL(*this, "rbSettingsIconsSize", wxRadioBox)->Enable(false);
+    #endif
 
     // tab "General"
     XRCCTRL(*this, "chkShowSplash", wxCheckBox)->SetValue(cfg->ReadBool(_T("/environment/show_splash"), true));
@@ -144,10 +136,8 @@ EnvironmentSettingsDlg::EnvironmentSettingsDlg(wxWindow* parent, wxAuiDockArt* a
     {
         if (platform::id != platform::macosx && platform::id != platform::darwin)
         {
-            combo->Append(wxT("gnome-terminal -t $TITLE -x "));
+            combo->Append(wxT("gnome-terminal --disable-factory -t $TITLE -x "));
             combo->Append(wxT("konsole -e "));
-            combo->Append(wxT("xfce4-terminal -T $TITLE -x "));
-            combo->Append(wxT("terminology -M -T $TITLE -e "));
         }
         wxString terminal = cfg->Read(wxT("/console_terminal"), DEFAULT_CONSOLE_TERM);
         if (!combo->SetStringSelection(terminal))
@@ -168,6 +158,8 @@ EnvironmentSettingsDlg::EnvironmentSettingsDlg(wxWindow* parent, wxAuiDockArt* a
     XRCCTRL(*this, "rbSettingsIconsSize",     wxRadioBox)->SetSelection(cfg->ReadInt(_T("/environment/settings_size"), 0));
     XRCCTRL(*this, "chkShowStartPage",        wxCheckBox)->SetValue(cfg->ReadBool(_T("/environment/start_here_page"), true));
     XRCCTRL(*this, "spnLogFontSize",          wxSpinCtrl)->SetValue(mcfg->ReadInt(_T("/log_font_size"), 8));
+    XRCCTRL(*this, "btnLogWarningTextColour", wxButton)->SetBackgroundColour(mcfg->ReadColour(_T("/log_warning_text_colour"), wxColour(0x00, 0x00, 0xa0) )); //navy blue
+    XRCCTRL(*this, "btnLogErrorTextColour",   wxButton)->SetBackgroundColour(mcfg->ReadColour(_T("/log_error_text_colour"), wxColour(0xf0, 0x00, 0x00) )); //red
 
     bool en = mcfg->ReadBool(_T("/auto_hide"), false);
     XRCCTRL(*this, "chkAutoHideMessages",         wxCheckBox)->SetValue(en);
@@ -205,7 +197,7 @@ EnvironmentSettingsDlg::EnvironmentSettingsDlg(wxWindow* parent, wxAuiDockArt* a
         }
     }
 
-    int sel = XRCCTRL(*this, "choLayoutToToggle", wxChoice)->FindString( cfg->Read(_T("/environment/view/layout_to_toggle"),cfg->Read(_T("/main_frame/layout/default"))));
+    sel = XRCCTRL(*this, "choLayoutToToggle", wxChoice)->FindString( cfg->Read(_T("/environment/view/layout_to_toggle"),cfg->Read(_T("/main_frame/layout/default"))));
     XRCCTRL(*this, "choLayoutToToggle", wxChoice)->SetSelection(sel != wxNOT_FOUND ? sel : 0);
     XRCCTRL(*this, "choLayoutToToggle", wxChoice)->Enable(en);
 
@@ -236,8 +228,8 @@ EnvironmentSettingsDlg::EnvironmentSettingsDlg(wxWindow* parent, wxAuiDockArt* a
 
 
     // tab "Notebook"
-    XRCCTRL(*this, "cmbEditorTabs",               wxChoice)->SetSelection(cfg->ReadInt(_T("/environment/tabs_style"), 0));
-    XRCCTRL(*this, "cmbTabCloseStyle",            wxChoice)->SetSelection(cfg->ReadInt(_T("/environment/tabs_closestyle"), 0));
+    XRCCTRL(*this, "cmbEditorTabs",               wxComboBox)->SetSelection(cfg->ReadInt(_T("/environment/tabs_style"), 0));
+    XRCCTRL(*this, "cmbTabCloseStyle",            wxComboBox)->SetSelection(cfg->ReadInt(_T("/environment/tabs_closestyle"), 0));
     XRCCTRL(*this, "chkListTabs",                 wxCheckBox)->SetValue(cfg->ReadBool(_T("/environment/tabs_list"), 0));
     XRCCTRL(*this, "chkStackedBasedTabSwitching", wxCheckBox)->SetValue(cfg->ReadBool(_T("/environment/tabs_stacked_based_switching"), 0));
     bool enableTabMousewheel = cfg->ReadBool(_T("/environment/tabs_use_mousewheel"),true);
@@ -270,32 +262,12 @@ EnvironmentSettingsDlg::EnvironmentSettingsDlg(wxWindow* parent, wxAuiDockArt* a
     wxCheckListBox* clb = XRCCTRL(*this, "chkDialogs", wxCheckListBox);
     clb->Clear();
 
-    m_AnnoyingDlgReturnMap[F(wxT("%d"), AnnoyingDialog::rtOK)]     = _("OK");
-    m_AnnoyingDlgReturnMap[F(wxT("%d"), AnnoyingDialog::rtCANCEL)] = _("Cancel");
-    m_AnnoyingDlgReturnMap[F(wxT("%d"), AnnoyingDialog::rtYES)]    = _("Yes");
-    m_AnnoyingDlgReturnMap[F(wxT("%d"), AnnoyingDialog::rtNO)]     = _("No");
-    ConfigManagerContainer::StringSet dialogs;
-    if (acfg->Exists(wxT("/disabled_ret")))
-    {
-        // new config style
-        dialogs = acfg->ReadSSet(wxT("/disabled_ret"));
-    }
-    else
-    {
-        // if the new config key does not exist, read from the old one
-        dialogs = acfg->ReadSSet(wxT("/disabled"));
-        // and copy it to the new one
-        acfg->Write(wxT("/disabled_ret"), dialogs);
-        // we do not do an in place upgrade of the format to maintain
-        // compatibility with previous versions
-    }
+    ConfigManagerContainer::StringSet dialogs = acfg->ReadSSet(_T("/disabled"));
     for (ConfigManagerContainer::StringSet::iterator i = dialogs.begin(); i != dialogs.end(); ++i)
-        clb->Append(AnnoyingDlgReturnToString(*i));
+            clb->Append(*i);
 
     // tab "Network"
     XRCCTRL(*this, "txtProxy", wxTextCtrl)->SetValue(cfg->Read(_T("/network_proxy")));
-
-    FillApplicationColours();
 
     // disable some windows-only settings, in other platforms
 #ifndef __WXMSW__
@@ -310,19 +282,16 @@ EnvironmentSettingsDlg::EnvironmentSettingsDlg(wxWindow* parent, wxAuiDockArt* a
     // make sure everything is laid out properly
     GetSizer()->SetSizeHints(this);
     CentreOnParent();
-    Layout();
 }
 
 EnvironmentSettingsDlg::~EnvironmentSettingsDlg()
 {
     //dtor
-    delete m_pImageList;
 }
 
 void EnvironmentSettingsDlg::AddPluginPanels()
 {
     const wxString base = _T("images/settings/");
-    // for plugins who do not supply icons, use common generic icons
     const wxString noimg = _T("images/settings/generic-plugin");
 
     wxListbook* lb = XRCCTRL(*this, "nbMain", wxListbook);
@@ -342,10 +311,11 @@ void EnvironmentSettingsDlg::AddPluginPanels()
         if (offFile.IsEmpty())
             offFile = ConfigManager::LocateDataFile(noimg + _T("-off.png"), sdDataGlobal | sdDataUser);
 
-        m_pImageList->Add(cbLoadBitmap(onFile));
-        m_pImageList->Add(cbLoadBitmap(offFile));
-        lb->SetPageImage(lb->GetPageCount() - 1, m_pImageList->GetImageCount() - 2);
+        lb->GetImageList()->Add(cbLoadBitmap(onFile));
+        lb->GetImageList()->Add(cbLoadBitmap(offFile));
+        lb->SetPageImage(lb->GetPageCount() - 1, lb->GetImageList()->GetImageCount() - 2);
     }
+
     UpdateListbookImages();
 }
 
@@ -353,35 +323,34 @@ void EnvironmentSettingsDlg::LoadListbookImages()
 {
     const wxString base = ConfigManager::GetDataFolder() + _T("/images/settings/");
 
-    m_pImageList = new wxImageList(80, 80);
+    wxImageList* images = new wxImageList(80, 80);
     wxBitmap bmp;
     for (int i = 0; i < IMAGES_COUNT; ++i)
     {
         bmp = cbLoadBitmap(base + base_imgs[i] + _T(".png"));
-        m_pImageList->Add(bmp);
+        images->Add(bmp);
         bmp = cbLoadBitmap(base + base_imgs[i] + _T("-off.png"));
-        m_pImageList->Add(bmp);
+        images->Add(bmp);
     }
+    wxListbook* lb = XRCCTRL(*this, "nbMain", wxListbook);
+    lb->AssignImageList(images);
+
+    UpdateListbookImages();
 }
 
 void EnvironmentSettingsDlg::UpdateListbookImages()
 {
     wxListbook* lb = XRCCTRL(*this, "nbMain", wxListbook);
     int sel = lb->GetSelection();
+    // set page images according to their on/off status
+    for (size_t i = 0; i < IMAGES_COUNT + m_PluginPanels.GetCount(); ++i)
+        lb->SetPageImage(i, (i * 2) + (sel == (int)i ? 0 : 1));
 
-    if (SettingsIconsStyle(XRCCTRL(*this, "rbSettingsIconsSize", wxRadioBox)->GetSelection()) == sisNoIcons)
-    {
-        SetSettingsIconsStyle(lb->GetListView(), sisNoIcons);
-        lb->SetImageList(nullptr);
-    }
-    else
-    {
-        lb->SetImageList(m_pImageList);
-        // set page images according to their on/off status
-        for (size_t i = 0; i < IMAGES_COUNT + m_PluginPanels.GetCount(); ++i)
-            lb->SetPageImage(i, (i * 2) + (sel == (int)i ? 0 : 1));
-        SetSettingsIconsStyle(lb->GetListView(), sisLargeIcons);
-    }
+    // the selection colour is ruining the on/off effect,
+    // so make sure no item is selected ;)
+    // (only if we have icons showing)
+    if (GetSettingsIconsStyle(lb->GetListView()) != sisNoIcons)
+        lb->GetListView()->Select(sel, false);
 
     // update the page title
     wxString label = lb->GetPageText(sel);
@@ -401,7 +370,6 @@ void EnvironmentSettingsDlg::OnPageChanged(wxListbookEvent& event)
     // update only on real change, not on dialog creation
     if (event.GetOldSelection() != -1 && event.GetSelection() != -1)
         UpdateListbookImages();
-    Layout();
 }
 
 void EnvironmentSettingsDlg::OnSetAssocs(cb_unused wxCommandEvent& event)
@@ -520,8 +488,8 @@ void EnvironmentSettingsDlg::OnI18NCheck(wxCommandEvent& event)
 
 void EnvironmentSettingsDlg::OnSettingsIconsSize(wxCommandEvent& event)
 {
-    UpdateListbookImages();
-    Layout();
+    wxListbook* lb = XRCCTRL(*this, "nbMain", wxListbook);
+    SetSettingsIconsStyle(lb->GetListView(), (SettingsIconsStyle)event.GetSelection());
 }
 
 void EnvironmentSettingsDlg::EndModal(int retCode)
@@ -568,13 +536,15 @@ void EnvironmentSettingsDlg::EndModal(int retCode)
             cfg->Write(_T("/locale/language"), wxEmptyString);
 
         mcfg->Write(_T("/log_font_size"),                    (int)  XRCCTRL(*this, "spnLogFontSize",          wxSpinCtrl)->GetValue());
+        mcfg->Write(_T("/log_warning_text_colour"),                 XRCCTRL(*this, "btnLogWarningTextColour", wxButton)->GetBackgroundColour());
+        mcfg->Write(_T("/log_error_text_colour"),                   XRCCTRL(*this, "btnLogErrorTextColour",   wxButton)->GetBackgroundColour());
 
         cfg->Write(_T("/dialog_placement/do_place"),         (bool) XRCCTRL(*this, "chkDoPlace",     wxCheckBox)->GetValue());
         cfg->Write(_T("/dialog_placement/dialog_position"),  (int)  XRCCTRL(*this, "chkPlaceHead",   wxCheckBox)->GetValue() ? pdlHead : pdlCentre);
 
         // tab "Appearence"
-        cfg->Write(_T("/environment/tabs_style"),            (int)  XRCCTRL(*this, "cmbEditorTabs",               wxChoice)->GetSelection());
-        cfg->Write(_T("/environment/tabs_closestyle"),       (int)  XRCCTRL(*this, "cmbTabCloseStyle",            wxChoice)->GetSelection());
+        cfg->Write(_T("/environment/tabs_style"),            (int)  XRCCTRL(*this, "cmbEditorTabs",               wxComboBox)->GetSelection());
+        cfg->Write(_T("/environment/tabs_closestyle"),       (int) XRCCTRL(*this, "cmbTabCloseStyle",             wxComboBox)->GetSelection());
         cfg->Write(_T("/environment/tabs_list"),             (bool) XRCCTRL(*this, "chkListTabs",                 wxCheckBox)->GetValue());
         bool tab_switcher_mode =                             (bool) XRCCTRL(*this, "chkStackedBasedTabSwitching", wxCheckBox)->GetValue();
         if (Manager::Get()->GetConfigManager(_T("app"))->ReadBool(_T("/environment/tabs_stacked_based_switching")) != tab_switcher_mode)
@@ -623,20 +593,18 @@ void EnvironmentSettingsDlg::EndModal(int retCode)
         // tab "Dialogs"
         wxCheckListBox* lb = XRCCTRL(*this, "chkDialogs", wxCheckListBox);
 
-        ConfigManagerContainer::StringSet dialogs = acfg->ReadSSet(_T("/disabled_ret"));
+        ConfigManagerContainer::StringSet dialogs = acfg->ReadSSet(_T("/disabled"));
 
-        for (size_t i = 0; i < lb->GetCount(); ++i)
+        for (int i = 0; i < (int)lb->GetCount(); ++i)
         {
             if (lb->IsChecked(i))
-                dialogs.erase(StringToAnnoyingDlgReturn(lb->GetString(i)));
+                dialogs.erase(lb->GetString(i));
         }
 
-        acfg->Write(_T("/disabled_ret"), dialogs);
+        acfg->Write(_T("/disabled"), dialogs);
 
         // tab "Network"
         cfg->Write(_T("/network_proxy"),    XRCCTRL(*this, "txtProxy", wxTextCtrl)->GetValue());
-
-        WriteApplicationColours();
 
         // finally, apply settings in all plugins' panels
         for (size_t i = 0; i < m_PluginPanels.GetCount(); ++i)
@@ -644,9 +612,6 @@ void EnvironmentSettingsDlg::EndModal(int retCode)
             cbConfigurationPanel* panel = m_PluginPanels[i];
             panel->OnApply();
         }
-
-        // save the colours manager here, just in case there are duplicate colour controls
-        Manager::Get()->GetColourManager()->Save();
     }
     else
     {
@@ -659,176 +624,4 @@ void EnvironmentSettingsDlg::EndModal(int retCode)
     }
 
     wxScrollingDialog::EndModal(retCode);
-}
-
-namespace
-{
-struct AppColoursClientData : wxClientData
-{
-    AppColoursClientData(const wxString &id_) : id(id_) {}
-
-    wxString id;
-};
-
-} // anonymous namespace
-
-void EnvironmentSettingsDlg::FillApplicationColours()
-{
-    wxListBox *list = XRCCTRL(*this, "lstColours", wxListBox);
-    wxChoice *categories = XRCCTRL(*this, "chCategory", wxChoice);
-
-    bool fillCategories = (categories->GetCount() == 0);
-    std::set<wxString> setCategories;
-
-    wxString category = categories->GetStringSelection();
-    if (categories->GetSelection() == 0)
-        category = wxEmptyString;
-
-    list->Clear();
-    const ColourManager::ColourDefMap &colours = Manager::Get()->GetColourManager()->GetColourDefinitions();
-    for (ColourManager::ColourDefMap::const_iterator it = colours.begin(); it != colours.end(); ++it)
-    {
-        if (!it->second.IsValid())
-            continue;
-        if (category.empty())
-            list->Append(it->second.category + wxT(" : ") + it->second.name, new AppColoursClientData(it->first));
-        else if (category == it->second.category)
-            list->Append(it->second.name, new AppColoursClientData(it->first));
-        if (fillCategories)
-            setCategories.insert(it->second.category);
-    }
-
-    if (fillCategories)
-    {
-        categories->Append(_("All"));
-        categories->Select(0);
-        for (std::set<wxString>::const_iterator it = setCategories.begin(); it != setCategories.end(); ++it)
-            categories->Append(*it);
-    }
-
-    wxCommandEvent tempEvent;
-    OnChooseAppColourItem(tempEvent);
-}
-
-void EnvironmentSettingsDlg::OnChooseAppColourCategory(cb_unused wxCommandEvent &event)
-{
-    FillApplicationColours();
-}
-
-void EnvironmentSettingsDlg::OnChooseAppColourItem(wxCommandEvent &event)
-{
-    wxButton *btnColour = XRCCTRL(*this, "btnColour", wxButton);
-    wxButton *btnDefault = XRCCTRL(*this, "btnDefaultColour", wxButton);
-
-    const AppColoursClientData *data = static_cast<AppColoursClientData*>(event.GetClientObject());
-    if (!data)
-    {
-        btnColour->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-        btnDefault->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-        btnColour->Enable(false);
-        btnDefault->Enable(false);
-        return;
-    }
-
-    const ColourManager::ColourDefMap &colours = Manager::Get()->GetColourManager()->GetColourDefinitions();
-    const ColourManager::ColourDefMap::const_iterator it = colours.find(data->id);
-    if (it != colours.end())
-    {
-        std::map<wxString, wxColour>::const_iterator colourIt = m_ChangedAppColours.find(data->id);
-        if (colourIt != m_ChangedAppColours.end())
-            btnColour->SetBackgroundColour(colourIt->second);
-        else
-            btnColour->SetBackgroundColour(it->second.value);
-
-        btnDefault->SetBackgroundColour(it->second.defaultValue);
-        btnColour->Enable(true);
-        btnDefault->Enable(true);
-    }
-    else
-    {
-        btnColour->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-        btnDefault->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-        btnColour->Enable(false);
-        btnDefault->Enable(false);
-    }
-}
-
-void EnvironmentSettingsDlg::OnClickAppColour(wxCommandEvent &event)
-{
-    wxListBox *list = XRCCTRL(*this, "lstColours", wxListBox);
-    if (list->GetSelection() == wxNOT_FOUND)
-        return;
-    const AppColoursClientData *data;
-    data = static_cast<AppColoursClientData*>(list->GetClientObject(list->GetSelection()));
-    if (!data)
-        return;
-
-    const ColourManager::ColourDefMap &colours = Manager::Get()->GetColourManager()->GetColourDefinitions();
-    const ColourManager::ColourDefMap::const_iterator it = colours.find(data->id);
-    if (it == colours.end())
-        return;
-    wxColour oldColour = it->second.value;
-    std::map<wxString, wxColour>::iterator changedIt = m_ChangedAppColours.find(data->id);
-    if (changedIt != m_ChangedAppColours.end())
-        oldColour = changedIt->second;
-
-    wxButton *btnColour = XRCCTRL(*this, "btnColour", wxButton);
-
-    if (event.GetId() == XRCID("btnColour"))
-    {
-        wxColourData colour;
-        colour.SetColour(oldColour);
-        wxColourDialog dlg(this, &colour);
-        if (dlg.ShowModal() == wxID_OK)
-        {
-            m_ChangedAppColours[data->id] = dlg.GetColourData().GetColour();
-            btnColour->SetBackgroundColour(dlg.GetColourData().GetColour());
-        }
-    }
-    else if (event.GetId() == XRCID("btnDefaultColour"))
-    {
-        m_ChangedAppColours[data->id] = it->second.defaultValue;
-        btnColour->SetBackgroundColour(it->second.defaultValue);
-    }
-}
-
-void EnvironmentSettingsDlg::WriteApplicationColours()
-{
-    if (m_ChangedAppColours.empty())
-        return;
-
-    ColourManager *manager = Manager::Get()->GetColourManager();
-    for (std::map<wxString, wxColour>::const_iterator it = m_ChangedAppColours.begin();
-         it != m_ChangedAppColours.end();
-         ++it)
-    {
-        manager->SetColour(it->first, it->second);
-    }
-}
-
-/*
-  AnnoyingDialog captions are in the form of
-  "Question xyz?:4"
-  where '4' corresponds to an AnnoyingDialog::dReturnType enum value
-  The following two methods translate to and from the human readable form of
-  "Question xyz?:Yes
- */
-
-wxString EnvironmentSettingsDlg::AnnoyingDlgReturnToString(const wxString& caption)
-{
-    std::map<wxString, wxString>::const_iterator it = m_AnnoyingDlgReturnMap.find(caption.AfterLast(wxT(':')));
-    if (it != m_AnnoyingDlgReturnMap.end())
-        return caption.BeforeLast(wxT(':')) + wxT(':') + it->second;
-    return caption;
-}
-
-wxString EnvironmentSettingsDlg::StringToAnnoyingDlgReturn(const wxString& caption)
-{
-    for (std::map<wxString, wxString>::const_iterator it = m_AnnoyingDlgReturnMap.begin();
-         it != m_AnnoyingDlgReturnMap.end(); ++it)
-    {
-        if (caption.AfterLast(wxT(':')) == it->second)
-            return caption.BeforeLast(wxT(':')) + wxT(':') + it->first;
-    }
-    return caption;
 }

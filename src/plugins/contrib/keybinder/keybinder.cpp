@@ -34,6 +34,7 @@
 #if defined(CB_PRECOMP)
 #include "sdk.h"
 #else
+    #include "sdk_common.h"
 	#include "sdk_events.h"
 	#include "manager.h"
 	#include "projectmanager.h"
@@ -2282,7 +2283,7 @@ void wxKeyConfigPanel::AddRootIfMissing(const wxString &rootname)
 wxCmd *wxKeyConfigPanel::GetSelCmd() const
 // ----------------------------------------------------------------------------
 {
-	intptr_t id;
+	int id;
 
 	if (IsUsingTreeCtrl()) {
 
@@ -2300,7 +2301,7 @@ wxCmd *wxKeyConfigPanel::GetSelCmd() const
 		if (sel < 0)
 			return NULL;
 
-		id = (intptr_t)m_pCommandsList->GetClientData(sel);
+		id = (long)m_pCommandsList->GetClientData(sel);
 	}
 
 	return m_kBinder.GetCmd(id);

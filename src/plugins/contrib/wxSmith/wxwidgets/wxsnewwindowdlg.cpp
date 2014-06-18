@@ -556,7 +556,7 @@ void wxsNewWindowDlg::OnCreate(wxCommandEvent& event)
             Manager::Get()->GetProjectManager()->AddFileToProject(Params.Wxs,cbProj,Targets);
         }
     }
-    Manager::Get()->GetProjectManager()->GetUI().RebuildTree();
+    Manager::Get()->GetProjectManager()->RebuildTree();
 
     // Opening editor for this resource
     NewResource->EditOpen();

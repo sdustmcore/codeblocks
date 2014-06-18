@@ -20,7 +20,6 @@
 #include "wxsanimationctrl.h"
 #include "wx/animate.h"
 
-#include <prep.h>
 
 namespace
 {
@@ -76,7 +75,6 @@ void wxsAnimationCtrl::OnBuildCreatingCode()
             return;
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsAnimationCtrl::OnBuildCreatingCode"),GetLanguage());

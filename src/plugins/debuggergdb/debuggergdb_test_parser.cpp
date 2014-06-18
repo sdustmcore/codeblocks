@@ -138,34 +138,6 @@ TEST(SimpleMembers)
     CHECK_EQUAL(wxT("cmp= {a=5,b=7,c=1,d=2}"), *w);
 }
 
-TEST(BoolMembers)
-{
-    cb::shared_ptr<GDBWatch> w(new GDBWatch(wxT("t")));
-    CHECK(ParseGDBWatchValue(w, wxT("{memberA = {flag = false}, memberB = {flag = true}}")));
-    CHECK_EQUAL(wxT("t= {memberA= {flag=false},memberB= {flag=true}}"), *w);
-}
-
-TEST(GlobalEnumMembers1)
-{
-    cb::shared_ptr<GDBWatch> w(new GDBWatch(wxT("t")));
-    CHECK(ParseGDBWatchValue(w, wxT("{a = {test = 5, glob = GlobA},b = {test = B::T3}}")));
-    CHECK_EQUAL(wxT("t= {a= {test=5,glob=GlobA},b= {test=B::T3}}"), *w);
-}
-
-TEST(GlobalEnumMembers2)
-{
-    cb::shared_ptr<GDBWatch> w(new GDBWatch(wxT("t")));
-    CHECK(ParseGDBWatchValue(w, wxT("{a = {glob = GlobA, test = 5},b = {test = B::T3}}")));
-    CHECK_EQUAL(wxT("t= {a= {glob=GlobA,test=5},b= {test=B::T3}}"), *w);
-}
-
-TEST(CurlyBracketChar)
-{
-    cb::shared_ptr<GDBWatch> w(new GDBWatch(wxT("t")));
-    CHECK(ParseGDBWatchValue(w, wxT("{\n  a = 1, \n  ch = 123 '{'\n}")));
-    CHECK_EQUAL(wxT("t= {a=1,ch=123 '{'}"), *w);
-}
-
 TEST(SingleInheritance)
 {
     cb::shared_ptr<GDBWatch> w(new GDBWatch(wxT("t")));
@@ -396,20 +368,6 @@ TEST(RepeatingChars11_children_name)
     CHECK_EQUAL(wxT("[0]"), getName(*w->GetChild(0)));
     CHECK_EQUAL(wxT("[1]"), getName(*w->GetChild(1)));
     CHECK_EQUAL(wxT("[2]"), getName(*w->GetChild(2)));
-}
-
-TEST(StringWide)
-{
-    cb::shared_ptr<GDBWatch> w(new GDBWatch(wxT("s")));
-    CHECK(ParseGDBWatchValue(w, wxT("{m_impl = L\"st\", m_test = {a = 5}")));
-    CHECK_EQUAL(wxT("s= {m_impl=L\"st\",m_test= {a=5}}"), *w);
-}
-
-TEST(StringWideChar)
-{
-    cb::shared_ptr<GDBWatch> w(new GDBWatch(wxT("s")));
-    CHECK(ParseGDBWatchValue(w, wxT("{m_impl = L's', m_test = {a = 5}")));
-    CHECK_EQUAL(wxT("s= {m_impl=L's',m_test= {a=5}}"), *w);
 }
 
 TEST(ChangeType0)
