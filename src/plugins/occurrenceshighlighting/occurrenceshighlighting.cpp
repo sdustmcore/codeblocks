@@ -10,7 +10,6 @@
 #include <sdk.h> // Code::Blocks SDK
 
 #ifndef CB_PRECOMP
-    #include <algorithm>
     #include <wx/listctrl.h>
     #include <configmanager.h>
     #include <cbeditor.h>
@@ -284,18 +283,16 @@ void OccurrencesHighlighting::OnHighlightRemove(wxCommandEvent& WXUNUSED(event))
 
 void OccurrencesHighlighting::UpdatePanel()
 {
-    wxListCtrl *list = m_pPanel->GetListCtrl();
-    list->Freeze();
-    list->DeleteAllItems();
+    m_pPanel->GetListCtrl()->Freeze();
+    m_pPanel->GetListCtrl()->DeleteAllItems();
 
     wxListItem item;
     for (std::set<wxString>::iterator it = m_texts.begin(); it != m_texts.end(); it++)
     {
         item.SetText(*it);
-        item.SetId(std::max(list->GetItemCount(), 0));
-        list->InsertItem(item);
+        m_pPanel->GetListCtrl()->InsertItem(item);
     }
-    list->Thaw();
+    m_pPanel->GetListCtrl()->Thaw();
 }
 
 void OccurrencesHighlighting::OnPanelPopupMenu(wxContextMenuEvent& WXUNUSED(event))

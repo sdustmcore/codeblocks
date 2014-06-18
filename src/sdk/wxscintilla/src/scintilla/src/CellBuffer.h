@@ -21,8 +21,8 @@ class PerLine {
 public:
 	virtual ~PerLine() {}
 	virtual void Init()=0;
-	virtual void InsertLine(int line)=0;
-	virtual void RemoveLine(int line)=0;
+	virtual void InsertLine(int)=0;
+	virtual void RemoveLine(int)=0;
 };
 
 /* CHANGEBAR begin */
@@ -213,9 +213,9 @@ private:
 	LineVector lv;
 
 	bool UTF8LineEndOverlaps(int position) const;
+	/// Actions without undo
 /* CHANGEBAR begin */
 	void ResetLineEnds(bool undoing);
-	/// Actions without undo
 	void BasicInsertString(int position, const char *s, int insertLength, bool undoing);
 	void BasicDeleteChars(int position, int deleteLength, bool undoing);
 /* CHANGEBAR end */
@@ -250,8 +250,8 @@ public:
 
 	/// Setting styles for positions outside the range of the buffer is safe and has no effect.
 	/// @return true if the style of a character is changed.
-	bool SetStyleAt(int position, char styleValue);
-	bool SetStyleFor(int position, int length, char styleValue);
+	bool SetStyleAt(int position, char styleValue, char mask='\377');
+	bool SetStyleFor(int position, int length, char styleValue, char mask);
 
 	const char *DeleteChars(int position, int deleteLength, bool &startSequence);
 

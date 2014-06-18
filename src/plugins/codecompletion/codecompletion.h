@@ -93,34 +93,31 @@ public:
     /** toolbar priority value */
     virtual int GetToolBarPriority() { return 10; }
 
-    // override
-    virtual CCProviderStatus GetProviderStatusFor(cbEditor* ed);
-    virtual std::vector<CCToken> GetAutocompList(bool isAuto, cbEditor* ed, int& tknStart, int& tknEnd);
-    virtual std::vector<CCCallTip> GetCallTips(int pos, int style, cbEditor* ed, int& argsPos);
-    virtual wxString GetDocumentation(const CCToken& token);
-    virtual std::vector<CCToken> GetTokenAt(int pos, cbEditor* ed, bool& allowCallTip);
-    virtual wxString OnDocumentationLink(wxHtmlLinkEvent& event, bool& dismissPopup);
-    virtual void DoAutocomplete(const CCToken& token, cbEditor* ed);
+    // TODO unused, should be removed probably
+    virtual wxArrayString GetCallTips() { return wxArrayString(); }
+    virtual int CodeComplete();
+    virtual void ShowCallTip();
+    virtual bool IsProviderFor(cbEditor* ed);
+
+    /** show auto-completion list for preprocessor directives*/
+    void CodeCompletePreprocessor();
+    /** show auto-completion after #include */
+    void CodeCompleteIncludes();
 
     /** get the include paths setting (usually set by user for each C::B project)
-     * note that this function is only be called in CodeCompletion::DoCodeCompleteIncludes()
-     * if it finds some system level include search dirs which does not been scanned, it will start a
-     * a new thread(SystemHeadersThread).
      * @param project project info
      * @param buildTargets target info
      * @return the local include paths
      */
     wxArrayString GetLocalIncludeDirs(cbProject* project, const wxArrayString& buildTargets);
 
-    /** get the whole search dirs except the ones locally belong to the c::b project, note this
-     * function is used for auto suggestion for #include directives.
-     * @param force if the value is false, just return a static (cached) wxArrayString to optimize
-     * the performance, it it is true, we try to update the cache.
+    /** the default compiler's search paths
+     * @param force if the value is false, just return a static wxArrayString to optimize the performance
      */
     wxArrayString& GetSystemIncludeDirs(cbProject* project, bool force);
 
     /** search target file names (mostly relative names) under basePath, then return the absolute dirs
-     * It just did the calculation below:
+     * It just did the caculation below:
      * "c:/ccc/ddd.cpp"(basePath) + "aaa/bbb.h"(target) => "c:/ccc/aaa/bbb.h"(dirs)
      * @param basePath already located file path, this is usually the currently parsing file's location
      * @param targets the relative filename, e.g. When you have #include "aaa/bbb.h", "aaa/bbb.h" is the target location
@@ -151,6 +148,9 @@ private:
 
     /** event handler to list the suggestion, when a user press CTRL+space(by default)*/
     void OnCodeComplete(wxCommandEvent& event);
+
+    /** event handler to show the call tip, when user press Ctrl-Shift-Space */
+    void OnShowCallTip(wxCommandEvent& event);
 
     /** event handler when user click Menu->Search->Goto function*/
     void OnGotoFunction(wxCommandEvent& event);
@@ -197,7 +197,7 @@ private:
     void OnProjectFileRemoved(CodeBlocksEvent& event);
     void OnProjectFileChanged(CodeBlocksEvent& event);
     /** SDK editor related events */
-    void OnEditorSave(CodeBlocksEvent& event);
+    void OnEditorSaveOrModified(CodeBlocksEvent& event);
     void OnEditorOpen(CodeBlocksEvent& event);
     void OnEditorActivated(CodeBlocksEvent& event);
     void OnEditorClosed(CodeBlocksEvent& event);
@@ -212,14 +212,17 @@ private:
     /** batch parsing end event*/
     void OnParserEnd(wxCommandEvent& event);
 
+    /** mouse hover event*/
+    void OnEditorTooltip(CodeBlocksEvent& event);
+
     /** receive event from SystemHeadersThread */
     void OnSystemHeadersThreadUpdate(CodeBlocksThreadEvent& event);
     void OnSystemHeadersThreadFinish(CodeBlocksThreadEvent& event);
     void OnSystemHeadersThreadError(CodeBlocksThreadEvent& event);
 
-    void DoCodeComplete(int caretPos, cbEditor* ed, std::vector<CCToken>& tokens, bool preprocessorOnly = false);
-    void DoCodeCompletePreprocessor(int tknStart, int tknEnd, cbEditor* ed, std::vector<CCToken>& tokens);
-    void DoCodeCompleteIncludes(cbEditor* ed, int& tknStart, int tknEnd, std::vector<CCToken>& tokens);
+    /** show code suggestion list*/
+    void DoCodeComplete();
+    void DoShowCallTip(int caretPos = wxNOT_FOUND);
 
     /** ContextMenu->Insert-> declaration/implementation*/
     int DoClassMethodDeclImpl();
@@ -247,6 +250,11 @@ private:
     void EnableToolbarTools(bool enable = true);
     void DoParseOpenedProjectAndActiveEditor();
 
+    /** Returns token index of autocomplete item; might be -1
+     *  @param itemIndex index to m_AutocompNameIdx; when itemIndex is < 0 then AutoCompGetCurrent will be used
+     */
+    int GetAutocompTokenIdx(int itemIndex = -1);
+
     /** highlight member variables */
     void UpdateEditorSyntax(cbEditor* ed = NULL);
 
@@ -268,6 +276,12 @@ private:
     /** delayed running of editor activated event, only the last activated editor should be considered*/
     void OnEditorActivatedTimer(wxTimerEvent& event);
 
+    /** */
+    void OnAutocompleteSelect(wxListEvent& event);
+
+    /** delayed show of documentation to prevent scroll stuttering */
+    void OnAutocompSelectTimer(wxTimerEvent& event);
+
     /** Not used*/
     int                     m_PageIndex;
     /** Indicates CC's initialization is done*/
@@ -287,6 +301,8 @@ private:
     int                     m_EditorHookId;
     int                     m_LastPosForCodeCompletion;
 
+    /** delay for showing the suggesting list*/
+    wxTimer                 m_TimerCodeCompletion;
     /** timer triggered by editor hook function to delay the real-time parse*/
     wxTimer                 m_TimerRealtimeParsing;
     /** timer for toolbar*/
@@ -298,10 +314,15 @@ private:
     /** delay after receive editor activated event*/
     wxTimer                 m_TimerEditorActivated;
 
+    wxTimer                 m_TimerAutocompSelect;
+    wxListEvent*            m_LastSelectEvent;
+
     cbEditor*               m_LastEditor;
     int                     m_ActiveCalltipsNest;
 
     bool                    m_IsAutoPopup;
+    /** this indicates only show pre-processor directives in the auto-completion list */
+    bool                    m_CompletePPOnly;
 
     // The variables below were related to CC's toolbar
     /** the CC's toolbar */
@@ -341,6 +362,9 @@ private:
     /** batch run UpdateEditorSyntax() after first parsing */
     bool                    m_NeedsBatchColour;
 
+    /** header file names used for auto-completion after #include*/
+    SystemHeadersMap        m_SystemHeadersMap;
+
     //options on code completion (auto suggestion list) feature
     /** disable the code-completion while editing*/
     bool                    m_UseCodeCompletion;
@@ -361,32 +385,28 @@ private:
     wxString                m_CCFillupChars;
     /** Should a single item auto-completion list automatically choose the item */
     bool                    m_CCAutoSelectOne;
-
     /** give code completion list for header files, it happens after the #include directive */
     bool                    m_CCEnableHeaders;
 
-    /* dir to files map, for example, you are two dirs c:/a and c:/b
-     * so the map looks like: (usually the relative file path is stored
-     * c:/a  ---> {c:/a/a1.h, c:/a/a2.h} ---> {a1.h, a2.h}
-     * c:/b  ---> {c:/b/b1.h, c:/b/b2.h} ---> {b1.h, b2.h}
-     */
-    SystemHeadersMap        m_SystemHeadersMap;
-    /** thread to collect header file names, these header file names can be prompt for auto
-     * suggestion after #include <  or #include " directives.
-     */
+    /** thread to collect header file names */
     std::list<SystemHeadersThread*> m_SystemHeadersThreads;
-    /**  critical section to protect accessing m_SystemHeadersMap */
     wxCriticalSection               m_SystemHeadersThreadCS;
 
     /** map to record all re-parsing files */
     typedef std::map<cbProject*, wxArrayString> ReparsingMap;
     ReparsingMap m_ReparsingMap;
 
-    /** Provider of documentation for the popup window */
+    /** names and token's ids of autocomplete items; filled up in CodeComplete */
+    AutocompNameIdxVec      m_AutocompNameIdx;
+
+    /** which position in autocomplete list was selected? */
+    int                     m_LastAutocompIndex;
+
+    /** Popup window to display documentation */
     DocumentationHelper     m_DocHelper;
 
-    // requires access to: m_NativeParser.GetParser().GetTokenTree()
-    friend wxString DocumentationHelper::OnDocumentationLink(wxHtmlLinkEvent&, bool&);
+    friend void DocumentationHelper::OnLink(wxHtmlLinkEvent&);
+    friend void DocumentationHelper::OnSelectionChange(wxListEvent&);
 
     DECLARE_EVENT_TABLE()
 };

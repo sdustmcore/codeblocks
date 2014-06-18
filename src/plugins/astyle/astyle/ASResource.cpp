@@ -44,9 +44,8 @@ const string ASResource::AS_VOLATILE = string("volatile");
 const string ASResource::AS_STRUCT = string("struct");
 const string ASResource::AS_UNION = string("union");
 const string ASResource::AS_INTERFACE = string("interface");
-const string ASResource::AS_NAMESPACE = string("namespace");
-const string ASResource::AS_END = string("end");
 const string ASResource::AS_SELECTOR = string("selector");
+const string ASResource::AS_NAMESPACE = string("namespace");
 const string ASResource::AS_EXTERN = string("extern");
 const string ASResource::AS_ENUM = string("enum");
 const string ASResource::AS_PUBLIC = string("public");
@@ -123,7 +122,7 @@ const string ASResource::AS_LAMBDA = string("=>");            // C# lambda expre
 const string ASResource::AS_ARROW = string("->");
 const string ASResource::AS_AND = string("&&");
 const string ASResource::AS_OR = string("||");
-const string ASResource::AS_SCOPE_RESOLUTION = string("::");
+const string ASResource::AS_COLON_COLON = string("::");
 
 const string ASResource::AS_PLUS = string("+");
 const string ASResource::AS_MINUS = string("-");
@@ -408,7 +407,7 @@ void ASResource::buildOperators(vector<const string*>* operators, int fileType)
 	operators->push_back(&AS_ARROW);
 	operators->push_back(&AS_AND);
 	operators->push_back(&AS_OR);
-	operators->push_back(&AS_SCOPE_RESOLUTION);
+	operators->push_back(&AS_COLON_COLON);
 	operators->push_back(&AS_PLUS);
 	operators->push_back(&AS_MINUS);
 	operators->push_back(&AS_MULT);
@@ -526,7 +525,7 @@ void ASResource::buildPreDefinitionHeaders(vector<const string*>* preDefinitionH
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- *                             ASBase Functions
+ *                             ASBase Funtions
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 // check if a specific line position contains a keyword.

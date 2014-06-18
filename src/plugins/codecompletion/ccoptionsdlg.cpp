@@ -130,6 +130,11 @@ CCOptionsDlg::CCOptionsDlg(wxWindow* parent, NativeParser* np, CodeCompletion* c
 
     // Page "C / C++ parser"
     // NOTE (Morten#1#): Keep this in sync with files in the XRC file (settings.xrc) and nativeparser.cpp
+    XRCCTRL(*this, "txtPriorityHeaders",       wxTextCtrl)->SetValue(cfg->Read(_T("/priority_headers"),
+        _T("<cstddef>, <w32api.h>, ")
+        _T("<wx/defs.h>, <wx/dlimpexp.h>, <wx/toplevel.h>, ")
+        _T("<boost/config.hpp>, <boost/filesystem/config.hpp>, ")
+        _T("\"pch.h\", \"sdk.h\", \"stdafx.h\"")));
     XRCCTRL(*this, "spnThreadsNum",            wxSpinCtrl)->SetValue(cfg->ReadInt(_T("/max_threads"), 1));
     XRCCTRL(*this, "spnThreadsNum",            wxSpinCtrl)->Enable(false);
     XRCCTRL(*this, "spnParsersNum",            wxSpinCtrl)->SetValue(cfg->ReadInt(_T("/max_parsers"), 5));
@@ -177,7 +182,8 @@ CCOptionsDlg::CCOptionsDlg(wxWindow* parent, NativeParser* np, CodeCompletion* c
     XRCCTRL(*this, "chkTreeMembers",        wxCheckBox)->SetValue(m_Parser.ClassBrowserOptions().treeMembers);
 
     // Page Documentation
-    XRCCTRL(*this, "chkDocumentation",      wxCheckBox)->SetValue(m_Documentation->IsEnabled());
+    XRCCTRL(*this, "chkDocumentation",      wxCheckBox)->SetValue(m_Documentation->GetOptions().m_Enabled);
+    XRCCTRL(*this, "chkDocPopupAlways",     wxCheckBox)->SetValue(m_Documentation->GetOptions().m_ShowAlways);
 
     ColourManager *colours = Manager::Get()->GetColourManager();
     XRCCTRL(*this, "btnDocBgColor",         wxButton)->SetBackgroundColour(colours->GetColour(wxT("cc_docs_back")));
@@ -232,6 +238,7 @@ void CCOptionsDlg::OnApply()
     cfg->Write(_T("/parser_follow_global_includes"), (bool) XRCCTRL(*this, "chkGlobals",               wxCheckBox)->GetValue());
     cfg->Write(_T("/want_preprocessor"),             (bool) XRCCTRL(*this, "chkPreprocessor",          wxCheckBox)->GetValue());
     cfg->Write(_T("/parse_complex_macros"),          (bool) XRCCTRL(*this, "chkComplexMacros",         wxCheckBox)->GetValue());
+    cfg->Write(_T("/priority_headers"),                     XRCCTRL(*this, "txtPriorityHeaders",       wxTextCtrl)->GetValue());
     cfg->Write(_T("/max_threads"),                   (int)  XRCCTRL(*this, "spnThreadsNum",            wxSpinCtrl)->GetValue());
     cfg->Write(_T("/parser_per_workspace"),          (bool) XRCCTRL(*this, "rdoOneParserPerWorkspace", wxRadioButton)->GetValue());
     cfg->Write(_T("/max_parsers"),                   (int)  XRCCTRL(*this, "spnParsersNum",            wxSpinCtrl)->GetValue());
@@ -250,7 +257,8 @@ void CCOptionsDlg::OnApply()
     cfg->Write(_T("/scope_filter"),             (bool) XRCCTRL(*this, "chkScopeFilter", wxCheckBox)->GetValue());
 
     // Page "Documentation"
-    cfg->Write(_T("/use_documentation_helper"), (bool) XRCCTRL(*this, "chkDocumentation", wxCheckBox)->GetValue());
+    cfg->Write(_T("/use_documentation_helper"), (bool) XRCCTRL(*this, "chkDocumentation",  wxCheckBox)->GetValue());
+    cfg->Write(_T("/always_show_doc"),          (bool) XRCCTRL(*this, "chkDocPopupAlways", wxCheckBox)->GetValue());
     cfg->Write(_T("/documentation_helper_background_color"), (wxColour) XRCCTRL(*this, "btnDocBgColor",   wxButton)->GetBackgroundColour());
     cfg->Write(_T("/documentation_helper_text_color"),       (wxColour) XRCCTRL(*this, "btnDocTextColor", wxButton)->GetBackgroundColour());
     cfg->Write(_T("/documentation_helper_link_color"),       (wxColour) XRCCTRL(*this, "btnDocLinkColor", wxButton)->GetBackgroundColour());
@@ -282,7 +290,8 @@ void CCOptionsDlg::OnApply()
     m_Documentation->RereadOptions(cfg);
 
     m_Parser.Options().storeDocumentation    = XRCCTRL(*this, "chkDocumentation",  wxCheckBox)->GetValue();
-    m_Documentation->SetEnabled(               XRCCTRL(*this, "chkDocumentation",  wxCheckBox)->GetValue() );
+    m_Documentation->GetOptions().m_Enabled     = XRCCTRL(*this, "chkDocumentation",  wxCheckBox)->GetValue();
+    m_Documentation->GetOptions().m_ShowAlways  = XRCCTRL(*this, "chkDocPopupAlways", wxCheckBox)->GetValue();
 
     ColourManager *colours = Manager::Get()->GetColourManager();
     wxColor colour = XRCCTRL(*this, "btnDocBgColor",   wxButton)->GetBackgroundColour();
@@ -409,6 +418,7 @@ void CCOptionsDlg::OnUpdateUI(cb_unused wxUpdateUIEvent& event)
     XRCCTRL(*this, "chkPreprocessor",               wxCheckBox)->Enable(en);
     XRCCTRL(*this, "chkComplexMacros",              wxCheckBox)->Enable(en);
 
+    XRCCTRL(*this, "txtPriorityHeaders",            wxTextCtrl)->Enable(en);
     en = XRCCTRL(*this, "rdoOneParserPerWorkspace", wxRadioButton)->GetValue();
     XRCCTRL(*this, "lblParsersNum",                 wxStaticText)->Enable(!en);
     XRCCTRL(*this, "spnParsersNum",                 wxSpinCtrl)->Enable(!en);
@@ -443,9 +453,13 @@ void CCOptionsDlg::OnUpdateUI(cb_unused wxUpdateUIEvent& event)
 
     // Page "Documentation"
     en = XRCCTRL(*this, "chkDocumentation",   wxCheckBox)->GetValue();
-    XRCCTRL(*this, "btnDocBgColor",           wxButton)->Enable(en);
-    XRCCTRL(*this, "btnDocTextColor",         wxButton)->Enable(en);
-    XRCCTRL(*this, "btnDocLinkColor",         wxButton)->Enable(en);
+    XRCCTRL(*this, "chkDocPopupAlways",       wxCheckBox)->Enable(en);
+    wxWindow* next = XRCCTRL(*this, "chkDocPopupAlways", wxWindow)->GetNextSibling();
+    while (next)
+    {
+        next->Enable(en);
+        next = next->GetNextSibling();
+    }
 }
 
 void CCOptionsDlg::UpdateCCDelayLabel()

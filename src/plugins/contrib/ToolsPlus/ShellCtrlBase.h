@@ -134,8 +134,6 @@ class ShellManager : public wxPanel
         void OnUserInput(wxKeyEvent& ke);
         void OnPollandSyncOutput(wxTimerEvent& te);
         void OnPageClosing(wxAuiNotebookEvent& event);
-        void OnPageContextMenu(wxAuiNotebookEvent& event);
-        void OnRemoveTerminated(wxCommandEvent &event);
         bool QueryClose(ShellCtrlBase* sh);
         //Responders to friend class ShellCtrlBase
         size_t GetTermNum(ShellCtrlBase *term);

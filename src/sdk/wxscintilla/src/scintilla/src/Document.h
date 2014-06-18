@@ -37,7 +37,7 @@ public:
 	Position start;
 	Position end;
 
-	explicit Range(Position pos=0) :
+	Range(Position pos=0) :
 		start(pos), end(pos) {
 	}
 	Range(Position start_, Position end_) :
@@ -46,14 +46,6 @@ public:
 
 	bool Valid() const {
 		return (start != invalidPosition) && (end != invalidPosition);
-	}
-
-	Position First() const {
-		return (start <= end) ? start : end;
-	}
-
-	Position Last() const {
-		return (start > end) ? start : end;
 	}
 
 	// Is the position within the range?
@@ -178,7 +170,7 @@ protected:
 	ILexer *instance;
 	bool performingStyle;	///< Prevent reentrance
 public:
-	explicit LexInterface(Document *pdoc_) : pdoc(pdoc_), instance(0), performingStyle(false) {
+	LexInterface(Document *pdoc_) : pdoc(pdoc_), instance(0), performingStyle(false) {
 	}
 	virtual ~LexInterface() {
 	}
@@ -211,14 +203,12 @@ private:
 	CellBuffer cb;
 	CharClassify charClass;
 	CaseFolder *pcf;
+	char stylingMask;
 	int endStyled;
 	int styleClock;
 	int enteredModification;
 	int enteredStyling;
 	int enteredReadOnlyCount;
-
-	bool insertionSet;
-	std::string insertion;
 
 	std::vector<WatcherWithUserData> watchers;
 
@@ -232,6 +222,9 @@ private:
 public:
 
 	LexInterface *pli;
+
+	int stylingBits;
+	int stylingBitsMask;
 
 	int eolMode;
 	/// Can also be SC_CP_UTF8 to enable UTF-8 mode
@@ -286,8 +279,7 @@ public:
 	void ModifiedAt(int pos);
 	void CheckReadOnly();
 	bool DeleteChars(int pos, int len);
-	int InsertString(int position, const char *s, int insertLength);
-	void ChangeInsertion(const char *s, int length);
+	bool InsertString(int position, const char *s, int insertLength);
 	int SCI_METHOD AddData(char *data, int length);
 	void * SCI_METHOD ConvertToDocument();
 	int Undo();
@@ -317,7 +309,7 @@ public:
 	int GapPosition() const { return cb.GapPosition(); }
 
 	int SCI_METHOD GetLineIndentation(int line);
-	int SetLineIndentation(int line, int indent);
+	void SetLineIndentation(int line, int indent);
 	int GetLineIndentPosition(int line) const;
 	int GetColumn(int position);
 	int CountCharacters(int startPos, int endPos);
@@ -328,6 +320,8 @@ public:
 	void SetReadOnly(bool set) { cb.SetReadOnly(set); }
 	bool IsReadOnly() const { return cb.IsReadOnly(); }
 
+	bool InsertChar(int pos, char ch);
+	bool InsertCString(int position, const char *s);
 	void DelChar(int pos);
 	void DelCharBack(int pos);
 
@@ -381,6 +375,7 @@ public:
 	void SetDefaultCharClasses(bool includeWordClass);
 	void SetCharClasses(const unsigned char *chars, CharClassify::cc newCharClass);
 	int GetCharsOfClass(CharClassify::cc charClass, unsigned char *buffer);
+	void SetStylingBits(int bits);
 	void SCI_METHOD StartStyling(int position, char mask);
 	bool SCI_METHOD SetStyleFor(int length, char style);
 	bool SCI_METHOD SetStyles(int length, const char *styles);
@@ -464,12 +459,12 @@ public:
  */
 class DocModification {
 public:
-	int modificationType;
+  	int modificationType;
 	int position;
-	int length;
-	int linesAdded;	/**< Negative if lines deleted. */
-	const char *text;	/**< Only valid for changes to text, not for changes to style. */
-	int line;
+ 	int length;
+ 	int linesAdded;	/**< Negative if lines deleted. */
+ 	const char *text;	/**< Only valid for changes to text, not for changes to style. */
+ 	int line;
 	int foldLevelNow;
 	int foldLevelPrev;
 	int annotationLinesAdded;

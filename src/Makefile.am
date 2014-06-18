@@ -4,6 +4,7 @@ dist_pkgdata_DATA = tips.txt
 
 EXTRA_DIST = $(srcdir)/*.cbp \
 		$(srcdir)/*.workspace \
+		CodeBlocks_wx29_64.cbp \
 		exchndl.dll \
 		mac_pack \
 		$(srcdir)/update* \

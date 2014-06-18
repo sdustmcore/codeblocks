@@ -29,17 +29,19 @@
 			<Target title="cctest">
 				<Option output="../../devel/cctest" prefix_auto="1" extension_auto="1" />
 				<Option object_output="../../.objs/plugins/codecompletion/cctest" />
-				<Option type="0" />
+				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option use_console_runner="0" />
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
+					<Add option="-DCC_PARSER_TEST" />
 					<Add directory="cctest" />
 					<Add directory="parser" />
 					<Add directory="." />
 				</Compiler>
 			</Target>
 			<Environment>
-				<Variable name="WX_CFG" value="" />
+				<Variable name="WX_CONFIG" value="" />
 				<Variable name="WX_SUFFIX" value="u" />
 				<Variable name="WX_VERSION" value="28" />
 			</Environment>
@@ -51,9 +53,9 @@
 			<Add option="-Wall" />
 			<Add option="$(#CB_RELEASE_TYPE)" />
 			<Add option="-pipe" />
-			<Add option="-mthreads" />
 			<Add option="-fmessage-length=0" />
 			<Add option="-fexceptions" />
+			<Add option="-mthreads" />
 			<Add option="-Winvalid-pch" />
 			<Add option="-DHAVE_W32API_H" />
 			<Add option="-D__WXMSW__" />
@@ -62,17 +64,17 @@
 			<Add option="-DCB_PRECOMP" />
 			<Add option="-DWX_PRECOMP" />
 			<Add option="-DwxUSE_UNICODE" />
-			<Add option="-DEXPORT_LIB" />
-			<Add option="-DEXPORT_EVENTS" />
+			<Add option="-DEXPORT_LIB=0" />
+			<Add option="-DEXPORT_EVENTS=0" />
 			<Add option="-DwxUSE_WX_RESOURCES=0" />
 			<Add directory="$(#WX.include)" />
-			<Add directory="$(#WX.lib)/gcc_dll$(WX_CFG)/msw$(WX_SUFFIX)" />
+			<Add directory="$(#WX.lib)/gcc_dll$(WX_CONFIG)/msw$(WX_SUFFIX)" />
 			<Add directory="../../include" />
 			<Add directory="../../sdk/wxscintilla/include" />
 		</Compiler>
 		<ResourceCompiler>
 			<Add directory="$(#WX.include)" />
-			<Add directory="$(#WX.lib)/gcc_dll$(WX_CFG)/msw$(WX_SUFFIX)" />
+			<Add directory="$(#WX.lib)/gcc_dll$(WX_CONFIG)/msw$(WX_SUFFIX)" />
 		</ResourceCompiler>
 		<Linker>
 			<Add option="-Wl,--enable-auto-image-base" />
@@ -82,7 +84,7 @@
 			<Add option="-mthreads" />
 			<Add library="codeblocks" />
 			<Add library="wxmsw$(WX_VERSION)$(WX_SUFFIX)" />
-			<Add directory="$(#WX.lib)/gcc_dll$(WX_CFG)" />
+			<Add directory="$(#WX.lib)/gcc_dll$(WX_CONFIG)" />
 			<Add directory="../../devel" />
 		</Linker>
 		<Unit filename="ccoptionsdlg.cpp">
@@ -96,6 +98,12 @@
 		</Unit>
 		<Unit filename="ccoptionsprjdlg.h">
 			<Option target="Code-completion" />
+		</Unit>
+		<Unit filename="cctest/cctest.cpp">
+			<Option target="cctest" />
+		</Unit>
+		<Unit filename="cctest/cctest.h">
+			<Option target="cctest" />
 		</Unit>
 		<Unit filename="cctest/cctest_app.cpp">
 			<Option target="cctest" />
@@ -138,12 +146,6 @@
 			<Option target="Code-completion" />
 		</Unit>
 		<Unit filename="classbrowserbuilderthread.h">
-			<Option target="Code-completion" />
-		</Unit>
-		<Unit filename="classbrowserbuildtreeevent.cpp">
-			<Option target="Code-completion" />
-		</Unit>
-		<Unit filename="classbrowserbuildtreeevent.h">
 			<Option target="Code-completion" />
 		</Unit>
 		<Unit filename="codecompletion.cpp">
@@ -243,14 +245,13 @@
 		<Unit filename="systemheadersthread.h">
 			<Option target="Code-completion" />
 		</Unit>
-		<Unit filename="wxsmith/CCTestFrame.wxs" />
 		<Extensions>
 			<code_completion />
 			<envvars />
 			<wxsmith version="1">
-				<gui name="wxWidgets" src="cctest/cctest_app.cpp" main="-- None --" init_handlers="never" language="CPP" />
+				<gui name="wxWidgets" src="cctest\cctest_app.cpp" main="-- None --" init_handlers="never" language="CPP" />
 				<resources>
-					<wxFrame wxs="wxsmith/CCTestFrame.wxs" src="cctest/cctest_frame.cpp" hdr="cctest/cctest_frame.h" fwddecl="0" i18n="1" name="CCTestFrame" language="CPP" />
+					<wxFrame wxs="wxsmith/CCTestFrame.wxs" src="cctest\cctest_frame.cpp" hdr="cctest\cctest_frame.h" fwddecl="0" i18n="1" name="CCTestFrame" language="CPP" />
 					<wxScrollingDialog wxs="../../wxsmith/CCDebugInfo.wxs" src="parser/ccdebuginfo.cpp" hdr="parser/ccdebuginfo.h" fwddecl="0" i18n="1" name="CCDebugInfo" language="CPP" />
 				</resources>
 			</wxsmith>

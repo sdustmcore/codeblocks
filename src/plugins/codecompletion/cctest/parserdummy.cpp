@@ -8,6 +8,7 @@
 
 #include <sdk.h>
 #include "parser.h"
+#include "cctest.h"
 
 #ifndef WX_PRECOMP
     #include <wx/wx.h>
@@ -19,22 +20,6 @@
 #include <wx/filefn.h>
 #include <wx/filename.h>
 #include <wx/string.h>
-
-#ifdef CC_PARSER_TEST
-    #define ADDTOKEN(format, args...) \
-            wxLogMessage(F(format, ##args))
-    #define TRACE(format, args...) \
-            wxLogMessage(F(format, ##args))
-    #define TRACE2(format, args...) \
-            wxLogMessage(F(format, ##args))
-#else
-    #define ADDTOKEN(format, args...)
-    #define TRACE(format, args...)
-    #define TRACE2(format, args...)
-#endif
-
-
-// Supply the implementation of ParserBase class
 
 namespace CCTestAppGlobal
 {
@@ -55,7 +40,7 @@ ParserCommon::EFileType ParserCommon::FileType(const wxString& filename, bool /*
     {
         wxString log;
         log.Printf(wxT("ParserDummy::ParserCommon::FileType() : File '%s' is of type 'ftOther' (empty)."), filename.wx_str());
-        //CCLogger::Get()->Log(log);
+        CCLogger::Get()->Log(log);
         return ParserCommon::ftOther;
     }
 
@@ -69,7 +54,7 @@ ParserCommon::EFileType ParserCommon::FileType(const wxString& filename, bool /*
     {
         wxString log;
         log.Printf(wxT("ParserDummy::ParserCommon::FileType() : File '%s' is of type 'ftHeader' (w/o ext.)."), filename.wx_str());
-        //CCLogger::Get()->Log(log);
+        CCLogger::Get()->Log(log);
         return ParserCommon::ftHeader;
     }
 
@@ -79,7 +64,7 @@ ParserCommon::EFileType ParserCommon::FileType(const wxString& filename, bool /*
         {
             wxString log;
             log.Printf(wxT("ParserDummy::ParserCommon::FileType() : File '%s' is of type 'ftHeader' (w/ ext.)."), filename.wx_str());
-            TRACE(log);
+            CCLogger::Get()->Log(log);
             return ParserCommon::ftHeader;
         }
     }
@@ -90,14 +75,14 @@ ParserCommon::EFileType ParserCommon::FileType(const wxString& filename, bool /*
         {
             wxString log;
             log.Printf(wxT("ParserDummy::ParserCommon::FileType() : File '%s' is of type 'ftSource' (w/ ext.)."), filename.wx_str());
-            TRACE(log);
+            CCLogger::Get()->Log(log);
             return ParserCommon::ftSource;
         }
     }
 
     wxString log;
     log.Printf(wxT("ParserDummy::ParserCommon::FileType() : File '%s' is of type 'ftOther' (unknown ext)."), filename.wx_str());
-    TRACE(log);
+    CCLogger::Get()->Log(log);
 
     return ParserCommon::ftOther;
 }
@@ -105,20 +90,11 @@ ParserCommon::EFileType ParserCommon::FileType(const wxString& filename, bool /*
 ParserBase::ParserBase() : m_TokenTree(NULL), m_TempTokenTree(NULL)
 {
     // override default constructor of ParserBase (parser.h)
-    m_TokenTree = new TokenTree;
-    // No need to allocate the TempTokenTree, as we don't need it here in the cc_test project
 }
 
 ParserBase::~ParserBase()
 {
     // override default destructor of ParserBase (parser.h)
-    delete m_TokenTree;
-    m_TokenTree = 0;
-}
-
-TokenTree* ParserBase::GetTokenTree()
-{
-    return m_TokenTree;
 }
 
 wxString ParserBase::GetFullFileName(const wxString& src, const wxString& tgt, bool isGlobal)
@@ -126,7 +102,7 @@ wxString ParserBase::GetFullFileName(const wxString& src, const wxString& tgt, b
     wxString log;
     log.Printf(wxT("ParserDummy::ParserBase::GetFullFileName() : Querying full file name for source '%s', target '%s' (isGlobal=%s)."),
                src.wx_str(), tgt.wx_str(), (isGlobal ? wxT("true") : wxT("false")));
-    TRACE(log);
+    CCLogger::Get()->Log(log);
 
     // first, try local include file
     wxFileName fn(src);
@@ -138,55 +114,56 @@ wxString ParserBase::GetFullFileName(const wxString& src, const wxString& tgt, b
     for (size_t i=0; i<CCTestAppGlobal::s_includeDirs.GetCount(); i++)
     {
         wxString include_dir = CCTestAppGlobal::s_includeDirs.Item(i);
-        TRACE(wxT("ParserDummy::ParserBase::GetFullFileName() : Checking existence of ")+include_dir);
+        CCLogger::Get()->Log(wxT("ParserDummy::ParserBase::GetFullFileName() : Checking existence of ")+include_dir);
         if ( ::wxDirExists(include_dir) )
         {
             full_file_name = include_dir + fn.GetPathSeparator() + tgt;
-            TRACE(wxT("ParserDummy::ParserBase::GetFullFileName() : Checking existence of ")+full_file_name);
+            CCLogger::Get()->Log(wxT("ParserDummy::ParserBase::GetFullFileName() : Checking existence of ")+full_file_name);
             if ( ::wxFileExists(full_file_name) )
                 return full_file_name;
         }
     }
 
-    TRACE(wxT("ParserDummy::ParserBase::GetFullFileName() : File not found"));
+    CCLogger::Get()->Log(wxT("ParserDummy::ParserBase::GetFullFileName() : File not found"));
     return wxEmptyString;
-}
-
-bool ParserBase::Reparse(const wxString& file, cb_unused bool isLocal)
-{
-    FileLoader* loader = new FileLoader(file);
-    (*loader)();
-
-    ParserThreadOptions opts;
-
-    opts.useBuffer             = false; // default
-    opts.parentIdxOfBuffer     = -1;    // default
-    opts.initLineOfBuffer      = -1;    // default
-    opts.bufferSkipBlocks      = false; // default
-    opts.bufferSkipOuterBlocks = false; // default
-    opts.isTemp                = false; // default
-
-    opts.followLocalIncludes   = true;  // default
-    opts.followGlobalIncludes  = true;  // default
-    opts.wantPreprocessor      = true;  // default
-    opts.parseComplexMacros    = true;  // default
-
-    opts.handleFunctions       = true;  // default
-    opts.handleVars            = true;  // default
-    opts.handleClasses         = true;  // default
-    opts.handleEnums           = true;  // default
-    opts.handleTypedefs        = true;  // default
-
-    opts.loader                = loader;
-
-    ParserThread* pt = new ParserThread(this, file, true, opts, m_TokenTree);
-    bool success = pt->Parse();
-    delete pt;
-
-    return success;
 }
 
 bool ParserBase::ParseFile(const wxString& filename, bool isGlobal, bool /*locked*/)
 {
-    return Reparse(filename, !isGlobal);
+    wxString log;
+    log.Printf(wxT("ParserDummy::ParserBase::ParseFile() : Parse file request for file name '%s' (isGlobal=%s)"),
+               filename.wx_str(), (isGlobal ? wxT("true") : wxT("false")));
+    CCLogger::Get()->Log(log);
+
+    if (filename.IsEmpty())
+        return false;
+
+    // avoid parsing the same file(s) over and over again
+    for (size_t i=0; i<CCTestAppGlobal::s_filesParsed.GetCount(); i++)
+    {
+        if (filename.IsSameAs(CCTestAppGlobal::s_filesParsed.Item(i), false))
+        {
+            log.Printf(wxT("ParserDummy::ParserBase::ParseFile() : File '%s' has already been parsed"),
+                       filename.wx_str());
+            CCLogger::Get()->Log(log);
+            return true;
+        }
+    }
+
+    // check, if the file is already queued
+    if (CCTestAppGlobal::s_fileQueue.Index(filename)==wxNOT_FOUND)
+    {
+        log.Printf(wxT("ParserDummy::ParserBase::ParseFile() : Appending new file to parse to queue: '%s'"),
+           filename.wx_str());
+        CCLogger::Get()->Log(log);
+        CCTestAppGlobal::s_fileQueue.Add(filename);
+    }
+    else
+    {
+        log.Printf(wxT("ParserDummy::ParserBase::ParseFile() : File '%s' is already queued"),
+           filename.wx_str());
+        CCLogger::Get()->Log(log);
+    }
+
+    return true;
 }

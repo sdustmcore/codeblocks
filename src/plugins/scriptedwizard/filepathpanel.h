@@ -6,8 +6,13 @@
 #ifndef FILEPATHPANEL_H
 #define FILEPATHPANEL_H
 
+#include <wx/wxprec.h>
 
-//(*HeadersPCH(FilePathPanel)
+#ifdef __BORLANDC__
+    #pragma hdrstop
+#endif
+
+//(*Headers(FilePathPanel)
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>

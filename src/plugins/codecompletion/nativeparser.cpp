@@ -181,8 +181,8 @@ NativeParser::NativeParser() :
     m_ImageList->Add(bmp); // PARSER_IMG_VAR_PROTECTED
     bmp = cbLoadBitmap(prefix + _T("var_public.png"), wxBITMAP_TYPE_PNG);
     m_ImageList->Add(bmp); // PARSER_IMG_VAR_PUBLIC
-    bmp = cbLoadBitmap(prefix + _T("macro_def.png"), wxBITMAP_TYPE_PNG);
-    m_ImageList->Add(bmp); // PARSER_IMG_MACRO_DEF
+    bmp = cbLoadBitmap(prefix + _T("preproc.png"), wxBITMAP_TYPE_PNG);
+    m_ImageList->Add(bmp); // PARSER_IMG_PREPROCESSOR
     bmp = cbLoadBitmap(prefix + _T("enum.png"), wxBITMAP_TYPE_PNG);
     m_ImageList->Add(bmp); // PARSER_IMG_ENUM
     bmp = cbLoadBitmap(prefix + _T("enum_private.png"), wxBITMAP_TYPE_PNG);
@@ -211,22 +211,22 @@ NativeParser::NativeParser() :
     m_ImageList->Add(bmp); // PARSER_IMG_FUNCS_FOLDER
     bmp = cbLoadBitmap(prefix + _T("enums_folder.png"), wxBITMAP_TYPE_PNG);
     m_ImageList->Add(bmp); // PARSER_IMG_ENUMS_FOLDER
-    bmp = cbLoadBitmap(prefix + _T("macro_def_folder.png"), wxBITMAP_TYPE_PNG);
-    m_ImageList->Add(bmp); // PARSER_IMG_MACRO_DEF_FOLDER
+    bmp = cbLoadBitmap(prefix + _T("preproc_folder.png"), wxBITMAP_TYPE_PNG);
+    m_ImageList->Add(bmp); // PARSER_IMG_PREPROC_FOLDER
     bmp = cbLoadBitmap(prefix + _T("others_folder.png"), wxBITMAP_TYPE_PNG);
     m_ImageList->Add(bmp); // PARSER_IMG_OTHERS_FOLDER
     bmp = cbLoadBitmap(prefix + _T("typedefs_folder.png"), wxBITMAP_TYPE_PNG);
     m_ImageList->Add(bmp); // PARSER_IMG_TYPEDEF_FOLDER
-    bmp = cbLoadBitmap(prefix + _T("macro_use.png"), wxBITMAP_TYPE_PNG);
-    m_ImageList->Add(bmp); // PARSER_IMG_MACRO_USE
-    bmp = cbLoadBitmap(prefix + _T("macro_use_private.png"), wxBITMAP_TYPE_PNG);
-    m_ImageList->Add(bmp); // PARSER_IMG_MACRO_USE_PRIVATE
-    bmp = cbLoadBitmap(prefix + _T("macro_use_protected.png"), wxBITMAP_TYPE_PNG);
-    m_ImageList->Add(bmp); // PARSER_IMG_MACRO_USE_PROTECTED
-    bmp = cbLoadBitmap(prefix + _T("macro_use_public.png"), wxBITMAP_TYPE_PNG);
-    m_ImageList->Add(bmp); // PARSER_IMG_MACRO_USE_PUBLIC
-    bmp = cbLoadBitmap(prefix + _T("macro_use_folder.png"), wxBITMAP_TYPE_PNG);
-    m_ImageList->Add(bmp); // PARSER_IMG_MACRO_USE_FOLDER
+    bmp = cbLoadBitmap(prefix + _T("macro.png"), wxBITMAP_TYPE_PNG);
+    m_ImageList->Add(bmp); // PARSER_IMG_MACRO
+    bmp = cbLoadBitmap(prefix + _T("macro_private.png"), wxBITMAP_TYPE_PNG);
+    m_ImageList->Add(bmp); // PARSER_IMG_MACRO_PRIVATE
+    bmp = cbLoadBitmap(prefix + _T("macro_protected.png"), wxBITMAP_TYPE_PNG);
+    m_ImageList->Add(bmp); // PARSER_IMG_MACRO_PROTECTED
+    bmp = cbLoadBitmap(prefix + _T("macro_public.png"), wxBITMAP_TYPE_PNG);
+    m_ImageList->Add(bmp); // PARSER_IMG_MACRO_PUBLIC
+    bmp = cbLoadBitmap(prefix + _T("macro_folder.png"), wxBITMAP_TYPE_PNG);
+    m_ImageList->Add(bmp); // PARSER_IMG_MACRO_FOLDER
 
     ConfigManager* cfg = Manager::Get()->GetConfigManager(_T("code_completion"));
     m_ParserPerWorkspace = cfg->ReadBool(_T("/parser_per_workspace"), false);
@@ -368,7 +368,7 @@ int NativeParser::GetTokenKindImage(const Token* token)
 
     switch (token->m_TokenKind)
     {
-        case tkMacroDef:          return PARSER_IMG_MACRO_DEF;
+        case tkPreprocessor:      return PARSER_IMG_PREPROCESSOR;
 
         case tkEnum:
             switch (token->m_Scope)
@@ -404,14 +404,14 @@ int NativeParser::GetTokenKindImage(const Token* token)
                 default:          return PARSER_IMG_TYPEDEF;
             }
 
-        case tkMacroUse:
+        case tkMacro:
             switch (token->m_Scope)
             {
-                case tsPublic:    return PARSER_IMG_MACRO_USE_PUBLIC;
-                case tsProtected: return PARSER_IMG_MACRO_USE_PROTECTED;
-                case tsPrivate:   return PARSER_IMG_MACRO_USE_PRIVATE;
+                case tsPublic:    return PARSER_IMG_MACRO_PUBLIC;
+                case tsProtected: return PARSER_IMG_MACRO_PROTECTED;
+                case tsPrivate:   return PARSER_IMG_MACRO_PRIVATE;
                 case tsUndefined:
-                default:          return PARSER_IMG_MACRO_USE;
+                default:          return PARSER_IMG_MACRO;
             }
 
         case tkConstructor:
@@ -614,24 +614,16 @@ bool NativeParser::DeleteParser(cbProject* project)
     if (m_ParserPerWorkspace)
         removeProjectFromParser = RemoveProjectFromParser(project);
 
-    if (m_ParsedProjects.empty()) // this indicates we are in one parser per one project mode
+    if (m_ParsedProjects.empty())
     {
+        if (it->second == m_Parser)
+          SetParser(m_TempParser); // Also updates class browser
+
         wxString log(F(_("NativeParser::DeleteParser(): Deleting parser for project '%s'!"), prj.wx_str()));
         CCLogger::Get()->Log(log);
         CCLogger::Get()->DebugLog(log);
 
-
-        // the logic here is : firstly delete the parser instance, then see whether we need an
-        // active parser switch (call SetParser())
         delete it->second;
-
-        // if the active parser is deleted, set the active parser to nullptr
-        if (it->second == m_Parser)
-        {
-            m_Parser = nullptr;
-            SetParser(m_TempParser); // Also updates class browser
-        }
-
         m_ParserList.erase(it);
 
         return true;
@@ -873,16 +865,17 @@ size_t NativeParser::MarkItemsByAI(TokenIdxSet& result,
     return MarkItemsByAI(&searchData, result, reallyUseAI, isPrefix, caseSensitive, caretPos);
 }
 
-int NativeParser::GetCallTips(wxArrayString& items, int& typedCommas, cbEditor* ed, int pos)
+void NativeParser::GetCallTips(int chars_per_line, wxArrayString &items, int& typedCommas, int pos)
 {
     items.Clear();
     typedCommas = 0;
     int commas = 0;
 
+    cbEditor* ed = Manager::Get()->GetEditorManager()->GetBuiltinActiveEditor();
     if (!ed || !m_Parser->Done())
     {
         items.Add(wxT("Parsing at the moment..."));
-        return wxSCI_INVALID_POSITION;
+        return;
     }
 
     TRACE(_T("NativeParser::GetCallTips()"));
@@ -903,7 +896,7 @@ int NativeParser::GetCallTips(wxArrayString& items, int& typedCommas, cbEditor* 
 
         const wxChar ch = searchData.control->GetCharAt(pos);
         if (ch == _T(';'))
-            return wxSCI_INVALID_POSITION;
+            return;
         else if (ch == _T(','))
         {
             if (nest == 0)
@@ -933,19 +926,18 @@ int NativeParser::GetCallTips(wxArrayString& items, int& typedCommas, cbEditor* 
     const int start = searchData.control->WordStartPosition(pos, true);
     const int end = searchData.control->WordEndPosition(pos, true);
     const wxString target = searchData.control->GetTextRange(start, end);
-    TRACE(_T("Sending \"%s\" for call-tip"), target.wx_str());
+    TRACE(_T("Sending \"%s\" for call-tip"), target.c_str());
     if (target.IsEmpty())
-        return wxSCI_INVALID_POSITION;
+        return;
 
     TokenIdxSet result;
     MarkItemsByAI(result, true, false, true, end);
 
-    ComputeCallTip(m_Parser->GetTokenTree(), result, items);
+    ComputeCallTip(m_Parser->GetTokenTree(), result, chars_per_line, items);
 
     typedCommas = commas;
     TRACE(_T("NativeParser::GetCallTips(): typedCommas=%d"), typedCommas);
     items.Sort();
-    return end;
 }
 
 wxArrayString& NativeParser::GetProjectSearchDirs(cbProject* project)
@@ -996,7 +988,7 @@ void NativeParser::CreateClassBrowser()
     }
 
     // Dreaded DDE-open bug related: do not touch unless for a good reason
-    // TODO (Morten): ? what's bug? I test it, it's works well now.
+    // TODO (Loaden) ? what's bug? I test it, it's works well now.
     m_ClassBrowser->SetParser(m_Parser); // Also updates class browser
 
     TRACE(_T("NativeParser::CreateClassBrowser(): Leave"));
@@ -1063,7 +1055,96 @@ bool NativeParser::DoFullParsing(cbProject* project, ParserBase* parser)
                                project->GetBasePath(), parser);
     }
 
+    // basically, we have to parse three level of files
+    // 1, the priority headers (include system priority headers and local priority headers)
+    // 2, non priority headers
+    // 3, sources (Note, surely they are local because they belong to a cbp project file)
+    //
+    // priority headers:
+    // Those files are normally header files and should be parsed before any other kinds of files.
+    // The idea of the priority file is that our parser does not do a full preprocessor(like expand
+    // the #include directive), but we did calculation on the conditional preprocessor directive.
+    // E.g. "#ifdefined XXX ....". Here, as an assumption, the macro definition of
+    // XXX should be already in TokenTree, otherwise, the default value (0) is used (this results the
+    // the conditional code branch was abandoned by the parser)
+    // If we put the file containing the definition of XXX as the priority file, then we can confirm
+    // our assumption, because this file will be parsed before any other files.
+    // e.g. "sdk.h" can be a local priority header, and <w32api.h> can be a system priority header
+    //
+    // non priority headers:
+    // These files are generally files with .h extension
+    // sources:
+    // These files are normally with .cpp, .cxx, .c extension in the C::B project
+    StringList priorityHeaders;
+    StringList nonPriorityLocalHeaders;
     StringList localSources;
+
+    // read the user defined and our default priority files
+    ConfigManager* cfg = Manager::Get()->GetConfigManager(_T("code_completion"));
+    // NOTE (Morten#1#): Keep this in sync with files in the XRC file (settings.xrc) and ccoptionsdlg.cpp
+    const wxString default_priority_headers =
+        _T("<cstddef>, <w32api.h>, ")
+        _T("<wx/defs.h>, <wx/dlimpexp.h>, <wx/toplevel.h>, ")
+        _T("<boost/config.hpp>, <boost/filesystem/config.hpp>, ")
+        _T("\"pch.h\", \"sdk.h\", \"stdafx.h\"");
+    wxString priority_headers = cfg->Read(_T("/priority_headers"), default_priority_headers);
+
+    // if the configure file have more user added priority header files, append to the default ones.
+    if (!priority_headers.StartsWith(default_priority_headers))
+    {
+        wxStringTokenizer default_ph(default_priority_headers, _T(","));
+        wxArrayString default_phs;
+        while (default_ph.HasMoreTokens())
+            default_phs.Add(default_ph.GetNextToken().Trim(false).Trim(true));
+
+        wxStringTokenizer user(priority_headers, _T(","));
+        wxArrayString users;
+        while (user.HasMoreTokens())
+            users.Add(user.GetNextToken().Trim(false).Trim(true));
+
+        priority_headers = default_priority_headers;
+        for (size_t i = 0; i < users.GetCount(); ++i)
+        {
+            if (!users[i].IsEmpty() && default_phs.Index(users[i], false) == wxNOT_FOUND)
+                priority_headers.Append(_T(", ") + users[i]);
+        }
+
+        cfg->Write(_T("/priority_headers"), priority_headers);
+    }
+
+    typedef std::map<int, wxString> PriorityMap;
+    PriorityMap systemPriorityMap;//record the include file surround with <>
+    PriorityMap localPriorityMap; //record the include file surround with ""
+    int priorityCnt = 0;          //file counters
+    // priority header files should be separated by comma and surround with either "" or <>
+    wxStringTokenizer tkz(priority_headers, _T(","));
+    while (tkz.HasMoreTokens())
+    {
+        wxString token = tkz.GetNextToken().Trim(false).Trim(true);
+        if (token.Len() <= 2) // error, at least "" or <> is required
+            continue;
+
+        if (   parser->Options().followLocalIncludes
+            && token[0] == _T('"')
+            && token[token.Len() - 1] == _T('"') )
+        {
+            // remove the surrounding double-quote, and add to localPriorityMap
+            localPriorityMap[++priorityCnt] = token.SubString(1, token.Len() - 2).Trim(false).Trim(true);
+        }
+        // TODO (ollydbg#2), should we check the Options().followGlobalIncludes here?
+        else if (   parser->Options().followLocalIncludes
+                 && token[0] == _T('<')
+                 && token[token.Len() - 1] == _T('>') )
+        {
+            // remove the surrounding <>
+            token = token.SubString(1, token.Len() - 2).Trim(false).Trim(true);
+            // try to see a priority header file is find in the include dirs
+            wxArrayString inc_file = parser->FindFileInIncludeDirs(token);
+            // if find any, put them in the systemPriorityMap (note, postfix a ", 1" string
+            for (size_t i = 0; i < inc_file.GetCount(); ++i)
+                systemPriorityMap[++priorityCnt] = inc_file[i] + _T(", 1");
+        }
+    }
 
     if (project)
     {
@@ -1075,24 +1156,69 @@ bool NativeParser::DoFullParsing(cbProject* project, ParserBase* parser)
                 continue;
             // check the file types in the project files
             ParserCommon::EFileType ft = ParserCommon::FileType(pf->relativeFilename);
-            if (ft == ParserCommon::ftSource) // parse source files
+            if (ft == ParserCommon::ftHeader) // parse header files
+            {
+                bool isPriorityFile = false;
+                // localPriorityMap contains all the local priority header files
+                // if the project files matches on in localPriorityMap, then add them
+                // to systemPriorityMap with postfix string ", 0".
+                for (PriorityMap::iterator pm_it = localPriorityMap.begin();
+                     pm_it != localPriorityMap.end(); ++pm_it)
+                {
+                    if (pm_it->second.IsSameAs(pf->file.GetFullName(), false))
+                    {
+                        isPriorityFile = true;
+                        systemPriorityMap[pm_it->first] = pf->file.GetFullPath() + _T(", 0");
+                        localPriorityMap.erase(pm_it);
+                        break;
+                    }
+                }
+
+                // nonPriorityLocalHeaders are non priority but local files
+                if (!isPriorityFile)
+                    nonPriorityLocalHeaders.push_back(pf->file.GetFullPath());
+            }
+            else if (ft == ParserCommon::ftSource) // parse source files
             {
                 localSources.push_back(pf->file.GetFullPath());
             }
         }
     }
+    // put all the priority files to a single container
+    for (PriorityMap::iterator pm_it = systemPriorityMap.begin(); pm_it != systemPriorityMap.end(); ++pm_it)
+        priorityHeaders.push_back(pm_it->second);
 
-    CCLogger::Get()->DebugLog(_T("NativeParser::DoFullParsing(): Adding cpp/c files to batch-parser"));
+    CCLogger::Get()->DebugLog(_T("NativeParser::DoFullParsing(): Adding three kind of files to batch-parser"));
 
     // parse priority files
     wxString prj = (project ? project->GetTitle() : _T("*NONE*"));
-
-
-    if (!localSources.empty())
+    if (!priorityHeaders.empty())
     {
-        CCLogger::Get()->DebugLog(F(_T("NativeParser::DoFullParsing(): Added %lu source file(s) for project '%s' to batch-parser..."),
-                                    static_cast<unsigned long>( localSources.size()), prj.wx_str()));
+        for (StringList::iterator sl_it = priorityHeaders.begin();
+             sl_it != priorityHeaders.end(); ++sl_it)
+        {
+            // strip the post fix string of ", 1"
+            wxString& file = *sl_it;
+            // if it is a system header file, then is should have a post fix string of ", 1"
+            // otherwise, it is a localHeaderFile with post fix string of ", 0"
+            const bool isSystemHeader = (file.Last() == _T('1'));
+            const int pos = file.Find(_T(','), true);
+            file = file.Left(pos);
+            CCLogger::Get()->DebugLog(F(_T("NativeParser::DoFullParsing(): Add priority header file: '%s'"), file.wx_str()));
+            // put the file to priority header containers
+            parser->AddPriorityHeaders(file, isSystemHeader);
+        }
 
+        CCLogger::Get()->DebugLog(F(_T("NativeParser::DoFullParsing(): Add %lu priority file(s) for project '%s'..."),
+                                    static_cast<unsigned long>(priorityHeaders.size()), prj.wx_str()));
+    }
+
+    if (!nonPriorityLocalHeaders.empty() || !localSources.empty())
+    {
+        CCLogger::Get()->DebugLog(F(_T("NativeParser::DoFullParsing(): Added %lu header&source file(s) for project '%s' to batch-parser..."),
+                                    static_cast<unsigned long>(nonPriorityLocalHeaders.size() + localSources.size()), prj.wx_str()));
+        // local header files (not priority header) added to Parser
+        parser->AddBatchParse(nonPriorityLocalHeaders);
         // local source files added to Parser
         parser->AddBatchParse(localSources);
     }
@@ -1124,19 +1250,11 @@ bool NativeParser::SwitchParser(cbProject* project, ParserBase* parser)
 
 void NativeParser::SetParser(ParserBase* parser)
 {
-    // the active parser is the same as the old active parser, nothing need to be done
     if (m_Parser == parser)
         return;
 
-    // a new parser is active, so remove the old parser's local variable tokens.
-    // if m_Parser == nullptr, this means the active parser is already deleted.
-    if (m_Parser)
-        RemoveLastFunctionChildren(m_Parser->GetTokenTree(), m_LastFuncTokenIdx);
-
-    // refresh code completion related variables
+    RemoveLastFunctionChildren(m_Parser->GetTokenTree(), m_LastFuncTokenIdx);
     InitCCSearchVariables();
-
-    // switch the active parser
     m_Parser = parser;
 
     if (m_ClassBrowser)
@@ -1764,9 +1882,7 @@ bool NativeParser::ParseLocalBlock(ccSearchData* searchData, TokenIdxSet& search
 
         CC_LOCKER_TRACK_TT_MTX_UNLOCK(s_TokenTreeMutex)
 
-        // only need to parse the function body, other type of Tokens' body such as class declaration
-        // should not be parsed.
-        if (!parent || !(parent->m_TokenKind & tkAnyFunction))
+        if (!parent)
             return false;
     }
 
@@ -2009,7 +2125,7 @@ bool NativeParser::AddCompilerPredefinedMacros(cbProject* project, ParserBase* p
         return false;
 
     if (!parser->Options().wantPreprocessor)
-        return false;
+        return true;
 
     TRACE(_T("NativeParser::AddCompilerPredefinedMacros(): Enter"));
 
@@ -2034,9 +2150,6 @@ bool NativeParser::AddCompilerPredefinedMacros(cbProject* project, ParserBase* p
     parser->AddPredefinedMacros(defs);
 
     TRACE(_T("NativeParser::AddCompilerPredefinedMacros(): Leave"));
-    if ( defs.IsEmpty() )
-        return false;
-
     return true;
 }
 
@@ -2059,13 +2172,10 @@ bool NativeParser::AddCompilerPredefinedMacrosGCC(const wxString& compilerId, cb
         if (reentry)
             return false;
 
-        // Check if user set language standard version to use
-        wxString standard = GetCompilerStandardGCC(compiler, project);
-
 #ifdef __WXMSW__
-        const wxString args(wxString::Format(_T(" -E -dM -x c++ %s nul"), standard.wx_str()) );
+        const wxString args(_T(" -E -dM -x c++ nul"));
 #else
-        const wxString args(wxString::Format(_T(" -E -dM -x c++ %s /dev/null"), standard.wx_str()) );
+        const wxString args(_T(" -E -dM -x c++ /dev/null"));
 #endif
 
         wxArrayString output;
@@ -2085,58 +2195,41 @@ bool NativeParser::AddCompilerPredefinedMacrosGCC(const wxString& compilerId, cb
         wxString& gccDefs = gccDefsMap[cpp_compiler];
         for (size_t i = 0; i < output.Count(); ++i)
             gccDefs += output[i] + _T("\n");
-
-        CCLogger::Get()->DebugLog(_T("NativeParser::AddCompilerPredefinedMacrosGCC(): Caching predefined macros for compiler '")
-                                  + cpp_compiler + _T("':\n") + gccDefs);
     }
 
-    defs = gccDefsMap[cpp_compiler];
-
-    return true;
-}
-
-wxString NativeParser::GetCompilerStandardGCC(Compiler* compiler, cbProject* project)
-{
-    // Check if user set language standard version to use
-    // 1.) Global compiler settings are first to search in
-    wxString standard = GetCompilerUsingStandardGCC(compiler->GetCompilerOptions());
-    if (standard.IsEmpty() && project)
+    static const wxString cxx0xOption(_T("-std=c++0x"));
+    static const wxString gnu0xOption(_T("-std=gnu++0x"));
+    bool useCxx0x = false;
+    if (project)
     {
-        // 2.) Project compiler setting are second
-        standard = GetCompilerUsingStandardGCC(project->GetCompilerOptions());
-
-        // 3.) And targets are third in row to look for standard
-        // NOTE: If two targets use different standards, only the one we
-        //       encounter first (eg. c++98) will be used, and any other
-        //       disregarded (even if it would be c++1y)
-        if (standard.IsEmpty())
+        const wxArrayString& options = project->GetCompilerOptions();
+        if (   options.Index(cxx0xOption) != wxNOT_FOUND
+            || options.Index(gnu0xOption) != wxNOT_FOUND )
         {
-            for (int i=0; i<project->GetBuildTargetsCount(); ++i)
+            useCxx0x = true;
+        }
+        else
+        {
+            for (int i = 0; i < project->GetBuildTargetsCount(); ++i)
             {
                 ProjectBuildTarget* target = project->GetBuildTarget(i);
-                standard = GetCompilerUsingStandardGCC(target->GetCompilerOptions());
-
-                if (!standard.IsEmpty())
+                const wxArrayString& targetOptions = target->GetCompilerOptions();
+                if (   targetOptions.Index(cxx0xOption) != wxNOT_FOUND
+                    || targetOptions.Index(gnu0xOption) != wxNOT_FOUND )
+                {
+                    useCxx0x = true;
                     break;
+                }
             }
         }
     }
-    return standard;
-}
 
-wxString NativeParser::GetCompilerUsingStandardGCC(const wxArrayString& compilerOptions)
-{
-    wxString standard;
-    for (wxArrayString::size_type i=0; i<compilerOptions.Count(); ++i)
-    {
-        if (compilerOptions[i].StartsWith(_T("-std=")))
-        {
-            standard = compilerOptions[i];
-            CCLogger::Get()->DebugLog(wxString::Format(_T("NativeParser::GetCompilerUsingStandardGCC(): Using language standard: %s"), standard.wx_str()));
-            break;
-        }
-    }
-    return standard;
+    if (useCxx0x)
+        defs = gccDefsMap[cpp_compiler] + _T("#define __GXX_EXPERIMENTAL_CXX0X__ 1\n");
+    else
+        defs = gccDefsMap[cpp_compiler];
+
+    return true;
 }
 
 bool NativeParser::AddCompilerPredefinedMacrosVC(const wxString& compilerId, wxString& defs)
@@ -2243,7 +2336,7 @@ bool NativeParser::AddProjectDefinedMacros(cbProject* project, ParserBase* parse
         param = _T("/D");
 
     if (param.IsEmpty())
-        return false; // no compiler options, return false
+        return true;
 
     wxString defs;
     wxArrayString opts = project->GetCompilerOptions();
@@ -2273,9 +2366,6 @@ bool NativeParser::AddProjectDefinedMacros(cbProject* project, ParserBase* parse
     TRACE(_T("Add project and current build target defined preprocessor macros:\n%s"), defs.wx_str());
     parser->AddPredefinedMacros(defs);
     TRACE(_T("NativeParser::AddProjectDefinedMacros(): Leave"));
-    if ( defs.IsEmpty() )
-        return false;
-
     return true;
 }
 
@@ -2354,9 +2444,8 @@ const wxArrayString& NativeParser::GetGCCCompilerDirs(const wxString &cpp_compil
         if (!fname.DirExists())
             break;
 
-        dirs[cpp_compiler].Add(fname.GetPath());
-
         CCLogger::Get()->DebugLog(_T("NativeParser::GetGCCCompilerDirs(): Caching GCC default include dir: ") + fname.GetPath());
+        dirs[cpp_compiler].Add(fname.GetPath());
     }
 
     TRACE(_T("NativeParser::GetGCCCompilerDirs(): Leave"));
@@ -2533,21 +2622,12 @@ void NativeParser::OnParsingOneByOneTimer(cb_unused wxTimerEvent& event)
             else
             {
                 ProjectsArray* projs = Manager::Get()->GetProjectManager()->GetProjects();
-                // loop on the whole workspace, and only add a new project to the parser
-                // here the "new" means a project haven't been parsed. Once it was parsed, it is
-                // added to the m_ParsedProjects
                 for (size_t i = 0; i < projs->GetCount(); ++i)
                 {
                     // Only add, if the project is not already parsed
                     if (m_ParsedProjects.find(projs->Item(i)) == m_ParsedProjects.end())
                     {
-                        // AddProjectToParser return true means there are something need to parse, otherwise, it is false
-                        if (!AddProjectToParser(projs->Item(i)))
-                        {
-                            CCLogger::Get()->Log(_T("NativeParser::OnParsingOneByOneTimer(): nothing need to parse in this project, try next project."));
-                            continue;
-                        }
-
+                        AddProjectToParser(projs->Item(i));
                         CCLogger::Get()->DebugLog(_T("NativeParser::OnParsingOneByOneTimer(): Add additional (next) project to parser."));
                         break;
                     }
@@ -2662,24 +2742,24 @@ void NativeParser::InitCCSearchVariables()
     Reset();
 }
 
-bool NativeParser::AddProjectToParser(cbProject* project)
+void NativeParser::AddProjectToParser(cbProject* project)
 {
     wxString prj = (project ? project->GetTitle() : _T("*NONE*"));
     ParserBase* parser = GetParserByProject(project);
     if (parser)
-        return false;
+        return;
 
     if (m_ParsedProjects.empty())
-        return false;
+        return;
 
     m_ParsedProjects.insert(project);
     parser = GetParserByProject(project);
     if (!parser)
-        return false;
+        return;
     else if (!parser->UpdateParsingProject(project))
     {
         m_ParsedProjects.erase(project);
-        return false;
+        return;
     }
 
     // TODO (ollydbg#1#) did exactly the same thing as the function NativeParser::DoFullParsing()?
@@ -2687,23 +2767,14 @@ bool NativeParser::AddProjectToParser(cbProject* project)
     CCLogger::Get()->Log(log);
     CCLogger::Get()->DebugLog(log);
 
-    bool needParseMacros = false;
-
     if (!AddCompilerDirs(project, parser))
         CCLogger::Get()->DebugLog(_T("NativeParser::AddProjectToParser(): AddCompilerDirs failed!"));
 
     if (!AddCompilerPredefinedMacros(project, parser))
         CCLogger::Get()->DebugLog(_T("NativeParser::AddProjectToParser(): AddCompilerPredefinedMacros failed!"));
-    else
-        needParseMacros = true;
 
     if (!AddProjectDefinedMacros(project, parser))
         CCLogger::Get()->DebugLog(_T("NativeParser::AddProjectToParser(): AddProjectDefinedMacros failed!"));
-    else
-    {
-        if(!needParseMacros)
-            needParseMacros = true;
-    }
 
     if (project)
     {
@@ -2713,7 +2784,7 @@ bool NativeParser::AddProjectToParser(cbProject* project)
             ProjectFile* pf = *fl_it;
             if (pf && FileTypeOf(pf->relativeFilename) == ftHeader)
             {
-                if ( AddFileToParser(project, pf->file.GetFullPath(), parser) )
+                if (AddFileToParser(project, pf->file.GetFullPath(), parser))
                     ++fileCount;
             }
         }
@@ -2722,15 +2793,12 @@ bool NativeParser::AddProjectToParser(cbProject* project)
             ProjectFile* pf = *fl_it;
             if (pf && FileTypeOf(pf->relativeFilename) == ftSource)
             {
-                if ( AddFileToParser(project, pf->file.GetFullPath(), parser) )
+                if (AddFileToParser(project, pf->file.GetFullPath(), parser))
                     fileCount++;
             }
         }
 
         CCLogger::Get()->DebugLog(F(_("NativeParser::AddProjectToParser(): Done adding %lu files of project (%s) to parser."), static_cast<unsigned long>(fileCount), prj.wx_str()));
-
-        // in some cases, all the files were already be parsed, so fileCount is still 0
-        return ((fileCount>0) || needParseMacros);
     }
     else
     {
@@ -2742,10 +2810,8 @@ bool NativeParser::AddProjectToParser(cbProject* project)
             m_StandaloneFiles.Add(editor->GetFilename());
 
             CCLogger::Get()->DebugLog(F(_("NativeParser::AddProjectToParser(): Done adding stand-alone file (%s) of editor to parser."), editor->GetFilename().wx_str()));
-            return true;
         }
     }
-    return false;
 }
 
 bool NativeParser::RemoveProjectFromParser(cbProject* project)

@@ -24,7 +24,6 @@ extern const int g_EditorActivatedDelay;
 class cbEditor;
 class EditorBase;
 class cbProject;
-class cbStyledTextCtrl;
 class ClassBrowser;
 class Compiler;
 class Token;
@@ -34,7 +33,7 @@ WX_DECLARE_HASH_MAP(cbProject*, wxString, wxPointerHash, wxPointerEqual, Parsers
 
 typedef std::map<cbProject*, wxArrayString> ProjectSearchDirsMap;
 
-// TODO (ollydbg#1#), this class is dirty, I'm going to change its name like CursorLocation
+//TODO (ollydbg#1#), this class is dirty, I'm going to change its name like CursorLocation
 /** Search location combination, a pointer to cbStyledTextCtrl and a filename is enough */
 struct ccSearchData
 {
@@ -199,11 +198,11 @@ public:
      * the prototypes information of the current function,
      * the type information of the variable...
      *
+     * @param chars_per_line specify the char number per one line of the call-tip window, so it can restrict the width.
      * @param items array to store result in.
      * @param typedCommas how much comma characters the user has typed in the current line before the cursor.
-     * @return position index of the start of the arguments
      */
-    int GetCallTips(wxArrayString& items, int& typedCommas, cbEditor* ed, int pos = wxNOT_FOUND);
+    void GetCallTips(int chars_per_line, wxArrayString& items, int &typedCommas, int pos = wxNOT_FOUND);
 
     /** Word start position in the editor
      * @return position index
@@ -245,7 +244,6 @@ protected:
      * Set the active parser pointer (m_Parser member variable)
      * update the ClassBrowser's Parser pointer
      * re-fresh the symbol browser tree.
-     * if we did switch the parser, we also need to remove the temporary tokens of the old parser.
      */
     void SetParser(ParserBase* parser);
 
@@ -274,12 +272,7 @@ protected:
 private:
     friend class CodeCompletion;
 
-    /** Read or Write project' CC options when a C::B project is loading or saving
-     * user can set those settings in Menu->Project->Properties->C/C++ parser options panel
-     * @param project which project we are handling
-     * @param elem parent node of the project xml file (cbp) containing addtinal information
-     * @param loading true if the project is loading
-     */
+    /** Read project CC options when a C::B project is loading */
     void OnProjectLoadingHook(cbProject* project, TiXmlElement* elem, bool loading);
 
     /** Start an Artificial Intelligence search algorithm to gather all the matching tokens.
@@ -373,25 +366,17 @@ private:
 
     /** collect compiler specific predefined preprocessor definition, this is usually run a special
      * compiler command, like GCC -dM for gcc.
-     * @return true if there are some macro definition added, else it is false
      */
     bool AddCompilerPredefinedMacros(cbProject* project, ParserBase* parser);
 
     /** collect GCC compiler predefined preprocessor definition */
     bool AddCompilerPredefinedMacrosGCC(const wxString& compilerId, cbProject* project, wxString& defs);
 
-    /** lookup GCC compiler -std=XXX option */
-    wxString GetCompilerStandardGCC(Compiler* compiler, cbProject* project);
-
-    /** lookup GCC compiler -std=XXX option for specific GCC options*/
-    wxString GetCompilerUsingStandardGCC(const wxArrayString& compilerOptions);
-
     /** collect VC compiler predefined preprocessor definition */
     bool AddCompilerPredefinedMacrosVC(const wxString& compilerId, wxString& defs);
 
     /** collect project (user) defined preprocessor definition, such as for wxWidgets project, the
      * macro may have "#define wxUSE_UNICODE" defined in its project file.
-     * @return true if there are some macro definition added, else it is false
      */
     bool AddProjectDefinedMacros(cbProject* project, ParserBase* parser);
 
@@ -425,10 +410,8 @@ private:
     /** Init cc search member variables */
     void InitCCSearchVariables();
 
-    /** Add one project to the common parser in one parser for the whole workspace mode
-     * @return true means there are some thing (macro and files) need to parse, otherwise it is false
-     */
-    bool AddProjectToParser(cbProject* project);
+    /** Add all project files to parser */
+    void AddProjectToParser(cbProject* project);
 
     /** Remove cbp from the common parser, this only happens in one parser for whole workspace mode
      * when a parser is removed from the workspace, we should remove the project from the parser
@@ -456,9 +439,7 @@ private:
     /** if true, which means m_ClassBrowser is floating (not docked)*/
     bool                         m_ClassBrowserIsFloating;
 
-    /** a map: project pointer -> C/C++ parser search paths for this project, this is the
-     * per-project code completion search-dirs.
-     */
+    /** a map: project pointer -> C/C++ parser search paths for this project */
     ProjectSearchDirsMap         m_ProjectSearchDirsMap;
     int                          m_HookId;    //!< project loader hook ID
     wxImageList*                 m_ImageList; //!< Images for class browser

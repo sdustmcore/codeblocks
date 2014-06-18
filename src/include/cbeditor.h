@@ -316,8 +316,7 @@ class DLLIMPORT cbEditor : public EditorBase
         bool DoFoldLine(int line, int fold); // 0=unfold, 1=fold, 2=toggle
         void SetMarkerStyle(int marker, int markerType, wxColor fore, wxColor back);
         void UnderlineFoldedLines(bool underline);
-        cbStyledTextCtrl* CreateEditor();
-        void ConnectEvents(cbStyledTextCtrl* stc);
+        cbStyledTextCtrl* CreateEditor(bool connectEvents = true);
         void SetEditorStyle();
         void SetEditorStyleBeforeFileOpen();
         void SetEditorStyleAfterFileOpen();
@@ -338,11 +337,6 @@ class DLLIMPORT cbEditor : public EditorBase
         void OnEditorModified(wxScintillaEvent& event);
         void OnUserListSelection(wxScintillaEvent& event);
         void OnZoom(wxScintillaEvent& event);
-        /** notify all the registered EditorHook functions
-         * @param event indicates which event is received by the cbEditor
-         * You should bind OnScintillaEvent to every wxScintillaEvent events, either directly or
-         * indirectly, see cbEditor::ConnectEvents() for more details.
-         */
         void OnScintillaEvent(wxScintillaEvent& event);
         void OnClose(wxCloseEvent& event);
 
@@ -365,6 +359,7 @@ class DLLIMPORT cbEditor : public EditorBase
         cbStyledTextCtrl* m_pControl2;
         cbStyledTextCtrl* m_foldBackup;
         SplitType m_SplitType;
+        int m_ID;
         bool m_Modified;
         int m_Index;
         wxTimer m_timerWait;

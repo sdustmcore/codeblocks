@@ -1070,7 +1070,6 @@ void ScintillaWX::DoLoseFocus(){
     SetMouseCapture(false);
 /* C::B end */
     DestroySystemCaret();
-    SetTicking(false);
 }
 
 void ScintillaWX::DoGainFocus(){
@@ -1079,7 +1078,6 @@ void ScintillaWX::DoGainFocus(){
     focusEvent = false;
     DestroySystemCaret();
     CreateSystemCaret();
-    SetTicking(true);
 }
 
 void ScintillaWX::DoSysColourChange() {

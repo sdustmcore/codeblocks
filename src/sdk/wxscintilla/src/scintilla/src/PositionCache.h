@@ -43,6 +43,8 @@ public:
 	int edgeColumn;
 	char *chars;
 	unsigned char *styles;
+	int styleBitsSet;
+	char *indicators;
 	XYPOSITION *positions;
 	char bracePreviousStyles[2];
 
@@ -55,22 +57,19 @@ public:
 	int lines;
 	XYPOSITION wrapIndent; // In pixels
 
-	explicit LineLayout(int maxLineLength_);
+	LineLayout(int maxLineLength_);
 	virtual ~LineLayout();
 	void Resize(int maxLineLength_);
 	void Free();
 	void Invalidate(validLevel validity_);
 	int LineStart(int line) const;
 	int LineLastVisible(int line) const;
-	Range SubLineRange(int line) const;
 	bool InLine(int offset, int line) const;
 	void SetLineStart(int line, int start);
 	void SetBracesHighlight(Range rangeLine, Position braces[],
 		char bracesMatchStyle, int xHighlight, bool ignoreStyle);
 	void RestoreBracesHighlight(Range rangeLine, Position braces[], bool ignoreStyle);
 	int FindBefore(XYPOSITION x, int lower, int upper) const;
-	int FindPositionFromX(XYPOSITION x, Range range, bool charPosition) const;
-	Point PointFromPosition(int posInLine, int lineHeight) const;
 	int EndLineStyle() const;
 };
 
@@ -113,7 +112,7 @@ public:
 	void Set(unsigned int styleNumber_, const char *s_, unsigned int len_, XYPOSITION *positions_, unsigned int clock);
 	void Clear();
 	bool Retrieve(unsigned int styleNumber_, const char *s_, unsigned int len_, XYPOSITION *positions_) const;
-	static unsigned int Hash(unsigned int styleNumber_, const char *s, unsigned int len);
+	static int Hash(unsigned int styleNumber_, const char *s, unsigned int len);
 	bool NewerThan(const PositionCacheEntry &other) const;
 	void ResetClock();
 };
@@ -121,7 +120,7 @@ public:
 class Representation {
 public:
 	std::string stringRep;
-	explicit Representation(const char *value="") : stringRep(value) {
+	Representation(const char *value="") : stringRep(value) {
 	}
 };
 

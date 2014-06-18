@@ -69,7 +69,6 @@ int id_et_Unfold4             = wxNewId();
 int id_et_Unfold5             = wxNewId();
 int id_et_align_others        = wxNewId();
 int id_et_align_auto          = wxNewId();
-int id_et_align_last          = wxNewId();
 int id_et_SuppressInsertKey   = wxNewId();
 int id_et_ConvertBraces       = wxNewId();
 int id_et_ScrollTimer         = wxNewId();
@@ -124,16 +123,12 @@ BEGIN_EVENT_TABLE(EditorTweaks, cbPlugin)
     EVT_MENU(id_et_ConvertBraces,     EditorTweaks::OnConvertBraces)
     EVT_MENU(id_et_align_others,      EditorTweaks::OnAlignOthers)
     EVT_MENU(id_et_align_auto,        EditorTweaks::OnAlignAuto)
-    EVT_MENU(id_et_align_last,        EditorTweaks::OnAlignLast)
 
     EVT_TIMER(id_et_ScrollTimer, EditorTweaks::OnScrollTimer)
 END_EVENT_TABLE()
 
 // constructor
 EditorTweaks::EditorTweaks() :
-    AlignerLastUsedIdx(0),
-    AlignerLastUsedAuto(false),
-    AlignerLastUsed(false),
     m_scrollTimer(this, id_et_ScrollTimer)
 {
     // Make sure our resources are available.
@@ -302,9 +297,6 @@ void EditorTweaks::BuildMenu(wxMenuBar* menuBar)
     submenu->AppendSeparator();
     submenu->AppendCheckItem( id_et_SuppressInsertKey, _("Suppress Insert Key"),     _("Disable toggle between insert and overwrite mode using the insert key") );
     submenu->AppendCheckItem( id_et_ConvertBraces,     _("Convert Matching Braces"), _("Selecting a brace and typing a new brace character will change the matching brace appropriately") );
-    submenu->AppendSeparator();
-    submenu->AppendCheckItem( id_et_align_last,        _("Last Align"), _("repeat last Align command") );
-    submenu->AppendCheckItem( id_et_align_auto,        _("Auto Align"), _("Align lines automatically") );
 
 
     wxMenu *foldmenu = 0;
@@ -793,11 +785,6 @@ void EditorTweaks::OnMakeIndentsConsistent(wxCommandEvent& /*event*/)
     cbEditor* ed = Manager::Get()->GetEditorManager()->GetBuiltinActiveEditor();
     if (!ed)
         return;
-
-    MakeIndentsConsistent(ed);
-}
-void EditorTweaks::MakeIndentsConsistent(cbEditor* ed)
-{
     cbStyledTextCtrl* stc = ed->GetControl();
 
     const bool useTab     = stc->GetUseTabs();
@@ -843,11 +830,6 @@ void EditorTweaks::OnStripTrailingBlanks(wxCommandEvent &/*event*/)
     if (!control)
             return;
 
-    StripTrailingBlanks(control);
-}
-
-void EditorTweaks::StripTrailingBlanks(cbStyledTextCtrl* control)
-{
     int maxLines = control->GetLineCount();
     control->BeginUndoAction();
     for (int line = 0; line < maxLines; line++)
@@ -972,22 +954,13 @@ void EditorTweaks::OnAlign(wxCommandEvent& event)
     {
         if ( AlignerMenuEntries[i].id == id )
         {
-            DoAlign(i);
+            AlignToString(AlignerMenuEntries[i].ArgumentString);
+            AlignerMenuEntries[i].UsageCount ++;
             break;
         }
     }
 }
-void EditorTweaks::DoAlign(unsigned int idx)
-{
-    if (idx >= AlignerMenuEntries.size())
-        return;
-    AlignToString(AlignerMenuEntries[idx].ArgumentString);
-    AlignerMenuEntries[idx].UsageCount ++;
 
-    AlignerLastUsedIdx = idx;
-    AlignerLastUsedAuto = false;
-    AlignerLastUsed = true;
-}
 void EditorTweaks::OnAlignOthers(wxCommandEvent& /*event*/)
 {
     wxString NewAlignmentString;
@@ -1033,22 +1006,7 @@ void EditorTweaks::OnAlignOthers(wxCommandEvent& /*event*/)
     }
 }
 
-void EditorTweaks::OnAlignLast(cb_unused wxCommandEvent& event)
-{
-    if(!AlignerLastUsed)
-        return;
-
-    if (AlignerLastUsedAuto)
-        DoAlignAuto();
-    else
-        DoAlign(AlignerLastUsedIdx);
-}
-
-void EditorTweaks::OnAlignAuto(cb_unused wxCommandEvent& event)
-{
-    DoAlignAuto();
-}
-void EditorTweaks::DoAlignAuto()
+void EditorTweaks::OnAlignAuto(wxCommandEvent& WXUNUSED(event))
 {
     cbEditor* ed = Manager::Get()->GetEditorManager()->GetBuiltinActiveEditor();
     if (!ed)
@@ -1127,9 +1085,6 @@ void EditorTweaks::DoAlignAuto()
     }
     stc->LineEnd(); // remove selection (if last line was not replaced)
     stc->EndUndoAction();
-
-    AlignerLastUsedAuto = true;
-    AlignerLastUsed = true;
 }
 
 void EditorTweaks::AlignToString(const wxString AlignmentString)

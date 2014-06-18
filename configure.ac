@@ -8,7 +8,7 @@ AC_CANONICAL_TARGET
 
 AC_CONFIG_MACRO_DIR([m4])
 
-AM_INIT_AUTOMAKE([dist-bzip2 no-dist-gzip subdir-objects])
+AM_INIT_AUTOMAKE([dist-bzip2 no-dist-gzip])
 
 AC_DISABLE_STATIC
 
@@ -16,15 +16,13 @@ LT_INIT
 
 AC_CONFIG_HEADER([src/include/config.h])
 
-m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES])
-
 CODEBLOCKS_CHECK_DEBUG
 
 dnl Checks for programs.
 AC_PROG_CXX
 AC_PROG_CPP
 AC_PROG_CC
-AM_PROG_CC_C_O
+AC_PROG_CC_C_O
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
@@ -447,7 +445,6 @@ AC_CONFIG_FILES([Makefile
 	src/plugins/contrib/NassiShneiderman/Makefile
 	src/plugins/contrib/profiler/Makefile
 	src/plugins/contrib/profiler/resources/Makefile
-	src/plugins/contrib/ProjectOptionsManipulator/Makefile
 	src/plugins/contrib/source_exporter/Makefile
 	src/plugins/contrib/source_exporter/wxPdfDocument/Makefile
 	src/plugins/contrib/SmartIndent/Makefile

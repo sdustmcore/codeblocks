@@ -7,6 +7,7 @@
 #define nsSBCSGroupProber_h__
 
 
+
 #define NUM_OF_SBCS_PROBERS    16 // PATCH: include additional probers
 
 class nsCharSetProber;

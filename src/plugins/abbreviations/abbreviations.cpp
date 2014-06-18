@@ -18,10 +18,9 @@
 #include "abbreviations.h"
 #include "abbreviationsconfigpanel.h"
 
-#include <ccmanager.h>
-#include <editor_hooks.h>
 #include <sqplus.h>
 #include <sc_base_types.h>
+#include <editor_hooks.h>
 
 
 // Register the plugin with Code::Blocks.
@@ -170,8 +169,6 @@ void Abbreviations::BuildMenu(wxMenuBar* menuBar)
 void Abbreviations::OnEditAutoComplete(cb_unused wxCommandEvent& event)
 {
     cbEditor* editor = Manager::Get()->GetEditorManager()->GetBuiltinActiveEditor();
-    if (!editor)
-        return;
     cbStyledTextCtrl* control = editor->GetControl();
 
     const AutoCompleteMap& acm = *GetCurrentACMap(editor);
@@ -203,8 +200,7 @@ void Abbreviations::OnEditAutoComplete(cb_unused wxCommandEvent& event)
             items.Sort();
             wxString itemsStr = GetStringFromArray(items, _T(" "));
             control->AutoCompSetSeparator(_T(' '));
-            control->AutoCompSetTypeSeparator(_T('?'));
-            Manager::Get()->GetCCManager()->InjectAutoCompShow(endPos - startPos, itemsStr);
+            control->AutoCompShow(endPos-startPos, itemsStr);
         }
         m_IsAutoCompVisible = control->AutoCompActive();
     }

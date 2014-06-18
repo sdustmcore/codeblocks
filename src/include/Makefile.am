@@ -49,7 +49,6 @@ ALLHEADERS = annoyingdialog.h \
 				cbtool.h \
 				cbtreectrl.h \
 				cbworkspace.h \
-				ccmanager.h \
 				compileoptionsbase.h \
 				compiler.h \
 				compilercommandgenerator.h \
@@ -65,6 +64,7 @@ ALLHEADERS = annoyingdialog.h \
 				editarrayfiledlg.h \
 				editarrayorderdlg.h \
 				editarraystringdlg.h \
+				editkeywordsdlg.h \
 				editorbase.h \
 				editorcolourset.h \
 				editorlexerloader.h \
@@ -106,6 +106,7 @@ ALLHEADERS = annoyingdialog.h \
 				prep.h \
 				printing_types.h \
 				projectbuildtarget.h \
+				projectdepsdlg.h \
 				projectfile.h \
 				projectfileoptionsdlg.h \
 				projectlayoutloader.h \
@@ -128,6 +129,7 @@ ALLHEADERS = annoyingdialog.h \
 				templatemanager.h \
 				toolsmanager.h \
 				uservarmanager.h \
+				virtualbuildtargetsdlg.h \
 				workspaceloader.h \
 				xtra_res.h \
 				mozilla_chardet/CharDistribution.h \
@@ -149,13 +151,12 @@ ALLHEADERS = annoyingdialog.h \
 				mozilla_chardet/nsSJISProber.h \
 				mozilla_chardet/nsUniversalDetector.h \
 				mozilla_chardet/nsUTF8Prober.h \
-				mozilla_chardet/mfbt/mozilla/Alignment.h \
 				mozilla_chardet/mfbt/mozilla/Assertions.h \
 				mozilla_chardet/mfbt/mozilla/Attributes.h \
 				mozilla_chardet/mfbt/mozilla/Compiler.h \
 				mozilla_chardet/mfbt/mozilla/Likely.h \
 				mozilla_chardet/mfbt/mozilla/NullPtr.h \
-				mozilla_chardet/mfbt/mozilla/TypedEnum.h \
+				mozilla_chardet/mfbt/mozilla/StandardInteger.h \
 				mozilla_chardet/mfbt/mozilla/Types.h \
 				mozilla_chardet/mfbt/mozilla/Util.h \
 				mozilla_chardet/nsprpub/pr/include/prcpucfg.h \

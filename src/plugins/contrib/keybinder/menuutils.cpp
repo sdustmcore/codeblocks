@@ -27,6 +27,7 @@
 #if defined(CB_PRECOMP)
 #include "sdk.h"
 #else
+    #include "sdk_common.h"
     #include <wx/event.h>
     #include <wx/frame.h> // Manager::Get()->GetAppWindow()
     #include <wx/intl.h>

@@ -129,9 +129,7 @@ DEFINE_EVENT_TYPE( wxEVT_SCI_INDICATOR_CLICK )
 DEFINE_EVENT_TYPE( wxEVT_SCI_INDICATOR_RELEASE )
 DEFINE_EVENT_TYPE( wxEVT_SCI_AUTOCOMP_CANCELLED )
 DEFINE_EVENT_TYPE( wxEVT_SCI_AUTOCOMP_CHAR_DELETED )
-DEFINE_EVENT_TYPE( wxEVT_SCI_HOTSPOT_RELEASE_CLICK )
-DEFINE_EVENT_TYPE( wxEVT_SCI_CLIPBOARD_COPY )
-DEFINE_EVENT_TYPE( wxEVT_SCI_CLIPBOARD_PASTE )
+DEFINE_EVENT_TYPE( wxEVT_SCI_HOTSPOT_RELEASE_CLICK );
 /* C::B begin */
 DEFINE_EVENT_TYPE( wxEVT_SCI_SETFOCUS )
 DEFINE_EVENT_TYPE( wxEVT_SCI_KILLFOCUS )
@@ -171,6 +169,10 @@ END_EVENT_TABLE()
 IMPLEMENT_CLASS(wxScintilla, wxControl)
 IMPLEMENT_DYNAMIC_CLASS(wxScintillaEvent, wxCommandEvent)
 
+#ifdef LINK_LEXERS
+// forces the linking of the lexer modules
+int Scintilla_LinkLexers();
+#endif
 //----------------------------------------------------------------------
 // Constructor and Destructor
 
@@ -1985,12 +1987,6 @@ int wxScintilla::CallTipPosAtStart()
     return SendMsg(SCI_CALLTIPPOSSTART, 0, 0);
 }
 
-// Set the start position in order to change when backspacing removes the calltip.
-void wxScintilla::CallTipSetPosAtStart(int posStart)
-{
-    SendMsg(SCI_CALLTIPSETPOSSTART, posStart, 0);
-}
-
 // Highlight a segment of the definition.
 void wxScintilla::CallTipSetHighlight(int start, int end)
 {
@@ -3434,26 +3430,14 @@ int wxScintilla::AutoCompGetCaseInsensitiveBehaviour() const
     return SendMsg(SCI_AUTOCGETCASEINSENSITIVEBEHAVIOUR, 0, 0);
 }
 
-// Change the effect of autocompleting when there are multiple selections.
-void wxScintilla::AutoCSetMulti(int multi)
-{
-    SendMsg(SCI_AUTOCSETMULTI, multi, 0);
-}
-
-// Retrieve the effect of autocompleting when there are multiple selections..
-int wxScintilla::AutoCGetMulti() const
-{
-    return SendMsg(SCI_AUTOCGETMULTI, 0, 0);
-}
-
 // Set the way autocompletion lists are ordered.
-void wxScintilla::AutoCompSetOrder(int order)
+void wxScintilla::AutoCSetOrder(int order)
 {
     SendMsg(SCI_AUTOCSETORDER, order, 0);
 }
 
 // Get the way autocompletion lists are ordered.
-int wxScintilla::AutoCompGetOrder() const
+int wxScintilla::AutoCGetOrder() const
 {
     return SendMsg(SCI_AUTOCGETORDER, 0, 0);
 }
@@ -3485,7 +3469,7 @@ void wxScintilla::Allocate(int bytes)
 // multi-byte characters. If beyond end of line, return line end position.
 int wxScintilla::FindColumn(int line, int column)
 {
-    return SendMsg(SCI_FINDCOLUMN, line, column);
+    return SendMsg(SCI_ENCODEDFROMUTF8, line, column);
 }
 
 // Can the caret preferred x position only be changed by explicit movement commands?
@@ -4022,12 +4006,6 @@ int wxScintilla::AddSelection(int caret, int anchor)
     return SendMsg(SCI_ADDSELECTION, caret, anchor);
 }
 
-// Drop one selection
-void wxScintilla::DropSelectionN(int selection)
-{
-    SendMsg(SCI_DROPSELECTIONN, selection, 0);
-}
-
 // Set the main selection
 void wxScintilla::SetMainSelection(int selection)
 {
@@ -4333,24 +4311,6 @@ void wxScintilla::SetCaretLineVisibleAlways(bool alwaysVisible)
     SendMsg(SCI_SETCARETLINEVISIBLEALWAYS, alwaysVisible, 0);
 }
 
-// Set the line end types that the application wants to use. May not be used if incompatible with lexer or encoding.
-void wxScintilla::SetLineEndTypesAllowed(int lineEndBitSet)
-{
-    SendMsg(SCI_SETLINEENDTYPESALLOWED, lineEndBitSet, 0);
-}
-
-// Get the line end types currently allowed.
-int wxScintilla::GetLineEndTypesAllowed() const
-{
-    return SendMsg(SCI_GETLINEENDTYPESALLOWED, 0, 0);
-}
-
-// Get the line end types currently recognised. May be a subset of the allowed types due to lexer limitation.
-int wxScintilla::GetLineEndTypesActive() const
-{
-    return SendMsg(SCI_GETLINEENDTYPESACTIVE, 0, 0);
-}
-
 // Set the way a character is drawn.
 void wxScintilla::SetRepresentation(const wxString& encodedCharacter, const wxString& representation)
 {
@@ -4358,9 +4318,7 @@ void wxScintilla::SetRepresentation(const wxString& encodedCharacter, const wxSt
 }
 
 // Set the way a character is drawn.
-/* C::B begin */
-wxString wxScintilla::GetRepresentation(const wxString& WXUNUSED(encodedCharacter)) const
-/* C::B end */
+wxString wxScintilla::GetRepresentation(const wxString& encodedCharacter) const
 {
     const long len = SendMsg(SCI_GETREPRESENTATION, 0, (uptr_t)NULL);
     if (!len) return wxEmptyString;
@@ -4544,6 +4502,24 @@ wxString wxScintilla::DescribeKeyWordSets() const
     mbuf.UngetWriteBuf(len);
     mbuf.AppendByte(0);
     return sci2wx(buf);
+}
+
+// Set the line end types that the application wants to use. May not be used if incompatible with lexer or encoding.
+void wxScintilla::SetLineEndTypesAllowed(int lineEndBitSet)
+{
+    SendMsg(SCI_SETLINEENDTYPESALLOWED, lineEndBitSet, 0);
+}
+
+// Get the line end types currently allowed.
+int wxScintilla::GetLineEndTypesAllowed() const
+{
+    return SendMsg(SCI_GETLINEENDTYPESALLOWED, 0, 0);
+}
+
+// Get the line end types currently recognised. May be a subset of the allowed types due to lexer limitation.
+int wxScintilla::GetLineEndTypesActive() const
+{
+    return SendMsg(SCI_GETLINEENDTYPESACTIVE, 0, 0);
 }
 
 // Bit set of LineEndType enumertion for which line ends beyond the standard
@@ -5009,9 +4985,9 @@ bool wxScintilla::DoLoadFile(const wxString& filename, int WXUNUSED(fileType))
                 // Set EOL mode to ensure that the new lines inserted into the
                 // text use the same EOLs as the existing ones.
                 if ( posLF > 0 && text[posLF - 1] == '\r' )
-                    SetEOLMode(wxSCI_EOL_CRLF);
+                    SetEOLMode(wxSTC_EOL_CRLF);
                 else
-                    SetEOLMode(wxSCI_EOL_LF);
+                    SetEOLMode(wxSTC_EOL_LF);
             }
             //else: Use the default EOL for the current platform.
         }
@@ -5066,12 +5042,19 @@ bool wxScintilla::LoadFile(const wxString& filename)
 /* C::B end */
 
 #if wxUSE_DRAG_AND_DROP
-wxDragResult wxScintilla::DoDragEnter(wxCoord x, wxCoord y, wxDragResult def)
+wxDragResult wxScintilla::DoDragOver(wxCoord x, wxCoord y, wxDragResult def)
 {
-    return m_swx->DoDragEnter(x, y, def);
+    return m_swx->DoDragOver(x, y, def);
 }
 
-wxDragResult wxScintilla::DoDragOver(wxCoord x, wxCoord y, wxDragResult def)
+
+bool wxScintilla::DoDropText(long x, long y, const wxString& data)
+{
+    return m_swx->DoDropText(x, y, data);
+}
+
+/* C::B begin */
+wxDragResult wxScintilla::DoDragEnter(wxCoord x, wxCoord y, wxDragResult def)
 {
     return m_swx->DoDragOver(x, y, def);
 }
@@ -5080,11 +5063,7 @@ void wxScintilla::DoDragLeave()
 {
     m_swx->DoDragLeave();
 }
-
-bool wxScintilla::DoDropText(long x, long y, const wxString& data)
-{
-    return m_swx->DoDropText(x, y, data);
-}
+/* C::B end */
 #endif
 
 
@@ -5487,7 +5466,7 @@ static void SetEventText(wxScintillaEvent& evt, const char* text,
 {
     if(!text) return;
 
-    evt.SetString(sci2wx(text, length));
+    evt.SetText(sci2wx(text, length));
 }
 
 
@@ -5690,6 +5669,7 @@ wxScintillaEvent::wxScintillaEvent(const wxScintillaEvent& event):
     m_key =           event.m_key;
     m_modifiers =     event.m_modifiers;
     m_modificationType = event.m_modificationType;
+    m_text =          event.m_text;
     m_length =        event.m_length;
     m_linesAdded =    event.m_linesAdded;
     m_line =          event.m_line;
@@ -5711,6 +5691,7 @@ wxScintillaEvent::wxScintillaEvent(const wxScintillaEvent& event):
     m_updated =      event.m_updated;
 
 #if wxUSE_DRAG_AND_DROP
+    m_dragText =     event.m_dragText;
     m_dragFlags =    event.m_dragFlags;
     m_dragResult =   event.m_dragResult;
 #endif
@@ -5724,7 +5705,7 @@ wxScintillaEvent::wxScintillaEvent(const wxScintillaEvent& event):
 /*static*/ wxVersionInfo wxScintilla::GetLibraryVersionInfo()
 {
     /* C::B -> Don't forget to change version number here and in wxscintilla.h at the top */
-    return wxVersionInfo("Scintilla", 3, 43, 0, "Scintilla 3.43");
+    return wxVersionInfo("Scintilla", 3, 35, 0, "Scintilla 3.35");
 }
 #endif
 /* C::B end */

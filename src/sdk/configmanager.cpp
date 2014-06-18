@@ -53,9 +53,6 @@
 template<> CfgMgrBldr* Mgr<CfgMgrBldr>::instance = nullptr;
 template<> bool  Mgr<CfgMgrBldr>::isShutdown = false;
 
-wxString ConfigManager::alternate_user_data_path;
-bool ConfigManager::has_alternate_user_data_path=false;
-
 wxString ConfigManager::config_folder;
 wxString ConfigManager::home_folder;
 wxString ConfigManager::data_path_user;
@@ -67,7 +64,16 @@ wxString ConfigManager::app_path;
 wxString ConfigManager::temp_folder;
 bool ConfigManager::relo = 0;
 
-
+#ifdef __WINDOWS__
+inline wxString GetPortableConfigDir()
+{
+    TCHAR buffer[MAX_PATH];
+    if (::GetEnvironmentVariable(_T("APPDATA"), buffer, MAX_PATH))
+        return wxString::Format(_T("%s\\CodeBlocks"), buffer);
+    else
+        return wxStandardPathsBase::Get().GetUserDataDir();
+}
+#endif
 
 namespace CfgMgrConsts
 {
@@ -185,7 +191,11 @@ CfgMgrBldr::CfgMgrBldr() : doc(nullptr), volatile_doc(nullptr), r(false)
 
     if (cfg.IsEmpty())
     {
-        cfg = ConfigManager::GetUserDataFolder() + wxFILE_SEP_PATH + personality + _T(".conf");
+        #ifdef __WINDOWS__
+        cfg = GetPortableConfigDir() + wxFILE_SEP_PATH + personality + _T(".conf");
+        #else
+        cfg = wxStandardPathsBase::Get().GetUserDataDir() + wxFILE_SEP_PATH + personality + _T(".conf");
+        #endif
         doc = new TiXmlDocument();
         doc->InsertEndChild(TiXmlDeclaration("1.0", "UTF-8", "yes"));
         doc->InsertEndChild(TiXmlElement("CodeBlocksConfig"));
@@ -200,10 +210,14 @@ wxString CfgMgrBldr::FindConfigFile(const wxString& filename)
 {
     wxPathList searchPaths;
 
-    wxString u(ConfigManager::GetUserDataFolder() + wxFILE_SEP_PATH + filename);
+#ifdef __WINDOWS__
+    wxString u(GetPortableConfigDir() + wxFILE_SEP_PATH + filename);
+#else
+    wxString u(wxStandardPathsBase::Get().GetUserDataDir() + wxFILE_SEP_PATH + filename);
+#endif
     wxString e(::DetermineExecutablePath() + wxFILE_SEP_PATH + filename);
 
-    if (!ConfigManager::has_alternate_user_data_path && ::wxFileExists(e))
+    if (::wxFileExists(e))
     {
         ConfigManager::relo = true;
         return e;
@@ -425,6 +439,7 @@ ConfigManager* CfgMgrBldr::Build(const wxString& name_space)
     return c;
 }
 
+
 /*
 *  Hack to enable Turkish language. wxString::Upper will convert lowercase 'i' to \u0130 instead of \u0069 in Turkish locale,
 *  which will break the config file when used in a tag
@@ -535,36 +550,6 @@ wxString ConfigManager::GetFolder(SearchDirs dir)
         default:
             return wxEmptyString;
     }
-}
-
-inline wxString ConfigManager::GetUserDataFolder()
-{
-    if (has_alternate_user_data_path)
-        return alternate_user_data_path;
-#ifdef __WINDOWS__
-    TCHAR buffer[MAX_PATH];
-    if (!ConfigManager::has_alternate_user_data_path && ::GetEnvironmentVariable(_T("APPDATA"), buffer, MAX_PATH))
-        return wxString::Format(_T("%s\\CodeBlocks"), buffer);
-    else
-        return wxStandardPathsBase::Get().GetUserDataDir();
-#else
-    return wxStandardPathsBase::Get().GetUserDataDir();
-#endif
-}
-
-
-bool ConfigManager::SetUserDataFolder(const wxString &user_data_path)
-{
-    wxString udp = wxFileName::DirName(user_data_path).GetFullPath();
-    if (!CreateDirRecursively(udp))
-    {
-        cbMessageBox(wxString::Format(_("The --user-data-dir directory %s does not exist and could not be created. Please check the path and try again"),
-                                            user_data_path.c_str()), _("Command Line Error"));
-        return false;
-    }
-    has_alternate_user_data_path = true;
-    ConfigManager::alternate_user_data_path = udp;
-    return true;
 }
 
 wxString ConfigManager::LocateDataFile(const wxString& filename, int search_dirs)
@@ -880,19 +865,9 @@ void ConfigManager::Write(const wxString& name,  const wxColour& c)
     TiXmlElement *leaf = GetUniqElement(e, key);
 
     TiXmlElement *s = GetUniqElement(leaf, _T("colour"));
-    if (c == wxNullColour)
-    {
-        s->SetAttribute("null", "true");
-        s->SetAttribute("r", 0);
-        s->SetAttribute("g", 0);
-        s->SetAttribute("b", 0);
-    }
-    else
-    {
-        s->SetAttribute("r", c.Red());
-        s->SetAttribute("g", c.Green());
-        s->SetAttribute("b", c.Blue());
-    }
+    s->SetAttribute("r", c.Red());
+    s->SetAttribute("g", c.Green());
+    s->SetAttribute("b", c.Blue());
 }
 
 wxColour ConfigManager::ReadColour(const wxString& name, const wxColour& defaultVal)
@@ -915,25 +890,13 @@ bool ConfigManager::Read(const wxString& name, wxColour* ret)
 
     if (c)
     {
-        const char *isNull = c->Attribute("null");
-        if (isNull && strcmp(isNull, "true") == 0)
-        {
-            *ret = wxNullColour;
-            return true;
-        }
-        else
-        {
-            int r, g, b;
-            if (c->QueryIntAttribute("r", &r) == TIXML_SUCCESS
-                    && c->QueryIntAttribute("g", &g) == TIXML_SUCCESS
-                    && c->QueryIntAttribute("b", &b) == TIXML_SUCCESS)
-            {
-                ret->Set(r, g, b);
-                return true;
-            }
-        }
+        int r, g, b;
+        if (c->QueryIntAttribute("r", &r) == TIXML_SUCCESS
+                && c->QueryIntAttribute("g", &g) == TIXML_SUCCESS
+                && c->QueryIntAttribute("b", &b) == TIXML_SUCCESS)
+            ret->Set(r, g, b);
+        return true;
     }
-    *ret = wxNullColour;
     return false;
 }
 
@@ -1474,7 +1437,11 @@ void ConfigManager::Write(const wxString& name, const ConfigManagerContainer::Se
 
 void ConfigManager::InitPaths()
 {
-    ConfigManager::config_folder = ConfigManager::GetUserDataFolder();
+#ifdef __WINDOWS__
+    ConfigManager::config_folder = GetPortableConfigDir();
+#else
+    ConfigManager::config_folder = wxStandardPathsBase::Get().GetUserDataDir();
+#endif
     ConfigManager::home_folder = wxStandardPathsBase::Get().GetUserConfigDir();
     ConfigManager::app_path = ::DetermineExecutablePath();
     wxString res_path = ::DetermineResourcesPath();

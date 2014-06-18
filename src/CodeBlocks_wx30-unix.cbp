@@ -128,9 +128,7 @@
 				<Option external_deps="base/tinyxml/libtxml30.a;sdk/scripting/lib/libsquirrel30.a;sdk/scripting/lib/libsqstdlib30.a;sdk/scripting/lib/libsqplus30.a;devel30/libwxscintilla_cb.a;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --multiple-instance -ns -ni -v -p debug" />
-				<Option host_application="./codeblocks" />
-				<Option run_host_application_in_terminal="0" />
+				<Option parameters="--debug-log --multiple-instance -ni -p debug" />
 				<Option createStaticLib="1" />
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
@@ -164,6 +162,7 @@
 				<Option output="devel30/codeblocks" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="devel30" />
 				<Option object_output=".objs30" />
+				<Option external_deps="devel30/libcodeblocks.so;" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Option parameters="--debug-log --multiple-instance -ns -ni -v -p debug" />
@@ -190,13 +189,11 @@
 			</Target>
 			<Target title="Abbreviations">
 				<Option output="devel30/share/codeblocks/plugins/abbreviations" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="devel30" />
+				<Option working_dir="devel30/share/codeblocks/plugins" />
 				<Option object_output=".objs30" />
+				<Option external_deps="devel30/libcodeblocks.so;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --multiple-instance -ns -ni -v -p debug" />
-				<Option host_application="./codeblocks" />
-				<Option run_host_application_in_terminal="0" />
 				<Option projectLinkerOptionsRelation="1" />
 				<Compiler>
 					<Add directory="include" />
@@ -213,13 +210,11 @@
 			</Target>
 			<Target title="AStyle">
 				<Option output="devel30/share/codeblocks/plugins/astyle" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="devel30" />
+				<Option working_dir="devel30/share/codeblocks/plugins" />
 				<Option object_output=".objs30" />
+				<Option external_deps="devel30/libcodeblocks.so;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --multiple-instance -ns -ni -v -p debug" />
-				<Option host_application="./codeblocks" />
-				<Option run_host_application_in_terminal="0" />
 				<Option projectLinkerOptionsRelation="1" />
 				<Compiler>
 					<Add directory="include" />
@@ -234,13 +229,11 @@
 			</Target>
 			<Target title="Autosave">
 				<Option output="devel30/share/codeblocks/plugins/autosave" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="devel30" />
+				<Option working_dir="devel30/share/codeblocks/plugins" />
 				<Option object_output=".objs30" />
+				<Option external_deps="devel30/libcodeblocks.so;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --multiple-instance -ns -ni -v -p debug" />
-				<Option host_application="./codeblocks" />
-				<Option run_host_application_in_terminal="0" />
 				<Option projectLinkerOptionsRelation="1" />
 				<Compiler>
 					<Add directory="include" />
@@ -265,14 +258,11 @@
 			</Target>
 			<Target title="Compiler">
 				<Option output="devel30/share/codeblocks/plugins/compiler" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="devel30" />
+				<Option working_dir="devel30/share/codeblocks/plugins" />
 				<Option object_output=".objs30" />
-				<Option external_deps="plugins/compilergcc/depslib/libdepslib30.a;" />
+				<Option external_deps="devel30/libcodeblocks.so;plugins/compilergcc/depslib/libdepslib30.a;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --multiple-instance -ns -ni -v -p debug" />
-				<Option host_application="./codeblocks" />
-				<Option run_host_application_in_terminal="0" />
 				<Option projectLinkerOptionsRelation="1" />
 				<Compiler>
 					<Add directory="include" />
@@ -291,13 +281,11 @@
 			</Target>
 			<Target title="Debugger">
 				<Option output="devel30/share/codeblocks/plugins/debugger" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="devel30" />
+				<Option working_dir="devel30/share/codeblocks/plugins" />
 				<Option object_output=".objs30" />
+				<Option external_deps="devel30/libcodeblocks.so;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --multiple-instance -ns -ni -v -p debug" />
-				<Option host_application="./codeblocks" />
-				<Option run_host_application_in_terminal="0" />
 				<Option projectLinkerOptionsRelation="1" />
 				<Compiler>
 					<Add directory="include" />
@@ -313,13 +301,11 @@
 			</Target>
 			<Target title="Code-completion">
 				<Option output="devel30/share/codeblocks/plugins/codecompletion" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="devel30" />
+				<Option working_dir="devel30/share/codeblocks/plugins" />
 				<Option object_output=".objs30" />
+				<Option external_deps="devel30/libcodeblocks.so;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --multiple-instance -ns -ni -v -p debug" />
-				<Option host_application="./codeblocks" />
-				<Option run_host_application_in_terminal="0" />
 				<Option projectLinkerOptionsRelation="1" />
 				<Compiler>
 					<Add option="-DCC_NO_COLLAPSE_ITEM" />
@@ -340,13 +326,11 @@
 			</Target>
 			<Target title="Class wizard">
 				<Option output="devel30/share/codeblocks/plugins/classwizard" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="devel30" />
+				<Option working_dir="devel30/share/codeblocks/plugins" />
 				<Option object_output=".objs30" />
+				<Option external_deps="devel30/libcodeblocks.so;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --multiple-instance -ns -ni -v -p debug" />
-				<Option host_application="./codeblocks" />
-				<Option run_host_application_in_terminal="0" />
 				<Option projectLinkerOptionsRelation="1" />
 				<Compiler>
 					<Add directory="include" />
@@ -360,13 +344,11 @@
 			</Target>
 			<Target title="Default MIME handler">
 				<Option output="devel30/share/codeblocks/plugins/defaultmimehandler" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="devel30" />
+				<Option working_dir="devel30/share/codeblocks/plugins" />
 				<Option object_output=".objs30" />
+				<Option external_deps="devel30/libcodeblocks.so;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --multiple-instance -ns -ni -v -p debug" />
-				<Option host_application="./codeblocks" />
-				<Option run_host_application_in_terminal="0" />
 				<Option projectLinkerOptionsRelation="1" />
 				<Compiler>
 					<Add directory="include" />
@@ -380,13 +362,11 @@
 			</Target>
 			<Target title="Occurrences Highlighting">
 				<Option output="devel30/share/codeblocks/plugins/occurrenceshighlighting" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="devel30" />
+				<Option working_dir="devel30/share/codeblocks/plugins" />
 				<Option object_output=".objs30" />
+				<Option external_deps="devel30/libcodeblocks.so;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --multiple-instance -ns -ni -v -p debug" />
-				<Option host_application="./codeblocks" />
-				<Option run_host_application_in_terminal="0" />
 				<Option projectLinkerOptionsRelation="1" />
 				<Compiler>
 					<Add directory="include" />
@@ -400,13 +380,11 @@
 			</Target>
 			<Target title="Open files list">
 				<Option output="devel30/share/codeblocks/plugins/openfileslist" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="devel30" />
+				<Option working_dir="devel30/share/codeblocks/plugins" />
 				<Option object_output=".objs30" />
+				<Option external_deps="devel30/libcodeblocks.so;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --multiple-instance -ns -ni -v -p debug" />
-				<Option host_application="./codeblocks" />
-				<Option run_host_application_in_terminal="0" />
 				<Option projectLinkerOptionsRelation="1" />
 				<Compiler>
 					<Add directory="include" />
@@ -420,13 +398,11 @@
 			</Target>
 			<Target title="Projects-workspaces importer">
 				<Option output="devel30/share/codeblocks/plugins/projectsimporter" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="devel30" />
+				<Option working_dir="devel30/share/codeblocks/plugins" />
 				<Option object_output=".objs30" />
+				<Option external_deps="devel30/libcodeblocks.so;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --multiple-instance -ns -ni -v -p debug" />
-				<Option host_application="./codeblocks" />
-				<Option run_host_application_in_terminal="0" />
 				<Option projectLinkerOptionsRelation="1" />
 				<Compiler>
 					<Add directory="include" />
@@ -446,13 +422,11 @@
 			</Target>
 			<Target title="Scripted wizard">
 				<Option output="devel30/share/codeblocks/plugins/scriptedwizard" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="devel30" />
+				<Option working_dir="devel30/share/codeblocks/plugins" />
 				<Option object_output=".objs30" />
+				<Option external_deps="devel30/libcodeblocks.so;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --multiple-instance -ns -ni -v -p debug" />
-				<Option host_application="./codeblocks" />
-				<Option run_host_application_in_terminal="0" />
 				<Option projectLinkerOptionsRelation="1" />
 				<Compiler>
 					<Add directory="include" />
@@ -468,13 +442,11 @@
 			</Target>
 			<Target title="To-do">
 				<Option output="devel30/share/codeblocks/plugins/todo" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="devel30" />
+				<Option working_dir="devel30/share/codeblocks/plugins" />
 				<Option object_output=".objs30" />
+				<Option external_deps="devel30/libcodeblocks.so;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --multiple-instance -ns -ni -v -p debug" />
-				<Option host_application="./codeblocks" />
-				<Option run_host_application_in_terminal="0" />
 				<Option projectLinkerOptionsRelation="1" />
 				<Compiler>
 					<Add directory="include" />
@@ -495,8 +467,9 @@
 			<Target title="XP look &amp; feel">
 				<Option platforms="Windows;" />
 				<Option output="devel30/share/CodeBlocks/plugins/xpmanifest" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="devel30" />
+				<Option working_dir="devel30/share/CodeBlocks/plugins" />
 				<Option object_output=".objs30" />
+				<Option external_deps="devel30/libcodeblocks.so;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="1" />
@@ -648,9 +621,6 @@
 		<Unit filename="include/cbworkspace.h">
 			<Option target="sdk" />
 		</Unit>
-		<Unit filename="include/ccmanager.h">
-			<Option target="sdk" />
-		</Unit>
 		<Unit filename="include/compileoptionsbase.h">
 			<Option target="sdk" />
 		</Unit>
@@ -694,6 +664,9 @@
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="include/editarraystringdlg.h">
+			<Option target="sdk" />
+		</Unit>
+		<Unit filename="include/editkeywordsdlg.h">
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="include/editor_hooks.h">
@@ -936,6 +909,9 @@
 		<Unit filename="include/projectbuildtarget.h">
 			<Option target="sdk" />
 		</Unit>
+		<Unit filename="include/projectdepsdlg.h">
+			<Option target="sdk" />
+		</Unit>
 		<Unit filename="include/projectfile.h">
 			<Option target="sdk" />
 		</Unit>
@@ -1127,6 +1103,9 @@
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="include/uservarmanager.h">
+			<Option target="sdk" />
+		</Unit>
+		<Unit filename="include/virtualbuildtargetsdlg.h">
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="include/workspaceloader.h">
@@ -2357,9 +2336,6 @@
 		<Unit filename="sdk/cbworkspace.cpp">
 			<Option target="sdk" />
 		</Unit>
-		<Unit filename="sdk/ccmanager.cpp">
-			<Option target="sdk" />
-		</Unit>
 		<Unit filename="sdk/compileoptionsbase.cpp">
 			<Option target="sdk" />
 		</Unit>
@@ -2407,6 +2383,9 @@
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="sdk/editarraystringdlg.cpp">
+			<Option target="sdk" />
+		</Unit>
+		<Unit filename="sdk/editkeywordsdlg.cpp">
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="sdk/editor_hooks.cpp">
@@ -2601,6 +2580,9 @@
 		<Unit filename="sdk/projectbuildtarget.cpp">
 			<Option target="sdk" />
 		</Unit>
+		<Unit filename="sdk/projectdepsdlg.cpp">
+			<Option target="sdk" />
+		</Unit>
 		<Unit filename="sdk/projectfile.cpp">
 			<Option target="sdk" />
 		</Unit>
@@ -2712,12 +2694,6 @@
 		<Unit filename="sdk/resources/lexers/lexer_cmake.xml">
 			<Option target="scintilla" />
 		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_coffee.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_coffee.xml">
-			<Option target="scintilla" />
-		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_cpp.sample">
 			<Option target="scintilla" />
 		</Unit>
@@ -2776,12 +2752,6 @@
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_java.xml">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_javascript.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_javascript.xml">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_latex.sample">
@@ -2868,6 +2838,9 @@
 		<Unit filename="sdk/resources/plugins_configuration.xrc">
 			<Option target="sdk" />
 		</Unit>
+		<Unit filename="sdk/resources/project_deps.xrc">
+			<Option target="sdk" />
+		</Unit>
 		<Unit filename="sdk/resources/project_manager_file_types.xrc">
 			<Option target="sdk" />
 		</Unit>
@@ -2878,6 +2851,9 @@
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="sdk/resources/select_target.xrc">
+			<Option target="sdk" />
+		</Unit>
+		<Unit filename="sdk/resources/virtualbuildtargetsdlg.xrc">
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="sdk/scripting/bindings/sc_consts.cpp">
@@ -3011,6 +2987,9 @@
 		<Unit filename="sdk/uservarmanager.cpp">
 			<Option target="sdk" />
 		</Unit>
+		<Unit filename="sdk/virtualbuildtargetsdlg.cpp">
+			<Option target="sdk" />
+		</Unit>
 		<Unit filename="sdk/workspaceloader.cpp">
 			<Option target="sdk" />
 		</Unit>
@@ -3122,9 +3101,6 @@
 		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexD.cxx">
 			<Option target="scintilla" />
 		</Unit>
-		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexDMAP.cxx">
-			<Option target="scintilla" />
-		</Unit>
 		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexECL.cxx">
 			<Option target="scintilla" />
 		</Unit>
@@ -3161,10 +3137,10 @@
 		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexInno.cxx">
 			<Option target="scintilla" />
 		</Unit>
-		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexKVIrc.cxx">
+		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexKix.cxx">
 			<Option target="scintilla" />
 		</Unit>
-		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexKix.cxx">
+		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexKVIrc.cxx">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexLaTeX.cxx">
@@ -3261,9 +3237,6 @@
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexRuby.cxx">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexRust.cxx">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexSML.cxx">
@@ -3381,9 +3354,6 @@
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/wxscintilla/src/scintilla/lexlib/SparseState.h">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/wxscintilla/src/scintilla/lexlib/StringCopy.h">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/wxscintilla/src/scintilla/lexlib/StyleContext.cxx">
@@ -3670,12 +3640,6 @@
 		<Unit filename="src/dlgaboutplugin.h">
 			<Option target="src" />
 		</Unit>
-		<Unit filename="src/editkeywordsdlg.cpp">
-			<Option target="src" />
-		</Unit>
-		<Unit filename="src/editkeywordsdlg.h">
-			<Option target="src" />
-		</Unit>
 		<Unit filename="src/editorconfigurationdlg.cpp">
 			<Option target="src" />
 		</Unit>
@@ -3730,12 +3694,6 @@
 		<Unit filename="src/printdlg.h">
 			<Option target="src" />
 		</Unit>
-		<Unit filename="src/projectdepsdlg.cpp">
-			<Option target="src" />
-		</Unit>
-		<Unit filename="src/projectdepsdlg.h">
-			<Option target="src" />
-		</Unit>
 		<Unit filename="src/projectmanagerui.cpp">
 			<Option target="src" />
 		</Unit>
@@ -3778,9 +3736,6 @@
 		<Unit filename="src/resources/dlg_about_plugin.xrc">
 			<Option target="src" />
 		</Unit>
-		<Unit filename="src/resources/edit_keywords.xrc">
-			<Option target="src" />
-		</Unit>
 		<Unit filename="src/resources/editor_configuration.xrc">
 			<Option target="src" />
 		</Unit>
@@ -3805,9 +3760,6 @@
 		<Unit filename="src/resources/print_dialog.xrc">
 			<Option target="src" />
 		</Unit>
-		<Unit filename="src/resources/project_deps.xrc">
-			<Option target="src" />
-		</Unit>
 		<Unit filename="src/resources/project_options.xrc">
 			<Option target="src" />
 		</Unit>
@@ -3821,9 +3773,6 @@
 			<Option target="src" />
 		</Unit>
 		<Unit filename="src/resources/start_here/start_here.html">
-			<Option target="src" />
-		</Unit>
-		<Unit filename="src/resources/virtualbuildtargetsdlg.xrc">
 			<Option target="src" />
 		</Unit>
 		<Unit filename="src/scriptconsole.cpp">
@@ -3860,12 +3809,6 @@
 			<Option target="src" />
 		</Unit>
 		<Unit filename="src/threadsdlg.h">
-			<Option target="src" />
-		</Unit>
-		<Unit filename="src/virtualbuildtargetsdlg.cpp">
-			<Option target="src" />
-		</Unit>
-		<Unit filename="src/virtualbuildtargetsdlg.h">
 			<Option target="src" />
 		</Unit>
 		<Unit filename="src/watchesdlg.cpp">

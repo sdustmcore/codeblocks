@@ -8,7 +8,7 @@
 
 #include <wx/string.h>
 
-//(*HeadersPCH(CompilerPanel)
+//(*Headers(CompilerPanel)
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>

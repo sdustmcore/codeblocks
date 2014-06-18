@@ -8,6 +8,7 @@
 
 #include <vector>
 
+#include "settings.h"
 #include <wx/string.h>
 #include <wx/treectrl.h>
 #include <wx/file.h>
@@ -15,8 +16,6 @@
 #include <wx/intl.h>
 #include <wx/msgdlg.h>
 #include <wx/bitmap.h>
-
-#include "settings.h"
 
 class TiXmlDocument;
 
@@ -199,10 +198,9 @@ extern DLLIMPORT wxString GetStringFromPlatforms(int platforms, bool forceSepara
 // see globals.cpp for info on the third argument (bool SeparatorAtEnd)
 extern DLLIMPORT wxString GetStringFromArray(const wxArrayString& array, const wxString& separator = DEFAULT_ARRAY_SEP, bool SeparatorAtEnd = true);
 extern DLLIMPORT wxArrayString GetArrayFromString(const wxString& text, const wxString& separator = DEFAULT_ARRAY_SEP, bool trimSpaces = true);
-typedef std::vector<wxString> wxStringVec;
-extern DLLIMPORT wxStringVec GetVectorFromString(const wxString& text,
-                                                 const wxString& separator = DEFAULT_ARRAY_SEP,
-                                                 bool trimSpaces = true);
+extern DLLIMPORT std::vector<wxString> GetVectorFromString(const wxString& text,
+                                                           const wxString& separator = DEFAULT_ARRAY_SEP,
+                                                           bool trimSpaces = true);
 extern DLLIMPORT wxArrayString MakeUniqueArray(const wxArrayString& array, bool caseSens);
 extern DLLIMPORT wxString MakeUniqueString(const wxString& text,  const wxString& separator = DEFAULT_ARRAY_SEP, bool caseSens = true);
 extern DLLIMPORT void AppendArray(const wxArrayString& from, wxArrayString& to);

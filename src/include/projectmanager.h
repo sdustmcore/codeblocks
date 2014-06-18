@@ -122,9 +122,6 @@ class DLLIMPORT cbProjectManagerUI
           * there's a project selection combo in the dialog.
           */
         virtual void ConfigureProjectDependencies(cbProject* base = nullptr) = 0;
-
-        /** Switches the management's notebook to the Projects tab */
-        virtual void SwitchToProjectsPage() = 0;
 };
 
 

@@ -7,18 +7,11 @@
  * $HeadURL$
  */
 
-#include <sdk.h>
-#ifndef CB_PRECOMP
-    #include <wx/filename.h>
-    //(*InternalHeadersPCH(ProjectPathPanel)
-    #include <wx/intl.h>
-    #include <wx/string.h>
-    //*)
-#endif // CB_PRECOMP
-#include <filefilters.h>
-
 #include "projectpathpanel.h"
-
+#include <prep.h>
+#include <filefilters.h>
+#include <wx/filename.h>
+#include <wx/intl.h>
 
 //(*IdInit(ProjectPathPanel)
 const long ProjectPathPanel::ID_STATICTEXT1 = wxNewId();

@@ -36,27 +36,5 @@ enum TestEnum
 {
     teFirst,
     teSecond = 5,
-    teThird,
-    teFourth = 3+7
-};
-
-#define OFFSET 15
-enum OffsetEnum
-{
-    offFirst    = OFFSET,
-    offSecond,
-    offThird,
-
-    offFourth   = offThird + OFFSET,
-    offFifth
-};
-
-#define SHIFT(_x) (1 << (_x))
-enum PowerEnum
-{
-    powFirst    = SHIFT(1),
-    powSecond   = SHIFT(2),
-    powThird    = SHIFT(3),
-    powFourth   = SHIFT(4),
-    powFifth    = SHIFT(5)
+    teThird
 };

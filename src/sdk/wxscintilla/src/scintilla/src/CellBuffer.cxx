@@ -348,10 +348,6 @@ const char * UndoHistory::AppendAction(actionType at, int position, const char *
 			}
 			// See if current action can be coalesced into previous action
 			// Will work if both are inserts or deletes and position is same
-#if defined(_MSC_VER) && defined(_PREFAST_)
-			// Visual Studio 2013 Code Analysis wrongly believes actions can be NULL at its next reference
-			__analysis_assume(actions);
-#endif
 			if (currentAction == savePoint) {
 				currentAction++;
 			} else if (!actions[currentAction].mayCoalesce) {
@@ -622,7 +618,7 @@ const char *CellBuffer::InsertString(int position, const char *s, int insertLeng
 			// This takes up about half load time
 /* CHANGEBAR begin */
             char *persistantForm = lv.PersistantForm();
-            data = uh.AppendAction(insertAction, position, s, insertLength, startSequence, persistantForm);
+            uh.AppendAction(insertAction, position, s, insertLength, startSequence, persistantForm);
 /* CHANGEBAR end */
 		}
 
@@ -633,24 +629,25 @@ const char *CellBuffer::InsertString(int position, const char *s, int insertLeng
 	return data;
 }
 
-bool CellBuffer::SetStyleAt(int position, char styleValue) {
+bool CellBuffer::SetStyleAt(int position, char styleValue, char mask) {
+	styleValue &= mask;
 	char curVal = style.ValueAt(position);
-	if (curVal != styleValue) {
-		style.SetValueAt(position, styleValue);
+	if ((curVal & mask) != styleValue) {
+		style.SetValueAt(position, static_cast<char>((curVal & ~mask) | styleValue));
 		return true;
 	} else {
 		return false;
 	}
 }
 
-bool CellBuffer::SetStyleFor(int position, int lengthStyle, char styleValue) {
+bool CellBuffer::SetStyleFor(int position, int lengthStyle, char styleValue, char mask) {
 	bool changed = false;
 	PLATFORM_ASSERT(lengthStyle == 0 ||
 		(lengthStyle > 0 && lengthStyle + position <= style.Length()));
 	while (lengthStyle--) {
 		char curVal = style.ValueAt(position);
-		if (curVal != styleValue) {
-			style.SetValueAt(position, styleValue);
+		if ((curVal & mask) != styleValue) {
+			style.SetValueAt(position, static_cast<char>((curVal & ~mask) | styleValue));
 			changed = true;
 		}
 		position++;

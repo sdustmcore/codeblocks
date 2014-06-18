@@ -32,7 +32,7 @@ wxsEditEnumProperty::wxsEditEnumProperty(const wxString &PGName,
         const wxString &DataName,
         long _Offset,
         const wxChar **_Names,
-        bool _UpdateEntries,
+        bool _UpdateEnteries,
         const wxString &_Default,
         bool _XmlStoreEmpty,
         bool _UseNamesInXml,
@@ -41,7 +41,7 @@ wxsEditEnumProperty::wxsEditEnumProperty(const wxString &PGName,
     Offset(_Offset),
     Default(_Default),
     XmlStoreEmpty(_XmlStoreEmpty),
-    UpdateEntries(_UpdateEntries),
+    UpdateEnteries(_UpdateEnteries),
     Names(_Names),
     UseNamesInXml(_UseNamesInXml)
 {
@@ -106,7 +106,7 @@ bool wxsEditEnumProperty::PGWrite(cb_unused wxsPropertyContainer *Object,
     wxString Fixed = VALUE;
 
     Fixed.Replace(_T("\n"), _T("\\n"));
-   if ( UpdateEntries )
+   if ( UpdateEnteries )
     {
         #if wxCHECK_VERSION(2, 9, 0)
         wxPGChoices(Id->GetChoices()).Set(Names,Values);

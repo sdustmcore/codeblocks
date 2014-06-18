@@ -56,8 +56,8 @@ DirectCommands::DirectCommands(CompilerGCC* compilerPlugin,
     // folder like "R:". But this ONLY works, if its just "R:", NOT e.g. "R:/"
     wxString depsCWD = cwd.GetPath(wxPATH_GET_VOLUME);
     Manager::Get()->GetLogManager()->DebugLog(F(_("CWD for depslib was: %s."), depsCWD.wx_str()));
-    if (     (depsCWD.Len()==3)         && (depsCWD.GetChar(1)==':')
-        && ( (depsCWD.GetChar(2)=='\\') || (depsCWD.GetChar(2)=='/') ) )
+    if (   (depsCWD.Len()==3) && (depsCWD.GetChar(1)==':')
+        && ( (depsCWD.GetChar(2)=='\\') || (depsCWD.GetChar(2)=='/')) )
     {
         depsCWD.RemoveLast();
     }
@@ -71,6 +71,7 @@ DirectCommands::DirectCommands(CompilerGCC* compilerPlugin,
 
 DirectCommands::~DirectCommands()
 {
+    // dtor
     if (!m_pProject)
         return; // probably a compile file cmd without a project
 
@@ -148,15 +149,8 @@ wxArrayString DirectCommands::CompileFile(ProjectBuildTarget* target, ProjectFil
     wxArrayString ret;
 
     // is it compilable?
-    if (!pf || !pf->compile || pf->compilerVar.IsEmpty())
+    if (!pf->compile || pf->compilerVar.IsEmpty())
         return ret;
-
-    // might happen for single file compilation if user chose a target the file does NOT belong to:
-    if (target && pf->GetBuildTargets().Index(target->GetTitle()) == wxNOT_FOUND)
-    {
-        Manager::Get()->GetLogManager()->DebugLog(_("Invalid target selected to compile project file for: File does not belong to this target."));
-        return ret;
-    }
 
     if (!force)
     {
@@ -164,9 +158,9 @@ wxArrayString DirectCommands::CompileFile(ProjectBuildTarget* target, ProjectFil
 
         const pfDetails& pfd = pf->GetFileDetails(target);
         wxString err;
-        if ( !IsObjectOutdated(target, pfd, &err) )
+        if (!IsObjectOutdated(target, pfd, &err))
         {
-            if ( !err.IsEmpty() )
+            if (!err.IsEmpty())
                 ret.Add(wxString(COMPILER_WARNING_LOG) + err);
             return ret;
         }
@@ -225,19 +219,15 @@ wxArrayString DirectCommands::GetCompileFileCommand(ProjectBuildTarget* target, 
     wxString compiler_cmd;
     if (!is_header || compiler->GetSwitches().supportsPCH)
     {
-        const CompilerTool* tool = compiler->GetCompilerTool(is_resource ? ctCompileResourceCmd : ctCompileObjectCmd, pf->file.GetExt());
+        const CompilerTool& tool = compiler->GetCompilerTool(is_resource ? ctCompileResourceCmd : ctCompileObjectCmd, pf->file.GetExt());
 
         // does it generate other files to compile?
         for (size_t i = 0; i < pf->generatedFiles.size(); ++i)
             AppendArray(GetCompileFileCommand(target, pf->generatedFiles[i]), ret_generated); // recurse
 
         pfCustomBuild& pcfb = pf->customBuild[compiler->GetID()];
-        if (pcfb.useCustomBuildCommand)
-            compiler_cmd = pcfb.buildCommand;
-        else if (tool)
-            compiler_cmd = tool->command;
-        else
-            compiler_cmd = wxEmptyString;
+        compiler_cmd = pcfb.useCustomBuildCommand
+                     ? pcfb.buildCommand : tool.command;
 
         wxString source_file;
         if (compiler->GetSwitches().UseFullSourcePaths)
@@ -693,8 +683,7 @@ wxArrayString DirectCommands::GetTargetLinkCommands(ProjectBuildTarget* target, 
             continue;
 
         const pfDetails& pfd = pf->GetFileDetails(target);
-        wxString Object = (compiler->GetSwitches().UseFlatObjects) ? pfd.object_file_flat
-                                                                   : pfd.object_file;
+        wxString Object = (compiler->GetSwitches().UseFlatObjects)?pfd.object_file_flat:pfd.object_file;
 
         if (FileTypeOf(pf->relativeFilename) == ftResource)
         {

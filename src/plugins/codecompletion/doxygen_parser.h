@@ -21,8 +21,12 @@ class TokenTree;
 
 class cbEditor;
 class ConfigManager;
+class CodeBlocksEvent;
 
 class wxHtmlLinkEvent;
+class wxHtmlWindow;
+class wxListEvent;
+class wxPopupWindow;
 
 namespace Doxygen
 {
@@ -104,8 +108,11 @@ namespace Doxygen
 }//namespace Doxygen
 
 
-class DocumentationHelper
+class UnfocusablePopupWindow;
+
+class DocumentationHelper : public wxEvtHandler
 {
+    typedef wxEvtHandler BaseClass;
 
 public:
     enum Command
@@ -132,32 +139,55 @@ public:
     static const wxChar   separatorTag;
     static const wxString commandTag;
 
+    struct Options
+    {
+        Options();
+
+        bool m_Enabled;
+        bool m_ShowAlways;
+    };
+
     DocumentationHelper(CodeCompletion* cc);
     ~DocumentationHelper();
 
+    void Hide();
     void OnAttach();
     void OnRelease();
+    bool ShowDocumentation(const wxString& html);
     wxString GenerateHTML(int tokenIdx, TokenTree* tree);
     wxString GenerateHTML(const TokenIdxSet& tokensIdx, TokenTree* tree);
+    void OnSelectionChange(wxListEvent& event);
+    void ResetSize(const wxSize& size);
+    bool IsAttached() const;
+    bool IsVisible() const;
     void RereadOptions(ConfigManager* cfg);
     void WriteOptions(ConfigManager* cfg);
 
-    bool IsEnabled()              { return m_Enabled;    }
-    void SetEnabled(bool enabled) { m_Enabled = enabled; }
+    Options& GetOptions() { return m_Opts; }
 
 protected:
     void SaveTokenIdx();
+    void FitToContent();
+    //events:
+    void OnCbEventHide(CodeBlocksEvent& event);
+    void OnWxEventHide(wxEvent& event);
 public:
-    wxString OnDocumentationLink(wxHtmlLinkEvent& event, bool& dismissPopup);
+    void OnLink(wxHtmlLinkEvent& event);
 
     /*Members:*/
 protected:
+    UnfocusablePopupWindow* m_Popup;
+    wxHtmlWindow* m_Html;
     /** Pointer to CodeComplete object */
     CodeCompletion* m_CC;
     /** Documentation of which token was previously displayed */
     int m_CurrentTokenIdx, m_LastTokenIdx;
+    wxPoint     m_Pos;
+    wxSize      m_Size;
     // User options
-    bool m_Enabled;
+    Options m_Opts;
+
+    DECLARE_EVENT_TABLE()
 };
 
 #endif //DOXYGENPARSER_H

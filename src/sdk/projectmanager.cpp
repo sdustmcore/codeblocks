@@ -68,7 +68,6 @@ class NullProjectManagerUI : public cbProjectManagerUI
         int AskForBuildTargetIndex(cbProject* project = nullptr) { (void)project; return -1; }
         wxArrayInt AskForMultiBuildTargetIndex(cbProject* project = nullptr) { (void)project; return wxArrayInt(); }
         void ConfigureProjectDependencies(cbProject* base = nullptr) { (void)base; }
-        void SwitchToProjectsPage() {}
 };
 
 // class constructor
@@ -580,8 +579,7 @@ bool ProjectManager::CloseWorkspace()
             m_IsClosingWorkspace = false;
             return false;
         }
-        // m_ui->QueryCloseWorkspace asked for saving workspace AND projects, no need to do again
-        if (!CloseAllProjects(true))
+        if (!CloseAllProjects(false))
         {
             m_IsClosingWorkspace = false;
             return false;

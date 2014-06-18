@@ -45,7 +45,6 @@ libcodeblocks_la_SOURCES = annoyingdialog.cpp \
 						cbthreadpool.cpp \
 						cbtreectrl.cpp \
 						cbworkspace.cpp \
-						ccmanager.cpp \
 						compileoptionsbase.cpp \
 						compiler.cpp \
 						compilercommandgenerator.cpp \
@@ -62,6 +61,7 @@ libcodeblocks_la_SOURCES = annoyingdialog.cpp \
 						editarrayfiledlg.cpp \
 						editarrayorderdlg.cpp \
 						editarraystringdlg.cpp \
+						editkeywordsdlg.cpp \
 						editor_hooks.cpp \
 						editorbase.cpp \
 						editorcolourset.cpp \
@@ -95,6 +95,7 @@ libcodeblocks_la_SOURCES = annoyingdialog.cpp \
 						pluginsconfigurationdlg.cpp \
 						printing_types.cpp \
 						projectbuildtarget.cpp \
+						projectdepsdlg.cpp \
 						projectfile.cpp \
 						projectfileoptionsdlg.cpp \
 						projectlayoutloader.cpp \
@@ -112,6 +113,7 @@ libcodeblocks_la_SOURCES = annoyingdialog.cpp \
 						templatemanager.cpp \
 						toolsmanager.cpp \
 						uservarmanager.cpp \
+						virtualbuildtargetsdlg.cpp \
 						workspaceloader.cpp \
 						xtra_res.cpp  \
 						mozilla_chardet/src/CharDistribution.cpp \

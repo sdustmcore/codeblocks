@@ -604,9 +604,6 @@
 		<Unit filename="include/cbworkspace.h">
 			<Option target="sdk" />
 		</Unit>
-		<Unit filename="include/ccmanager.h">
-			<Option target="sdk" />
-		</Unit>
 		<Unit filename="include/compileoptionsbase.h">
 			<Option target="sdk" />
 		</Unit>
@@ -650,6 +647,9 @@
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="include/editarraystringdlg.h">
+			<Option target="sdk" />
+		</Unit>
+		<Unit filename="include/editkeywordsdlg.h">
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="include/editor_hooks.h">
@@ -892,6 +892,9 @@
 		<Unit filename="include/projectbuildtarget.h">
 			<Option target="sdk" />
 		</Unit>
+		<Unit filename="include/projectdepsdlg.h">
+			<Option target="sdk" />
+		</Unit>
 		<Unit filename="include/projectfile.h">
 			<Option target="sdk" />
 		</Unit>
@@ -1083,6 +1086,9 @@
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="include/uservarmanager.h">
+			<Option target="sdk" />
+		</Unit>
+		<Unit filename="include/virtualbuildtargetsdlg.h">
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="include/workspaceloader.h">
@@ -2313,9 +2319,6 @@
 		<Unit filename="sdk/cbworkspace.cpp">
 			<Option target="sdk" />
 		</Unit>
-		<Unit filename="sdk/ccmanager.cpp">
-			<Option target="sdk" />
-		</Unit>
 		<Unit filename="sdk/compileoptionsbase.cpp">
 			<Option target="sdk" />
 		</Unit>
@@ -2363,6 +2366,9 @@
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="sdk/editarraystringdlg.cpp">
+			<Option target="sdk" />
+		</Unit>
+		<Unit filename="sdk/editkeywordsdlg.cpp">
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="sdk/editor_hooks.cpp">
@@ -2557,6 +2563,9 @@
 		<Unit filename="sdk/projectbuildtarget.cpp">
 			<Option target="sdk" />
 		</Unit>
+		<Unit filename="sdk/projectdepsdlg.cpp">
+			<Option target="sdk" />
+		</Unit>
 		<Unit filename="sdk/projectfile.cpp">
 			<Option target="sdk" />
 		</Unit>
@@ -2632,12 +2641,6 @@
 		<Unit filename="sdk/resources/incremental_select_list.xrc">
 			<Option target="sdk" />
 		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_A68k.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_A68k.xml">
-			<Option target="scintilla" />
-		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_OgreCompositor.sample">
 			<Option target="scintilla" />
 		</Unit>
@@ -2650,37 +2653,16 @@
 		<Unit filename="sdk/resources/lexers/lexer_OgreMaterial.xml">
 			<Option target="scintilla" />
 		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_ada.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_ada.xml">
-			<Option target="scintilla" />
-		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_angelscript.sample">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_angelscript.xml">
 			<Option target="scintilla" />
 		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_bash.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_bash.xml">
-			<Option target="scintilla" />
-		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_batch.sample">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_batch.xml">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_bibtex.xml">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_caml.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_caml.xml">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_cg.sample">
@@ -2693,12 +2675,6 @@
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_cmake.xml">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_coffee.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_coffee.xml">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_cpp.sample">
@@ -2731,12 +2707,6 @@
 		<Unit filename="sdk/resources/lexers/lexer_f77.xml">
 			<Option target="scintilla" />
 		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_fortran.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_fortran.xml">
-			<Option target="scintilla" />
-		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_glsl.sample">
 			<Option target="scintilla" />
 		</Unit>
@@ -2747,12 +2717,6 @@
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_gm.xml">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_haskell.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_haskell.xml">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_hitasm.sample">
@@ -2773,22 +2737,10 @@
 		<Unit filename="sdk/resources/lexers/lexer_java.xml">
 			<Option target="scintilla" />
 		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_javascript.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_javascript.xml">
-			<Option target="scintilla" />
-		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_latex.sample">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_latex.xml">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_lisp.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_lisp.xml">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_lua.sample">
@@ -2821,28 +2773,10 @@
 		<Unit filename="sdk/resources/lexers/lexer_nsis.xml">
 			<Option target="scintilla" />
 		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_objc.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_objc.xml">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_pascal.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_pascal.xml">
-			<Option target="scintilla" />
-		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_perl.sample">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_perl.xml">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_postscript.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_postscript.xml">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_prg.sample">
@@ -2869,46 +2803,10 @@
 		<Unit filename="sdk/resources/lexers/lexer_rc.xml">
 			<Option target="scintilla" />
 		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_ruby.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_ruby.xml">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_smalltalk.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_smalltalk.xml">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_sql.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_sql.xml">
-			<Option target="scintilla" />
-		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_squirrel.sample">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_squirrel.xml">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_vbscript.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_vbscript.xml">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_verilog.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_verilog.xml">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_vhdl.sample">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/resources/lexers/lexer_vhdl.xml">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_xml.sample">
@@ -2923,6 +2821,9 @@
 		<Unit filename="sdk/resources/plugins_configuration.xrc">
 			<Option target="sdk" />
 		</Unit>
+		<Unit filename="sdk/resources/project_deps.xrc">
+			<Option target="sdk" />
+		</Unit>
 		<Unit filename="sdk/resources/project_manager_file_types.xrc">
 			<Option target="sdk" />
 		</Unit>
@@ -2933,6 +2834,9 @@
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="sdk/resources/select_target.xrc">
+			<Option target="sdk" />
+		</Unit>
+		<Unit filename="sdk/resources/virtualbuildtargetsdlg.xrc">
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="sdk/scripting/bindings/sc_consts.cpp">
@@ -3064,6 +2968,9 @@
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="sdk/uservarmanager.cpp">
+			<Option target="sdk" />
+		</Unit>
+		<Unit filename="sdk/virtualbuildtargetsdlg.cpp">
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="sdk/workspaceloader.cpp">
@@ -3228,12 +3135,6 @@
 		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexD.cxx">
 			<Option target="scintilla" />
 		</Unit>
-		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexDMAP.cxx">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexDMIS.cxx">
-			<Option target="scintilla" />
-		</Unit>
 		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexECL.cxx">
 			<Option target="scintilla" />
 		</Unit>
@@ -3372,9 +3273,6 @@
 		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexRuby.cxx">
 			<Option target="scintilla" />
 		</Unit>
-		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexRust.cxx">
-			<Option target="scintilla" />
-		</Unit>
 		<Unit filename="sdk/wxscintilla/src/scintilla/lexers/LexSML.cxx">
 			<Option target="scintilla" />
 		</Unit>
@@ -3490,9 +3388,6 @@
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/wxscintilla/src/scintilla/lexlib/SparseState.h">
-			<Option target="scintilla" />
-		</Unit>
-		<Unit filename="sdk/wxscintilla/src/scintilla/lexlib/StringCopy.h">
 			<Option target="scintilla" />
 		</Unit>
 		<Unit filename="sdk/wxscintilla/src/scintilla/lexlib/StyleContext.cxx">
@@ -3779,12 +3674,6 @@
 		<Unit filename="src/dlgaboutplugin.h">
 			<Option target="src" />
 		</Unit>
-		<Unit filename="src/editkeywordsdlg.cpp">
-			<Option target="src" />
-		</Unit>
-		<Unit filename="src/editkeywordsdlg.h">
-			<Option target="src" />
-		</Unit>
 		<Unit filename="src/editorconfigurationdlg.cpp">
 			<Option target="src" />
 		</Unit>
@@ -3839,12 +3728,6 @@
 		<Unit filename="src/printdlg.h">
 			<Option target="src" />
 		</Unit>
-		<Unit filename="src/projectdepsdlg.cpp">
-			<Option target="src" />
-		</Unit>
-		<Unit filename="src/projectdepsdlg.h">
-			<Option target="src" />
-		</Unit>
 		<Unit filename="src/projectmanagerui.cpp">
 			<Option target="src" />
 		</Unit>
@@ -3887,9 +3770,6 @@
 		<Unit filename="src/resources/dlg_about_plugin.xrc">
 			<Option target="src" />
 		</Unit>
-		<Unit filename="src/resources/edit_keywords.xrc">
-			<Option target="src" />
-		</Unit>
 		<Unit filename="src/resources/editor_configuration.xrc">
 			<Option target="src" />
 		</Unit>
@@ -3914,9 +3794,6 @@
 		<Unit filename="src/resources/print_dialog.xrc">
 			<Option target="src" />
 		</Unit>
-		<Unit filename="src/resources/project_deps.xrc">
-			<Option target="src" />
-		</Unit>
 		<Unit filename="src/resources/project_options.xrc">
 			<Option target="src" />
 		</Unit>
@@ -3930,9 +3807,6 @@
 			<Option target="src" />
 		</Unit>
 		<Unit filename="src/resources/start_here/start_here.html">
-			<Option target="src" />
-		</Unit>
-		<Unit filename="src/resources/virtualbuildtargetsdlg.xrc">
 			<Option target="src" />
 		</Unit>
 		<Unit filename="src/scriptconsole.cpp">
@@ -3969,12 +3843,6 @@
 			<Option target="src" />
 		</Unit>
 		<Unit filename="src/threadsdlg.h">
-			<Option target="src" />
-		</Unit>
-		<Unit filename="src/virtualbuildtargetsdlg.cpp">
-			<Option target="src" />
-		</Unit>
-		<Unit filename="src/virtualbuildtargetsdlg.h">
 			<Option target="src" />
 		</Unit>
 		<Unit filename="src/watchesdlg.cpp">

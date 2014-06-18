@@ -294,19 +294,19 @@ void ProjectManagerUI::RebuildTree()
         return;
 
     FreezeTree();
-    ProjectManager* pm = Manager::Get()->GetProjectManager();
-    ProjectsArray* pa = pm->GetProjects();
-    int count = pa->GetCount();
+    ProjectManager *prjManager = Manager::Get()->GetProjectManager();
+    ProjectsArray *projects = prjManager->GetProjects();
+    int count = projects->GetCount();
     for (int i = 0; i < count; ++i)
     {
-        cbProject* prj = pa->Item(i);
-        if (prj)
-            prj->SaveTreeState(m_pTree);
+        cbProject* project = projects->Item(i);
+        if (project)
+            project->SaveTreeState(m_pTree);
     }
     m_pTree->DeleteAllItems();
     wxString title;
     bool read_only = false;
-    cbWorkspace *workspace = pm->GetWorkspace();
+    cbWorkspace *workspace = prjManager->GetWorkspace();
     if (workspace)
     {
         title = workspace->GetTitle();
@@ -320,18 +320,20 @@ void ProjectManagerUI::RebuildTree()
     m_TreeRoot = m_pTree->AddRoot(title, cbProjectTreeImages::WorkspaceIconIndex(read_only), cbProjectTreeImages::WorkspaceIconIndex(read_only));
     for (int i = 0; i < count; ++i)
     {
-        if ( cbProject* prj = pa->Item(i) )
+        cbProject* project = projects->Item(i);
+        if (project)
         {
-            BuildProjectTree(prj, m_pTree, m_TreeRoot, m_TreeVisualState, pm->GetFilesGroupsAndMasks());
-            m_pTree->SetItemBold(prj->GetProjectNode(), prj == pm->GetActiveProject());
+            BuildProjectTree(project, m_pTree, m_TreeRoot, m_TreeVisualState, prjManager->GetFilesGroupsAndMasks());
+            m_pTree->SetItemBold(project->GetProjectNode(), project == prjManager->GetActiveProject());
         }
     }
     m_pTree->Expand(m_TreeRoot);
 
     for (int i = 0; i < count; ++i)
     {
-        if ( cbProject* prj = pa->Item(i) )
-            prj->RestoreTreeState(m_pTree);
+        cbProject* project = projects->Item(i);
+        if (project)
+            project->RestoreTreeState(m_pTree);
     }
     UnfreezeTree();
 }
@@ -357,7 +359,7 @@ void ProjectManagerUI::UnfreezeTree(cb_unused bool force)
     }
 }
 
-void ProjectManagerUI::UpdateActiveProject(cbProject* oldProject, cbProject* newProject, bool refresh)
+void ProjectManagerUI::UpdateActiveProject(cbProject *oldProject, cbProject *newProject, bool refresh)
 {
     if (oldProject)
         m_pTree->SetItemBold(oldProject->GetProjectNode(), false);
@@ -376,7 +378,7 @@ void ProjectManagerUI::UpdateActiveProject(cbProject* oldProject, cbProject* new
     m_pTree->Refresh();
 }
 
-void ProjectManagerUI::RemoveProject(cbProject* project)
+void ProjectManagerUI::RemoveProject(cbProject *project)
 {
     m_pTree->Delete(project->GetProjectNode());
 }
@@ -416,12 +418,12 @@ void ProjectManagerUI::CloseWorkspace()
     }
 }
 
-void ProjectManagerUI::FinishLoadingProject(cbProject* project, bool newAddition, cb_unused FilesGroupsAndMasks* fgam)
+void ProjectManagerUI::FinishLoadingProject(cbProject *project, bool newAddition, FilesGroupsAndMasks* fileGroups)
 {
     if (newAddition)
     {
-        ProjectManager* pm = Manager::Get()->GetProjectManager();
-        BuildProjectTree(project, m_pTree, m_TreeRoot, m_TreeVisualState, pm->GetFilesGroupsAndMasks());
+        ProjectManager *prjManager = Manager::Get()->GetProjectManager();
+        BuildProjectTree(project, m_pTree, m_TreeRoot, m_TreeVisualState, prjManager->GetFilesGroupsAndMasks());
     }
     else
         RebuildTree();
@@ -429,7 +431,7 @@ void ProjectManagerUI::FinishLoadingProject(cbProject* project, bool newAddition
     m_pTree->Expand(m_TreeRoot); // make sure the root node is open
 }
 
-void ProjectManagerUI::FinishLoadingWorkspace(cbProject* activeProject, const wxString &workspaceTitle)
+void ProjectManagerUI::FinishLoadingWorkspace(cbProject *activeProject, const wxString &workspaceTitle)
 {
     RebuildTree();
     if (activeProject)
@@ -438,13 +440,6 @@ void ProjectManagerUI::FinishLoadingWorkspace(cbProject* activeProject, const wx
     m_pTree->SetItemText(m_TreeRoot, workspaceTitle);
 
     UnfreezeTree(true);
-}
-
-void ProjectManagerUI::SwitchToProjectsPage()
-{
-    int page = m_pNotebook->GetPageIndex(m_pTree);
-    if (page != wxNOT_FOUND)
-        m_pNotebook->SetSelection(page);
 }
 
 void ProjectManagerUI::ShowFileInTree(ProjectFile &projectFile)
@@ -544,6 +539,7 @@ void ProjectManagerUI::ShowMenu(wxTreeItemId id, const wxPoint& pt)
 {
     if ( !id.IsOk() )
         return;
+    ProjectManager *prjManager = Manager::Get()->GetProjectManager();
 
     wxString caption;
     wxMenu menu;
@@ -551,23 +547,23 @@ void ProjectManagerUI::ShowMenu(wxTreeItemId id, const wxPoint& pt)
     FileTreeData* ftd = (FileTreeData*)m_pTree->GetItemData(id);
     bool is_vfolder = ftd && ftd->GetKind() == FileTreeData::ftdkVirtualFolder;
     /* Following code will check for currently compiling project.
-     * If it finds the selected is project is currently compiling,
-     * then it will disable some of the options */
+    *  If it finds the selected is project is currently compiling,
+    *  then it will disable some of the options */
     bool PopUpMenuOption = true;
-    ProjectsArray* pa = Manager::Get()->GetProjectManager()->GetProjects();
-    if (   pa && ftd
+    ProjectsArray* Projects = Manager::Get()->GetProjectManager()->GetProjects();
+    if (   Projects && ftd
         && (   ftd->GetKind() == FileTreeData::ftdkProject
             || ftd->GetKind() == FileTreeData::ftdkFile
             || ftd->GetKind() == FileTreeData::ftdkFolder ) )
     {
-        int Count = pa->GetCount();
-        cbProject* prjInTree = ftd->GetProject();
+        int Count = Projects->GetCount();
+        cbProject* ProjInTree = ftd->GetProject();
         for (int i = 0; i < Count; ++i)
         {
-            cbProject* currPrj = pa->Item(i);
-            if (prjInTree->GetTitle().IsSameAs(currPrj->GetTitle()))
+            cbProject* CurProject = Projects->Item(i);
+            if (ProjInTree->GetTitle().IsSameAs(CurProject->GetTitle()))
             {
-                if (currPrj->GetCurrentlyCompilingTarget())
+                if (CurProject->GetCurrentlyCompilingTarget())
                 {
                     PopUpMenuOption = false;
                     break;
@@ -577,13 +573,12 @@ void ProjectManagerUI::ShowMenu(wxTreeItemId id, const wxPoint& pt)
     }
 
     // if it is not the workspace, add some more options
-    ProjectManager* pm = Manager::Get()->GetProjectManager();
     if (ftd)
     {
         // if it is a project...
         if (ftd->GetKind() == FileTreeData::ftdkProject)
         {
-            if (ftd->GetProject() != pm->GetActiveProject())
+            if (ftd->GetProject() != prjManager->GetActiveProject())
                 menu.Append(idMenuSetActiveProject,     _("Activate project"));
             menu.Append(idMenuSaveProject,              _("Save project"));
             menu.Enable(idMenuSaveProject, PopUpMenuOption);
@@ -611,13 +606,13 @@ void ProjectManagerUI::ShowMenu(wxTreeItemId id, const wxPoint& pt)
         {
             // selected project file
             ProjectFile* pf = ftd->GetProjectFile();
-
             // is it already open in the editor?
-            EditorBase* eb = Manager::Get()->GetEditorManager()->IsOpen(pf->file.GetFullPath());
-            if (eb)
+            EditorBase* ed = Manager::Get()->GetEditorManager()->IsOpen(pf->file.GetFullPath());
+
+            if (ed)
             {
                 // is it already active?
-                bool active = Manager::Get()->GetEditorManager()->GetActiveEditor() == eb;
+                bool active = Manager::Get()->GetEditorManager()->GetActiveEditor() == ed;
 
                 if (!active)
                 {
@@ -722,16 +717,16 @@ void ProjectManagerUI::ShowMenu(wxTreeItemId id, const wxPoint& pt)
             menu.AppendSubMenu(options, _("Options"));
             options->AppendCheckItem(idMenuTreeOptionsCompile, _("Compile file"));
             options->AppendCheckItem(idMenuTreeOptionsLink, _("Link file"));
-
-            if ( ProjectFile* pf = ftd->GetProjectFile() )
+            ProjectFile *file = ftd->GetProjectFile();
+            if (file)
             {
-                menu.Check(idMenuTreeOptionsCompile, pf->compile);
-                menu.Check(idMenuTreeOptionsLink, pf->link);
+                menu.Check(idMenuTreeOptionsCompile, file->compile);
+                menu.Check(idMenuTreeOptionsLink, file->link);
             }
             menu.Append(idMenuTreeFileProperties, _("Properties..."));
         }
     }
-    else if (!ftd && pm->GetWorkspace())
+    else if (!ftd && prjManager->GetWorkspace())
     {
         wxCommandEvent event;
         OnRightClick(event);
@@ -760,7 +755,8 @@ void ProjectManagerUI::DoOpenFile(ProjectFile* pf, const wxString& filename)
     if (ft == ftHeader || ft == ftSource)
     {
         // C/C++ header/source files, always get opened inside Code::Blocks
-        if ( cbEditor* ed = Manager::Get()->GetEditorManager()->Open(filename) )
+        cbEditor* ed = Manager::Get()->GetEditorManager()->Open(filename);
+        if (ed)
         {
             ed->SetProjectFile(pf);
             ed->Activate();
@@ -808,10 +804,12 @@ void ProjectManagerUI::DoOpenSelectedFile()
     if (!sel.IsOk())
         return;
 
-    if ( FileTreeData* ftd = (FileTreeData*)m_pTree->GetItemData(sel) )
+    FileTreeData* ftd = (FileTreeData*)m_pTree->GetItemData(sel);
+    if (ftd)
     {
-        if ( ProjectFile* pf = ftd->GetProjectFile() )
-            DoOpenFile(pf, pf->file.GetFullPath());
+        ProjectFile* f = ftd->GetProjectFile();
+        if (f)
+            DoOpenFile(f, f->file.GetFullPath());
     }
 }
 
@@ -829,17 +827,18 @@ void ProjectManagerUI::RemoveFilesRecursively(wxTreeItemId& sel_id)
             child = m_pTree->GetNextChild(sel_id, cookie);
         if (child.IsOk())
         {
-            FileTreeData* ftd = (FileTreeData*)m_pTree->GetItemData(child);
-            if (ftd)
+            FileTreeData* data = (FileTreeData*)m_pTree->GetItemData(child);
+            if (data)
             {
-                cbProject* prj = ftd->GetProject();
-                if (prj && ftd->GetKind() == FileTreeData::ftdkFile)
+                cbProject* prj = data->GetProject();
+                if (prj && data->GetKind() == FileTreeData::ftdkFile)
                 {
-                    if ( ProjectFile* pf = ftd->GetProjectFile() )
-                        Manager::Get()->GetProjectManager()->RemoveFileFromProject(pf, prj);
+                    ProjectFile* pf = data->GetProjectFile();
+
+                    Manager::Get()->GetProjectManager()->RemoveFileFromProject(pf, prj);
                 }
-                else if (  ftd->GetKind() == FileTreeData::ftdkFolder
-                        || ftd->GetKind() == FileTreeData::ftdkVirtualFolder)
+                else if (  data->GetKind() == FileTreeData::ftdkFolder
+                        || data->GetKind() == FileTreeData::ftdkVirtualFolder)
                 {
                     RemoveFilesRecursively(child);
                 }
@@ -865,17 +864,17 @@ void ProjectManagerUI::OpenFilesRecursively(wxTreeItemId& sel_id)
             child = m_pTree->GetNextChild(sel_id, cookie);
         if (child.IsOk())
         {
-            FileTreeData* ftd = (FileTreeData*)m_pTree->GetItemData(child);
-            if (ftd)
+            FileTreeData* data = (FileTreeData*)m_pTree->GetItemData(child);
+            if (data)
             {
-                cbProject* prj = ftd->GetProject();
-                if (prj && ftd->GetKind() == FileTreeData::ftdkFile)
+                cbProject* prj = data->GetProject();
+                if (prj && data->GetKind() == FileTreeData::ftdkFile)
                 {
-                    if ( ProjectFile* pf = ftd->GetProjectFile() )
-                        DoOpenFile(pf, pf->file.GetFullPath());
+                    ProjectFile* pf = data->GetProjectFile();
+                    DoOpenFile(pf, pf->file.GetFullPath());
                 }
-                else if (   ftd->GetKind() == FileTreeData::ftdkFolder
-                         || ftd->GetKind() == FileTreeData::ftdkVirtualFolder )
+                else if (   data->GetKind() == FileTreeData::ftdkFolder
+                         || data->GetKind() == FileTreeData::ftdkVirtualFolder )
                 {
                     OpenFilesRecursively(child);
                 }
@@ -994,12 +993,12 @@ void ProjectManagerUI::OnProjectFileActivated(wxTreeEvent& event)
 {
     wxTreeItemId id = event.GetItem();
     FileTreeData* ftd = (FileTreeData*)m_pTree->GetItemData(id);
-    ProjectManager* pm = Manager::Get()->GetProjectManager();
+    ProjectManager *prjManager = Manager::Get()->GetProjectManager();
 
     if (ftd && ftd->GetKind() == FileTreeData::ftdkProject)
     {
-        if (ftd->GetProject() != pm->GetActiveProject())
-            pm->SetProject(ftd->GetProject(), false);
+        if (ftd->GetProject() != prjManager->GetActiveProject())
+            prjManager->SetProject(ftd->GetProject(), false);
 
         // prevent item expand state toggle when project is activated
         // toggle it one time so that it is toggled back by wx
@@ -1010,7 +1009,7 @@ void ProjectManagerUI::OnProjectFileActivated(wxTreeEvent& event)
                  || (ftd->GetKind() == FileTreeData::ftdkVirtualFolder)
                  || (ftd->GetKind() == FileTreeData::ftdkFolder) ) )
         m_pTree->IsExpanded(id) ? m_pTree->Collapse(id) : m_pTree->Expand(id);
-    else if (!ftd && pm->GetWorkspace())
+    else if (!ftd && prjManager->GetWorkspace())
         m_pTree->IsExpanded(m_TreeRoot) ? m_pTree->Collapse(m_TreeRoot) : m_pTree->Expand(m_TreeRoot);
     else
         DoOpenSelectedFile();
@@ -1024,10 +1023,10 @@ void ProjectManagerUI::OnExecParameters(cb_unused wxCommandEvent& event)
 
 void ProjectManagerUI::OnRightClick(cb_unused wxCommandEvent& event)
 {
-    ProjectManager* pm = Manager::Get()->GetProjectManager();
+    ProjectManager *prjManager = Manager::Get()->GetProjectManager();
 
     wxMenu menu;
-    if (pm->GetWorkspace())
+    if (prjManager->GetWorkspace())
     {
         menu.Append(idMenuTreeRenameWorkspace, _("Rename workspace..."));
         menu.AppendSeparator();
@@ -1062,7 +1061,7 @@ void ProjectManagerUI::OnRightClick(cb_unused wxCommandEvent& event)
     menu.AppendSeparator();
     menu.Append(idMenuViewFileMasks, _("Edit file types && categories..."));
 
-    if (pm->GetWorkspace())
+    if (prjManager->GetWorkspace())
     {
         // this menu items should be always the last one
         menu.AppendSeparator();
@@ -1110,29 +1109,29 @@ void ProjectManagerUI::OnRenameWorkspace(cb_unused wxCommandEvent& event)
 
 void ProjectManagerUI::OnSaveWorkspace(cb_unused wxCommandEvent& event)
 {
-    ProjectManager* pm = Manager::Get()->GetProjectManager();
-    if (pm->GetWorkspace())
-        pm->SaveWorkspace();
+    ProjectManager *prjManager = Manager::Get()->GetProjectManager();
+    if (prjManager->GetWorkspace())
+        prjManager->SaveWorkspace();
 }
 
 void ProjectManagerUI::OnSaveAsWorkspace(cb_unused wxCommandEvent& event)
 {
-    ProjectManager* pm = Manager::Get()->GetProjectManager();
-    if (pm->GetWorkspace())
-        pm->SaveWorkspaceAs(_T(""));
+    ProjectManager *prjManager = Manager::Get()->GetProjectManager();
+    if (prjManager->GetWorkspace())
+        prjManager->SaveWorkspaceAs(_T(""));
 }
 
 void ProjectManagerUI::OnCloseWorkspace(cb_unused wxCommandEvent& event)
 {
-    ProjectManager* pm = Manager::Get()->GetProjectManager();
-    if (pm->GetWorkspace())
-        pm->CloseWorkspace();
+    ProjectManager *prjManager = Manager::Get()->GetProjectManager();
+    if (prjManager->GetWorkspace())
+        prjManager->CloseWorkspace();
 }
 
 void ProjectManagerUI::OnSetActiveProject(wxCommandEvent& event)
 {
-    ProjectManager* pm = Manager::Get()->GetProjectManager();
-    ProjectsArray* pa = pm->GetProjects();
+    ProjectManager *prjManager = Manager::Get()->GetProjectManager();
+    ProjectsArray *projects = prjManager->GetProjects();
 
     if (event.GetId() == idMenuSetActiveProject)
     {
@@ -1144,34 +1143,35 @@ void ProjectManagerUI::OnSetActiveProject(wxCommandEvent& event)
         if (!ftd)
             return;
 
-        pm->SetProject(ftd->GetProject(), false);
+        prjManager->SetProject(ftd->GetProject(), false);
     }
     else if (event.GetId() == idMenuPriorProject)
     {
-        int index = pa->Index(pm->GetActiveProject());
+        int index = projects->Index(prjManager->GetActiveProject());
         if (index == wxNOT_FOUND)
             return;
         --index;
         if (index < 0)
-            index = pa->GetCount() - 1;
-        pm->SetProject(pa->Item(index), false);
+            index = projects->GetCount() - 1;
+        prjManager->SetProject(projects->Item(index), false);
     }
     else if (event.GetId() == idMenuNextProject)
     {
-        int index = pa->Index(pm->GetActiveProject());
+        int index = projects->Index(prjManager->GetActiveProject());
         if (index == wxNOT_FOUND)
             return;
         ++index;
-        if (index == (int)pa->GetCount())
+        if (index == (int)projects->GetCount())
             index = 0;
-        pm->SetProject(pa->Item(index), false);
+        prjManager->SetProject(projects->Item(index), false);
     }
     else if (event.GetId() == idMenuProjectUp)
     {
         wxTreeItemId sel = GetTreeSelection();
         if (!sel.IsOk())
             return;
-        if ( FileTreeData* ftd = (FileTreeData*)m_pTree->GetItemData(sel) )
+        FileTreeData* ftd = (FileTreeData*)m_pTree->GetItemData(sel);
+        if (ftd)
             MoveProjectUp(ftd->GetProject());
     }
     else if (event.GetId() == idMenuProjectDown)
@@ -1180,20 +1180,21 @@ void ProjectManagerUI::OnSetActiveProject(wxCommandEvent& event)
         if (!sel.IsOk())
             return;
 
-        if ( FileTreeData* ftd = (FileTreeData*)m_pTree->GetItemData(sel) )
+        FileTreeData* ftd = (FileTreeData*)m_pTree->GetItemData(sel);
+        if (ftd)
             MoveProjectDown(ftd->GetProject());
     }
 }
 
 void ProjectManagerUI::OnAddFilesToProjectRecursively(wxCommandEvent& event)
 {
-    ProjectManager* pm = Manager::Get()->GetProjectManager();
+    ProjectManager *prjManager = Manager::Get()->GetProjectManager();
     cbProject* prj = nullptr;
     wxString basePath;
 
     if (event.GetId() == idMenuAddFilesRecursively)
     {
-        prj = pm->GetActiveProject();
+        prj = prjManager->GetActiveProject();
         if (prj)
             basePath = prj->GetBasePath();
     }
@@ -1202,15 +1203,16 @@ void ProjectManagerUI::OnAddFilesToProjectRecursively(wxCommandEvent& event)
         wxTreeItemId sel = GetTreeSelection();
         if (!sel.IsOk())
             return;
-
-        if ( FileTreeData* ftd = (FileTreeData*)m_pTree->GetItemData(sel) )
+        FileTreeData* ftd = (FileTreeData*)m_pTree->GetItemData(sel);
+        if (ftd)
         {
-            if ( (prj = ftd->GetProject()) )
-            {
-                basePath = ftd->GetFolder();
-                if (!wxDirExists(basePath))
-                    basePath = prj->GetBasePath();
-            }
+             prj = ftd->GetProject();
+             if (prj)
+             {
+                 basePath = ftd->GetFolder();
+                 if (!wxDirExists(basePath))
+                     basePath = prj->GetBasePath();
+             }
         }
     }
     if (!prj)
@@ -1243,10 +1245,6 @@ void ProjectManagerUI::OnAddFilesToProjectRecursively(wxCommandEvent& event)
         // discard directories, as well as some well known SCMs control folders ;)
         // also discard C::B project files
         if (wxDirExists(array[i]) ||
-            array[i].Contains(_T("/.git/")) ||
-            array[i].Contains(_T("\\.git\\")) ||
-            array[i].Contains(_T("\\.hg\\")) ||
-            array[i].Contains(_T("/.hg/")) ||
             array[i].Contains(_T("\\.svn\\")) ||
             array[i].Contains(_T("/.svn/")) ||
             array[i].Contains(_T("\\CVS\\")) ||
@@ -1260,9 +1258,9 @@ void ProjectManagerUI::OnAddFilesToProjectRecursively(wxCommandEvent& event)
     }
 
     wxString wild;
-    const FilesGroupsAndMasks* fgam = pm->GetFilesGroupsAndMasks();
-    for (unsigned fm_idx = 0; fm_idx < fgam->GetGroupsCount(); fm_idx++)
-        wild += fgam->GetFileMasks(fm_idx);
+    const FilesGroupsAndMasks *fileGroups = prjManager->GetFilesGroupsAndMasks();
+    for (unsigned fm_idx = 0; fm_idx < fileGroups->GetGroupsCount(); fm_idx++)
+        wild += fileGroups->GetFileMasks(fm_idx);
 
     MultiSelectDlg dlg(nullptr, array, wild, _("Select the files to add to the project:"));
     PlaceWindow(&dlg);
@@ -1271,19 +1269,19 @@ void ProjectManagerUI::OnAddFilesToProjectRecursively(wxCommandEvent& event)
     array = dlg.GetSelectedStrings();
 
     // finally add the files
-    pm->AddMultipleFilesToProject(array, prj, targets);
+    prjManager->AddMultipleFilesToProject(array, prj, targets);
     RebuildTree();
 }
 
 void ProjectManagerUI::OnAddFileToProject(wxCommandEvent& event)
 {
-    ProjectManager* pm = Manager::Get()->GetProjectManager();
+    ProjectManager *prjManager = Manager::Get()->GetProjectManager();
     cbProject* prj = nullptr;
     wxString basePath;
 
     if (event.GetId() == idMenuAddFile)
     {
-        prj = pm->GetActiveProject();
+        prj = prjManager->GetActiveProject();
         if (prj)
             basePath = prj->GetBasePath();
     }
@@ -1293,9 +1291,11 @@ void ProjectManagerUI::OnAddFileToProject(wxCommandEvent& event)
         if (!sel.IsOk())
             return;
 
-        if ( FileTreeData* ftd = (FileTreeData*)m_pTree->GetItemData(sel) )
+        FileTreeData* ftd = (FileTreeData*)m_pTree->GetItemData(sel);
+        if (ftd)
         {
-            if ( (prj = ftd->GetProject()) )
+            prj = ftd->GetProject();
+            if (prj)
             {
                 basePath = ftd->GetFolder();
                 if (!wxDirExists(basePath))
@@ -1324,7 +1324,7 @@ void ProjectManagerUI::OnAddFileToProject(wxCommandEvent& event)
 
         wxArrayString array;
         dlg.GetPaths(array);
-        pm->AddMultipleFilesToProject(array, prj, targets);
+        prjManager->AddMultipleFilesToProject(array, prj, targets);
         RebuildTree();
     }
 }
@@ -1334,9 +1334,6 @@ namespace
 void FindFiles(wxArrayString &resultFiles, wxTreeCtrl &tree, wxTreeItemId item)
 {
     FileTreeData* ftd = static_cast<FileTreeData*>(tree.GetItemData(item));
-    if (!ftd)
-        return;
-
     switch (ftd->GetKind())
     {
         case FileTreeData::ftdkFile:
@@ -1366,7 +1363,7 @@ void FindFiles(wxArrayString &resultFiles, wxTreeCtrl &tree, wxTreeItemId item)
 
 void ProjectManagerUI::OnRemoveFileFromProject(wxCommandEvent& event)
 {
-    ProjectManager* pm = Manager::Get()->GetProjectManager();
+    ProjectManager *prjManager = Manager::Get()->GetProjectManager();
     wxTreeItemId sel = GetTreeSelection();
     if (!sel.IsOk())
         return;
@@ -1415,8 +1412,8 @@ void ProjectManagerUI::OnRemoveFileFromProject(wxCommandEvent& event)
             {
                 Manager::Get()->GetLogManager()->DebugLog(F(_T("Removing index %d"), indices[i]));
 
-                if ( ProjectFile* pf = prj->GetFileByFilename(files[indices[i]]) )
-                    pm->RemoveFileFromProject(pf, prj);
+                ProjectFile* pf = prj->GetFileByFilename(files[indices[i]]);
+                prjManager->RemoveFileFromProject(pf, prj);
             }
             prj->CalculateCommonTopLevelPath();
             prj->EndRemoveFiles();
@@ -1425,11 +1422,12 @@ void ProjectManagerUI::OnRemoveFileFromProject(wxCommandEvent& event)
     }
     else if (event.GetId() == idMenuRemoveFilePopup)
     {
-        if ( ProjectFile* pf = ftd->GetProjectFile() )
+        ProjectFile *prjfile = ftd->GetProjectFile();
+        if (prjfile)
         {
             // remove single file
             prj->BeginRemoveFiles();
-            pm->RemoveFileFromProject(pf, prj);
+            prjManager->RemoveFileFromProject(prjfile, prj);
             prj->CalculateCommonTopLevelPath();
             if (prj->GetCommonTopLevelPath() == oldpath)
                 m_pTree->Delete(sel);
@@ -1468,25 +1466,25 @@ void ProjectManagerUI::OnSaveProject(wxCommandEvent& WXUNUSED(event))
     if (!sel.IsOk())
         return;
 
-    ProjectManager* pm = Manager::Get()->GetProjectManager();
+    ProjectManager *prjManager = Manager::Get()->GetProjectManager();
 
-    if ( FileTreeData* ftd = (FileTreeData*)m_pTree->GetItemData(sel) )
+    if (FileTreeData* ftd = (FileTreeData*)m_pTree->GetItemData(sel))
     {
-        if ( cbProject* prj = ftd->GetProject() )
+        if (cbProject* Project = ftd->GetProject())
         {
-            // TODO : does it make sense NOT to save project file while compiling ??
-            if (pm->IsLoadingProject() || prj->GetCurrentlyCompilingTarget())
+            // TODO : does it make sense TO not save project file while compiling ??
+            if (prjManager->IsLoadingProject() || Project->GetCurrentlyCompilingTarget())
                 wxBell();
             else
-                pm->SaveProject(prj);
+                prjManager->SaveProject(Project);
         }
     }
 }
 
 void ProjectManagerUI::OnCloseProject(wxCommandEvent& WXUNUSED(event))
 {
-    ProjectManager* pm = Manager::Get()->GetProjectManager();
-    if (pm->IsLoadingProject())
+    ProjectManager *prjManager = Manager::Get()->GetProjectManager();
+    if (prjManager->IsLoadingProject())
     {
         wxBell();
         return;
@@ -1500,25 +1498,25 @@ void ProjectManagerUI::OnCloseProject(wxCommandEvent& WXUNUSED(event))
 
     for (size_t ii = 0; ii < selections.GetCount(); ++ii)
     {
-        FileTreeData* ftd = reinterpret_cast<FileTreeData*>(m_pTree->GetItemData(selections[ii]));
-        if (!ftd || ftd->GetKind() != FileTreeData::ftdkProject)
+        FileTreeData *ftd = reinterpret_cast<FileTreeData*>(m_pTree->GetItemData(selections[ii]));
+        if (ftd->GetKind() != FileTreeData::ftdkProject)
             continue;
 
-        cbProject* prj = ftd->GetProject();
-        if (prj)
+        cbProject *project = ftd->GetProject();
+        if (project)
         {
-            if (prj->GetCurrentlyCompilingTarget())
+            if (project->GetCurrentlyCompilingTarget())
                 wxBell();
             else
-                projectsToClose.insert(prj);
+                projectsToClose.insert(project);
         }
     }
 
     for (std::set<cbProject*>::iterator it = projectsToClose.begin(); it != projectsToClose.end(); ++it)
-        pm->CloseProject(*it);
+        prjManager->CloseProject(*it);
 
-    if (pm->GetProjects()->GetCount() > 0 && !pm->GetActiveProject())
-        pm->SetProject(pm->GetProjects()->Item(0), false);
+    if (prjManager->GetProjects()->GetCount() > 0 && !prjManager->GetActiveProject())
+        prjManager->SetProject(prjManager->GetProjects()->Item(0), false);
 
     Manager::Get()->GetAppWindow()->Refresh();
 }
@@ -1531,8 +1529,8 @@ void ProjectManagerUI::OnSaveFile(wxCommandEvent& WXUNUSED(event))
 
     if (FileTreeData* ftd = (FileTreeData*)m_pTree->GetItemData(sel))
     {
-        if ( ProjectFile* pf = ftd->GetProjectFile() )
-            Manager::Get()->GetEditorManager()->Save(pf->file.GetFullPath());
+        if (ProjectFile* File = ftd->GetProjectFile())
+            Manager::Get()->GetEditorManager()->Save(File->file.GetFullPath());
     }
 }
 
@@ -1544,8 +1542,8 @@ void ProjectManagerUI::OnCloseFile(wxCommandEvent& WXUNUSED(event))
 
     if (FileTreeData* ftd = (FileTreeData*)m_pTree->GetItemData(sel))
     {
-        if ( ProjectFile* pf = ftd->GetProjectFile() )
-            Manager::Get()->GetEditorManager()->Close(pf->file.GetFullPath());
+        if (ProjectFile* File = ftd->GetProjectFile())
+            Manager::Get()->GetEditorManager()->Close(File->file.GetFullPath());
     }
 }
 
@@ -1585,53 +1583,56 @@ void ProjectManagerUI::OnOpenWith(wxCommandEvent& event)
         return;
 
     FileTreeData* ftd = (FileTreeData*)m_pTree->GetItemData(sel);
-    if (!ftd)
-        return;
-
-    if ( ProjectFile* pf = ftd->GetProjectFile() )
+    if (ftd)
     {
-        wxString filename = pf->file.GetFullPath();
-        if (event.GetId() == idOpenWithInternal)
+        ProjectFile* f = ftd->GetProjectFile();
+        if (f)
         {
-            if ( cbEditor* ed = Manager::Get()->GetEditorManager()->Open(filename) )
+            wxString filename = f->file.GetFullPath();
+            if (event.GetId() == idOpenWithInternal)
             {
-                ed->SetProjectFile(pf);
-                ed->Show(true);
-                return;
+                cbEditor* ed = Manager::Get()->GetEditorManager()->Open(filename);
+                if (ed)
+                {
+                    ed->SetProjectFile(f);
+                    ed->Show(true);
+                    return;
+                }
             }
+            else
+            {
+                PluginsArray mimes = Manager::Get()->GetPluginManager()->GetMimeOffers();
+                cbMimePlugin* plugin = (cbMimePlugin*)mimes[event.GetId() - idOpenWith[0]];
+                if (plugin && plugin->OpenFile(filename) == 0)
+                    return;
+            }
+            wxString msg;
+            msg.Printf(_("Failed to open '%s'."), filename.c_str());
+            Manager::Get()->GetLogManager()->LogError(msg);
         }
-        else
-        {
-            PluginsArray mimes = Manager::Get()->GetPluginManager()->GetMimeOffers();
-            cbMimePlugin* plugin = (cbMimePlugin*)mimes[event.GetId() - idOpenWith[0]];
-            if (plugin && plugin->OpenFile(filename) == 0)
-                return;
-        }
-        wxString msg;
-        msg.Printf(_("Failed to open '%s'."), filename.c_str());
-        Manager::Get()->GetLogManager()->LogError(msg);
     }
 }
 
 void ProjectManagerUI::OnNotes(wxCommandEvent& WXUNUSED(event))
 {
-    if ( cbProject* prj = Manager::Get()->GetProjectManager()->GetActiveProject() )
-        prj->ShowNotes(false, true);
+    cbProject* project = Manager::Get()->GetProjectManager()->GetActiveProject();
+    if (project)
+        project->ShowNotes(false, true);
 }
 
 void ProjectManagerUI::OnProperties(wxCommandEvent& event)
 {
-    ProjectManager* pm = Manager::Get()->GetProjectManager();
-    cbProject* activePrj = pm->GetActiveProject();
+    ProjectManager *prjManager = Manager::Get()->GetProjectManager();
+    cbProject *activeProject = prjManager->GetActiveProject();
     if (event.GetId() == idMenuProjectProperties)
     {
-        wxString backupTitle = activePrj ? activePrj->GetTitle() : _T("");
-        if (ProjectShowOptions(activePrj))
+        wxString backupTitle = activeProject ? activeProject->GetTitle() : _T("");
+        if (ProjectShowOptions(activeProject))
         {
             // make sure that cbEVT_PROJECT_ACTIVATE
             // is sent (maybe targets have changed)...
             // rebuild tree  only if title has changed
-            pm->SetProject(activePrj, backupTitle != activePrj->GetTitle());
+            prjManager->SetProject(activeProject, backupTitle != activeProject->GetTitle());
         }
     }
     else if (event.GetId() == idMenuTreeProjectProperties)
@@ -1642,17 +1643,17 @@ void ProjectManagerUI::OnProperties(wxCommandEvent& event)
 
         FileTreeData* ftd = (FileTreeData*)m_pTree->GetItemData(sel);
 
-        cbProject* prj = ftd ? ftd->GetProject() : activePrj;
-        wxString backupTitle = prj ? prj->GetTitle() : _T("");
-        if (ProjectShowOptions(prj) && prj == activePrj)
+        cbProject* project = ftd ? ftd->GetProject() : activeProject;
+        wxString backupTitle = project ? project->GetTitle() : _T("");
+        if (ProjectShowOptions(project) && project == activeProject)
         {
             // rebuild tree and make sure that cbEVT_PROJECT_ACTIVATE
             // is sent (maybe targets have changed)...
             // rebuild tree  only if title has changed
-            pm->SetProject(prj, backupTitle != prj->GetTitle());
+            prjManager->SetProject(project, backupTitle != project->GetTitle());
         }
         // if project title has changed, update the appropriate tab tooltips
-        wxString newTitle = prj->GetTitle();
+        wxString newTitle = project->GetTitle();
         if (backupTitle != newTitle)
         {
             cbAuiNotebook* nb = Manager::Get()->GetEditorManager()->GetNotebook();
@@ -1679,21 +1680,24 @@ void ProjectManagerUI::OnProperties(wxCommandEvent& event)
 
         FileTreeData* ftd = (FileTreeData*)m_pTree->GetItemData(sel);
 
-        cbProject* prj = ftd ? ftd->GetProject() : activePrj;
-        if (prj)
+        cbProject* project = ftd ? ftd->GetProject() : activeProject;
+        if (project)
         {
             if (ftd && ftd->GetFileIndex() != -1)
             {
-                if ( ProjectFile* pf = ftd->GetProjectFile() )
+                ProjectFile* pf = ftd->GetProjectFile();
+                if (pf)
                     pf->ShowOptions(Manager::Get()->GetAppWindow());
             }
         }
     }
     else // active editor properties
     {
-        if ( cbEditor* ed = Manager::Get()->GetEditorManager()->GetBuiltinActiveEditor() )
+        cbEditor* ed = Manager::Get()->GetEditorManager()->GetBuiltinActiveEditor();
+        if (ed)
         {
-            if ( ProjectFile* pf = ed->GetProjectFile() )
+            ProjectFile* pf = ed->GetProjectFile();
+            if (pf)
                 pf->ShowOptions(Manager::Get()->GetAppWindow());
             else
             {
@@ -1718,12 +1722,10 @@ void ProjectManagerUI::OnFileOptions(wxCommandEvent &event)
             wxTreeItemId id = selected[ii];
             if (!id.IsOk())
                 continue;
-
             FileTreeData* ftd = (FileTreeData*)m_pTree->GetItemData(id);
             if (!ftd || ftd->GetKind() != FileTreeData::ftdkFile)
                 continue;
-
-            ProjectFile* pf = ftd->GetProjectFile();
+            ProjectFile *pf = ftd->GetProjectFile();
             if (pf && pf->compile != event.IsChecked())
             {
                 pf->compile = event.IsChecked();
@@ -1741,12 +1743,10 @@ void ProjectManagerUI::OnFileOptions(wxCommandEvent &event)
             wxTreeItemId id = selected[ii];
             if (!id.IsOk())
                 continue;
-
             FileTreeData* ftd = (FileTreeData*)m_pTree->GetItemData(id);
             if (!ftd || ftd->GetKind() != FileTreeData::ftdkFile)
                 continue;
-
-            ProjectFile* pf = ftd->GetProjectFile();
+            ProjectFile *pf = ftd->GetProjectFile();
             if (pf && pf->link != event.IsChecked())
             {
                 pf->link = event.IsChecked();
@@ -1765,53 +1765,53 @@ void ProjectManagerUI::OnFileOptions(wxCommandEvent &event)
 
 struct ProjectFileRelativePathCmp
 {
-    ProjectFileRelativePathCmp(cbProject* pActiveProject) : m_pActiveProject(pActiveProject) {}
-    bool operator()(ProjectFile* pf1, ProjectFile* pf2)
+    ProjectFileRelativePathCmp(cbProject *pActiveProject) : m_pActiveProject(pActiveProject) {}
+    bool operator()(ProjectFile* f1, ProjectFile* f2)
     {
-        if (pf1->GetParentProject() == m_pActiveProject && pf2->GetParentProject() != m_pActiveProject)
+        if (f1->GetParentProject() == m_pActiveProject && f2->GetParentProject() != m_pActiveProject)
             return true;
-        else if (pf1->GetParentProject() != m_pActiveProject && pf2->GetParentProject() == m_pActiveProject)
+        else if (f1->GetParentProject() != m_pActiveProject && f2->GetParentProject() == m_pActiveProject)
             return false;
         else
-            return pf1->relativeFilename.Cmp(pf2->relativeFilename) < 0;
+            return f1->relativeFilename.Cmp(f2->relativeFilename) < 0;
     }
 private:
-    cbProject* m_pActiveProject;
+    cbProject *m_pActiveProject;
 };
 
 struct ProjectFileAbsolutePathCmp
 {
-    bool operator()(ProjectFile* pf1, ProjectFile* pf2)
-    { return pf1->file.GetFullPath().Cmp(pf2->file.GetFullPath()) < 0; }
+    bool operator()(ProjectFile* f1, ProjectFile* f2)
+    { return f1->file.GetFullPath().Cmp(f2->file.GetFullPath()) < 0; }
 };
 
 struct ProjectFileAbsolutePathEqual
 {
-    bool operator()(ProjectFile* pf1, ProjectFile* pf2)
-    { return pf1->file.GetFullPath() == pf2->file.GetFullPath(); }
+    bool operator()(ProjectFile* f1, ProjectFile* f2)
+    { return f1->file.GetFullPath() == f2->file.GetFullPath(); }
 };
 
 void ProjectManagerUI::OnGotoFile(cb_unused wxCommandEvent& event)
 {
-    ProjectManager* pm = Manager::Get()->GetProjectManager();
-    cbProject* activePrj = pm->GetActiveProject();
+    ProjectManager *prjManager = Manager::Get()->GetProjectManager();
+    cbProject *activeProject = prjManager->GetActiveProject();
 
-    if (!activePrj)
+    if (!activeProject)
     {
         Manager::Get()->GetLogManager()->DebugLog(_("No active project!"));
         return;
     }
 
-    ProjectsArray* pa = pm->GetProjects();
+    ProjectsArray *projects = prjManager->GetProjects();
 
     typedef std::vector<ProjectFile*> VProjectFiles;
     VProjectFiles pfiles;
-    for (size_t prjIdx = 0; prjIdx < pa->GetCount(); ++prjIdx)
+    for (size_t prjIdx = 0; prjIdx < projects->GetCount(); ++prjIdx)
     {
-        cbProject* prj = (*pa)[prjIdx];
-        if (!prj) continue;
+        cbProject* project = (*projects)[prjIdx];
+        if (!project) continue;
 
-        for (FilesList::iterator it = prj->GetFilesList().begin(); it != prj->GetFilesList().end(); ++it)
+        for (FilesList::iterator it = project->GetFilesList().begin(); it != project->GetFilesList().end(); ++it)
             pfiles.push_back(*it);
     }
 
@@ -1823,7 +1823,7 @@ void ProjectManagerUI::OnGotoFile(cb_unused wxCommandEvent& event)
         if (last != pfiles.end())
             pfiles.erase(last, pfiles.end());
 
-        std::sort(pfiles.begin(), pfiles.end(), ProjectFileRelativePathCmp(activePrj));
+        std::sort(pfiles.begin(), pfiles.end(), ProjectFileRelativePathCmp(activeProject));
     }
 
     class Iterator : public IncrementalSelectIterator
@@ -1836,9 +1836,8 @@ void ProjectManagerUI::OnGotoFile(cb_unused wxCommandEvent& event)
             {
                 if (m_ShowProject)
                 {
-                    if ( ProjectFile* pf = m_PFiles[index] )
-                        return pf->relativeFilename + wxT(" (") + pf->GetParentProject()->GetTitle() + wxT(")");
-                    return wxEmptyString;
+                    ProjectFile *f = m_PFiles[index];
+                    return f->relativeFilename + wxT(" (") + f->GetParentProject()->GetTitle() + wxT(")");
                 }
                 else
                     return m_PFiles[index]->relativeFilename;
@@ -1848,7 +1847,7 @@ void ProjectManagerUI::OnGotoFile(cb_unused wxCommandEvent& event)
             bool           m_ShowProject;
     };
 
-    Iterator iterator(pfiles, pa->GetCount() > 1);
+    Iterator iterator(pfiles, projects->GetCount() > 1);
     IncrementalSelectListDlg dlg(Manager::Get()->GetAppWindow(), iterator,
                                  _("Select file..."), _("Please select file to open:"));
     PlaceWindow(&dlg);
@@ -1925,12 +1924,12 @@ void ProjectManagerUI::OnViewHideFolderName(wxCommandEvent& event)
 
 void ProjectManagerUI::OnViewFileMasks(cb_unused wxCommandEvent& event)
 {
-    FilesGroupsAndMasks* fgam = Manager::Get()->GetProjectManager()->GetFilesGroupsAndMasks();
-    ProjectsFileMasksDlg dlg(Manager::Get()->GetAppWindow(), fgam);
+    FilesGroupsAndMasks *fileGroups = Manager::Get()->GetProjectManager()->GetFilesGroupsAndMasks();
+    ProjectsFileMasksDlg dlg(Manager::Get()->GetAppWindow(), fileGroups);
     PlaceWindow(&dlg);
     if (dlg.ShowModal() == wxID_OK)
     {
-        fgam->Save();
+        fileGroups->Save();
         RebuildTree();
     }
 }
@@ -1964,15 +1963,15 @@ void ProjectManagerUI::OnFindFile(cb_unused wxCommandEvent& event)
     if (files.IsEmpty())
         return;
 
-    ProjectManager* pm = Manager::Get()->GetProjectManager();
+    ProjectManager *prjManager = Manager::Get()->GetProjectManager();
 
     // workspace selected, add *.cbp filenames
     ConfigManagerContainer::StringToStringMap fileNameMap;
-    if ( pm->GetWorkspace() && !(FileTreeData*)m_pTree->GetItemData(sel) )
+    if ( prjManager->GetWorkspace() && !(FileTreeData*)m_pTree->GetItemData(sel) )
     {
-        for (size_t i = 0; i < pm->GetProjects()->GetCount(); ++i)
+        for (size_t i = 0; i < prjManager->GetProjects()->GetCount(); ++i)
         {
-            const cbProject* prj = pm->GetProjects()->Item(i);
+            const cbProject* prj = prjManager->GetProjects()->Item(i);
             const wxFileName file(prj->GetFilename());
             files.Add(file.GetFullName());
             fileNameMap[file.GetFullName()] = prj->GetTitle();
@@ -2025,13 +2024,14 @@ void ProjectManagerUI::OnFindFile(cb_unused wxCommandEvent& event)
         const FileTreeData* ftd = (FileTreeData*)m_pTree->GetItemData(item);
         if (ftd && chkOpen->IsChecked())
         {
-            if ( ProjectFile* pf = ftd->GetProjectFile() )
-                DoOpenFile(pf, pf->file.GetFullPath()); // open the file
+            ProjectFile* pf = ftd->GetProjectFile();
+            if (pf) // open the file
+                DoOpenFile(pf, pf->file.GetFullPath());
             else if (   ftd->GetKind() == FileTreeData::ftdkProject
                      && ftd->GetProject() )
             {
                 // change active project
-                pm->SetProject(ftd->GetProject(), false);
+                prjManager->SetProject(ftd->GetProject(), false);
             }
         }
         cfg->Write(wxT("/find_file_open"), chkOpen->IsChecked());
@@ -2178,12 +2178,9 @@ void ProjectManagerUI::OnRenameFile(cb_unused wxCommandEvent& event)
                 wxBell();
                 return;
             }
-
-            if ( ProjectFile* pf = ftd->GetProjectFile() )
-            {
-                pf->Rename(new_name);
-                RebuildTree();
-            }
+            ProjectFile *pf = ftd->GetProjectFile();
+            pf->Rename(new_name);
+            RebuildTree();
         }
     }
 }
@@ -2192,9 +2189,9 @@ void ProjectManagerUI::OnKeyDown(wxTreeEvent& event)
 {
     const wxKeyEvent& key_event = event.GetKeyEvent();
 
-    cbProject* prj = Manager::Get()->GetProjectManager()->GetActiveProject();
-    if (    prj
-        && (prj->GetCurrentlyCompilingTarget() == nullptr)
+    cbProject* project = Manager::Get()->GetProjectManager()->GetActiveProject();
+    if (    project
+        && (project->GetCurrentlyCompilingTarget() == nullptr)
         && (   key_event.GetKeyCode() == WXK_DELETE
             || key_event.GetKeyCode() == WXK_NUMPAD_DELETE ) )
     {
@@ -2210,10 +2207,10 @@ void ProjectManagerUI::MoveProjectUp(cbProject* project, bool warpAround)
 {
     if (!project)
         return;
-    ProjectManager* pm = Manager::Get()->GetProjectManager();
-    ProjectsArray* pa = pm->GetProjects();
+    ProjectManager *prjManager = Manager::Get()->GetProjectManager();
+    ProjectsArray *projects = prjManager->GetProjects();
 
-    int idx = pa->Index(project);
+    int idx = projects->Index(project);
     if (idx == wxNOT_FOUND)
         return; // project not opened in project manager???
 
@@ -2222,13 +2219,13 @@ void ProjectManagerUI::MoveProjectUp(cbProject* project, bool warpAround)
          if (!warpAround)
             return;
         else
-            idx = pa->Count();
+            idx = projects->Count();
     }
-    pa->RemoveAt(idx--);
-    pa->Insert(project, idx);
+    projects->RemoveAt(idx--);
+    projects->Insert(project, idx);
     RebuildTree();
-    if (pm->GetWorkspace())
-        pm->GetWorkspace()->SetModified(true);
+    if (prjManager->GetWorkspace())
+        prjManager->GetWorkspace()->SetModified(true);
 
     // re-select the project
     wxTreeItemId itemId = project->GetProjectNode();
@@ -2240,25 +2237,25 @@ void ProjectManagerUI::MoveProjectDown(cbProject* project, bool warpAround)
 {
     if (!project)
         return;
-    ProjectManager* pm = Manager::Get()->GetProjectManager();
-    ProjectsArray* pa = pm->GetProjects();
+    ProjectManager *prjManager = Manager::Get()->GetProjectManager();
+    ProjectsArray *projects = prjManager->GetProjects();
 
-    int idx = pa->Index(project);
+    int idx = projects->Index(project);
     if (idx == wxNOT_FOUND)
         return; // project not opened in project manager???
 
-    if (idx == (int)pa->Count() - 1)
+    if (idx == (int)projects->Count() - 1)
     {
          if (!warpAround)
             return;
         else
             idx = 0;
     }
-    pa->RemoveAt(idx++);
-    pa->Insert(project, idx);
+    projects->RemoveAt(idx++);
+    projects->Insert(project, idx);
     RebuildTree();
-    if (pm->GetWorkspace())
-        pm->GetWorkspace()->SetModified(true);
+    if (prjManager->GetWorkspace())
+        prjManager->GetWorkspace()->SetModified(true);
 
     // re-select the project
     wxTreeItemId itemId = project->GetProjectNode();
@@ -2271,19 +2268,19 @@ bool ProjectManagerUI::QueryCloseAllProjects()
 {
     if (!Manager::Get()->GetEditorManager()->QueryCloseAll())
         return false;
-    ProjectsArray* pa = Manager::Get()->GetProjectManager()->GetProjects();
-    for (size_t i = 0; i < pa->GetCount(); ++i)
+    ProjectsArray *projects = Manager::Get()->GetProjectManager()->GetProjects();
+    for (size_t i = 0; i < projects->GetCount(); ++i)
     {
         // Ask for saving modified projects. However,
         // we already asked to save projects' files;
         // do not ask again
-        if (!QueryCloseProject((*pa)[i], true))
+        if (!QueryCloseProject((*projects)[i], true))
             return false;
     }
     return true;
 }
 
-bool ProjectManagerUI::QueryCloseProject(cbProject* proj, bool dontsavefiles)
+bool ProjectManagerUI::QueryCloseProject(cbProject *proj, bool dontsavefiles)
 {
     if (!proj)
         return true;
@@ -2319,9 +2316,11 @@ bool ProjectManagerUI::QueryCloseWorkspace()
     if (!workspace)
         return true;
 
-    // Don't ask to save the default workspace, if blank workspace is used on app startup.
-    bool blankWorkspace = Manager::Get()->GetConfigManager(_T("app"))->ReadBool(_T("/environment/blank_workspace"), true);
-    if (!(workspace->IsDefault() && blankWorkspace) && workspace->GetModified())
+    // don't ask to save the default workspace, if blank workspace is used on app startup
+    if (workspace->IsDefault() && Manager::Get()->GetConfigManager(_T("app"))->ReadBool(_T("/environment/blank_workspace"), true) == true)
+        return true;
+
+    if (workspace->GetModified())
     {
         // workspace needs save
         wxString msg;
@@ -2338,8 +2337,6 @@ bool ProjectManagerUI::QueryCloseWorkspace()
                 break;
         }
     }
-
-    // We always want to ask to save all loaded projects.
     if (!QueryCloseAllProjects())
         return false;
     return true;
@@ -2403,30 +2400,30 @@ void ProjectManagerUI::CheckForExternallyModifiedProjects()
 
     // check also the projects (TO DO : what if we gonna reload while compiling/debugging)
     // TODO : make sure the same project is the active one again
-    ProjectManager* pm = Manager::Get()->GetProjectManager();
-    if ( ProjectsArray* pa = pm->GetProjects())
+    ProjectManager* ProjectMgr = Manager::Get()->GetProjectManager();
+    if ( ProjectsArray* Projects = ProjectMgr->GetProjects())
     {
         bool reloadAll = false;
         // make a copy of all the pointers before we start messing with closing and opening projects
-        // the hash (pa) could change the order
+        // the hash (Projects) could change the order
         std::vector<cbProject*> ProjectPointers;
-        for (unsigned int idxProject = 0; idxProject < pa->Count(); ++idxProject)
-            ProjectPointers.push_back(pa->Item(idxProject));
+        for (unsigned int idxProject = 0; idxProject < Projects->Count(); ++idxProject)
+            ProjectPointers.push_back(Projects->Item(idxProject));
 
         for (unsigned int idxProject = 0; idxProject < ProjectPointers.size(); ++idxProject)
         {
-            cbProject* prj = ProjectPointers[idxProject];
-            wxFileName fname(prj->GetFilename());
+            cbProject* pProject = ProjectPointers[idxProject];
+            wxFileName fname(pProject->GetFilename());
             wxDateTime last = fname.GetModificationTime();
-            if (last.IsLaterThan(prj->GetLastModificationTime()))
+            if (last.IsLaterThan(pProject->GetLastModificationTime()))
             {    // was modified -> reload
                 int ret = -1;
                 if (!reloadAll)
                 {
-                    Manager::Get()->GetLogManager()->Log(prj->GetFilename());
+                    Manager::Get()->GetLogManager()->Log(pProject->GetFilename());
                     wxString msg;
                     msg.Printf(_("Project %s is modified outside the IDE...\nDo you want to reload it (you will lose any unsaved work)?"),
-                               prj->GetFilename().c_str());
+                               pProject->GetFilename().c_str());
                     ConfirmReplaceDlg dlg(Manager::Get()->GetAppWindow(), false, msg);
                     dlg.SetTitle(_("Reload Project?"));
                     PlaceWindow(&dlg);
@@ -2434,11 +2431,11 @@ void ProjectManagerUI::CheckForExternallyModifiedProjects()
                     reloadAll = ret == crAll;
                 }
                 if (reloadAll || ret == crYes)
-                    pm->ReloadProject(prj);
+                    ProjectMgr->ReloadProject(pProject);
                 else if (ret == crCancel)
                     break;
                 else if (ret == crNo)
-                    prj->Touch();
+                    pProject->Touch();
             }
         } // end for : idx : idxProject
     }
@@ -2523,7 +2520,7 @@ wxTreeItemId ProjectFindNodeToInsertAfter(wxTreeCtrl* tree, const wxString& text
     return result;
 }
 
-wxTreeItemId ProjectAddTreeNode(cbProject* project, wxTreeCtrl* tree,  const wxString& text, const wxTreeItemId& parent,
+wxTreeItemId ProjectAddTreeNode(cbProject *project, wxTreeCtrl* tree,  const wxString& text, const wxTreeItemId& parent,
                                 bool useFolders, FileTreeData::FileTreeDataKind folders_kind, bool compiles, int image,
                                 FileTreeData* data)
 {
@@ -2534,10 +2531,7 @@ wxTreeItemId ProjectAddTreeNode(cbProject* project, wxTreeCtrl* tree,  const wxS
     wxTreeItemId ret;
 
     if (text.IsEmpty())
-    {
-        delete data;
         return ret;
-    }
 
     wxString path = text;
 
@@ -2550,10 +2544,7 @@ wxTreeItemId ProjectAddTreeNode(cbProject* project, wxTreeCtrl* tree,  const wxS
         path.Remove(0, 1);
 
     if (path.IsEmpty())
-    {
-        delete data;
         return ret;
-    }
 
     int pos = path.Find(_T('/'));
     if (pos == -1)
@@ -2669,9 +2660,7 @@ void ProjectCopyTreeNodeRecursively(wxTreeCtrl* tree, const wxTreeItemId& item, 
 bool ProjectVirtualFolderDragged(cbProject* project, wxTreeCtrl* tree, wxTreeItemId from, wxTreeItemId to)
 {
     FileTreeData* ftdFrom = static_cast<FileTreeData*>(tree->GetItemData(from));
-    FileTreeData* ftdTo   = static_cast<FileTreeData*>(tree->GetItemData(to)  );
-    if (!ftdFrom || !ftdTo)
-        return false;
+    FileTreeData* ftdTo = static_cast<FileTreeData*>(tree->GetItemData(to));
 
     wxString sep = wxString(wxFileName::GetPathSeparator());
     wxChar sepChar = wxFileName::GetPathSeparator();
@@ -3007,8 +2996,8 @@ bool ProjectShowOptions(cbProject* project)
         FilesList &filesList = project->GetFilesList();
         for (FilesList::iterator it = filesList.begin(); it != filesList.end(); ++it)
         {
-            if ( ProjectFile* pf = *it )
-                pf->UpdateFileDetails();
+            ProjectFile* f = *it;
+            f->UpdateFileDetails();
         }
         CodeBlocksEvent event(cbEVT_PROJECT_OPTIONS_CHANGED);
         event.SetProject(project);
@@ -3077,16 +3066,13 @@ void ProjectManagerUI::BuildProjectTree(cbProject* project, cbTreeCtrl* tree, co
     FilesList &fileList = project->GetFilesList();
     for (FilesList::iterator it = fileList.begin(); it != fileList.end(); ++it)
     {
-        ProjectFile* pf = *it;
-        if (!pf)
-              continue;
-
+        ProjectFile* f = *it;
         ftd = new FileTreeData(project, FileTreeData::ftdkFile);
         ftd->SetFileIndex(count++);
-        ftd->SetProjectFile(pf);
-        ftd->SetFolder(pf->file.GetFullPath());
+        ftd->SetProjectFile(f);
+        ftd->SetFolder(f->file.GetFullPath());
 
-        wxString nodetext = pf->relativeToCommonTopLevelPath;
+        wxString nodetext = f->relativeToCommonTopLevelPath;
         FileTreeData::FileTreeDataKind folders_kind = FileTreeData::ftdkFolder;
 
         // by default, the parent node is the project node (in case of no grouping, no virtual folders)
@@ -3094,14 +3080,14 @@ void ProjectManagerUI::BuildProjectTree(cbProject* project, cbTreeCtrl* tree, co
 
         // now change the parent node for virtual folders and/or if grouping is enabled
         // first check, if the file is under a virtual folder
-        if (!pf->virtual_path.IsEmpty())
+        if (!f->virtual_path.IsEmpty())
         {
-            nodetext       = pf->virtual_path + wxFILE_SEP_PATH + pf->file.GetFullName();
+            nodetext       = f->virtual_path + wxFILE_SEP_PATH + f->file.GetFullName();
             folders_kind   = FileTreeData::ftdkVirtualFolder;
-            wxString slash = pf->virtual_path.Last() == wxFILE_SEP_PATH ? _T("") : wxString(wxFILE_SEP_PATH);
-            ftd->SetFolder(pf->virtual_path);
+            wxString slash = f->virtual_path.Last() == wxFILE_SEP_PATH ? _T("") : wxString(wxFILE_SEP_PATH);
+            ftd->SetFolder(f->virtual_path);
 
-            project->AppendUniqueVirtualFolder(pf->virtual_path + slash);
+            project->AppendUniqueVirtualFolder(f->virtual_path + slash);
         }
         // second check, if files grouping is enabled and find the group parent
         else if (do_categorise && pGroupNodes)
@@ -3109,7 +3095,7 @@ void ProjectManagerUI::BuildProjectTree(cbProject* project, cbTreeCtrl* tree, co
             bool found = false;
 
             // auto-generated files end up all together
-            if (pf->AutoGeneratedBy())
+            if (f->AutoGeneratedBy())
             {
                 parentNode = generated;
                 found = true;
@@ -3118,7 +3104,7 @@ void ProjectManagerUI::BuildProjectTree(cbProject* project, cbTreeCtrl* tree, co
             {
                 for (unsigned int i = 0; i < fgam->GetGroupsCount(); ++i)
                 {
-                    wxFileName fname(pf->relativeToCommonTopLevelPath);
+                    wxFileName fname(f->relativeToCommonTopLevelPath);
                     if (fgam->MatchesMask(fname.GetFullName(), i))
                     {
                         parentNode = pGroupNodes[i];
@@ -3138,13 +3124,13 @@ void ProjectManagerUI::BuildProjectTree(cbProject* project, cbTreeCtrl* tree, co
             && (ptvs&ptvsHideFolderName)
             && (folders_kind != FileTreeData::ftdkVirtualFolder) )
         {
-            nodetext = pf->file.GetFullName();
+            nodetext = f->file.GetFullName();
         }
 
         // add file in the tree
         bool useFolders = (ptvs&ptvsUseFolders) || (folders_kind == FileTreeData::ftdkVirtualFolder);
-        pf->SetTreeItemId(ProjectAddTreeNode(project, tree, nodetext, parentNode, useFolders, folders_kind,
-                                             pf->compile, (int)pf->GetFileState(), ftd));
+        f->SetTreeItemId(ProjectAddTreeNode(project, tree, nodetext, parentNode, useFolders, folders_kind,
+                                            f->compile, (int)f->GetFileState(), ftd));
     }// iteration of project files
 
     // finally remove empty tree nodes (like empty groups)

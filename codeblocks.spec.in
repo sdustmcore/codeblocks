@@ -3,7 +3,7 @@
 %define _fedora             %(if [ -f /etc/fedora-release ]; then echo 1; else echo 0; fi)
 %define _redhat             %(if [ -f /etc/redhat-release ]; then echo 1; else echo 0; fi)
 %define _mandrake           %(if [ -f /etc/mandrake-release ]; then echo 1; else echo 0; fi)
-%define _version            13.12.svn.%{_svnrev}
+%define _version            13.12
 %define _rel                1
 %define _release            %{_rel}
 %define jobs                %(if [ -e /usr/bin/getconf ]; then echo $(( `/usr/bin/getconf _NPROCESSORS_ONLN` + 1 )); else echo 1; fi)
@@ -61,8 +61,6 @@ URL:                        http://www.codeblocks.org/
 Packager:                   Jens Lody <jens@codeblocks.org>
 Source:                     %{name}-@VERSION@.tar.bz2
 BuildRoot:                  %{_tmppath}/%{name}-%{version}-buildroot
-Requires:                   %{name}-libs%{?_isa} = %{version}
-Requires:                   xterm
 
 %if 0%{?mandriva_version}
 Requires:                   wxgtk2.8 >= %{req_wxgtk}
@@ -119,18 +117,10 @@ It is based on a self-developed plugin framework allowing unlimited extensibilit
   * Extensible wizard based on scripts
   * Autosave (saves your work in the unfortunate case of a crash)
 
-%package libs
-Summary:                    Libraries needed to run Code::Blocks
-Group:                      Development/Tools/IDE
-
-%description libs
-Libraries needed to run Code::Blocks.
-
 %package contrib
 Summary:                    Code::Blocks contrib plugins
 Group:                      Development/Tools/IDE
 Requires:                   %{name}%{?_isa} = %{version}
-Requires:                   %{name}-contrib-libs%{?_isa} = %{version}
 BuildRequires:              gamin-devel, bzip2-devel, zlib-devel, hunspell-devel, fontconfig-devel
 %if 0%{?nassi_shneiderman}
 BuildRequires:              boost-devel
@@ -175,13 +165,6 @@ This package extends Code::Blocks functionality a great deal with the included p
  * RAD gui-builder for wxWidgets (wxSmith)
  * wxSmith contrib items
  * wxSmith AUI
-
-%package contrib-libs
-Summary:                    Libraries needed to run Code::Blocks contrib-plugins
-Group:                      Development/Tools/IDE
-
-%description contrib-libs
-Libraries needed to run Code::Blocks contrib-plugins.
 
 %package devel
 Summary:                    Code::Blocks development libraries and headers (SDK)
@@ -313,13 +296,11 @@ This package contains the development libraries and headers needed to build wxSm
 %{pkgdatadir}/start_here.zip
 %{pkgdatadir}/todo.zip
 %{pkgdatadir}/tips.txt
-
-%files libs
-%defattr(-,root,root)
 %{_libdir}/libcodeblocks.so.*
 
 %files contrib
 %defattr(-,root,root)
+%{_bindir}/codesnippets
 %{plugindir}/libAutoVersioning.so
 %{plugindir}/libBrowseTracker.so
 %{plugindir}/libbyogames.so
@@ -348,7 +329,6 @@ This package contains the development libraries and headers needed to build wxSm
 %{plugindir}/libNassiShneiderman.so
 %endif
 %{plugindir}/libProfiler.so
-%{plugindir}/libProjectOptionsManipulator.so
 %{plugindir}/libRegExTestbed.so
 %{plugindir}/libSpellChecker.so
 %{plugindir}/libSymTab.so
@@ -390,7 +370,6 @@ This package contains the development libraries and headers needed to build wxSm
 %{pkgdatadir}/NassiShneiderman.zip
 %endif
 %{pkgdatadir}/Profiler.zip
-%{pkgdatadir}/ProjectOptionsManipulator.zip
 %{pkgdatadir}/RegExTestbed.zip
 %{pkgdatadir}/ReopenEditor.zip
 %{pkgdatadir}/SpellChecker.zip
@@ -408,9 +387,6 @@ This package contains the development libraries and headers needed to build wxSm
 %{pkgdatadir}/lib_finder/*
 %{pkgdatadir}/SpellChecker/*
 %{_mandir}/man1/*snippets*
-
-%files contrib-libs
-%defattr(-,root,root)
 %{_libdir}/libwxsmithlib.so.*
 %{pkglibdir}/wxContribItems/libwxchartctrl.so.*
 %{pkglibdir}/wxContribItems/libwxcustombutton.so.*

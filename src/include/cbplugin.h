@@ -37,7 +37,7 @@
 // this is the plugins SDK version number
 // it will change when the SDK interface breaks
 #define PLUGIN_SDK_VERSION_MAJOR   1
-#define PLUGIN_SDK_VERSION_MINOR   23
+#define PLUGIN_SDK_VERSION_MINOR   19
 #define PLUGIN_SDK_VERSION_RELEASE 0
 
 // class decls
@@ -629,6 +629,9 @@ class PLUGIN_EXPORT cbDebuggerPlugin: public cbPlugin
         void MarkAsStopped();
 
     private:
+        wxString GetConsoleTty(int ConsolePid);
+
+    private:
         void OnEditorOpened(CodeBlocksEvent& event);
         void OnProjectActivated(CodeBlocksEvent& event);
         void OnProjectClosed(CodeBlocksEvent& event);
@@ -724,211 +727,35 @@ class PLUGIN_EXPORT cbMimePlugin : public cbPlugin
         void RemoveToolBar(cb_unused wxToolBar* toolBar){}
 };
 
-class wxHtmlLinkEvent;
-
 /** @brief Base class for code-completion plugins
   *
-  * The main operations of a code-completion plugin are executed by CCManager
-  * at the appropriate times. Smaller CC plugins *should* not have need to
-  * register very many (if any) events/editor hooks.
+  * This interface is subject to change, so not much info here...
   */
 class PLUGIN_EXPORT cbCodeCompletionPlugin : public cbPlugin
 {
     public:
         cbCodeCompletionPlugin();
-
-        /** Level of functionality a CC plugin is able to provide. */
-        enum CCProviderStatus
-        {
-            ccpsInactive, //!< CC plugin provides no functionality.
-            ccpsActive,   //!< CC plugin provides specialized functionality.
-            ccpsUniversal //!< CC plugin provides generic functionality.
-        };
-
-        /** Structure representing a generic token, passed between CC plugins and CCManager. */
-        struct CCToken
-        {
-            /** @brief Convenience constructor.
-              *
-              * Represents a generic token, passed between CC plugins and CCManager.
-              *
-              * @param _id Internal identifier for a CC plugin to reference the token in its data structure.
-              * @param dispNm The string CCManager will use to display this token.
-              * @param categ The category corresponding to the index of the registered image (during autocomplete).
-              *              Negative values are reserved for CCManager.
-              */
-            CCToken(int _id, const wxString& dispNm, int categ = -1) :
-                id(_id), category(categ), weight(5), displayName(dispNm), name(dispNm) {}
-
-            /** @brief Construct a fully specified CCToken.
-              *
-              * Represents a generic token, passed between CC plugins and CCManager.
-              *
-              * @param _id Internal identifier for a CC plugin to reference the token in its data structure.
-              * @param dispNm The verbose string CCManager will use to display this token.
-              * @param nm Minimal name of the token that CCManager may choose to display in restricted circumstances.
-              * @param _weight Lower numbers are placed earlier in listing, 5 is default; try to keep 0-10.
-              * @param categ The category corresponding to the index of the registered image (during autocomplete).
-              *              Negative values are reserved for CCManager.
-              */
-            CCToken(int _id, const wxString& dispNm, const wxString& nm, int _weight, int categ = -1) :
-                id(_id), category(categ), weight(_weight), displayName(dispNm), name(nm) {}
-
-            int id;               //!< CCManager will pass this back unmodified. Use it as an internal identifier for the token.
-            int category;         //!< The category corresponding to the index of the registered image (during autocomplete).
-            int weight;           //!< Lower numbers are placed earlier in listing, 5 is default; try to keep 0-10.
-            wxString displayName; //!< Verbose string representing the token.
-            wxString name;        //!< Minimal name of the token.
-        };
-
-        /** Structure representing an individual calltip with an optional highlighted range */
-        struct CCCallTip
-        {
-            /** @brief Convenience constructor.
-              *
-              * Represents an individual calltip to be processed and displayed by CCManager.
-              *
-              * @param tp The content of the calltip.
-              */
-            CCCallTip(const wxString& tp) :
-                hlStart(-1), hlEnd(-1), tip(tp) {}
-
-            /** @brief Construct a calltip, specifying a highlighted range
-              *
-              * Represents an individual calltip, containing a highlighted range (generally the
-              * active parameter), to be processed and displayed by CCManager.
-              *
-              * @param tp The content of the calltip.
-              * @param highlightStart The start index of the desired highlighted range.
-              * @param highlightEndThe end index of the desired highlighted range.
-              */
-            CCCallTip(const wxString& tp, int highlightStart, int highlightEnd) :
-                hlStart(highlightStart), hlEnd(highlightEnd), tip(tp) {}
-
-            int hlStart;  //!< The start index of the desired highlighted range.
-            int hlEnd;    //!< The end index of the desired highlighted range.
-            wxString tip; //!< The content of the calltip.
-        };
-
-        /** @brief Does this plugin handle code completion for the editor <tt>ed</tt>?
+        virtual wxArrayString GetCallTips() = 0;
+        virtual int CodeComplete() = 0;
+        virtual void ShowCallTip() = 0;
+        /** @brief Does this plugin handle code completion for the editor cb?
           *
-          * The plugin should check the lexer, the <tt>HighlightLanguage</tt>, the file extension,
-          * or some combination of these. Do @em not call @c CCManager::GetProviderFor()
-          * from this function.
+          * A plugin should override this function to indicate whether it will
+          * provide completion and call tips for the editor. The plugin should
+          * then prepare to handle codecomplete and calltip menu messages if
+          * it returns true. To implement this function, plugins will usually
+          * check the mimetype of the file or the current lexer (highlight
+          * language).
           *
-          * @param ed The editor being checked.
-          * @return The level of functionality this plugin is able to supply.
-          */
-        virtual CCProviderStatus GetProviderStatusFor(cbEditor* ed) = 0;
-
-        /** @brief Supply content for the autocompletion list.
+          * Note: Currently the core CC plugin provides a default CodeCompletion
+          * implementation for any file type that is not provided for by any
+          * other CC plugins. The calltip and main menu options that can be handled
+          * by any CC plugin is also supplied by the core CC plugin.
           *
-          * CCManager takes care of calling this during most relevant situations. If the
-          * autocompletion mechanism is required at a time that CCManager does not initiate, call
-          * @code
-          * CodeBlocksEvent evt(cbEVT_COMPLETE_CODE);
-          * Manager::Get()->ProcessEvent(evt);
-          * @endcode
-          *
-          * @param isAuto Passed as @c true if autocompletion was launched by typing an 'interesting'
-          *               character such as '<tt>&gt;</tt>' (for '<tt>-&gt;</tt>'). It is the plugin's job
-          *               to filter out incorrect calls of this.
-          * @param ed The context of this codecompletion call.
-          * @param[in,out] tknStart The assumed beginning of the token to be autocompleted. Change this variable
-          *                         if the plugin calculates a different starting location.
-          * @param[in,out] tknEnd The current position/end of the known part of the token to be completed. The
-          *                       plugin is allowed to change this (but it is not recommended).
-          * @return Completable tokens, or empty vector to cancel autocompletion.
-          */
-        virtual std::vector<CCToken> GetAutocompList(bool isAuto, cbEditor* ed, int& tknStart, int& tknEnd) = 0;
-
-        /** @brief Supply html formatted documentation for the passed token.
-          *
-          * Refer to http://docs.wxwidgets.org/stable/overview_html.html#overview_html_supptags for
-          * the available formatting. When selecting colours, prefer use of the ones CCManager has
-          * registered with ColourManager, which are (TODO: register colours). Returning an empty
-          * string will cancel the documentation popup.
-          *
-          * @param token The token to document.
-          * @return Either an html document or an empty string (if no documentation available).
-          */
-        virtual wxString GetDocumentation(const CCToken& token) = 0;
-
-        /** @brief Supply content for the calltip at the specified location.
-          *
-          * The output parameter @c argsPos is required to be set to the same (but unique) position
-          * for each unique calltip. This position is the location corresponding to the beginning of
-          * the argument list:
-          * @code
-          * int endOfWord = stc->WordEndPosition(pos, true);
-          *                                     ^
-          * @endcode
-          * Each returned CCCallTip is allowed to have embedded '\\n' line breaks.
-          *
-          * @param pos The location in the editor that the calltip is requested for.
-          * @param style The scintilla style of the cbStyledTextCtrl at the given location. (TODO: This
-          *              is unusual, remove it?)
-          * @param ed The context of this calltip request.
-          * @param[out] argsPos The location in the editor of the beginning of the argument list. @em Required.
-          * @return Each entry in this vector is guaranteed either a new line or a separate page in the calltip.
-          *         CCManager will decide if lines should be further split (for formatting to fit the monitor).
-          */
-        virtual std::vector<CCCallTip> GetCallTips(int pos, int style, cbEditor* ed, int& argsPos) = 0;
-
-        /** @brief Supply the definition of the token at the specified location.
-          *
-          * The token(s) returned by this function are used to display tooltips.
-          *
-          * @param pos The location being queried.
-          * @param ed The context of the request.
-          * @param[out] allowCallTip Allow CCManager to consider displaying a calltip if the results from this
-          *                          function are unsuitable/empty. True by default.
-          * @return A list of the token(s) that match the specified location, an empty vector if none.
-          */
-        virtual std::vector<CCToken> GetTokenAt(int pos, cbEditor* ed, bool& allowCallTip) = 0;
-
-        /** @brief Callback to handle a click on a link in the documentation popup.
-         *
-         * Handle a link command by, for example, showing the definition of a member function, or opening
-         * an editor to the location of the declaration.
-         *
-         * @param event The generated event (it is the plugin's responsibility to Skip(), if desired).
-         * @param[out] dismissPopup If set to true, the popup will be hidden.
-         * @return If non-empty, the popup's content will be set to this html formatted string.
-         */
-        virtual wxString OnDocumentationLink(wxHtmlLinkEvent& event, bool& dismissPopup) = 0;
-
-        /** @brief Callback for inserting the selected autocomplete entry into the editor.
-          *
-          * The default implementation executes (wx)Scintilla's insert. Override and call
-          * @c ed->GetControl()->AutoCompCancel() for different @c wxEVT_SCI_AUTOCOMP_SELECTION behaviour.
-          *
-          * @param token The CCToken corresponding to the selected entry.
-          * @param ed The editor to operate in.
-          */
-        virtual void DoAutocomplete(const CCToken& token, cbEditor* ed);
-
-        /** @brief Callback for inserting the selected autocomplete entry into the editor.
-          *
-          * This function is only called if CCManager fails to retrieve the CCToken associated with the
-          * selection (which should never happen). The default implementation creates a CCToken and passes
-          * it to <tt>DoAutocomplete(const CCToken&, cbEditor*)</tt><br>
-          * Override for different behaviour.
-          *
-          * @param token A string corresponding to the selected entry.
-          * @param ed The editor to operate in.
-          */
-        virtual void DoAutocomplete(const wxString& token, cbEditor* ed);
-
-    protected:
-        /** @brief Has this plugin been selected to provide content for the editor.
-          *
-          * Convenience function; asks CCManager if this plugin is granted jurisdiction over the editor.
-          *
-          * @param ed The editor to check.
-          * @return Is provider for the editor.
-          */
-        bool IsProviderFor(cbEditor* ed);
+          * @param cb The editor for which code completion
+          * @return return true if the plugin handles completion for this editor,
+          * false otherwise*/
+        virtual bool IsProviderFor(cbEditor* cb) { (void) cb; return false; }  // purposely not marked 'cb_optional', override should use param
 };
 
 /** @brief Base class for wizard plugins

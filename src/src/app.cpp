@@ -212,8 +212,6 @@ const wxCmdLineEntryDesc cmdLineDesc[] =
       wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
     { wxCMD_LINE_OPTION, CMD_ENTRY(""),   CMD_ENTRY("prefix"),                CMD_ENTRY("the shared data dir prefix"),
       wxCMD_LINE_VAL_STRING, wxCMD_LINE_NEEDS_SEPARATOR },
-    { wxCMD_LINE_OPTION, CMD_ENTRY(""),   CMD_ENTRY("user-data-dir"),         CMD_ENTRY("set a custom location for user settings and plugins"),
-      wxCMD_LINE_VAL_STRING, wxCMD_LINE_NEEDS_SEPARATOR },
     { wxCMD_LINE_OPTION, CMD_ENTRY("p"),  CMD_ENTRY("personality"),           CMD_ENTRY("the personality to use: \"ask\" or <personality-name>"),
       wxCMD_LINE_VAL_STRING, wxCMD_LINE_NEEDS_SEPARATOR },
     { wxCMD_LINE_SWITCH, CMD_ENTRY(""),   CMD_ENTRY("no-log"),                CMD_ENTRY("turn off the application log"),
@@ -314,15 +312,6 @@ bool CodeBlocksApp::LoadConfig()
 {
     if (ParseCmdLine(nullptr) == -1) // only abort if '--help' was passed in the command line
         return false;
-
-    if (m_UserDataDir!=wxEmptyString)
-    {
-        // if --user-data-dir=path was specified we tell
-        //ConfigManager (and CfgMgrBldr) about it, which will propagate
-        //it through the app and plugins
-        if ( !ConfigManager::SetUserDataFolder(m_UserDataDir) )
-            return false;
-    }
 
     ConfigManager *cfg = Manager::Get()->GetConfigManager(_T("app"));
 
@@ -936,30 +925,28 @@ int CodeBlocksApp::BatchJob()
             compiler->CleanWorkspace(m_BatchTarget);
     }
 
-    // The batch build log might have been deleted in
+    // the batch build log might have been deleted in
     // CodeBlocksApp::OnBatchBuildDone().
-    // If it has not, it's still compiling.
-    if (m_pBatchBuildDialog)
-    {
-        // If operation is "--clean", there is no need to display the dialog
-        // as the operation is synchronous and it already has finished by the
-        // time the call to Clean() returned.
-        if (!m_Clean)
-            m_pBatchBuildDialog->ShowModal();
-
-        if ( m_pBatchBuildDialog->IsModal() )
-            m_pBatchBuildDialog->EndModal(wxID_OK);
-        else
-        {
-            m_pBatchBuildDialog->Destroy();
-            m_pBatchBuildDialog = nullptr;
-        }
-    }
+    // if it hasn't, it's still compiling
+    //
+    // also note that if operation is "--clean", there is no need
+    // to display the dialog as the operation is synchronous and it
+    // already has finished by the time the call to Clean() returned...
+    if (!m_Clean && m_pBatchBuildDialog)
+        m_pBatchBuildDialog->ShowModal();
 
     if (tbIcon)
     {
         tbIcon->RemoveIcon();
         delete tbIcon;
+    }
+
+    if (m_pBatchBuildDialog->IsModal())
+        m_pBatchBuildDialog->EndModal(wxID_OK);
+    else
+    {
+        m_pBatchBuildDialog->Destroy();
+        m_pBatchBuildDialog = nullptr;
     }
 
     return 0;
@@ -1111,7 +1098,6 @@ int CodeBlocksApp::ParseCmdLine(MainFrame* handlerFrame)
                 {
                     wxString val;
                     parser.Found(_T("prefix"), &m_Prefix);
-                    parser.Found(_T("user-data-dir"), &m_UserDataDir);
 #ifdef __WXMSW__
                     m_DDE = !parser.Found(_T("no-dde"));
                     m_Assocs = !parser.Found(_T("no-check-associations"));

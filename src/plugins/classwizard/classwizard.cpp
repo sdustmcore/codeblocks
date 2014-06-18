@@ -125,11 +125,7 @@ void ClassWizard::OnLaunch(cb_unused wxCommandEvent& event)
                 {
                     ProjectBuildTarget* buildTarget = prj->GetBuildTarget(targets[i]);  // Get the top level build Target
                     if (buildTarget)
-                    {
-                        wxString include_dir = dlg.GetIncludeDir();
-                        if (!include_dir.IsEmpty())
-                            buildTarget->AddIncludeDir(include_dir);
-                    }
+                        buildTarget->AddIncludeDir(dlg.GetIncludeDir());
                     else
                     {
                         wxString information;

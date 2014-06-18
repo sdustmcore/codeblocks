@@ -443,25 +443,24 @@ HighlightLanguage EditorColourSet::GetLanguageForFilename(const wxString& filena
     }
     // standard headers
     const wxString cppNames = wxT("|"
-            "algorithm|"  "atomic|"       "array|"              "bitset|"
-            "chrono|"     "complex|"      "condition_variable|" "deque|"
-            "exception|"  "fstream|"      "forward_list|"       "future|"
-            "functional|" "hash_map|"     "hash_set|"           "initializer_list|"
-            "iomanip|"    "ios|"          "iostream|"           "istream|"
-            "iterator|"   "limits|"       "list|"               "locale|"
-            "map|"        "memory|"       "mutex|"              "new|"
-            "numeric|"    "ostream|"      "queue|"              "random|"
-            "ratio|"      "regex|"        "set|"                "sstream|"
-            "stack|"      "stdexcept|"    "streambuf|"          "string|"
-            "strstream|"  "system_error|" "thread|"             "tuple|"
-            "typeinfo|"   "type_traits|"  "unordered_map|"      "unordered_set|"
-            "utility|"    "valarray|"     "vector|"
+            "algorithm|"        "array|"         "bitset|"        "chrono|"
+            "complex|"          "deque|"         "exception|"     "fstream|"
+            "forward_list|"     "functional|"    "hash_map|"      "hash_set|"
+            "initializer_list|" "iomanip|"       "ios|"           "iostream|"
+            "istream|"          "iterator|"      "limits|"        "list|"
+            "locale|"           "map|"           "memory|"        "new|"
+            "numeric|"          "ostream|"       "queue|"         "random|"
+            "ratio|"            "regex|"         "set|"           "sstream|"
+            "stack|"            "stdexcept|"     "streambuf|"     "string|"
+            "strstream|"        "system_error|"  "tuple|"         "typeinfo|"
+            "type_traits|"      "unordered_map|" "unordered_set|" "utility|"
+            "valarray|"         "vector|"
 
-            "cassert|"   "cctype|"  "cerrno|"  "cfenv|"    "cfloat|"
-            "cinttypes|" "ciso646|" "climits|" "clocale|"  "cmath|"
-            "csetjmp|"   "csignal|" "cstdarg|" "cstdbool|" "cstddef|"
-            "cstdint|"   "cstdio|"  "cstdlib|" "cstring|"  "ctgmath|"
-            "ctime|"     "cuchar|"  "cwchar|"  "cwctype|"            );
+            "cassert|" "cctype|"  "cerrno|"  "cfloat|"
+            "ciso646|" "climits|" "clocale|" "cmath|"
+            "csetjmp|" "csignal|" "cstdarg|" "cstdbool|"
+            "cstddef|" "cstdint|" "cstdio|"  "cstdlib|"
+            "cstring|" "ctime|"   "cwchar|"  "cwctype|"  );
     if (cppNames.Find(wxT("|") + lfname + wxT("|")) != wxNOT_FOUND)
         return GetHighlightLanguage(wxT("C/C++"));
     return HL_NONE;
@@ -625,12 +624,12 @@ void EditorColourSet::Save()
 
             bool saved = false;
 
-            if (opt->fore != opt->originalfore)
+            if (opt->fore != opt->originalfore && opt->fore != wxNullColour)
             {
                 cfg->Write(tmpKey + _T("/fore"), opt->fore);
                 saved = true;
             }
-            if (opt->back != opt->originalback)
+            if (opt->back != opt->originalback && opt->back != wxNullColour)
             {
                 cfg->Write(tmpKey + _T("/back"), opt->back);
                 saved = true;
@@ -871,23 +870,17 @@ wxString EditorColourSet::GetSampleCode(HighlightLanguage lang, int* breakLine, 
     if (errorLine)
         *errorLine = mset.m_ErrorLine;
 
-    wxString shortname;
-    if (mset.m_SampleCode.IsEmpty())
-        shortname = _T("lexer_") + lang + _T(".sample");
-    else
-        shortname = mset.m_SampleCode;
-
+    const wxString shortname = _T("lexer_") + lang + _T(".sample");
     // user path first
     wxString path = ConfigManager::GetFolder(sdDataUser) + _T("/lexers/");
-    if (wxFileExists(path + shortname))
-        return path + shortname;
-    else
+    wxFileName fullname( path + shortname );
+    if ( !fullname.FileExists(path + shortname) )
     {
         // global path next
         path = ConfigManager::GetFolder(sdDataGlobal) + _T("/lexers/");
-        if (wxFileExists(path + shortname))
-            return path + shortname;
     }
+    if ( !mset.m_SampleCode.IsEmpty() )
+        return path + mset.m_SampleCode;
     return wxEmptyString;
 }
 

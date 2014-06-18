@@ -21,50 +21,50 @@
 #include <cbthreadpool.h>
 #include <sdk_events.h>
 
-#define PARSER_IMG_NONE                        -2
-#define PARSER_IMG_CLASS_FOLDER                 0
-#define PARSER_IMG_CLASS                        1
-#define PARSER_IMG_CLASS_PRIVATE                2
-#define PARSER_IMG_CLASS_PROTECTED              3
-#define PARSER_IMG_CLASS_PUBLIC                 4
-#define PARSER_IMG_CTOR_PRIVATE                 5
-#define PARSER_IMG_CTOR_PROTECTED               6
-#define PARSER_IMG_CTOR_PUBLIC                  7
-#define PARSER_IMG_DTOR_PRIVATE                 8
-#define PARSER_IMG_DTOR_PROTECTED               9
-#define PARSER_IMG_DTOR_PUBLIC                  10
-#define PARSER_IMG_FUNC_PRIVATE                 11
-#define PARSER_IMG_FUNC_PROTECTED               12
-#define PARSER_IMG_FUNC_PUBLIC                  13
-#define PARSER_IMG_VAR_PRIVATE                  14
-#define PARSER_IMG_VAR_PROTECTED                15
-#define PARSER_IMG_VAR_PUBLIC                   16
-#define PARSER_IMG_MACRO_DEF                    17
-#define PARSER_IMG_ENUM                         18
-#define PARSER_IMG_ENUM_PRIVATE                 19
-#define PARSER_IMG_ENUM_PROTECTED               20
-#define PARSER_IMG_ENUM_PUBLIC                  21
-#define PARSER_IMG_ENUMERATOR                   22
-#define PARSER_IMG_NAMESPACE                    23
-#define PARSER_IMG_TYPEDEF                      24
-#define PARSER_IMG_TYPEDEF_PRIVATE              25
-#define PARSER_IMG_TYPEDEF_PROTECTED            26
-#define PARSER_IMG_TYPEDEF_PUBLIC               27
-#define PARSER_IMG_SYMBOLS_FOLDER               28
-#define PARSER_IMG_VARS_FOLDER                  29
-#define PARSER_IMG_FUNCS_FOLDER                 30
-#define PARSER_IMG_ENUMS_FOLDER                 31
-#define PARSER_IMG_MACRO_DEF_FOLDER             32
-#define PARSER_IMG_OTHERS_FOLDER                33
-#define PARSER_IMG_TYPEDEF_FOLDER               34
-#define PARSER_IMG_MACRO_USE                    35
-#define PARSER_IMG_MACRO_USE_PRIVATE            36
-#define PARSER_IMG_MACRO_USE_PROTECTED          37
-#define PARSER_IMG_MACRO_USE_PUBLIC             38
-#define PARSER_IMG_MACRO_USE_FOLDER             39
+#define PARSER_IMG_NONE              -2
+#define PARSER_IMG_CLASS_FOLDER       0
+#define PARSER_IMG_CLASS              1
+#define PARSER_IMG_CLASS_PRIVATE      2
+#define PARSER_IMG_CLASS_PROTECTED    3
+#define PARSER_IMG_CLASS_PUBLIC       4
+#define PARSER_IMG_CTOR_PRIVATE       5
+#define PARSER_IMG_CTOR_PROTECTED     6
+#define PARSER_IMG_CTOR_PUBLIC        7
+#define PARSER_IMG_DTOR_PRIVATE       8
+#define PARSER_IMG_DTOR_PROTECTED     9
+#define PARSER_IMG_DTOR_PUBLIC        10
+#define PARSER_IMG_FUNC_PRIVATE       11
+#define PARSER_IMG_FUNC_PROTECTED     12
+#define PARSER_IMG_FUNC_PUBLIC        13
+#define PARSER_IMG_VAR_PRIVATE        14
+#define PARSER_IMG_VAR_PROTECTED      15
+#define PARSER_IMG_VAR_PUBLIC         16
+#define PARSER_IMG_PREPROCESSOR       17
+#define PARSER_IMG_ENUM               18
+#define PARSER_IMG_ENUM_PRIVATE       19
+#define PARSER_IMG_ENUM_PROTECTED     20
+#define PARSER_IMG_ENUM_PUBLIC        21
+#define PARSER_IMG_ENUMERATOR         22
+#define PARSER_IMG_NAMESPACE          23
+#define PARSER_IMG_TYPEDEF            24
+#define PARSER_IMG_TYPEDEF_PRIVATE    25
+#define PARSER_IMG_TYPEDEF_PROTECTED  26
+#define PARSER_IMG_TYPEDEF_PUBLIC     27
+#define PARSER_IMG_SYMBOLS_FOLDER     28
+#define PARSER_IMG_VARS_FOLDER        29
+#define PARSER_IMG_FUNCS_FOLDER       30
+#define PARSER_IMG_ENUMS_FOLDER       31
+#define PARSER_IMG_PREPROC_FOLDER     32
+#define PARSER_IMG_OTHERS_FOLDER      33
+#define PARSER_IMG_TYPEDEF_FOLDER     34
+#define PARSER_IMG_MACRO              35
+#define PARSER_IMG_MACRO_PRIVATE      36
+#define PARSER_IMG_MACRO_PROTECTED    37
+#define PARSER_IMG_MACRO_PUBLIC       38
+#define PARSER_IMG_MACRO_FOLDER       39
 
 #define PARSER_IMG_MIN PARSER_IMG_CLASS_FOLDER
-#define PARSER_IMG_MAX PARSER_IMG_MACRO_USE_FOLDER
+#define PARSER_IMG_MAX PARSER_IMG_MACRO_FOLDER
 
 typedef std::set<wxString>  StringSet;
 typedef std::list<wxString> StringList;
@@ -145,10 +145,6 @@ namespace ParserCommon
     EFileType FileType(const wxString& filename, bool force_refresh = false);
 }// namespace ParserCommon
 
-
-// both the CodeCompletion plugin and the cc_test project share this class definition
-// but they use different cpp files, the former use parser.cpp and the later use parserdummy.cpp
-// parserdummy.cpp just implement a simplified ParserBase and Parser class used for testing only.
 class ParserBase : public wxEvtHandler
 {
     friend class ParserThread;
@@ -157,26 +153,27 @@ public:
     ParserBase();
     virtual ~ParserBase();
 
-    virtual void AddBatchParse(cb_unused const StringList& filenames)                                   { ; }
-    virtual void AddParse(cb_unused const wxString& filename)                                           { ; }
-    virtual void AddPredefinedMacros(cb_unused const wxString& defs)                                    { ; }
-    virtual bool UpdateParsingProject(cb_unused cbProject* project)                                     { return false; }
+    virtual void AddPriorityHeaders(cb_unused const wxString& filename, cb_unused bool systemHeaderFile) { ; }
+    virtual void AddBatchParse(cb_unused const StringList& filenames)                                    { ; }
+    virtual void AddParse(cb_unused const wxString& filename)                                            { ; }
+    virtual void AddPredefinedMacros(cb_unused const wxString& defs)                                     { ; }
+    virtual bool UpdateParsingProject(cb_unused cbProject* project)                                      { return false; }
 
     virtual bool ParseBuffer(cb_unused const wxString& buffer, cb_unused bool isLocal, cb_unused bool bufferSkipBlocks = false,
                              cb_unused bool isTemp = false, cb_unused const wxString& filename = wxEmptyString,
-                             cb_unused int parentIdx = -1, cb_unused int initLine = 0)                      { return false; }
-    virtual bool ParseBufferForFunctions(cb_unused const wxString& buffer)                                  { return false; }
-    virtual bool ParseBufferForNamespaces(cb_unused const wxString& buffer, cb_unused NameSpaceVec& result) { return false; }
+                             cb_unused int parentIdx = -1, cb_unused int initLine = 0)                          { return false; }
+    virtual bool ParseBufferForFunctions(cb_unused const wxString& buffer)                                      { return false; }
+    virtual bool ParseBufferForNamespaces(cb_unused const wxString& buffer, cb_unused NameSpaceVec& result)     { return false; }
     virtual bool ParseBufferForUsingNamespace(cb_unused const wxString& buffer, cb_unused wxArrayString& result,
-                                              cb_unused bool bufferSkipBlocks = true)                       { return false; }
+                                              cb_unused bool bufferSkipBlocks = true)                           { return false; }
 
-    virtual bool Reparse(cb_unused const wxString& filename, cb_unused bool isLocal = true);     // allow other implementations of derived (dummy) classes
-    virtual bool AddFile(cb_unused const wxString& filename, cb_unused cbProject* project, cb_unused bool isLocal = true) { return false; }
-    virtual bool RemoveFile(cb_unused const wxString& filename)                                                           { return false; }
-    virtual bool IsFileParsed(cb_unused const wxString& filename)                                                         { return false; }
+    virtual bool Reparse(cb_unused const wxString& filename, cb_unused bool isLocal = true)                              { return false; }
+    virtual bool AddFile(cb_unused const wxString& filename, cb_unused cbProject* project, cb_unused bool isLocal = true){ return false; }
+    virtual bool RemoveFile(cb_unused const wxString& filename)                                                          { return false; }
+    virtual bool IsFileParsed(cb_unused const wxString& filename)                                                        { return false; }
 
-    virtual bool     Done()          { return true; }
-    virtual wxString NotDoneReason() { return wxEmptyString; }
+    virtual bool     Done()          { return true;            }
+    virtual wxString NotDoneReason() { return wxEmptyString;   }
 
     virtual TokenTree* GetTokenTree(); // allow other implementations of derived (dummy) classes
     TokenTree* GetTempTokenTree()    { return m_TempTokenTree; }
@@ -189,12 +186,10 @@ public:
      * true, it will return the first found header file, otherwise, all the Parser's include path database
      * will be searched.
      */
-    wxArrayString   FindFileInIncludeDirs(const wxString& file, bool firstonly = false);
-    /** read Parser options from configure file */
-    void            ReadOptions();
-    /** write Parse options to configure file */
-    void            WriteOptions();
+    wxArrayString        FindFileInIncludeDirs(const wxString& file, bool firstonly = false);
 
+    void            ReadOptions();
+    void            WriteOptions();
     ParserOptions&  Options()             { return m_Options;        }
     BrowserOptions& ClassBrowserOptions() { return m_BrowserOptions; }
 
@@ -216,14 +211,10 @@ protected:
       */
     TokenTree*           m_TempTokenTree;
 
-    /** options for how the parser try to parse files */
     ParserOptions        m_Options;
-
-    /** options for how the symbol browser was shown */
     BrowserOptions       m_BrowserOptions;
 
 private:
-    /** wxString -> wxString map*/
     SearchTree<wxString> m_GlobalIncludes;
 
     /** the include directories can be either three kinds below:
@@ -238,8 +229,7 @@ private:
   *
   * Parser class contains the TokenTree which is a trie structure to record the token information.
   * For details about trie, see http://en.wikipedia.org/wiki/Trie
-  * The parser class manages ParserThreads in a ThreadPool. A ParserThread object is associated with a single
-  * source file.
+  * The parser class controls ParserThreads in a pool, which holds ParserThread objects for each source file.
   * Batch parse mode means we have a lot of files to be parsed, so a lot of ParserThreads were generated and
   * added to the ThreadPool, and finally, the ParserThread was executed by ThreadPool.
   */
@@ -256,6 +246,12 @@ public:
     /** destructor */
     virtual ~Parser();
 
+    /** Add the priority header files, these files will be parsed with the sequence as they added.
+     * @param filename input priority header file name
+     * @param systemHeaderFile true if it is a system header file
+     */
+    virtual void AddPriorityHeaders(const wxString& filename, bool systemHeaderFile);
+
     /** Add files to batch parse mode, internally. The files will be parsed sequentially.
      * Note that when some "#include" files were added to the batch parse,
      * their parsing sequence may be random.
@@ -268,61 +264,26 @@ public:
      */
     virtual void AddParse(const wxString& filename);
 
-    /** the predefined macro definition string was collected from the GCC command line, this function
-     *  add the string to an internal m_PredefinedMacros, and switch the ParserState
-     */
     virtual void AddPredefinedMacros(const wxString& defs);
 
-    /** set the associated C::B project pointer. (only used by one parser for whole workspace)
-     *  @return true if it can do the switch, other wise, return false, and print some debug logs.
-     */
+    /** set the associated C::B project pointer. (only used by one parser for whole workspace) */
     virtual bool UpdateParsingProject(cbProject* project);
 
-    /** Must add a locker before call all named ParseBufferXXX functions, ParseBuffer function will
-     * directly run the parsing in the same thread as the caller. So, take care if the time is limited.
-     * this function usually used to parse the function body to fetch the local variable information.
+    /** Must add a locker before call all named ParseBufferXXX functions
      */
     virtual bool ParseBuffer(const wxString& buffer, bool isLocal, bool bufferSkipBlocks = false,
                              bool isTemp = false, const wxString& filename = wxEmptyString,
                              int parentIdx = -1, int initLine = 0);
-
-    /** parser the current editor control, this function is used to list all the functions in the
-     * current code editor
-     */
     virtual bool ParseBufferForFunctions(const wxString& buffer);
-
-    /** parse the buffer for collecting exposed namespace scopes*/
     virtual bool ParseBufferForNamespaces(const wxString& buffer, NameSpaceVec& result);
-
-    /** parse the buffer for collecting using namespace directive*/
     virtual bool ParseBufferForUsingNamespace(const wxString& buffer, wxArrayString& result, bool bufferSkipBlocks = true);
 
-    /** mark this file to be re-parsed in the TokenTree, tick the reparse timer, note it looks like
-     * the isLocal parameter is not used in Parser::Reparse function.
-     * A better function name could be: MarkFileNeedToBeReParsed()
-     */
     virtual bool Reparse(const wxString& filename, bool isLocal = true);
-
-    /** this usually happens when user adds some files to an existing project, it just use AddParse()
-     * function internally to add the file. and switch the ParserState to ParserCommon::ptAddFileToParser.
-     */
     virtual bool AddFile(const wxString& filename, cbProject* project, bool isLocal = true);
-
-    /** this usually happens when the user removes a file from the existing project, it will remove
-     * all the tokens belong to the file.
-     */
     virtual bool RemoveFile(const wxString& filename);
-
-    /** check to see a file is parsed already, it first check the TokenTree to see whether it has
-     * the specified file, but if a file is already queued (put in m_BatchParseFiles), we regard it
-     * as already parsed.
-     */
     virtual bool IsFileParsed(const wxString& filename);
 
-    /** check to see whether Parser is in Idle mode, there is no work need to be done in the Parser*/
     virtual bool     Done();
-
-    /** if the Parser is not in Idle mode, show which need to be done */
     virtual wxString NotDoneReason();
 
 protected:
@@ -339,16 +300,8 @@ protected:
     /** Not used, because the ThreadPool only support running ONE ParserThread concurrently */
     void SetMaxThreads(unsigned int max) { m_Pool.SetConcurrentThreads(max); }
 
-    /** parse the file, either immediately or delayed.
-     * @param locked give the status of the Tokentree, false means the tree is not locked
-     * @param loader is the object to load the file to internally buffer (lower down to Tokenizer)
-     */
     bool Parse(const wxString& filename, bool isLocal = true, bool locked = false, LoaderBase* loader = NULL);
-
-    /** delete those files from the TokenTree, and add them again thought AddParse() function */
     void ReparseModifiedFiles();
-
-    /** remove all the queued tasks in m_PoolTask and cancel all the tasks in m_Pool*/
     void TerminateAllThreads();
 
     /** When a ThreadPool batch parse stage is done, it will issue a cbEVT_THREADTASK_ALLDONE message.
@@ -359,11 +312,6 @@ protected:
      */
     void OnAllThreadsDone(CodeBlocksEvent& event);
 
-    /** some files in the Tokentree is marked as need to be reparsed, this can be done by a call
-     * of Reparse() before. So, in this timer event handler, we need to remove all the tokens of
-     * files in the Tree, and then re-parse them again. This is done by AddParse() again. the Parser
-     * status now switch to ParserCommon::ptReparseFile.
-     */
     void OnReparseTimer(wxTimerEvent& event);
 
     /** A timer is used to optimized the event handling for parsing, e.g. several files/projects were added
@@ -378,17 +326,12 @@ protected:
     void ProcessParserEvent(ParserCommon::ParserState state, int id, const wxString& info = wxEmptyString);
 
 private:
-    /** the only usage of this function is in the Parserthread class, when handling include directives
-     * the parserthread use some call like m_Parent->ParseFile() to call this function, but this function
-     * just call Parser::Parse() function, which either run the syntax analysis immediately or create
-     * a parsing task in the Pool.
-     */
     virtual bool ParseFile(const wxString& filename, bool isGlobal, bool locked = false);
     void ConnectEvents();
     void DisconnectEvents();
     /** when initialized, this variable will be an instance of a NativeParser */
     wxEvtHandler*             m_Parent;
-    /** referring to the C::B cbp project currently parsing in one parser per workspace mode*/
+    /** referring to the cbp project currently parsing */
     cbProject*                m_Project;
 
 protected:
@@ -409,21 +352,22 @@ protected:
      */
     cbThreadPool              m_Pool;
 
-    /** true, if the parser is still busy with parsing, false if the parsing stage has finished
-     * this value is set in parserthreadedtask after putting all the batchFiles to pool(task)
-     * it was reset after the last stage (mark tokens as local)
-     */
+    /** true, if the parser is still busy with parsing, false if the parsing stage has finished */
     bool                      m_IsParsing;
 
+    /** Determine whether the parser is doing Priority header parsing. If yes, the added files (usually
+     * the priority files) will be parsed accordingly.
+     * Otherwise, added file will be parsed by thread pool (batch parse mode), thus the sequence
+     * of the parsed files is not reserved. The thread pool may run those threads randomly.
+     */
+    bool                      m_IsPriority;
 
     /** Indicates some files in the current project need to be re-parsed, this is commonly caused
       * that the "real-time parsing option" is enabled, and user is editing source file.
       */
     bool                      m_NeedsReparse;
 
-    /** batch Parse mode flag. It was set after consuming m_PredefinedMacros, it was reset after the
-     * final stage (mark token as local).
-     */
+    /** batch Parse mode flag. Normal files (not in the parse "Priority" files stage) will set this flag. */
     bool                      m_IsFirstBatch;
 
 private:
@@ -434,15 +378,16 @@ private:
     wxStopWatch               m_StopWatch;
     bool                      m_StopWatchRunning;
     long                      m_LastStopWatchTime;
-    /** Parser::OnAllThreadsDone will be called when m_Pool finished its job, but when we run a
-     * batch parsing, we may receive several such event from the m_Pool, because
-     * 1, when ParserThreadedTask finished
-     * 2, when batchFiles get finished
-     * 3, parse system header file again
-     * 4, mark C::B project files's token as local
-     */
     bool                      m_IgnoreThreadEvents;
 
+    /** the files(mostly the header files) need to be parsed before any other files, we use this kind
+     * of files to get more correct macro definition.
+     */
+    StringList                m_PriorityHeaders;       //!< All priority headers
+
+    // These priority header files are saved when first parsed, and the last stage of batch parsing,
+    // they will be reparsed again.
+    StringList                m_SystemPriorityHeaders; //!< Only system priority headers, for re-parse
     StringList                m_BatchParseFiles;       //!< All other batch parse files, like the normal headers/sources
     wxString                  m_PredefinedMacros;      //!< Pre-defined macros, its a buffer queried from the compiler command line
     /** used to measure batch parse time*/

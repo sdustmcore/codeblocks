@@ -6,8 +6,13 @@
 #ifndef INFOPANEL_H
 #define INFOPANEL_H
 
+#include <wx/wxprec.h>
 
-//(*HeadersPCH(InfoPanel)
+#ifdef __BORLANDC__
+    #pragma hdrstop
+#endif
+
+//(*Headers(InfoPanel)
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/checkbox.h>

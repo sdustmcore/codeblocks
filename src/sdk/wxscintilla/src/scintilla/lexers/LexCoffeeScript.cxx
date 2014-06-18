@@ -66,8 +66,9 @@ static bool followsReturnKeyword(StyleContext &sc, Accessor &styler) {
 	int pos = (int) sc.currentPos;
 	int currentLine = styler.GetLine(pos);
 	int lineStartPos = styler.LineStart(currentLine);
+	char ch;
 	while (--pos > lineStartPos) {
-		char ch = styler.SafeGetCharAt(pos);
+		ch = styler.SafeGetCharAt(pos);
 		if (ch != ' ' && ch != '\t') {
 			break;
 		}
@@ -158,7 +159,7 @@ static void ColouriseCoffeeScriptDoc(unsigned int startPos, int length, int init
 	for (; sc.More(); sc.Forward()) {
 
 		if (sc.atLineStart) {
-			// Reset states to beginning of colourise so no surprises
+			// Reset states to begining of colourise so no surprises
 			// if different sets of lines lexed.
 			visibleChars = 0;
 			lastWordWasUUID = false;
@@ -184,7 +185,7 @@ static void ColouriseCoffeeScriptDoc(unsigned int startPos, int length, int init
 				break;
 			case SCE_COFFEESCRIPT_NUMBER:
 				// We accept almost anything because of hex. and number suffixes
-				if (!setWord.Contains(sc.ch) || sc.Match('.', '.')) {
+				if (!setWord.Contains(sc.ch)) {
 					sc.SetState(SCE_COFFEESCRIPT_DEFAULT);
 				}
 				break;
@@ -200,13 +201,6 @@ static void ColouriseCoffeeScriptDoc(unsigned int startPos, int length, int init
 					} else if (keywords4.InList(s)) {
 						sc.ChangeState(SCE_COFFEESCRIPT_GLOBALCLASS);
 					}
-					sc.SetState(SCE_COFFEESCRIPT_DEFAULT);
-				}
-				break;
-			case SCE_COFFEESCRIPT_WORD:
-			case SCE_COFFEESCRIPT_WORD2:
-			case SCE_COFFEESCRIPT_GLOBALCLASS:
-				if (!setWord.Contains(sc.ch)) {
 					sc.SetState(SCE_COFFEESCRIPT_DEFAULT);
 				}
 				break;
@@ -403,7 +397,7 @@ static void ColouriseCoffeeScriptDoc(unsigned int startPos, int length, int init
 					sc.SetState(SCE_COFFEESCRIPT_COMMENTBLOCK);
 					sc.Forward();
 					sc.Forward();
-
+					
 				} else {
 					sc.SetState(SCE_COFFEESCRIPT_COMMENTLINE);
 				}

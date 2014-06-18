@@ -30,11 +30,12 @@ class XPM {
 	ColourDesired ColourFromCode(int ch) const;
 	void FillRun(Surface *surface, int code, int startX, int y, int x);
 public:
-	explicit XPM(const char *textForm);
-	explicit XPM(const char *const *linesForm);
+	XPM(const char *textForm);
+	XPM(const char *const *linesForm);
 	~XPM();
 	void Init(const char *textForm);
 	void Init(const char *const *linesForm);
+	void Clear();
 	/// Decompose image into runs and use FillRectangle for each run
 	void Draw(Surface *surface, PRectangle &rc);
 	int GetHeight() const { return height; }
@@ -57,7 +58,7 @@ class RGBAImage {
 	std::vector<unsigned char> pixelBytes;
 public:
 	RGBAImage(int width_, int height_, float scale_, const unsigned char *pixels_);
-	explicit RGBAImage(const XPM &xpm);
+	RGBAImage(const XPM &xpm);
 	virtual ~RGBAImage();
 	int GetHeight() const { return height; }
 	int GetWidth() const { return width; }

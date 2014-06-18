@@ -180,7 +180,6 @@ int idMenuTargetCompilerOptions                    = wxNewId();
 int idMenuTargetCompilerOptionsSub                 = wxNewId();
 int idMenuCompileFile                              = XRCID("idCompilerMenuCompileFile");
 int idMenuCompileFileFromProjectManager            = wxNewId();
-int idMenuCleanFileFromProjectManager              = wxNewId();
 int idMenuRebuild                                  = XRCID("idCompilerMenuRebuild");
 int idMenuRebuildTarget                            = wxNewId();
 int idMenuRebuildFromProjectManager                = wxNewId();
@@ -228,7 +227,6 @@ BEGIN_EVENT_TABLE(CompilerGCC, cbCompilerPlugin)
     EVT_UPDATE_UI(idMenuTargetCompilerOptionsSub,      CompilerGCC::OnUpdateUI)
     EVT_UPDATE_UI(idMenuCompileFile,                   CompilerGCC::OnUpdateUI)
     EVT_UPDATE_UI(idMenuCompileFileFromProjectManager, CompilerGCC::OnUpdateUI)
-    EVT_UPDATE_UI(idMenuCleanFileFromProjectManager,   CompilerGCC::OnUpdateUI)
     EVT_UPDATE_UI(idMenuRebuild,                       CompilerGCC::OnUpdateUI)
     EVT_UPDATE_UI(idMenuRebuildTarget,                 CompilerGCC::OnUpdateUI)
     EVT_UPDATE_UI(idMenuRebuildFromProjectManager,     CompilerGCC::OnUpdateUI)
@@ -257,7 +255,6 @@ BEGIN_EVENT_TABLE(CompilerGCC, cbCompilerPlugin)
     EVT_MENU(idMenuCompileFromProjectManager,       CompilerGCC::Dispatcher)
     EVT_MENU(idMenuCompileFile,                     CompilerGCC::Dispatcher)
     EVT_MENU(idMenuCompileFileFromProjectManager,   CompilerGCC::Dispatcher)
-    EVT_MENU(idMenuCleanFileFromProjectManager,     CompilerGCC::Dispatcher)
     EVT_MENU(idMenuRebuild,                         CompilerGCC::Dispatcher)
     EVT_MENU(idMenuRebuildFromProjectManager,       CompilerGCC::Dispatcher)
     EVT_MENU(idMenuBuildWorkspace,                  CompilerGCC::Dispatcher)
@@ -600,12 +597,8 @@ void CompilerGCC::BuildModuleMenu(const ModuleType type, wxMenu* menu, const Fil
             // popup menu on a compilable file
             menu->AppendSeparator();
             menu->Append(idMenuCompileFileFromProjectManager, _("Build file"));
-            menu->Append(idMenuCleanFileFromProjectManager,   _("Clean file"));
             if (IsRunning())
-            {
                 menu->Enable(idMenuCompileFileFromProjectManager, false);
-                menu->Enable(idMenuCleanFileFromProjectManager,   false);
-            }
         }
     }
 }
@@ -643,8 +636,6 @@ void CompilerGCC::Dispatcher(wxCommandEvent& event)
         OnCompileFile(event);
     else if (eventId == idMenuCompileFileFromProjectManager)
         OnCompileFile(event);
-    else if (eventId == idMenuCleanFileFromProjectManager)
-        OnCleanFile(event);
     else if (eventId == idMenuRebuild)
         OnRebuild(event);
     else if (eventId == idMenuRebuildFromProjectManager)
@@ -1073,14 +1064,16 @@ FileTreeData* CompilerGCC::DoSwitchProjectTemporarily()
     ProjectManager* manager = Manager::Get()->GetProjectManager();
     wxTreeCtrl* tree = manager->GetUI().GetTree();
     wxTreeItemId sel = manager->GetUI().GetTreeSelection();
-    FileTreeData* ftd = sel.IsOk() ? (FileTreeData*)tree->GetItemData(sel) : nullptr;
+    FileTreeData* ftd = sel.IsOk() ? (FileTreeData*)tree->GetItemData(sel) : 0;
     if (!ftd)
-        return nullptr;
-    // We're not rebuilding the tree, so the ftd pointer is still valid after the call.
+        return 0L;
+    // copy ftd to a new instance, because after the SetProject() call
+    // that follows, ftd will no longer be valid...
+    FileTreeData* newFtd = new FileTreeData(*ftd);
     Manager::Get()->GetProjectManager()->SetProject(ftd->GetProject(), false);
     AskForActiveProject();
 
-    return ftd;
+    return newFtd;
 }
 
 void CompilerGCC::AddToCommandQueue(const wxArrayString& commands)
@@ -1662,9 +1655,6 @@ void CompilerGCC::PrintBanner(BuildAction action, cbProject* prj, ProjectBuildTa
     case baRun:
         Action = _("Run");
         break;
-    case baBuildFile:
-        Action = _("Build file");
-        break;
     default:
     case baBuild:
         Action = _("Build");
@@ -2030,20 +2020,15 @@ int CompilerGCC::Clean(const wxString& target)
 
 bool CompilerGCC::DoCleanWithMake(const wxString& cmd, bool showOutput)
 {
-    LogManager *logManager = showOutput ? Manager::Get()->GetLogManager() : nullptr;
     wxArrayString output, errors;
     wxSetWorkingDirectory(m_pBuildingProject->GetExecutionDir());
-
-    if (logManager)
-        logManager->Log(F(_("Executing clean command: %s"), cmd.wx_str()), m_PageIndex);
-
     long result = wxExecute(cmd, output, errors, wxEXEC_SYNC);
-    if (logManager)
+    if (showOutput)
     {
         for(size_t i = 0; i < output.GetCount(); i++)
-            logManager->Log(F(_("%s"), output[i].wx_str()), m_PageIndex);
+            Manager::Get()->GetLogManager()->Log(F(_("%s"), output[i].wx_str()), m_PageIndex);
         for(size_t i = 0; i < errors.GetCount(); i++)
-            logManager->Log(F(_("%s"), errors[i].wx_str()), m_PageIndex);
+            Manager::Get()->GetLogManager()->Log(F(_("%s"), errors[i].wx_str()), m_PageIndex);
     }
     return (result == 0);
 }
@@ -2361,15 +2346,9 @@ void CompilerGCC::BuildStateManagement()
             {
                 wxArrayString output, error;
                 wxSetWorkingDirectory(m_pBuildingProject->GetExecutionDir());
-
-                const wxString &askCmd = GetMakeCommandFor(mcAskRebuildNeeded, m_pBuildingProject, bt);
-
-                Compiler* tgtCompiler = CompilerFactory::GetCompiler(bt->GetCompilerID());
-                if (tgtCompiler && tgtCompiler->GetSwitches().logging == clogFull)
-                    cmds.Add(wxString(COMPILER_SIMPLE_LOG) + _("Checking if target is up-to-date: ") + askCmd);
-
-                if (wxExecute(askCmd, output, error, wxEXEC_SYNC | wxEXEC_NODISABLE))
+                if (wxExecute(GetMakeCommandFor(mcAskRebuildNeeded, m_pBuildingProject, bt), output, error, wxEXEC_SYNC | wxEXEC_NODISABLE))
                 {
+                    Compiler* tgtCompiler = CompilerFactory::GetCompiler(bt->GetCompilerID());
                     if (tgtCompiler)
                     {
                         switch (tgtCompiler->GetSwitches().logging)
@@ -2855,55 +2834,60 @@ bool CompilerGCC::IsRunning() const
 ProjectBuildTarget* CompilerGCC::GetBuildTargetForFile(ProjectFile* pf)
 {
     if (!pf)
-        return nullptr;
+        return 0;
 
     if (!pf->buildTargets.GetCount())
     {
         cbMessageBox(_("That file isn't assigned to any target."),
                     _("Information"), wxICON_INFORMATION);
-        return nullptr;
+        return 0;
     }
-    // If a virtual target is selected, ask for build target.
+    else if (pf->buildTargets.GetCount() == 1)
+        return m_pProject->GetBuildTarget(pf->buildTargets[0]);
+    // belongs to two or more build targets
+    ProjectBuildTarget* bt = 0;
+    // if a virtual target is selected, ask for build target
     if (m_RealTargetIndex == -1)
     {
         int idx = DoGUIAskForTarget();
         if (idx == -1)
-            return nullptr;
-        return m_pProject->GetBuildTarget(idx);
+            return 0;
+        bt = m_pProject->GetBuildTarget(idx);
     }
+    else // use the currently selected build target
+        bt = m_pProject->GetBuildTarget(m_RealTargetIndex); // pick the selected target
 
-    // Use currently selected non-virtual target.
-    // If the file is not added to this target return nullptr.
-    const wxString &targetName = m_Targets[m_TargetIndex];
-    if (std::find(pf->buildTargets.begin(), pf->buildTargets.end(), targetName) == pf->buildTargets.end())
-        return nullptr;
-    return m_pProject->GetBuildTarget(targetName);
+    return bt;
+}
+
+ProjectBuildTarget* CompilerGCC::GetBuildTargetForFile(const wxString& file)
+{
+    ProjectFile* pf = m_pProject ? m_pProject->GetFileByFilename(file, true, false) : 0;
+    return GetBuildTargetForFile(pf);
 }
 
 int CompilerGCC::CompileFile(const wxString& file)
 {
-    CheckProject();
-    DoClearErrors();
-    DoPrepareQueue(false);
+    ProjectBuildTarget* target = NULL;
+    if ( CheckProject() )
+        target = m_pProject->GetBuildTarget(m_pProject->GetActiveBuildTarget());
+
+    DoPrepareQueue(true);
+    if ( !CompilerValid(target) )
+        return -1;
 
     ProjectFile* pf = m_pProject ? m_pProject->GetFileByFilename(file, true, false) : 0;
     ProjectBuildTarget* bt = GetBuildTargetForFile(pf);
 
-    PrintBanner(baBuildFile, m_pProject, bt);
-
-    if ( !CompilerValid(bt) )
-        return -1;
     if (!pf) // compile single file not belonging to a project
         return CompileFileWithoutProject(file);
-    if (!bt)
-    {
-        const wxString err(_("error: Cannot find target for file"));
-        LogMessage(pf->relativeToCommonTopLevelPath + _(": ") + err, cltError);
-        LogWarningOrError(cltError, m_pProject, pf->relativeToCommonTopLevelPath, wxEmptyString, err);
-        return -2;
-    }
+
     if (m_pProject)
         wxSetWorkingDirectory(m_pProject->GetBasePath());
+
+    if (!bt)
+        return -2;
+
     return CompileFileDefault(m_pProject, pf, bt); // compile file using default build system
 }
 
@@ -2929,14 +2913,6 @@ int CompilerGCC::CompileFileWithoutProject(const wxString& file)
 int CompilerGCC::CompileFileDefault(cbProject* project, ProjectFile* pf, ProjectBuildTarget* bt)
 {
     Compiler* compiler = CompilerFactory::GetCompiler(bt->GetCompilerID());
-    if (!compiler)
-    {
-        const wxString &err = wxString::Format(_("error: Cannot build file for target '%s'. Compiler '%s' cannot be found!"),
-                                               bt->GetTitle().wx_str(), bt->GetCompilerID().wx_str());
-        LogMessage(pf->relativeToCommonTopLevelPath + _(": ") + err, cltError);
-        LogWarningOrError(cltError, project, pf->relativeToCommonTopLevelPath, wxEmptyString, err);
-        return -3;
-    }
 
     DirectCommands dc(this, compiler, project, m_PageIndex);
     wxArrayString compile = dc.CompileFile(bt, pf);
@@ -3007,46 +2983,6 @@ void CompilerGCC::OnCompileFile(wxCommandEvent& event)
         PrepareCompileFile(file);
 
     StartCompileFile(file);
-}
-
-void CompilerGCC::OnCleanFile(wxCommandEvent& event)
-{
-    if (event.GetId() == idMenuCleanFileFromProjectManager)
-    {
-        FileTreeData* ftd = DoSwitchProjectTemporarily();
-        ProjectFile* pf = ftd->GetProjectFile();
-        if (!pf)
-            return;
-
-        ProjectBuildTarget* bt = GetBuildTargetForFile(pf);
-        if (!bt)
-            return;
-
-        Compiler* compiler = CompilerFactory::GetCompiler(bt->GetCompilerID());
-        if (!compiler)
-            return;
-
-        if ( !CheckProject() ) // ensures m_pProject is not NULL
-          return;
-
-        wxSetWorkingDirectory(m_pProject->GetBasePath());
-
-        wxFileName fn(pf->GetObjName());
-        wxString obj_name = (compiler->GetSwitches().UseFlatObjects) ? fn.GetFullName() : fn.GetFullPath();
-        wxString obj_file = wxFileName(bt->GetObjectOutput() + wxFILE_SEP_PATH + obj_name).GetFullPath();
-        Manager::Get()->GetMacrosManager()->ReplaceEnvVars(obj_file);
-
-        wxFileName obj_fn(obj_file);
-        if ( obj_fn.FileExists() )
-        {
-            if ( wxRemoveFile(obj_file) )
-                Manager::Get()->GetLogManager()->DebugLog(F(_T("File has been removed: %s"), obj_file.wx_str()));
-            else
-                Manager::Get()->GetLogManager()->DebugLog(F(_T("Removing file failed for: %s"), obj_file.wx_str()));
-        }
-        else
-            Manager::Get()->GetLogManager()->DebugLog(F(_T("File to remove does not exist: %s"), obj_file.wx_str()));
-    }
 }
 
 void CompilerGCC::OnRebuild(wxCommandEvent& event)
@@ -3174,7 +3110,7 @@ void CompilerGCC::OnProjectCompilerOptions(cb_unused wxCommandEvent& event)
         if (cbProject* prj = Manager::Get()->GetProjectManager()->GetActiveProject())
             Configure(prj);
     }
-}
+} // end of OnProjectCompilerOptions
 
 void CompilerGCC::OnTargetCompilerOptions(cb_unused wxCommandEvent& event)
 {
@@ -3214,7 +3150,7 @@ void CompilerGCC::OnSelectTarget(wxCommandEvent& event)
         DoUpdateTargetMenu(i);
         m_pToolTarget->SetSelection(i);
     }
-}
+} // end of OnSelectTarget
 
 void CompilerGCC::OnNextError(cb_unused wxCommandEvent& event)
 {
@@ -3247,7 +3183,6 @@ void CompilerGCC::OnUpdateUI(wxUpdateUIEvent& event)
 //        mbar->Enable(idMenuCompileFromProjectManager, !running && prj);
         mbar->Enable(idMenuCompileFile,      !running && ed &&          !otherRunning);
 //        mbar->Enable(idMenuCompileFileFromProjectManager, !running && prj);
-//        mbar->Enable(idMenuCleanFileFromProjectManager,   !running && prj);
         mbar->Enable(idMenuRebuild,          !running && prj &&         !otherRunning);
         mbar->Enable(idMenuRebuildWorkspace, !running && prj &&         !otherRunning);
 //        mbar->Enable(idMenuRebuildFromProjectManager, !running && prj);

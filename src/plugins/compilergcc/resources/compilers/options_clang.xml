@@ -142,21 +142,13 @@
 
     <Category name="Code generation">
         <Option name="Runtime check for undefined behavior"
-                option="-fsanitize=undefined-trap -fsanitize-undefined-trap-on-error"/>
+                option="-fcatch-undefined-behavior"/>
         <Option name="Catch integer overflow errors"
                 option="-ftrapv"/>
         <Option name="Use AddressSanitizer, a memory error detector"
-                option="-fsanitize=address"
-                additionalLibs="-fsanitize=address"
-                checkAgainst="-fsanitize=thread"
-                checkMessage="'-fsanitize=address' not allowed with '-fsanitize=thread'"
-                supersedes="-fsanitize=thread"/>
+                option="-faddress-sanitizer"/>
         <Option name="Use ThreadSanitizer, a data race detector"
-                option="-fsanitize=thread"
-                additionalLibs="-fsanitize=thread"
-                checkAgainst="-fsanitize=address"
-                checkMessage="'-fsanitize=address' not allowed with '-fsanitize=thread'"
-                supersedes="-fsanitize=address"/>
+                option="-fthread-sanitizer"/>
         <Option name="Use thread local storage model 'global-dynamic'"
                 option="-ftls-model=global-dynamic"
                 supersedes="-ftls-model=local-dynamic -ftls-model=initial-exec -ftls-model=local-exec"/>

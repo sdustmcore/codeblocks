@@ -19,7 +19,6 @@ namespace
     static wxString newline_string(_T("\n"));
 }
 
-/** The base class for all kinds of loggers, see loggers.h for its derived classes */
 class DLLIMPORT Logger
 {
 public:

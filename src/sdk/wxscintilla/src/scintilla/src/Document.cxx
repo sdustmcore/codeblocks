@@ -8,8 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <assert.h>
 #include <ctype.h>
+#include <assert.h>
 
 #include <string>
 #include <vector>
@@ -20,13 +20,13 @@
 #include "ILexer.h"
 #include "Scintilla.h"
 
-#include "CharacterSet.h"
 #include "SplitVector.h"
 #include "Partitioning.h"
 #include "RunStyles.h"
 #include "CellBuffer.h"
 #include "PerLine.h"
 #include "CharClassify.h"
+#include "CharacterSet.h"
 #include "Decoration.h"
 #include "CaseFolder.h"
 #include "Document.h"
@@ -58,7 +58,7 @@ void LexInterface::Colourise(int start, int end) {
 
 		int styleStart = 0;
 		if (start > 0)
-			styleStart = pdoc->StyleAt(start - 1);
+			styleStart = pdoc->StyleAt(start - 1) & pdoc->stylingBitsMask;
 
 		if (len > 0) {
 			instance->Lex(start, len, styleStart, pdoc);
@@ -90,12 +90,14 @@ Document::Document() {
 #endif
 	dbcsCodePage = 0;
 	lineEndBitSet = SC_LINE_END_TYPE_DEFAULT;
+	stylingBits = 5;
+	stylingBitsMask = 0x1F;
+	stylingMask = 0;
 	endStyled = 0;
 	styleClock = 0;
 	enteredModification = 0;
 	enteredStyling = 0;
 	enteredReadOnlyCount = 0;
-	insertionSet = false;
 	tabInChars = 8;
 	indentInChars = 0;
 	actualIndentInChars = 8;
@@ -285,7 +287,7 @@ int SCI_METHOD Document::LineStart(int line) const {
 }
 
 int SCI_METHOD Document::LineEnd(int line) const {
-	if (line >= LinesTotal() - 1) {
+	if (line == LinesTotal() - 1) {
 		return LineStart(line + 1);
 	} else {
 		int position = LineStart(line + 1);
@@ -921,7 +923,7 @@ bool Document::DeleteChars(int pos, int len) {
 			NotifyModified(
 			    DocModification(
 /* CHANGEBAR begin */
-			        SC_MOD_DELETETEXT | SC_PERFORMED_USER | (startSequence?SC_STARTACTION:0) | changeBarFlags,
+					SC_MOD_DELETETEXT | SC_PERFORMED_USER | (startSequence?SC_STARTACTION:0) | changeBarFlags,
 /* CHANGEBAR end */
 			        pos, len,
 			        LinesTotal() - prevLinesTotal, text));
@@ -934,71 +936,52 @@ bool Document::DeleteChars(int pos, int len) {
 /**
  * Insert a string with a length.
  */
-int Document::InsertString(int position, const char *s, int insertLength) {
+bool Document::InsertString(int position, const char *s, int insertLength) {
 	if (insertLength <= 0) {
-		return 0;
+		return false;
 	}
-	CheckReadOnly();	// Application may change read only state here
-	if (cb.IsReadOnly()) {
-		return 0;
-	}
+	CheckReadOnly();
 	if (enteredModification != 0) {
-		return 0;
-	}
-	enteredModification++;
-	insertionSet = false;
-	insertion.clear();
-	NotifyModified(
-		DocModification(
-			SC_MOD_INSERTCHECK,
-			position, insertLength,
-			0, s));
-	if (insertionSet) {
-		s = insertion.c_str();
-		insertLength = static_cast<int>(insertion.length());
-	}
-	NotifyModified(
-		DocModification(
-			SC_MOD_BEFOREINSERT | SC_PERFORMED_USER,
-			position, insertLength,
-			0, s));
+		return false;
+	} else {
+		enteredModification++;
+		if (!cb.IsReadOnly()) {
+			NotifyModified(
+			    DocModification(
+			        SC_MOD_BEFOREINSERT | SC_PERFORMED_USER,
+			        position, insertLength,
+			        0, s));
 /* CHANGEBAR begin */
-	int changesEdition = cb.GetChangesEdition();
+			int changesEdition = cb.GetChangesEdition();
 /* CHANGEBAR end */
-	int prevLinesTotal = LinesTotal();
-	bool startSavePoint = cb.IsSavePoint();
-	bool startSequence = false;
-	const char *text = cb.InsertString(position, s, insertLength, startSequence);
-	if (startSavePoint && cb.IsCollectingUndo())
-		NotifySavePoint(!startSavePoint);
-	ModifiedAt(position);
+			int prevLinesTotal = LinesTotal();
+			bool startSavePoint = cb.IsSavePoint();
+			bool startSequence = false;
+			const char *text = cb.InsertString(position, s, insertLength, startSequence);
+			if (startSavePoint && cb.IsCollectingUndo())
+				NotifySavePoint(!startSavePoint);
+			ModifiedAt(position);
 /* CHANGEBAR begin */
-	int changeBarFlags = (cb.GetChangesEdition() == changesEdition) ?
-		0 : SC_MOD_CHANGEMARKER | SC_MOD_CHANGEFOLD;
+			int changeBarFlags = (cb.GetChangesEdition() == changesEdition) ?
+				0 : SC_MOD_CHANGEMARKER | SC_MOD_CHANGEFOLD;
 /* CHANGEBAR end */
-	NotifyModified(
-		DocModification(
+			NotifyModified(
+			    DocModification(
 /* CHANGEBAR begin */
-			SC_MOD_INSERTTEXT | SC_PERFORMED_USER | (startSequence?SC_STARTACTION:0) | changeBarFlags,
+					SC_MOD_INSERTTEXT | SC_PERFORMED_USER | (startSequence?SC_STARTACTION:0) | changeBarFlags,
 /* CHANGEBAR end */
-			position, insertLength,
-			LinesTotal() - prevLinesTotal, text));
-	if (insertionSet) {	// Free memory as could be large
-		std::string().swap(insertion);
+			        position, insertLength,
+			        LinesTotal() - prevLinesTotal, text));
+		}
+		enteredModification--;
 	}
-	enteredModification--;
-	return insertLength;
-}
-
-void Document::ChangeInsertion(const char *s, int length) {
-	insertionSet = true;
-	insertion.assign(s, length);
+	return !cb.IsReadOnly();
 }
 
 int SCI_METHOD Document::AddData(char *data, int length) {
 	try {
 		int position = Length();
-		InsertString(position, data, length);
+		InsertString(position,data, length);
 	} catch (std::bad_alloc &) {
 		return SC_STATUS_BADALLOC;
 	} catch (...) {
@@ -1172,6 +1155,22 @@ int Document::Redo() {
 	return newPos;
 }
 
+/**
+ * Insert a single character.
+ */
+bool Document::InsertChar(int pos, char ch) {
+	char chs[1];
+	chs[0] = ch;
+	return InsertString(pos, chs, 1);
+}
+
+/**
+ * Insert a null terminated string.
+ */
+bool Document::InsertCString(int position, const char *s) {
+	return InsertString(position, s, static_cast<int>(s ? strlen(s) : 0));
+}
+
 void Document::DelChar(int pos) {
 	DeleteChars(pos, LenChar(pos));
 }
@@ -1226,7 +1225,7 @@ int SCI_METHOD Document::GetLineIndentation(int line) {
 	return indent;
 }
 
-int Document::SetLineIndentation(int line, int indent) {
+void Document::SetLineIndentation(int line, int indent) {
 	int indentOfLine = GetLineIndentation(line);
 	if (indent < 0)
 		indent = 0;
@@ -1236,10 +1235,7 @@ int Document::SetLineIndentation(int line, int indent) {
 		int indentPos = GetLineIndentPosition(line);
 		UndoGroup ug(this);
 		DeleteChars(thisLineStart, indentPos - thisLineStart);
-		return thisLineStart + InsertString(thisLineStart, linebuf.c_str(),
-			static_cast<int>(linebuf.length()));
-	} else {
-		return GetLineIndentPosition(line);
+		InsertCString(thisLineStart, linebuf.c_str());
 	}
 }
 
@@ -1371,21 +1367,21 @@ void Document::ConvertLineEnds(int eolModeSet) {
 			} else {
 				// CR
 				if (eolModeSet == SC_EOL_CRLF) {
-					pos += InsertString(pos + 1, "\n", 1); // Insert LF
+					InsertString(pos + 1, "\n", 1); // Insert LF
+					pos++;
 				} else if (eolModeSet == SC_EOL_LF) {
-					pos += InsertString(pos, "\n", 1); // Insert LF
-					DeleteChars(pos, 1); // Delete CR
-					pos--;
+					InsertString(pos, "\n", 1); // Insert LF
+					DeleteChars(pos + 1, 1); // Delete CR
 				}
 			}
 		} else if (cb.CharAt(pos) == '\n') {
 			// LF
 			if (eolModeSet == SC_EOL_CRLF) {
-				pos += InsertString(pos, "\r", 1); // Insert CR
+				InsertString(pos, "\r", 1); // Insert CR
+				pos++;
 			} else if (eolModeSet == SC_EOL_CR) {
-				pos += InsertString(pos, "\r", 1); // Insert CR
-				DeleteChars(pos, 1); // Delete LF
-				pos--;
+				InsertString(pos, "\r", 1); // Insert CR
+				DeleteChars(pos + 1, 1); // Delete LF
 			}
 		}
 	}
@@ -1751,7 +1747,13 @@ int Document::GetCharsOfClass(CharClassify::cc characterClass, unsigned char *bu
     return charClass.GetCharsOfClass(characterClass, buffer);
 }
 
-void SCI_METHOD Document::StartStyling(int position, char) {
+void Document::SetStylingBits(int bits) {
+	stylingBits = bits;
+	stylingBitsMask = (1 << stylingBits) - 1;
+}
+
+void SCI_METHOD Document::StartStyling(int position, char mask) {
+	stylingMask = mask;
 	endStyled = position;
 }
 
@@ -1760,8 +1762,9 @@ bool SCI_METHOD Document::SetStyleFor(int length, char style) {
 		return false;
 	} else {
 		enteredStyling++;
+		style &= stylingMask;
 		int prevEndStyled = endStyled;
-		if (cb.SetStyleFor(endStyled, length, style)) {
+		if (cb.SetStyleFor(endStyled, length, style, stylingMask)) {
 			DocModification mh(SC_MOD_CHANGESTYLE | SC_PERFORMED_USER,
 			                   prevEndStyled, length);
 			NotifyModified(mh);
@@ -1782,7 +1785,7 @@ bool SCI_METHOD Document::SetStyles(int length, const char *styles) {
 		int endMod = 0;
 		for (int iPos = 0; iPos < length; iPos++, endStyled++) {
 			PLATFORM_ASSERT(endStyled < Length());
-			if (cb.SetStyleAt(endStyled, styles[iPos])) {
+			if (cb.SetStyleAt(endStyled, styles[iPos], stylingMask)) {
 				if (!didChange) {
 					startMod = endStyled;
 				}
@@ -2112,7 +2115,7 @@ int Document::BraceMatch(int position, int /*maxReStyle*/) {
 	char chSeek = BraceOpposite(chBrace);
 	if (chSeek == '\0')
 		return - 1;
-	char styBrace = static_cast<char>(StyleAt(position));
+	char styBrace = static_cast<char>(StyleAt(position) & stylingBitsMask);
 	int direction = -1;
 	if (chBrace == '(' || chBrace == '[' || chBrace == '{' || chBrace == '<')
 		direction = 1;
@@ -2120,7 +2123,7 @@ int Document::BraceMatch(int position, int /*maxReStyle*/) {
 	position = NextPosition(position, direction);
 	while ((position >= 0) && (position < Length())) {
 		char chAtPos = CharAt(position);
-		char styAtPos = static_cast<char>(StyleAt(position));
+		char styAtPos = static_cast<char>(StyleAt(position) & stylingBitsMask);
 		if ((position > GetEndStyled()) || (styAtPos == styBrace)) {
 			if (chAtPos == chBrace)
 				depth++;
@@ -2142,7 +2145,7 @@ int Document::BraceMatch(int position, int /*maxReStyle*/) {
  */
 class BuiltinRegex : public RegexSearchBase {
 public:
-	explicit BuiltinRegex(CharClassify *charClassTable) : search(charClassTable) {}
+	BuiltinRegex(CharClassify *charClassTable) : search(charClassTable) {}
 
 	virtual ~BuiltinRegex() {
 	}

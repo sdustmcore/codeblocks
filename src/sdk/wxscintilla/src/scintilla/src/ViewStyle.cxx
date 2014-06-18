@@ -55,9 +55,8 @@ const char *FontNames::Save(const char *name) {
 			return *it;
 		}
 	}
-	const size_t lenName = strlen(name) + 1;
-	char *nameSave = new char[lenName];
-	memcpy(nameSave, name, lenName);
+	char *nameSave = new char[strlen(name) + 1];
+	strcpy(nameSave, name);
 	names.push_back(nameSave);
 	return nameSave;
 }
@@ -75,12 +74,12 @@ void FontRealised::Realise(Surface &surface, int zoomLevel, int technology, cons
 	if (sizeZoomed <= 2 * SC_FONT_SIZE_MULTIPLIER)	// Hangs if sizeZoomed <= 1
 		sizeZoomed = 2 * SC_FONT_SIZE_MULTIPLIER;
 
-	float deviceHeight = static_cast<float>(surface.DeviceHeightFont(sizeZoomed));
+	float deviceHeight = surface.DeviceHeightFont(sizeZoomed);
 	FontParameters fp(fs.fontName, deviceHeight / SC_FONT_SIZE_MULTIPLIER, fs.weight, fs.italic, fs.extraFontFlag, technology, fs.characterSet);
 	font.Create(fp);
 
-	ascent = static_cast<unsigned int>(surface.Ascent(font));
-	descent = static_cast<unsigned int>(surface.Descent(font));
+	ascent = surface.Ascent(font);
+	descent = surface.Descent(font);
 	aveCharWidth = surface.AverageCharWidth(font);
 	spaceWidth = surface.WidthChar(font, ' ');
 }
@@ -310,9 +309,9 @@ void ViewStyle::Refresh(Surface &surface, int tabInChars) {
 		styles[i].extraFontFlag = extraFontFlag;
 	}
 
-	CreateAndAddFont(styles[STYLE_DEFAULT]);
+	CreateFont(styles[STYLE_DEFAULT]);
 	for (unsigned int j=0; j<styles.size(); j++) {
-		CreateAndAddFont(styles[j]);
+		CreateFont(styles[j]);
 	}
 
 	for (FontMap::iterator it = fonts.begin(); it != fonts.end(); ++it) {
@@ -347,7 +346,7 @@ void ViewStyle::Refresh(Surface &surface, int tabInChars) {
 
 	controlCharWidth = 0.0;
 	if (controlCharSymbol >= 32) {
-		controlCharWidth = surface.WidthChar(styles[STYLE_CONTROLCHAR].font, static_cast<char>(controlCharSymbol));
+		controlCharWidth = surface.WidthChar(styles[STYLE_CONTROLCHAR].font, controlCharSymbol);
 	}
 
 	fixedColumnWidth = marginInside ? leftMarginWidth : 0;
@@ -450,9 +449,6 @@ bool ViewStyle::SetWrapState(int wrapState_) {
 	case SC_WRAP_CHAR:
 		wrapStateWanted = eWrapChar;
 		break;
-	case SC_WRAP_WHITESPACE:
-		wrapStateWanted = eWrapWhitespace;
-		break;
 	default:
 		wrapStateWanted = eWrapNone;
 		break;
@@ -498,7 +494,7 @@ void ViewStyle::AllocStyles(size_t sizeNew) {
 	}
 }
 
-void ViewStyle::CreateAndAddFont(const FontSpecification &fs) {
+void ViewStyle::CreateFont(const FontSpecification &fs) {
 	if (fs.fontName) {
 		FontMap::iterator it = fonts.find(fs);
 		if (it == fonts.end()) {

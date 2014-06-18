@@ -91,7 +91,7 @@ struct TokenizerOptions
  * the next token string(peeked string). The peeked string content will be buffered until the next GetToken() call,
  * thus performance can be improved.
  * Also, Tokenizer class does some kind of handling "Macro replacement" on the buffer to imitate the macro expansion in
- * C-preprocessor, see member-function ReplaceMacro() for details.
+ * C-preprocessor, see member-function MacroReplace() for details.
  * Further more, it handles some "conditional preprocessor directives"(like "#if xxx").
  */
 class Tokenizer
@@ -108,10 +108,7 @@ public:
     /** Initialize the buffer by opening a file through a loader. */
     bool Init(const wxString& filename = wxEmptyString, LoaderBase* loader = 0);
 
-    /** Initialize the buffer by directly using a wxString reference.
-     * @param initLineNumber the start line of the buffer, usually the parser try to parse a function
-     * body, so the line information of each Token can be correct.
-     */
+    /** Initialize the buffer by directly using a wxString reference. */
     bool InitFromBuffer(const wxString& buffer, const wxString& fileOfBuffer = wxEmptyString,
                         size_t initLineNumber = 0);
 
@@ -197,6 +194,11 @@ public:
      */
     wxString ReadToEOL(bool nestBraces = true, bool stripUnneeded = true);
 
+    /** Read all tokens from the current position to the end of current line */
+    void ReadToEOL(wxArrayString& tokens);
+
+    /** Read and format between (), stored in 'str' */
+    void ReadParentheses(wxString& str, bool trimFirst);
     void ReadParentheses(wxString& str);
 
     /** Skip from the current position to the end of line.
@@ -257,10 +259,6 @@ public:
     }
 
     /** Backward buffer replacement for re-parsing
-     *
-     * @param target the new text going to take place on the m_Buffer
-     * @param updatePeekToken do we need to update the m_PeekToken after the replacement?
-     *
      * http://forums.codeblocks.org/index.php/topic,13384.msg90391.html#msg90391
      *
      * Macro expansion is just replace some characters in the m_Buffer.
@@ -284,13 +282,10 @@ public:
      * NNNNNNNNNNNNNNNNNNNNNNyyyyyyyyy
      * ^---m_TokenIndex
      */
-    bool ReplaceBufferText(const wxString& target, bool updatePeekToken = true);
+    bool ReplaceBufferForReparse(const wxString& target, bool updatePeekToken = true);
 
-    /** Get actual context for macro, then replace buffer for re-parsing
-     *  @param tk the macro definition, this is usually happens we want to expand a function like
-     *  macro, since a variable like macro just did a simple text replacement.
-     */
-    bool ReplaceFunctionLikeMacro(const Token* tk, bool updatePeekToken = true);
+    /** Get actual context for macro, then replace buffer for re-parsing */
+    bool ReplaceMacroActualContext(const Token* tk, bool updatePeekToken = true);
 
     /** Get first token position in buffer */
     int GetFirstTokenPosition(const wxString& buffer, const wxString& target)
@@ -298,14 +293,8 @@ public:
         return GetFirstTokenPosition(buffer.GetData(), buffer.Len(), target.GetData(), target.Len());
     }
 
-    /** find the sub-string key in the whole buffer, return the first position of the key
-     *  @param buffer the content of the string
-     *  @param bufferLen length of the string
-     *  @param key the search key(sub-string)
-     *  @param keyLen the search key length
-     */
     int GetFirstTokenPosition(const wxChar* buffer, const size_t bufferLen,
-                              const wxChar* key, const size_t keyLen);
+                              const wxChar* target, const size_t targetLen);
 
     /** KMP find, get the first position, if find nothing, return -1 */
     int KMP_Find(const wxChar* text, const wxChar* pattern, const int patternLen);
@@ -425,7 +414,7 @@ private:
     }
 
     /** Do the Macro replacement according to the macro replacement rules */
-    void ReplaceMacro(wxString& str);
+    void MacroReplace(wxString& str);
 
     /** Judge what is the first block
       * It will call 'SkipToEOL(false, true)' before returned.
@@ -455,11 +444,8 @@ private:
     /** Split the actual macro arguments, and store them in results*/
     void SplitArguments(wxArrayString& results);
 
-    /** Get the text after macro expansion
-     * @param tk the macro definition token, usually a function like macro definition
-     * @param expandedText is an output variable string
-     */
-    bool GetMacroExpendedText(const Token* tk, wxString& expandedText);
+    /** Get the actual context for macro */
+    bool GetActualContextForMacro(const Token* tk, wxString& actualContext);
 
     /** Just for KMP find */
     void KMP_GetNextVal(const wxChar* pattern, int next[]);
@@ -514,22 +500,13 @@ private:
     /** Calculate Expression's result, stack for Shunting-yard algorithm */
     std::stack<bool>     m_ExpressionResult;
 
+    /** Whether we are in replace buffer parsing, avoid recursive calling */
+    bool                 m_IsReplaceParsing;
 
-    /** Save the remaining length from m_TokenIndex to the end of m_Buffer before replace m_Buffer.
-     *  ..........AAA..................
-     *               ^                 [EOF]
-     * It is the length between '^'(m_TokenIndex) and [EOF], sometimes there is not enough space
-     * to put the substitute before TokenIndex, so the m_Buffer will grows after the replacement:
-     *  BBBBBBBBBBBBBBBBBBBBBBBBB..................
-     *  ^                        !                 [EOF]
-     * Here, m_TokenIndex is moved backward to the beginning of the new substitute
-     * string, but the length between '!' and [EOF] should be unchanged
-     */
+    /** Save the remaining length, after the first replace buffer */
     size_t               m_FirstRemainingLength;
 
-    /** Save the repeat replace buffer count if currently in replace parsing, if it is 0, this means
-     * replace buffer does not happen.
-     */
+    /** Save the repeat replace buffer count if currently in replace parsing */
     size_t               m_RepeatReplaceCount;
 
     /** Static member, this is a hash map storing all macro replacement rules */

@@ -6,8 +6,13 @@
 #ifndef BUILDTARGETPANEL_H
 #define BUILDTARGETPANEL_H
 
+#include <wx/wxprec.h>
 
-//(*HeadersPCH(BuildTargetPanel)
+#ifdef __BORLANDC__
+    #pragma hdrstop
+#endif
+
+//(*Headers(BuildTargetPanel)
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>

@@ -191,11 +191,9 @@ class MainFrame : public wxFrame
         void OnEditSelectNextSkip(wxCommandEvent& event);
         void OnEditCommentSelected(wxCommandEvent& event);
         void OnEditUncommentSelected(wxCommandEvent& event);
-        void OnEditToggleCommentSelected(wxCommandEvent& event);
-        void OnEditStreamCommentSelected(wxCommandEvent& event);
-        void OnEditBoxCommentSelected(wxCommandEvent& event);
-        void OnEditShowCallTip(wxCommandEvent& event);
-        void OnEditCompleteCode(wxCommandEvent& event);
+        void OnEditToggleCommentSelected(wxCommandEvent & event);
+        void OnEditStreamCommentSelected(wxCommandEvent & event);
+        void OnEditBoxCommentSelected(wxCommandEvent & event);
 
         void OnEditBookmarksToggle(wxCommandEvent& event);
         void OnEditBookmarksNext(wxCommandEvent& event);
