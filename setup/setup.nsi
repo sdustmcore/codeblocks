@@ -51,7 +51,7 @@ Name CodeBlocks
 #!define CB_LAUNCHER
 
 # Notice installer packagers:
-# Some path's are system specific and need most likely to be adjusted
+# Some paths are system specific and need most likely to be adjusted
 # to suite your directories. Those path's start with a comment line:
 # "Possibly required to adjust manually:" (see below).
 
@@ -67,7 +67,7 @@ Name CodeBlocks
 # Folders #
 ###########
 # Possibly required to adjust manually:
-# (Folder with wxWidgets DLL - unicode, monolitic.)
+# (Folder with wxWidgets DLL - unicode, monolithic.)
 !define WX_BASE          C:\Devel\CodeBlocks\Releases\CodeBlocks_15xx
 # Possibly required to adjust manually:
 # (CodeBlocks binary folder - the one where codeblocks.exe is.)
@@ -101,7 +101,7 @@ Name CodeBlocks
 # Files #
 #########
 # Possibly required to adjust manually:
-# Note: This file is only required for the installer.
+# Note: These files are only required for the installer.
 !define CB_SPLASH        ${CB_ADDONS}\setup_splash_15xx.bmp
 !define CB_LOGO          ${CB_ADDONS}\setup_logo_15xx.bmp
 # Possibly required to adjust manually:
@@ -163,7 +163,7 @@ VIAddVersionKey   CompanyWebsite  "${URL}"
 VIAddVersionKey   FileVersion     "${VERSION}"
 VIAddVersionKey   FileDescription "Code::Blocks cross-platform IDE"
 VIAddVersionKey   LegalCopyright  ""
-InstallDirRegKey  HKCU "${REGKEY}" Path
+InstallDirRegKey  HKLM "${REGKEY}" Path
 UninstallCaption  "Code::Blocks Uninstallation"
 ShowUninstDetails show
 
@@ -1181,7 +1181,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         File ${CB_BASE}${CB_PLUGINS}\FileManager.dll
         WriteRegStr HKCU "${REGKEY}\Components" "File Manager plugin" 1
     SectionEnd
-	
+
     Section "Fortran Project plugin" SEC_FORTRANPROJECT
         SectionIn 1
         SetOutPath $INSTDIR${CB_SHARE_CB}
@@ -2490,7 +2490,7 @@ Function un.onInit
     !insertmacro SELECT_UNSECTION "RND Generator plugin"               ${UNSEC_RNDGEN}
     !insertmacro SELECT_UNSECTION "ToDo List plugin"                   ${UNSEC_TODOLIST}
     !insertmacro SELECT_UNSECTION "XP Look And Feel plugin"            ${UNSEC_XPLOOKANDFEEL}
-                                                                        
+
     !insertmacro SELECT_UNSECTION "Auto Versioning plugin"             ${UNSEC_AUTOVERSIONING}
     !insertmacro SELECT_UNSECTION "Browse Tracker plugin"              ${UNSEC_BROWSETRACKER}
     !insertmacro SELECT_UNSECTION "Byo Games plugin"                   ${UNSEC_BYOGAMES}
@@ -2590,7 +2590,7 @@ FunctionEnd
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_DRAGSCROLL}          "Mouse drag and scroll using right or middle mouse key."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_ENVVARS}             "Sets up environment variables within the focus of Code::Blocks."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_FILEMANAGER}         "Browses folders and files directly inside Code::Blocks (Explorer-like)."
-!insertmacro MUI_DESCRIPTION_TEXT ${SEC_FORTRANPROJECT}      "Extension for Code::blocks to deveoop Fortran based application (compiler, CodeCompletion...)."
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_FORTRANPROJECT}      "Extension for Code::Blocks to develop Fortran applications (compiler, CodeCompletion...)."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_HEADERFIXUP}         "Provides analysis of header files according a customisable setup. C::B and wxWidgets are included by default."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_HELP}                "Add a list of help/MAN files to the help menu so you can have them handy to launch."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_HEXEDITOR}           "Provides an embedded very powerful hex editor to Code::Blocks (supports large binary files, too)."
