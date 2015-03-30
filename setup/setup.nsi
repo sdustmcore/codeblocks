@@ -1038,10 +1038,6 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         File ${CB_BASE}${CB_PLUGINS}\codesnippets.dll
         SetOutPath $INSTDIR${CB_IMAGES}\codesnippets
         File ${CB_BASE}${CB_IMAGES}\codesnippets\*.png
-        SetOutPath $INSTDIR
-        File ${CB_BASE}\codesnippets.exe
-        SetOutPath $SMPROGRAMS\${CB_SM_GROUP}
-        CreateShortcut "$SMPROGRAMS\${CB_SM_GROUP}\Code Snippets.lnk" $INSTDIR\codesnippets.exe
         WriteRegStr HKCU "${REGKEY}\Components" "Code Snippets plugin" 1
     SectionEnd
 
@@ -1581,10 +1577,8 @@ SectionEnd
 Section "-un.Code Snippets plugin" UNSEC_CODESNIPPETS
     Delete /REBOOTOK $INSTDIR${CB_IMAGES}\codesnippets\*.png
     RMDir  /REBOOTOK $INSTDIR${CB_IMAGES}\codesnippets
-    Delete /REBOOTOK $INSTDIR\codesnippets.exe
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\codesnippets.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\codesnippets.zip
-    Delete /REBOOTOK "$SMPROGRAMS\${CB_SM_GROUP}\Code Snippets.lnk"
     DeleteRegValue HKCU "${REGKEY}\Components" "Code Snippets plugin"
 SectionEnd
 
