@@ -26,7 +26,7 @@
 #include "keybinder.h"
 
 // --Version-Rlease-Feature-Fix-------
-#define VERSION "1.0.50 2012/09/1"
+#define VERSION "1.0.49 2010/03/3"
 // -----------------------------------
 class MyDialog;
 class wxKeyConfigPanel;
@@ -81,7 +81,7 @@ class cbKeyBinder : public cbPlugin
         // utility function to update the menu key labels
         // and re-attach the window event handlers after key changes
         void UpdateArr(wxKeyProfileArray &r);
-        void Rebind(bool update=true);
+        void Rebind();
         // key definition configuration dialog
         cbConfigurationPanel* OnKeyConfig(wxWindow* parent);
         void OnKeyConfigDialogDone(MyDialog* dlg);
@@ -94,8 +94,6 @@ class cbKeyBinder : public cbPlugin
         int IsEnabledMerge() const {return m_mergeEnabled;}
         bool IsMerging() const {return m_bMerging;}
         void IsMerging(bool state){m_bMerging = state;}
-        bool VerifyKeyBind(const wxString& strKeyCode, const int numShortcuts);
-        int RemoveKeyBindingsFor(const wxString& strKeyCode, wxKeyProfile* pkp);
 
     protected:
         wxADD_KEYBINDER_SUPPORT();
@@ -111,7 +109,7 @@ class cbKeyBinder : public cbPlugin
         void OnMergeTimer(wxTimerEvent& event);
         void OnAppStartupDone(CodeBlocksEvent& event);
         void AttachEditor(wxWindow* pEditor);
-        void OnWindowCreateEvent(wxEvent& event); 
+        void OnWindowCreateEvent(wxEvent& event);
         void OnWindowDestroyEvent(wxEvent& event);
         void DetachEditor(wxWindow* pWindow, bool deleteEvtHandler = true);
         void MergeDynamicMenus();
@@ -120,8 +118,6 @@ class cbKeyBinder : public cbPlugin
         void OnTimerAlarm(wxTimerEvent& event);
         void OnMenuBarModify(CodeBlocksEvent& event);
         wxString FindAppPath(const wxString& argv0, const wxString& cwd, const wxString& appVariableName);
-        void MergeAcceleratorTable(const bool mergeAccelTable = false);
-        int  RemoveCopyPasteBindings(wxKeyProfile* pkp);
 
 
         wxWindow*       pcbWindow;              //main app window
@@ -705,8 +701,4 @@ private:
 // ----------------------------------------------------------------------------
 //  Commit  1.0.49 2010/03/3
 //          49) Apply patch 2885 by techy
-// ----------------------------------------------------------------------------
-//  Commit  1.0.50 2012/09/1
-//          50) Merge global accelerators into keybinder, leave the rest alone
-//              Remove bindings for Ctrl-C/P/X, allowing native behavior
 // ----------------------------------------------------------------------------

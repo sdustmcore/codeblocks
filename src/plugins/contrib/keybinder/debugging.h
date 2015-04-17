@@ -8,11 +8,6 @@
 #if defined(kbLOGGING)
     #define LOGGING 1
 #endif
-
-#if wxCHECK_VERSION(2, 9, 0)
-// avoid redefinition warning
-#undef wxLogMessage
-#endif
 #define wxLogMessage wxLogDebug
 #define LOGIT wxLogDebug
 

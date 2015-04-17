@@ -1,7 +1,9 @@
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+AM_CPPFLAGS = -DWXMAKINGDLL_PROPGRID -DwxPG_USE_WXMODULE=0
+
+INCLUDES = $(WX_CXXFLAGS) \
 		-I$(top_srcdir)/src/include \
 		-I$(top_srcdir)/src/sdk/wxscintilla/include \
-		$(WXPROPGRID_INCLUDE)
+		-I$(top_srcdir)/src/sdk/wxpropgrid/include
 
 noinst_LTLIBRARIES = libwxsmith_wxwidgets_properties.la
 
@@ -23,14 +25,10 @@ libwxsmith_wxwidgets_properties_la_SOURCES = \
 ./wxsdimensionproperty.cpp \
 ./wxsbitmapiconproperty.cpp \
 ./wxssimplefonteditordlg.cpp \
-./wxsimagelisteditordlg.cpp \
+./wxseditenumproperty.cpp \
+./wxsimagelistdlg.cpp \
 ./wxsimagelistproperty.cpp \
-./wxsimageproperty.cpp \
-./wxsimagecomboeditordlg.cpp \
-./wxsimagecomboproperty.cpp \
-./wxsimagetreeeditordlg.cpp \
-./wxsimagetreeproperty.cpp
-
+./wxsimageproperty.cpp
 
 sdkdir=$(includedir)/wxsmith/wxwidgets/properties/
 
@@ -48,11 +46,8 @@ sdk_HEADERS = \
 ./wxsfontfaceeditordlg.h \
 ./wxsbitmapiconeditordlg.h \
 ./wxssimplefonteditordlg.h \
-./wxsimagelisteditordlg.h \
+./wxseditenumproperty.h \
+./wxsimagelistdlg.h \
 ./wxsimagelistproperty.h \
-./wxsimageproperty.h \
-./wxsimagecomboeditordlg.h \
-./wxsimagecomboproperty.h \
-./wxsimagetreeeditordlg.h \
-./wxsimagetreeproperty.h
+./wxsimageproperty.h
 

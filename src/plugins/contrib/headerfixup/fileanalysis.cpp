@@ -52,7 +52,7 @@ void FileAnalysis::ReInit(const wxString& FileName, bool verbose)
 {
   Reset();
   m_FileName = FileName;
-  m_Verbose  = verbose;
+  m_Verbose = verbose;
 
   wxFileName FileNameObj(m_FileName);
   if ( FileNameObj.GetExt().Lower() == _T("h")   ||
@@ -109,17 +109,7 @@ void FileAnalysis::SaveFile(const wxString& Prepend)
       return;
     }
 
-    if ( !File.Write(m_FileContent,wxConvUTF8) )
-    {
-      Manager::Get()->GetLogManager()->DebugLog(F(_T("[HeaderFixup]: ")+m_FileName+_T("\" could not be updated (written).")));
-      return;
-    }
-
-    if ( !File.Close() )
-    {
-      Manager::Get()->GetLogManager()->DebugLog(F(_T("[HeaderFixup]: ")+m_FileName+_T("\" could not be closed.")));
-      return;
-    }
+    File.Write(m_FileContent,wxConvUTF8);
   }
 }
 
@@ -127,14 +117,14 @@ void FileAnalysis::SaveFile(const wxString& Prepend)
 
 wxString FileAnalysis::GetNextLine()
 {
-  if ( HasMoreLines() )
+  if (HasMoreLines())
   {
     wxString LineOfFile = m_LinesOfFile.Item(m_CurrentLine);
     m_CurrentLine++;
     return LineOfFile;
   }
-
-  return wxEmptyString;
+  else
+    return wxEmptyString;
 }
 
 // ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
@@ -144,25 +134,23 @@ wxString FileAnalysis::GetEOL()
   wxString EOL = _T('\n');
 
   // Detect end-of-line style to prevent inconsistent EOLs
-  for ( size_t i=0; i<m_FileContent.Len(); i++ )
+  for ( int i=0; i<m_FileContent.Length(); i++ )
   {
-    if (   m_FileContent.GetChar(i)!=_T('\n')
-        && m_FileContent.GetChar(i)!=_T('\r') )
+    if (   m_FileContent.GetChar(i)==_T('\n')
+        || m_FileContent.GetChar(i)==_T('\r') )
     {
-      continue; // no EOL
-    }
-
-    EOL = m_FileContent.GetChar(i);
-    if ( ++i<m_FileContent.Len() )
-    {
-      if (   m_FileContent.GetChar(i)==_T('\n')
-          || m_FileContent.GetChar(i)==_T('\r') )
+      EOL = m_FileContent.GetChar(i);
+      if ( ++i<m_FileContent.Length() )
       {
-        if ( m_FileContent.GetChar(i) != EOL.GetChar(0) )
-          EOL << m_FileContent.GetChar(i);
+        if (   m_FileContent.GetChar(i)==_T('\n')
+            || m_FileContent.GetChar(i)==_T('\r') )
+        {
+          if ( m_FileContent.GetChar(i) != EOL.GetChar(0) )
+            EOL << m_FileContent.GetChar(i);
+        }
       }
+      break;
     }
-    break;
   }
 
   return EOL;
@@ -177,48 +165,49 @@ wxArrayString FileAnalysis::ParseForIncludes()
 
   m_IncludedHeaders.Clear();
 
-  for (size_t LineIdx = 0; LineIdx < m_LinesOfFile.GetCount(); ++LineIdx )
+  for ( size_t i=0; i<m_LinesOfFile.GetCount(); i++ )
   {
-    const wxString Line = m_LinesOfFile.Item(LineIdx);
+    wxString Line = m_LinesOfFile.Item(i);
     const wxRegEx RegEx(reInclude);
-
     wxString Include;
     if (RegEx.Matches(Line))
-      Include = RegEx.GetMatch(Line, 1);
-
-    // Include is empty if the RegEx did *not* match.
-    if (Include.IsEmpty()) continue; // nothing else to do...
-
-    if (m_Verbose)
-      m_Log << _T("- Include detected via RegEx: \"") << Include << _T("\".\n");
-    m_IncludedHeaders.Add(Include);
-
-    if (m_IsHeaderFile) continue; // nothing else to do...
-
-    // if it's a source file try to obtain the included header file
-    wxFileName FileToParseFile(m_FileName);
-    wxFileName IncludeFile(Include); // e.g. myheader.h
-    if ( !FileToParseFile.GetName().IsSameAs(IncludeFile.GetName()) ) continue;
-
-    if (m_Verbose)
-      m_Log << _T("- Recursing into \"") << IncludeFile.GetFullName() << _T("\" for more included headers.\n");
-
-    // "Recursion" -> do another file analysis on the header file
-    FileAnalysis fa(FileToParseFile.GetPath()+
-                    FileToParseFile.GetPathSeparator()+
-                    IncludeFile.GetFullName());
-    fa.LoadFile();
-    wxArrayString MoreIncludedHeaders = fa.ParseForIncludes();
-
-    // Only add headers that are not included by the source file
-    for ( size_t i = 0; i < MoreIncludedHeaders.GetCount(); ++i )
     {
-      if ( m_IncludedHeaders.Index(MoreIncludedHeaders[i]) == wxNOT_FOUND )
-        m_IncludedHeaders.Add(MoreIncludedHeaders[i]);
+      Include = RegEx.GetMatch(Line, 1);
     }
+    // Include is empty if the RegEx did *not* match.
+    if (!Include.IsEmpty())
+    {
+      if (m_Verbose)
+        m_Log << _T("- Include detected via RegEx: \"") << Include << _T("\".\n");
+      m_IncludedHeaders.Add(Include);
 
-    m_Log << fa.GetLog();
-    m_HasHeaderFile = true;
+      // if it's a source file try to obtain the included header file
+      if ( !m_IsHeaderFile )
+      {
+        wxFileName FileToParseFile(m_FileName);
+        wxFileName IncludeFile(Include); // e.g. myheader.h
+        if ( FileToParseFile.GetName().IsSameAs(IncludeFile.GetName()) )
+        {
+          if (m_Verbose)
+            m_Log << _T("- Recursing into \"") << IncludeFile.GetFullName() << _T("\" for more included headers.\n");
+
+          // "Recursion" -> do another file analysis on the header file
+          FileAnalysis fa(FileToParseFile.GetPath()+
+                          FileToParseFile.GetPathSeparator()+
+                          IncludeFile.GetFullName());
+          fa.LoadFile();
+          wxArrayString MoreIncludedHeaders = fa.ParseForIncludes();
+
+          // Only add headers that are not included by the source file
+          for ( size_t i=0; i<MoreIncludedHeaders.GetCount(); i++ )
+            if ( m_IncludedHeaders.Index(MoreIncludedHeaders[i]) == wxNOT_FOUND )
+              m_IncludedHeaders.Add(MoreIncludedHeaders[i]);
+
+          m_Log << fa.GetLog();
+          m_HasHeaderFile = true;
+        }
+      }
+    }
   }
 
   return m_IncludedHeaders;
@@ -242,8 +231,9 @@ wxArrayString FileAnalysis::ParseForFwdDecls()
     const wxRegEx RegEx(reFwdDecl);
     wxString FdwDecl;
     if (RegEx.Matches(Line))
+    {
       FdwDecl = RegEx.GetMatch(Line, 1);
-
+    }
     // Include is empty if the RegEx did *not* match.
     if (!FdwDecl.IsEmpty())
     {

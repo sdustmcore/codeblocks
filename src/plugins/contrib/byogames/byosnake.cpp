@@ -187,7 +187,6 @@ void byoSnake::Move()
         case dRight: newX++; break;
         case dUp:    newY--; break;
         case dDown:  newY++; break;
-        default: break;
     }
 
     bool valid = true;

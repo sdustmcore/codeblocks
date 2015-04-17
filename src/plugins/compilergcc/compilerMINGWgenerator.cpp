@@ -36,7 +36,7 @@ wxString CompilerMINGWGenerator::SetupIncludeDirs(Compiler* compiler, ProjectBui
     wxString result = CompilerCommandGenerator::SetupIncludeDirs(compiler, target);
     m_VerStr = compiler->GetVersionString();
     wxString pch_prepend = wxEmptyString;
-    bool IsGcc4 = m_VerStr.IsEmpty() || m_VerStr.Left(1).IsSameAs(_T("4"));
+    bool IsGcc4 = m_VerStr.Left(1).IsSameAs(_T("4"));
     bool HasPCH = false; // We don't know yet if there are any header files to be compiled...
 
     // for PCH to work, the very first include dir *must* be the object output dir
@@ -47,16 +47,15 @@ wxString CompilerMINGWGenerator::SetupIncludeDirs(Compiler* compiler, ProjectBui
         wxArrayString includedDirs; // avoid adding duplicate dirs...
         wxString sep = wxFILE_SEP_PATH;
         // find all PCH in project
-        for (FilesList::iterator it = target->GetParentProject()->GetFilesList().begin(); it != target->GetParentProject()->GetFilesList().end(); ++it)
+        int count = target->GetParentProject()->GetFilesCount();
+        for (int i = 0; i < count; ++i)
         {
-            ProjectFile* f = *it;
+            ProjectFile* f = target->GetParentProject()->GetFile(i);
             if (FileTypeOf(f->relativeFilename) == ftHeader &&
                 f->compile)
             {
                 // it is a PCH; add it's object dir to includes
-                wxFileName fn(f->GetObjName());
-                wxString objName = (compiler->GetSwitches().UseFlatObjects) ? fn.GetFullName() : fn.GetFullPath();
-                wxString dir = wxFileName(target->GetObjectOutput() + sep + objName).GetPath();
+                wxString dir = wxFileName(target->GetObjectOutput() + sep + f->GetObjName()).GetPath();
                 if (includedDirs.Index(dir) == wxNOT_FOUND)
                 {
                     includedDirs.Add(dir);
@@ -74,7 +73,7 @@ wxString CompilerMINGWGenerator::SetupIncludeDirs(Compiler* compiler, ProjectBui
         // for earlier versions, -I- must be used
         if (!IsGcc4)
             pch_prepend << _T("-I- ");
-        int count = (int)includedDirs.GetCount();
+        count = (int)includedDirs.GetCount();
         for (int i = 0; i < count; ++i)
         {
             QuoteStringIfNeeded(includedDirs[i]);

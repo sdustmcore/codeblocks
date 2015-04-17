@@ -7,13 +7,10 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <stdio.h>
 #include <stdarg.h>
-#include <ctype.h>
 
-#include <algorithm>
-
-#include "StringCopy.h"
 #include "WordList.h"
 
 #ifdef SCI_NAMESPACE
@@ -33,11 +30,11 @@ static char **ArrayFromWordList(char *wordlist, int *len, bool onlyLineEnds = fa
 	for (int i=0; i<256; i++) {
 		wordSeparator[i] = false;
 	}
-	wordSeparator[static_cast<unsigned int>('\r')] = true;
-	wordSeparator[static_cast<unsigned int>('\n')] = true;
+	wordSeparator['\r'] = true;
+	wordSeparator['\n'] = true;
 	if (!onlyLineEnds) {
-		wordSeparator[static_cast<unsigned int>(' ')] = true;
-		wordSeparator[static_cast<unsigned int>('\t')] = true;
+		wordSeparator[' '] = true;
+		wordSeparator['\t'] = true;
 	}
 	for (int j = 0; wordlist[j]; j++) {
 		int curr = static_cast<unsigned char>(wordlist[j]);
@@ -46,39 +43,27 @@ static char **ArrayFromWordList(char *wordlist, int *len, bool onlyLineEnds = fa
 		prev = curr;
 	}
 	char **keywords = new char *[words + 1];
-	int wordsStore = 0;
-	const size_t slen = strlen(wordlist);
-	if (words) {
+	if (keywords) {
+		words = 0;
 		prev = '\0';
+		size_t slen = strlen(wordlist);
 		for (size_t k = 0; k < slen; k++) {
 			if (!wordSeparator[static_cast<unsigned char>(wordlist[k])]) {
 				if (!prev) {
-					keywords[wordsStore] = &wordlist[k];
-					wordsStore++;
+					keywords[words] = &wordlist[k];
+					words++;
 				}
 			} else {
 				wordlist[k] = '\0';
 			}
 			prev = wordlist[k];
 		}
+		keywords[words] = &wordlist[slen];
+		*len = words;
+	} else {
+		*len = 0;
 	}
-	keywords[wordsStore] = &wordlist[slen];
-	*len = wordsStore;
 	return keywords;
-}
-
-WordList::WordList(bool onlyLineEnds_) :
-	words(0), list(0), len(0), onlyLineEnds(onlyLineEnds_) {
-	// Prevent warnings by static analyzers about uninitialized starts.
-	starts[0] = -1;
-}
-
-WordList::~WordList() {
-	Clear();
-}
-
-WordList::operator bool() const {
-	return len ? true : false;
 }
 
 bool WordList::operator!=(const WordList &other) const {
@@ -91,10 +76,6 @@ bool WordList::operator!=(const WordList &other) const {
 	return false;
 }
 
-int WordList::Length() const {
-	return len;
-}
-
 void WordList::Clear() {
 	if (words) {
 		delete []list;
@@ -105,36 +86,23 @@ void WordList::Clear() {
 	len = 0;
 }
 
-#ifdef _MSC_VER
-
-static bool cmpWords(const char *a, const char *b) {
-	return strcmp(a, b) < 0;
-}
-
-#else
-
-static int cmpWords(const void *a, const void *b) {
-	return strcmp(*static_cast<const char * const *>(a), *static_cast<const char * const *>(b));
+extern "C" int cmpString(const void *a1, const void *a2) {
+	// Can't work out the correct incantation to use modern casts here
+	return strcmp(*(char **)(a1), *(char **)(a2));
 }
 
 static void SortWordList(char **words, unsigned int len) {
-	qsort(reinterpret_cast<void *>(words), len, sizeof(*words), cmpWords);
+	qsort(reinterpret_cast<void *>(words), len, sizeof(*words),
+	      cmpString);
 }
-
-#endif
 
 void WordList::Set(const char *s) {
 	Clear();
-	const size_t lenS = strlen(s) + 1;
-	list = new char[lenS];
-	memcpy(list, s, lenS);
+	list = new char[strlen(s) + 1];
+	strcpy(list, s);
 	words = ArrayFromWordList(list, &len, onlyLineEnds);
-#ifdef _MSC_VER
-	std::sort(words, words + len, cmpWords);
-#else
 	SortWordList(words, len);
-#endif
-	for (unsigned int k = 0; k < ELEMENTS(starts); k++)
+	for (unsigned int k = 0; k < (sizeof(starts) / sizeof(starts[0])); k++)
 		starts[k] = -1;
 	for (int l = len - 1; l >= 0; l--) {
 		unsigned char indexChar = words[l][0];
@@ -142,18 +110,13 @@ void WordList::Set(const char *s) {
 	}
 }
 
-/** Check whether a string is in the list.
- * List elements are either exact matches or prefixes.
- * Prefix elements start with '^' and match all strings that start with the rest of the element
- * so '^GTK_' matches 'GTK_X', 'GTK_MAJOR_VERSION', and 'GTK_'.
- */
 bool WordList::InList(const char *s) const {
 	if (0 == words)
 		return false;
 	unsigned char firstChar = s[0];
 	int j = starts[firstChar];
 	if (j >= 0) {
-		while (static_cast<unsigned char>(words[j][0]) == firstChar) {
+		while ((unsigned char)words[j][0] == firstChar) {
 			if (s[1] == words[j][1]) {
 				const char *a = words[j] + 1;
 				const char *b = s + 1;
@@ -167,7 +130,7 @@ bool WordList::InList(const char *s) const {
 			j++;
 		}
 	}
-	j = starts[static_cast<unsigned int>('^')];
+	j = starts['^'];
 	if (j >= 0) {
 		while (words[j][0] == '^') {
 			const char *a = words[j] + 1;
@@ -195,7 +158,7 @@ bool WordList::InListAbbreviated(const char *s, const char marker) const {
 	unsigned char firstChar = s[0];
 	int j = starts[firstChar];
 	if (j >= 0) {
-		while (static_cast<unsigned char>(words[j][0]) == firstChar) {
+		while (words[j][0] == firstChar) {
 			bool isSubword = false;
 			int start = 1;
 			if (words[j][1] == marker) {
@@ -219,7 +182,7 @@ bool WordList::InListAbbreviated(const char *s, const char marker) const {
 			j++;
 		}
 	}
-	j = starts[static_cast<unsigned int>('^')];
+	j = starts['^'];
 	if (j >= 0) {
 		while (words[j][0] == '^') {
 			const char *a = words[j] + 1;
@@ -235,8 +198,3 @@ bool WordList::InListAbbreviated(const char *s, const char marker) const {
 	}
 	return false;
 }
-
-const char *WordList::WordAt(int n) const {
-	return words[n];
-}
-

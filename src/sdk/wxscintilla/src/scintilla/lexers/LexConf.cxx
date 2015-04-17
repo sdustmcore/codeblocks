@@ -2,7 +2,7 @@
 /** @file LexConf.cxx
  ** Lexer for Apache Configuration Files.
  **
- ** First working version contributed by Ahmad Zawawi <ahmad.zawawi@gmail.com> on October 28, 2000.
+ ** First working version contributed by Ahmad Zawawi <zeus_go64@hotmail.com> on October 28, 2000.
  ** i created this lexer because i needed something pretty when dealing
  ** when Apache Configuration files...
  **/
@@ -20,6 +20,7 @@
 #include "Scintilla.h"
 #include "SciLexer.h"
 
+#include "PropSetSimple.h"
 #include "WordList.h"
 #include "LexAccessor.h"
 #include "Accessor.h"
@@ -37,7 +38,7 @@ static void ColouriseConfDoc(unsigned int startPos, int length, int, WordList *k
 	char chNext = styler[startPos];
 	int lengthDoc = startPos + length;
 	// create a buffer large enough to take the largest chunk...
-	char *buffer = new char[length+1];
+	char *buffer = new char[length];
 	int bufferCount = 0;
 
 	// this assumes that we have 2 keyword list in conf.properties
@@ -74,17 +75,17 @@ static void ColouriseConfDoc(unsigned int startPos, int length, int, WordList *k
 				} else if( ch == '"') {
 					state = SCE_CONF_STRING;
 					styler.ColourTo(i,SCE_CONF_STRING);
-				} else if( IsASCII(ch) && ispunct(ch) ) {
+				} else if( isascii(ch) && ispunct(ch) ) {
 					// signals an operator...
 					// no state jump necessary for this
 					// simple case...
 					styler.ColourTo(i,SCE_CONF_OPERATOR);
-				} else if( IsASCII(ch) && isalpha(ch) ) {
+				} else if( isascii(ch) && isalpha(ch) ) {
 					// signals the start of an identifier
 					bufferCount = 0;
 					buffer[bufferCount++] = static_cast<char>(tolower(ch));
 					state = SCE_CONF_IDENTIFIER;
-				} else if( IsASCII(ch) && isdigit(ch) ) {
+				} else if( isascii(ch) && isdigit(ch) ) {
 					// signals the start of a number
 					bufferCount = 0;
 					buffer[bufferCount++] = ch;
@@ -111,7 +112,7 @@ static void ColouriseConfDoc(unsigned int startPos, int length, int, WordList *k
 				// if we find a non-alphanumeric char,
 				// we simply go to default state
 				// else we're still dealing with an extension...
-				if( (IsASCII(ch) && isalnum(ch)) || (ch == '_') ||
+				if( (isascii(ch) && isalnum(ch)) || (ch == '_') ||
 					(ch == '-') || (ch == '$') ||
 					(ch == '/') || (ch == '.') || (ch == '*') )
 				{
@@ -133,7 +134,7 @@ static void ColouriseConfDoc(unsigned int startPos, int length, int, WordList *k
 
 			case SCE_CONF_IDENTIFIER:
 				// stay  in CONF_IDENTIFIER state until we find a non-alphanumeric
-				if( (IsASCII(ch) && isalnum(ch)) || (ch == '_') || (ch == '-') || (ch == '/') || (ch == '$') || (ch == '.') || (ch == '*')) {
+				if( (isascii(ch) && isalnum(ch)) || (ch == '_') || (ch == '-') || (ch == '/') || (ch == '$') || (ch == '.') || (ch == '*')) {
 					buffer[bufferCount++] = static_cast<char>(tolower(ch));
 				} else {
 					state = SCE_CONF_DEFAULT;
@@ -158,7 +159,7 @@ static void ColouriseConfDoc(unsigned int startPos, int length, int, WordList *k
 
 			case SCE_CONF_NUMBER:
 				// stay  in CONF_NUMBER state until we find a non-numeric
-				if( (IsASCII(ch) && isdigit(ch)) || ch == '.') {
+				if( (isascii(ch) && isdigit(ch)) || ch == '.') {
 					buffer[bufferCount++] = ch;
 				} else {
 					state = SCE_CONF_DEFAULT;

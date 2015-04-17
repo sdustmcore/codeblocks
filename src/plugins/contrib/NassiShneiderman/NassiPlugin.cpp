@@ -8,7 +8,6 @@
 #endif
 #include <configurationpanel.h>
 #include <cbstyledtextctrl.h>
-#include <cbcolourmanager.h>
 #include <filefilters.h>
 #include "NassiPlugin.h"
 
@@ -60,8 +59,8 @@ namespace
     const int NASSI_ID_NEW_FILE = wxNewId();
     const int idParseC = wxNewId();
     const int insertCFromDiagram[MaxInsertMenuEntries] = {
-        static_cast<int>(wxNewId()), static_cast<int>(wxNewId()), static_cast<int>(wxNewId()), static_cast<int>(wxNewId()), static_cast<int>(wxNewId()),
-        static_cast<int>(wxNewId()), static_cast<int>(wxNewId()), static_cast<int>(wxNewId()), static_cast<int>(wxNewId()), static_cast<int>(wxNewId())};
+        wxNewId(), wxNewId(), wxNewId(), wxNewId(), wxNewId(),
+        wxNewId(), wxNewId(), wxNewId(), wxNewId(), wxNewId()};
 }
 
 namespace {
@@ -118,7 +117,6 @@ BEGIN_EVENT_TABLE(NassiPlugin, cbPlugin)
     EVT_UPDATE_UI_RANGE(NASSI_ID_EXPORT_SVG, NASSI_ID_EXPORT_BITMAP, NassiPlugin::OnUpdateExport)
     EVT_MENU_RANGE(NASSI_ID_EXPORT_SVG, NASSI_ID_EXPORT_BITMAP,      NassiPlugin::OnExport)
 
-    EVT_UPDATE_UI(idParseC, NassiPlugin::OnUpdateUIMenuItem)
 END_EVENT_TABLE()
 
 // constructor
@@ -148,21 +146,10 @@ void NassiPlugin::OnAttach()
     // is FALSE, it means that the application did *not* "load"
     // (see: does not need) this plugin...
 
-    ColourManager* cmgr = Manager::Get()->GetColourManager();
-    cmgr->RegisterColour(_("NassiShneiderman"), _("Brick background"), wxT("nassi_brick_background"), *wxWHITE);
-    cmgr->RegisterColour(_("NassiShneiderman"), _("Empty brick background"), wxT("nassi_empty_brick_background"), *wxLIGHT_GREY);
-    cmgr->RegisterColour(_("NassiShneiderman"), _("Graphics colour"), wxT("nassi_graphics_colour"), *wxBLACK);
-    cmgr->RegisterColour(_("NassiShneiderman"), _("Selection colour"), wxT("nassi_selection_colour"), *wxCYAN);
-    cmgr->RegisterColour(_("NassiShneiderman"), _("Source colour"), wxT("nassi_source_colour"), *wxBLACK);
-    cmgr->RegisterColour(_("NassiShneiderman"), _("Comment colour"), wxT("nassi_comment_colour"), *wxRED);
 
     for ( int i = 0 ; i < MaxInsertMenuEntries ; i++ )
         Connect(insertCFromDiagram[i], wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(NassiPlugin::OnInsertCFromDiagram), 0, this);
     Connect(idParseC, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(NassiPlugin::ParseC), 0, this);
-
-    cbEventFunctor<NassiPlugin, CodeBlocksEvent> *functor;
-    functor = new cbEventFunctor<NassiPlugin, CodeBlocksEvent>(this, &NassiPlugin::OnSettingsChanged);
-    Manager::Get()->RegisterEventSink(cbEVT_SETTINGS_CHANGED, functor);
 
     FileFilters::Add(_("Nassi Shneiderman diagram"), _T("*.nsd") );
 }
@@ -176,6 +163,20 @@ void NassiPlugin::OnRelease(bool appShutDown)
             Disconnect(insertCFromDiagram[i], wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(NassiPlugin::OnInsertCFromDiagram), 0, this);
         Disconnect(idParseC, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(NassiPlugin::ParseC), 0, this);
     }
+}
+
+int NassiPlugin::Configure()
+{
+    //create and display the configuration dialog for your plugin
+    cbConfigurationDialog dlg(Manager::Get()->GetAppWindow(), wxID_ANY, _("Your dialog title"));
+    cbConfigurationPanel* panel = GetConfigurationPanel(&dlg);
+    if (panel)
+    {
+        dlg.AttachConfigurationPanel(panel);
+        PlaceWindow(&dlg);
+        return dlg.ShowModal() == wxID_OK ? 0 : -1;
+    }
+    return -1;
 }
 
 void NassiPlugin::BuildMenu(wxMenuBar* menuBar)
@@ -210,11 +211,10 @@ void NassiPlugin::BuildMenu(wxMenuBar* menuBar)
     if ( !exportmenu->FindItem(NASSI_ID_EXPORT_STRUKTEX) )
         exportmenu->Append(NASSI_ID_EXPORT_STRUKTEX, _T("StrukTeX"), _("export to StrukTeX format"));
 
-// TODO (danselmi#1#): check why svg export crashes on wx30; fix and enable feature again
-        //    #if wxCHECK_VERSION(3, 0, 0)
-//    if ( !exportmenu->FindItem(NASSI_ID_EXPORT_SVG) )
-//        exportmenu->Append(NASSI_ID_EXPORT_SVG, _T("SVG"), _("export to SVG format"));
-//    #endif
+    #ifdef USE_SVG
+    if ( !exportmenu->FindItem(NASSI_ID_EXPORT_SVG) )
+        exportmenu->Append(NASSI_ID_EXPORT_SVG, _T("SVG"), _("export to SVG format"));
+    #endif
 
     if ( !exportmenu->FindItem(NASSI_ID_EXPORT_BITMAP) )
         exportmenu->Append(NASSI_ID_EXPORT_BITMAP, _T("PNG"), _("export to PNG format"));
@@ -243,13 +243,6 @@ void NassiPlugin::BuildMenu(wxMenuBar* menuBar)
     if ( !filenewmenu->FindItem(NASSI_ID_NEW_FILE) )
         filenewmenu->Append(NASSI_ID_NEW_FILE, _("Nassi Shneiderman diagram"), _("Create a new Nassi Shneiderman diagram"));
 
-    pos = menuBar->FindMenu(_("&View"));
-    if (pos == wxNOT_FOUND)
-        return;
-
-    wxMenu* viewmenu = menuBar->GetMenu(pos);
-    viewmenu->Append(idParseC, _("Nassi-Shneiderman diagram"), _("Construct Nassi-Shneiderman diagram from selected text"));
-    viewmenu->Enable(idParseC, false);
 }
 
 void NassiPlugin::BuildModuleMenu(const ModuleType type, wxMenu* menu, const FileTreeData* /*data*/)
@@ -600,7 +593,7 @@ void NassiPlugin::OnExport(wxCommandEvent &event)
 
     int id = event.GetId();
     if( id == NASSI_ID_EXPORT_SOURCE )        ed->ExportCSource();
-    #if wxCHECK_VERSION(3, 0, 0)
+    #ifdef USE_SVG
         else if ( id == NASSI_ID_EXPORT_SVG ) ed->ExportSVG();
     #endif
     else if( id == NASSI_ID_EXPORT_VHDL )     ed->ExportVHDLSource();
@@ -613,36 +606,3 @@ void NassiPlugin::OnExport(wxCommandEvent &event)
 
 //} export end
 
-void NassiPlugin::OnUpdateUIMenuItem(wxUpdateUIEvent &event)
-{
-    bool enable = false;
-
-    EditorManager* emngr = Manager::Get()->GetEditorManager();
-    if (emngr)
-    {
-        EditorBase *edb = emngr->GetActiveEditor();
-        if (edb && edb->IsBuiltinEditor())
-        {
-            cbStyledTextCtrl* stc = static_cast<cbEditor*>(edb)->GetControl();
-            if (stc && stc->GetLexer() == wxSCI_LEX_CPP)
-                enable = edb->HasSelection();
-        }
-    }
-    event.Enable(enable);
-}
-
-void NassiPlugin::OnSettingsChanged(CodeBlocksEvent &event)
-{
-    if (event.GetInt()==cbSettingsType::Environment)
-    {
-        for (int i = 0 ; i < Manager::Get()->GetEditorManager()->GetEditorsCount() ; i++)
-        {
-            EditorBase *ed = Manager::Get()->GetEditorManager()->GetEditor(i);
-            if (NassiEditorPanel::IsNassiEditor(ed))
-            {
-                NassiEditorPanel *ned = static_cast<NassiEditorPanel*>(ed);
-                ned->UpdateColors();
-            }
-        }
-    }
-}

@@ -33,6 +33,7 @@
 #include "Accessor.h"
 #endif
 #include "ContractionState.h"
+#include "SVector.h"
 #include "CellBuffer.h"
 #include "CallTip.h"
 #include "KeyMap.h"
@@ -47,14 +48,9 @@
 #include "Editor.h"
 #include "ScintillaBase.h"
 
+#include <wx/wx.h>
 #include <wx/dataobj.h>
 #include <wx/dnd.h>
-#include <wx/timer.h>
-
-#ifdef __WXMSW__
-    #include <windows.h>
-    #include <wx/msw/wrapwin.h>
-#endif // __WXMSW__
 
 //----------------------------------------------------------------------
 
@@ -66,21 +62,10 @@
     #define WXDLLIMPEXP_SCI
 #endif
 
-
-#ifdef SCI_NAMESPACE
-	#ifndef SCI_NAMESPACE_PREFIX
-		#define SCI_NAMESPACE_PREFIX( x ) Scintilla::x
-	#endif
-#else
-	#ifndef SCI_NAMESPACE_PREFIX
-		#define SCI_NAMESPACE_PREFIX( x ) x
-	#endif
-#endif
-
 //----------------------------------------------------------------------
 
 
-class wxScintilla;           // forward
+class WXDLLIMPEXP_SCI wxScintilla;           // forward
 class ScintillaWX;
 
 
@@ -106,22 +91,21 @@ private:
 
 //----------------------------------------------------------------------
 
-/* C::B begin */
-class ScintillaWX : public SCI_NAMESPACE_PREFIX(ScintillaBase) {
-/* C::B end */
+class ScintillaWX : public ScintillaBase {
 public:
 
     ScintillaWX(wxScintilla* win);
     ~ScintillaWX();
+
+    static sptr_t DirectFunction( ScintillaWX *wxsci, unsigned int iMessage,
+                                  uptr_t wParam, sptr_t lParam);
 
     // base class virtuals
     virtual void Initialise();
     virtual void Finalise();
     virtual void StartDrag();
     virtual bool SetIdle(bool on);
-/* C::B begin */
-    // SetTicking function is deprecated since we implement fine grained timers
-/* C::B end */
+    virtual void SetTicking(bool on);
     virtual void SetMouseCapture(bool on);
     virtual bool HaveMouseCapture();
     virtual void ScrollText(int linesToMove);
@@ -130,11 +114,9 @@ public:
     virtual bool ModifyScrollBars(int nMax, int nPage);
     virtual void Copy();
     virtual void Paste();
-/* C::B begin */
-    virtual void CopyToClipboard(const SCI_NAMESPACE_PREFIX(SelectionText) &selectedText);
+    virtual void CopyToClipboard(const SelectionText &selectedText);
 
-    virtual void CreateCallTipWindow(SCI_NAMESPACE_PREFIX(PRectangle) rc);
-/* C::B end */
+    virtual void CreateCallTipWindow(PRectangle rc);
     virtual void AddToPopUp(const char *label, int cmd = 0, bool enabled = true);
     virtual void ClaimSelection();
 
@@ -144,26 +126,10 @@ public:
     virtual sptr_t WndProc(unsigned int iMessage,
                            uptr_t wParam,
                            sptr_t lParam);
-/* C::B begin */
-    static sptr_t DirectFunction(ScintillaWX *wxsci,
-                                 unsigned int iMessage,
-                                 uptr_t wParam,
-                                 sptr_t lParam);
-/* C::B end */
 
-    virtual void NotifyChange();
-    virtual void NotifyParent(SCI_NAMESPACE_PREFIX(SCNotification) scn);
-/* C::B begin */
     virtual void NotifyFocus(bool focus);
-/* C::B end */
-
-/* C::B begin */
-    wxTimer* timers[tickDwell+1];
-    virtual bool FineTickerAvailable();
-    virtual bool FineTickerRunning(TickReason reason);
-    virtual void FineTickerStart(TickReason reason, int millis, int tolerance);
-    virtual void FineTickerCancel(TickReason reason);
-/* C::B end */
+    virtual void NotifyChange();
+    virtual void NotifyParent(SCNotification scn);
 
     virtual void CancelModes();
 
@@ -177,27 +143,15 @@ public:
     void DoLoseFocus();
     void DoGainFocus();
     void DoSysColourChange();
-/* C::B begin */
-    void DoLeftButtonDown(SCI_NAMESPACE_PREFIX(Point) pt, unsigned int curTime, bool shift, bool ctrl, bool alt);
-    void DoLeftButtonUp(SCI_NAMESPACE_PREFIX(Point) pt, unsigned int curTime, bool ctrl);
-    void DoLeftButtonMove(SCI_NAMESPACE_PREFIX(Point) pt);
-    void DoMiddleButtonUp(SCI_NAMESPACE_PREFIX(Point) pt);
-#if !wxCHECK_VERSION(2,9,4)
-    enum wxMouseWheelAxis
-    {
-        wxMOUSE_WHEEL_VERTICAL,
-        wxMOUSE_WHEEL_HORIZONTAL
-    };
-#endif
-/* C::B end */
-    void DoMouseWheel(wxMouseWheelAxis axis, int rotation, int delta,
-                      int linesPerAction, int columnsPerAction,
-                      bool ctrlDown, bool isPageScroll);
+    void DoLeftButtonDown(Point pt, unsigned int curTime, bool shift, bool ctrl, bool alt);
+    void DoLeftButtonUp(Point pt, unsigned int curTime, bool ctrl);
+    void DoLeftButtonMove(Point pt);
+    void DoMiddleButtonUp(Point pt);
+    void DoMouseWheel(int rotation, int delta, int linesPerAction, int ctrlDown, bool isPageScroll);
     void DoAddChar(int key);
     int  DoKeyDown(const wxKeyEvent& event, bool* consumed);
     void DoTick() { Tick(); }
     void DoOnIdle(wxIdleEvent& evt);
-    void DoOnTimer(wxTimerEvent& evt);
 
 #if wxUSE_DRAG_AND_DROP
     bool DoDropText(long x, long y, const wxString& data);
@@ -207,24 +161,17 @@ public:
 #endif
 
     void DoCommand(int ID);
-/* C::B begin */
-    void DoContextMenu(SCI_NAMESPACE_PREFIX(Point) pt);
-/* C::B ebd */
+    void DoContextMenu(Point pt);
     void DoOnListBox();
 
 
     // helpers
     void FullPaint();
-    void FullPaintDC(wxDC* dc);
     bool CanPaste();
-    bool GetHideSelection() { return view.hideSelection; }
+    bool GetHideSelection() { return hideSelection; }
     void DoScrollToLine(int line);
     void DoScrollToColumn(int column);
-/* C::B begin */
-    void ClipChildren(wxDC& dc, SCI_NAMESPACE_PREFIX(PRectangle) rect);
-/* C::B end */
-    void SetUseAntiAliasing(bool useAA);
-    bool GetUseAntiAliasing();
+    void ClipChildren(wxDC& dc, PRectangle rect);
 
 private:
     bool                capturedMouse;
@@ -234,13 +181,10 @@ private:
 #if wxUSE_DRAG_AND_DROP
     wxSCIDropTarget*    dropTarget;
     wxDragResult        dragResult;
-/* C::B begin */
     bool                dragRectangle;
-/* C::B end */
 #endif
 
-    int                 wheelVRotation;
-    int                 wheelHRotation;
+    int                 wheelRotation;
 
     // For use in creating a system caret
     bool HasCaretSizeChanged();

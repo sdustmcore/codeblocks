@@ -52,7 +52,8 @@ NassiDataObject::NassiDataObject(NassiBrick *brick, NassiView *view, wxString st
         memdc->SelectObject(bitmap);
         memdc->SetPen(*wxBLACK_PEN);
         ///draw the diagram
-        for (BricksMap::iterator it = GraphBricks.begin() ; it != GraphBricks.end() ; ++it)
+        BricksMap::iterator it;
+        for ( it = GraphBricks.begin() ; it != GraphBricks.end() ; it++)
             it->second->Draw(memdc);
 
         memdc->SelectObject(wxNullBitmap);
@@ -63,8 +64,8 @@ NassiDataObject::NassiDataObject(NassiBrick *brick, NassiView *view, wxString st
         while ( GraphBricks.size() )
         {
             BricksMap::iterator it = GraphBricks.begin();
-            GraphNassiBrick* gbrick2 = it->second;
-            delete gbrick2;
+            GraphNassiBrick *gbrick = it->second;
+            if ( gbrick ) delete gbrick;
             GraphBricks.erase(it->first);
         }
         delete graphFabric;

@@ -58,8 +58,8 @@ int CBProfilerExecDlg::Execute(wxString exename, wxString dataname, struct_confi
     int pid = -1;
 
     { // begin lifetime of wxBusyInfo
-      wxBusyInfo wait(_("Please wait, while running gprof..."), parent);
-      Manager::Get()->GetLogManager()->DebugLog(F(_T("Profiler: Running command %s"), cmd.wx_str()));
+      wxBusyInfo wait(_("Please wait, while running gprof..."), this);
+      Manager::Get()->GetLogManager()->DebugLog(F(_T("Profiler: Running command %s"), cmd.c_str()));
       pid = wxExecute(cmd, gprof_output, gprof_errors);
     } // end lifetime of wxBusyInfo
 
@@ -74,7 +74,7 @@ int CBProfilerExecDlg::Execute(wxString exename, wxString dataname, struct_confi
     else
     {
         wxXmlResource::Get()->LoadObject(this, parent, _T("dlgCBProfilerExec"),_T("wxScrollingDialog"));
-        wxFont font(10, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+        wxFont font(10, wxMODERN, wxNORMAL, wxNORMAL);
         outputFlatProfileArea     = XRCCTRL(*this, "lstFlatProfile",     wxListCtrl);
         outputHelpFlatProfileArea = XRCCTRL(*this, "txtHelpFlatProfile", wxTextCtrl);
         outputHelpFlatProfileArea->SetFont(font);
@@ -109,8 +109,7 @@ void CBProfilerExecDlg::ShowOutput(const wxArrayString& msg, bool error)
             ParseFlatProfile(msg, progress, maxcount, count);
 
         // Parsing Call Graph
-        if ((count < maxcount) &&
-            (msg[count].Find(_T("Call graph"))   != -1))
+        if (msg[count].Find(_T("Call graph"))   != -1)
             ParseCallGraph(msg, progress, maxcount, count);
 
         // The rest of the lines, if any, is printed in the Misc tab
@@ -141,7 +140,7 @@ void CBProfilerExecDlg::EndModal(int retCode)
 }
 
 // Sorting function of the flat profile columns
-int wxCALLBACK SortFunction(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
+int wxCALLBACK SortFunction(long item1, long item2, long sortData)
 {
     CBProfilerExecDlg *dialog = (CBProfilerExecDlg*) sortData;
 
@@ -209,7 +208,7 @@ void CBProfilerExecDlg::OnColumnClick(wxListEvent& event)
         sortAscending = !sortAscending;
 
     sortColumn = event.GetColumn();
-    outputFlatProfileArea->SortItems(SortFunction, (wxIntPtr)this);
+    outputFlatProfileArea->SortItems(SortFunction, (long)this);
 }
 
 void CBProfilerExecDlg::ParseMisc(const wxArrayString& msg, wxProgressDialog &progress, const size_t maxcount, size_t &count)
@@ -360,8 +359,8 @@ void CBProfilerExecDlg::ParseFlatProfile(const wxArrayString& msg, wxProgressDia
             // manually parse for space positions
             if (need_parsing)
             {
-                int cnt=0; int i=0; int len = TOKEN.Len();
-                while (i < len && cnt < 6) {
+                int count=0; int i=0; int len = TOKEN.Len();
+                while (i < len && count < 6) {
                     // we start with spaces
                     while (TOKEN[i] == ' ' && ++i < len);
                     if (i>=len) break;
@@ -369,7 +368,7 @@ void CBProfilerExecDlg::ParseFlatProfile(const wxArrayString& msg, wxProgressDia
                     while (TOKEN[i] != ' ' && ++i < len);
                     if (i>=len) break;
                     // found a new space position
-                    spacePos[cnt++] = i;
+                    spacePos[count++] = i;
                 }
             }
         }

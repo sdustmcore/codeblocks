@@ -11,7 +11,7 @@
 				<Option object_output="..\..\..\.objs\plugins\contrib\dragscroll" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --multiple-instance -na -ns -nd -p debug" />
+				<Option parameters="--debug-log -na -ns -nd" />
 				<Option host_application="..\..\..\devel\codeblocks.exe" />
 			</Target>
 			<Environment>
@@ -24,7 +24,7 @@
 		</VirtualTargets>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add option="$(#CB_RELEASE_TYPE)" />
+			<Add option="-g" />
 			<Add option="-Winvalid-pch" />
 			<Add option="-pipe" />
 			<Add option="-mthreads" />
@@ -38,8 +38,11 @@
 			<Add option="-DWXUSINGDLL" />
 			<Add option="-DcbDEBUG" />
 			<Add option="-DwxUSE_UNICODE" />
+			<Add option="-DWXMAKINGDLL_PROPGRID" />
+			<Add option="-DwxPG_USE_WXMODULE=0" />
 			<Add directory="$(#WX.include)" />
 			<Add directory="$(#WX.lib)\gcc_dll$(WX_CFG)\msw$(WX_SUFFIX)" />
+			<Add directory="$(#WX)\contrib\include" />
 			<Add directory="..\..\..\include" />
 			<Add directory="..\..\..\src" />
 			<Add directory="..\..\..\sdk\wxscintilla\include" />
@@ -48,6 +51,7 @@
 			<Add option="-mthreads" />
 			<Add library="wxmsw28$(WX_SUFFIX)" />
 			<Add library="codeblocks" />
+			<Add library="wxscintilla" />
 			<Add directory="..\..\..\devel" />
 			<Add directory="$(#WX.lib)\gcc_dll$(WX_CFG)" />
 		</Linker>

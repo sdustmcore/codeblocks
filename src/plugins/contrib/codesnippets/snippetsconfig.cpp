@@ -16,7 +16,7 @@
 	along with this program; if not, write to the Free Software
 	Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
-// RCS-ID: $Id$
+// RCS-ID: $Id: snippetsconfig.cpp 102 2007-10-29 21:16:50Z Pecan $
 #ifdef WX_PRECOMP
     #include "wx_pch.h"
 #endif
@@ -33,9 +33,9 @@
 #include "manager.h"
 #include "version.h"
 #include "snippetsconfig.h"
-#include "editormanager.h"
+#include "seditormanager.h"
 
-    // Rreferenced in snippetproperty.cpp
+    // CodeSnippetsApp main menu id, but referenced in snippetproperty.cpp
     // So each has an extern to the definition here.
     //-int idMenuProperties = wxNewId();
 
@@ -105,7 +105,7 @@ CodeSnippetsConfig::CodeSnippetsConfig()
     windowWidth = 0;
     windowHeight = 0;
     m_VersionStr = SnippetVersion.GetVersion();
-    //-m_sWindowHandle = wxEmptyString;
+    m_sWindowHandle = wxEmptyString;
     m_SettingsWindowState = wxT("Floating");
     m_bWindowStateChanged = false;
     m_pOpenFilesList = 0;
@@ -128,6 +128,7 @@ void CodeSnippetsConfig::SettingsLoad()
 {
         // file will be saved in $HOME/codesnippets.ini
 
+    wxStandardPaths stdPaths;
 
     #ifdef LOGGING
      wxString fn(__FUNCTION__, wxConvUTF8);
@@ -200,10 +201,10 @@ void CodeSnippetsConfig::SettingsLoad()
      LOGIT( _T("ExternalPersistentOpen[%s]"),   IsExternalPersistentOpen()?_T("True"):_T("False") );
     #endif //LOGGING
 
-////    // read windowHandle of last or current pgm instance that ran
-////    // CodeSnippetsApp will check if it's actually running
-////    if ( cfgFile.Exists( wxT("WindowHandle")))
-////        cfgFile.Read( wxT("WindowHandle"),  &m_sWindowHandle, wxEmptyString) ;
+    // read windowHandle of last or current pgm instance that ran
+    // CodeSnippetsApp will check if it's actually running
+    if ( cfgFile.Exists( wxT("WindowHandle")))
+        cfgFile.Read( wxT("WindowHandle"),  &m_sWindowHandle, wxEmptyString) ;
 
     // set a global snippets xml file path
     wxFileName SettingsFullPath(SettingsSnippetsCfgPath);
@@ -526,6 +527,7 @@ wxFrame* CodeSnippetsConfig::GetEditorManagerFrame(const int index)
 // ----------------------------------------------------------------------------
 {
     wxFrame* frame;
+    SEditorManager* edMgr;
     if ( (index < 0) or (index > GetEditorManagerCount()) )
         return 0;
     // iterate over all the elements in the class
@@ -536,6 +538,7 @@ wxFrame* CodeSnippetsConfig::GetEditorManagerFrame(const int index)
         if (i == index)
         {
             frame = it->first;
+            edMgr = it->second;
             return frame;
         }
         ++i;
@@ -543,10 +546,11 @@ wxFrame* CodeSnippetsConfig::GetEditorManagerFrame(const int index)
     return 0;
 }
 // ----------------------------------------------------------------------------
-EditorManager* CodeSnippetsConfig::GetEditorManager(const int index)
+SEditorManager* CodeSnippetsConfig::GetEditorManager(const int index)
 // ----------------------------------------------------------------------------
 {
-    EditorManager* edMgr;
+    wxFrame* frame;
+    SEditorManager* edMgr;
     if ( (index < 0) or (index > GetEditorManagerCount()) )
         return 0;
     // iterate over all the elements in the class
@@ -556,6 +560,7 @@ EditorManager* CodeSnippetsConfig::GetEditorManager(const int index)
     {
         if (i == index)
         {
+            frame = it->first;
             edMgr = it->second;
             return edMgr;
         }
@@ -570,13 +575,13 @@ int CodeSnippetsConfig::GetEditorManagerCount()
     return m_EdManagerMapArray.size();
 }
 // ----------------------------------------------------------------------------
-EditorManager* CodeSnippetsConfig::GetEditorManager(wxWindow* frame)
+SEditorManager* CodeSnippetsConfig::GetEditorManager(wxWindow* frame)
 // ----------------------------------------------------------------------------
 {
     return GetEditorManager((wxFrame*) frame);
 }
 // ----------------------------------------------------------------------------
-EditorManager* CodeSnippetsConfig::GetEditorManager(wxFrame* frame)
+SEditorManager* CodeSnippetsConfig::GetEditorManager(wxFrame* frame)
 // ----------------------------------------------------------------------------
 {
     // Return the EditorManager belonging to this frame.
@@ -603,7 +608,7 @@ EditorManager* CodeSnippetsConfig::GetEditorManager(wxFrame* frame)
     return 0;
 }
 // ----------------------------------------------------------------------------
-void CodeSnippetsConfig::RegisterEditorManager(wxFrame* frame, EditorManager* edMgr)
+void CodeSnippetsConfig::RegisterEditorManager(wxFrame* frame, SEditorManager* edMgr)
 // ----------------------------------------------------------------------------
 {
     EdManagerMapArray::iterator it = m_EdManagerMapArray.find(frame);

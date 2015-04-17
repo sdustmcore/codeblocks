@@ -74,21 +74,17 @@ namespace
                 m_Extra(Extra)
             {
                 //(*Initialize(wxsListbookParentQP)
-                wxStaticBoxSizer* StaticBoxSizer2;
-                wxStaticBoxSizer* StaticBoxSizer1;
-                wxFlexGridSizer* FlexGridSizer1;
-
                 Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
                 FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
                 StaticBoxSizer1 = new wxStaticBoxSizer(wxVERTICAL, this, _("Label"));
                 Label = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
-                StaticBoxSizer1->Add(Label, 0, wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-                FlexGridSizer1->Add(StaticBoxSizer1, 1, wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+                StaticBoxSizer1->Add(Label, 0, wxBOTTOM|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+                FlexGridSizer1->Add(StaticBoxSizer1, 1, wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
                 StaticBoxSizer2 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Selection"));
                 Selected = new wxCheckBox(this, ID_CHECKBOX1, _("Selected"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
                 Selected->SetValue(false);
-                StaticBoxSizer2->Add(Selected, 1, wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-                FlexGridSizer1->Add(StaticBoxSizer2, 1, wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+                StaticBoxSizer2->Add(Selected, 1, wxBOTTOM|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+                FlexGridSizer1->Add(StaticBoxSizer2, 1, wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
                 SetSizer(FlexGridSizer1);
                 FlexGridSizer1->Fit(this);
                 FlexGridSizer1->SetSizeHints(this);
@@ -141,8 +137,11 @@ namespace
             //*)
 
             //(*Declarations(wxsListbookParentQP)
+            wxStaticBoxSizer* StaticBoxSizer2;
             wxCheckBox* Selected;
             wxTextCtrl* Label;
+            wxStaticBoxSizer* StaticBoxSizer1;
+            wxFlexGridSizer* FlexGridSizer1;
             //*)
 
             wxsListbookExtra* m_Extra;
@@ -207,7 +206,7 @@ bool wxsListbook::OnCanAddChild(wxsItem* Item,bool ShowMessage)
         return false;
     }
 
-    return wxsContainer::OnCanAddChild(Item,ShowMessage);
+	return wxsContainer::OnCanAddChild(Item,ShowMessage);
 }
 
 wxsPropertyContainer* wxsListbook::OnBuildExtra()
@@ -222,43 +221,43 @@ wxString wxsListbook::OnXmlGetExtraObjectClass()
 
 void wxsListbook::OnAddChildQPP(wxsItem* Child,wxsAdvQPP* QPP)
 {
-    wxsListbookExtra* LBExtra = (wxsListbookExtra*)GetChildExtra(GetChildIndex(Child));
-    if ( LBExtra )
+    wxsListbookExtra* Extra = (wxsListbookExtra*)GetChildExtra(GetChildIndex(Child));
+    if ( Extra )
     {
-        QPP->Register(new wxsListbookParentQP(QPP,LBExtra),_("Listbook"));
+        QPP->Register(new wxsListbookParentQP(QPP,Extra),_("Listbook"));
     }
 }
 
 wxObject* wxsListbook::OnBuildPreview(wxWindow* Parent,long PreviewFlags)
 {
     UpdateCurrentSelection();
-    wxListbook* Listbook = new wxListbook(Parent,-1,Pos(Parent),Size(Parent),Style());
+	wxListbook* Listbook = new wxListbook(Parent,-1,Pos(Parent),Size(Parent),Style());
 
-    if ( !GetChildCount() && !(PreviewFlags&pfExact) )
-    {
-        // Adding additional empty notebook to prevent from having zero-sized notebook
-        Listbook->AddPage(
+	if ( !GetChildCount() && !(PreviewFlags&pfExact) )
+	{
+	    // Adding additional empty notebook to prevent from having zero-sized notebook
+	    Listbook->AddPage(
             new wxPanel(Listbook,-1,wxDefaultPosition,wxSize(50,50)),
             _("No pages"));
-    }
+	}
 
-    AddChildrenPreview(Listbook,PreviewFlags);
+	AddChildrenPreview(Listbook,PreviewFlags);
 
-    for ( int i=0; i<GetChildCount(); i++ )
-    {
-        wxsItem* Child = GetChild(i);
-        wxsListbookExtra* LBExtra = (wxsListbookExtra*)GetChildExtra(i);
+	for ( int i=0; i<GetChildCount(); i++ )
+	{
+	    wxsItem* Child = GetChild(i);
+	    wxsListbookExtra* Extra = (wxsListbookExtra*)GetChildExtra(i);
 
-        wxWindow* ChildPreview = wxDynamicCast(GetChild(i)->GetLastPreview(),wxWindow);
-        if ( !ChildPreview ) continue;
+	    wxWindow* ChildPreview = wxDynamicCast(GetChild(i)->GetLastPreview(),wxWindow);
+	    if ( !ChildPreview ) continue;
 
-        bool Selected = (Child == m_CurrentSelection);
-        if ( PreviewFlags & pfExact ) Selected = LBExtra->m_Selected;
+	    bool Selected = (Child == m_CurrentSelection);
+	    if ( PreviewFlags & pfExact ) Selected = Extra->m_Selected;
 
-        Listbook->AddPage(ChildPreview,LBExtra->m_Label,Selected);
-    }
+	    Listbook->AddPage(ChildPreview,Extra->m_Label,Selected);
+	}
 
-    return Listbook;
+	return Listbook;
 }
 
 void wxsListbook::OnBuildCreatingCode()
@@ -275,14 +274,17 @@ void wxsListbook::OnBuildCreatingCode()
 
             for ( int i=0; i<GetChildCount(); i++ )
             {
-                wxsListbookExtra* LBExtra = (wxsListbookExtra*)GetChildExtra(i);
-                Codef(_T("%AAddPage(%o, %t, %b);\n"),i,LBExtra->m_Label.wx_str(),LBExtra->m_Selected);
+                wxsListbookExtra* Extra = (wxsListbookExtra*)GetChildExtra(i);
+                #if wxCHECK_VERSION(2, 9, 0)
+                Codef(_T("%AAddPage(%o, %t, %b);\n"),i,Extra->m_Label.wx_str(),Extra->m_Selected);
+                #else
+                Codef(_T("%AAddPage(%o, %t, %b);\n"),i,Extra->m_Label.c_str(),Extra->m_Selected);
+                #endif
             }
 
             break;
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsListbook::OnBuildCreatingCode"),GetLanguage());
@@ -326,8 +328,8 @@ void wxsListbook::UpdateCurrentSelection()
     for ( int i=0; i<GetChildCount(); i++ )
     {
         if ( m_CurrentSelection == GetChild(i) ) return;
-        wxsListbookExtra* LBExtra = (wxsListbookExtra*)GetChildExtra(i);
-        if ( (i==0) || LBExtra->m_Selected )
+        wxsListbookExtra* Extra = (wxsListbookExtra*)GetChildExtra(i);
+        if ( (i==0) || Extra->m_Selected )
         {
             NewCurrentSelection = GetChild(i);
         }

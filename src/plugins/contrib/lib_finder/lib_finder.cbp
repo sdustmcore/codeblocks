@@ -12,7 +12,7 @@
 				<Option external_deps="..\..\..\devel\wxflatnotebook.dll;" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --multiple-instance -na -ns -nd -p debug" />
+				<Option parameters="--debug-log -na -ns -nd" />
 				<Option host_application="..\..\..\devel\codeblocks.exe" />
 				<Option projectResourceIncludeDirsRelation="0" />
 			</Target>
@@ -26,7 +26,7 @@
 		</VirtualTargets>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add option="$(#CB_RELEASE_TYPE)" />
+			<Add option="-g" />
 			<Add option="-pipe" />
 			<Add option="-fmessage-length=0" />
 			<Add option="-fexceptions" />
@@ -40,8 +40,11 @@
 			<Add option="-DWX_PRECOMP" />
 			<Add option="-DwxUSE_UNICODE" />
 			<Add option="-DBUILDING_PLUGIN" />
+			<Add option="-DWXMAKINGDLL_PROPGRID" />
+			<Add option="-DwxPG_USE_WXMODULE=0" />
 			<Add directory="$(#WX.include)" />
 			<Add directory="$(#WX.lib)\gcc_dll$(WX_CFG)\msw$(WX_SUFFIX)" />
+			<Add directory="$(#WX)\contrib\include" />
 			<Add directory="..\..\..\include" />
 			<Add directory="..\..\..\sdk\wxscintilla\include" />
 			<Add directory="..\..\..\include\tinyxml" />
@@ -49,13 +52,8 @@
 			<Add directory="..\..\..\include\scripting\sqplus" />
 			<Add directory="..\..\..\include\scripting\squirrel" />
 			<Add directory="..\..\..\include\scripting\bindings" />
-			<Add directory="..\wxContribItems\wxFlatNotebook\include" />
+			<Add directory="..\wxSmithContribItems\wxflatnotebook\wxFlatNotebook\include" />
 			<Add directory="..\..\..\include\mozilla_chardet" />
-			<Add directory="..\..\..\include\mozilla_chardet\mfbt" />
-			<Add directory="..\..\..\include\mozilla_chardet\nsprpub\pr\include" />
-			<Add directory="..\..\..\include\mozilla_chardet\xpcom" />
-			<Add directory="..\..\..\include\mozilla_chardet\xpcom\base" />
-			<Add directory="..\..\..\include\mozilla_chardet\xpcom\glue" />
 		</Compiler>
 		<ResourceCompiler>
 			<Add directory="$(#WX.include)" />

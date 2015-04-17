@@ -1,32 +1,28 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <wxFormBuilder_Project>
-    <FileVersion major="1" minor="10" />
+    <FileVersion major="1" minor="9" />
     <object class="Project" expanded="1">
+        <property name="bitmaps"></property>
         <property name="class_decoration"></property>
         <property name="code_generation">C++</property>
-        <property name="disconnect_events">1</property>
-        <property name="disconnect_mode">source_name</property>
-        <property name="disconnect_python_events">0</property>
         <property name="encoding">UTF-8</property>
         <property name="event_generation">connect</property>
         <property name="file">ConfigPanel</property>
         <property name="first_id">1000</property>
         <property name="help_provider">none</property>
+        <property name="icons"></property>
         <property name="internationalize">0</property>
         <property name="name">BrowseTrackerCfg</property>
         <property name="namespace"></property>
-        <property name="path">C:\Usr\Proj\cbBeta\trunk\src\plugins\contrib\BrowseTracker\FormBuilder</property>
+        <property name="path">C:\Usr\Proj\cbBrowseTracker\FormBuilder</property>
         <property name="precompiled_header">#include &quot;wx/wxprec.h&quot;&#x0A;&#x0A;#ifdef __BORLANDC__&#x0A;#pragma hdrstop&#x0A;#endif //__BORLANDC__&#x0A;&#x0A;#ifndef WX_PRECOMP&#x0A;#include &lt;wx/wx.h&gt;&#x0A;#endif //WX_PRECOMP</property>
         <property name="relative_path">1</property>
-        <property name="skip_python_events">1</property>
         <property name="use_enum">0</property>
         <property name="use_microsoft_bom">0</property>
         <object class="Panel" expanded="1">
             <property name="bg"></property>
             <property name="context_help"></property>
-            <property name="context_menu">1</property>
             <property name="enabled">1</property>
-            <property name="event_handler">impl_virtual</property>
             <property name="fg"></property>
             <property name="font"></property>
             <property name="hidden">0</property>
@@ -38,10 +34,6 @@
             <property name="size">444,569</property>
             <property name="subclass"></property>
             <property name="tooltip"></property>
-            <property name="validator_data_type"></property>
-            <property name="validator_style">wxFILTER_NONE</property>
-            <property name="validator_type">wxDefaultValidator</property>
-            <property name="validator_variable"></property>
             <property name="window_extra_style"></property>
             <property name="window_name"></property>
             <property name="window_style">wxTAB_TRAVERSAL</property>
@@ -81,10 +73,9 @@
                     <object class="wxStaticText" expanded="1">
                         <property name="bg"></property>
                         <property name="context_help"></property>
-                        <property name="context_menu">0</property>
                         <property name="enabled">1</property>
                         <property name="fg"></property>
-                        <property name="font">Tahoma,90,92,9,74,0</property>
+                        <property name="font"></property>
                         <property name="hidden">0</property>
                         <property name="id">wxID_ANY</property>
                         <property name="label">BrowseTracker Options</property>
@@ -97,10 +88,6 @@
                         <property name="style">wxALIGN_CENTRE</property>
                         <property name="subclass"></property>
                         <property name="tooltip"></property>
-                        <property name="validator_data_type"></property>
-                        <property name="validator_style">wxFILTER_NONE</property>
-                        <property name="validator_type">wxDefaultValidator</property>
-                        <property name="validator_variable"></property>
                         <property name="window_extra_style"></property>
                         <property name="window_name"></property>
                         <property name="window_style"></property>
@@ -147,7 +134,7 @@
                     <object class="wxBoxSizer" expanded="1">
                         <property name="minimum_size"></property>
                         <property name="name">bSizer7</property>
-                        <property name="orient">wxHORIZONTAL</property>
+                        <property name="orient">wxVERTICAL</property>
                         <property name="permission">none</property>
                         <object class="sizeritem" expanded="1">
                             <property name="border">5</property>
@@ -157,7 +144,6 @@
                                 <property name="bg"></property>
                                 <property name="checked">0</property>
                                 <property name="context_help"></property>
-                                <property name="context_menu">1</property>
                                 <property name="enabled">1</property>
                                 <property name="fg"></property>
                                 <property name="font"></property>
@@ -173,72 +159,11 @@
                                 <property name="style"></property>
                                 <property name="subclass"></property>
                                 <property name="tooltip"></property>
-                                <property name="validator_data_type"></property>
-                                <property name="validator_style">wxFILTER_NONE</property>
-                                <property name="validator_type">wxDefaultValidator</property>
-                                <property name="validator_variable"></property>
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
                                 <property name="window_style"></property>
                                 <event name="OnChar"></event>
                                 <event name="OnCheckBox">OnEnableBrowseMarks</event>
-                                <event name="OnEnterWindow"></event>
-                                <event name="OnEraseBackground"></event>
-                                <event name="OnKeyDown"></event>
-                                <event name="OnKeyUp"></event>
-                                <event name="OnKillFocus"></event>
-                                <event name="OnLeaveWindow"></event>
-                                <event name="OnLeftDClick"></event>
-                                <event name="OnLeftDown"></event>
-                                <event name="OnLeftUp"></event>
-                                <event name="OnMiddleDClick"></event>
-                                <event name="OnMiddleDown"></event>
-                                <event name="OnMiddleUp"></event>
-                                <event name="OnMotion"></event>
-                                <event name="OnMouseEvents"></event>
-                                <event name="OnMouseWheel"></event>
-                                <event name="OnPaint"></event>
-                                <event name="OnRightDClick"></event>
-                                <event name="OnRightDown"></event>
-                                <event name="OnRightUp"></event>
-                                <event name="OnSetFocus"></event>
-                                <event name="OnSize"></event>
-                                <event name="OnUpdateUI"></event>
-                            </object>
-                        </object>
-                        <object class="sizeritem" expanded="1">
-                            <property name="border">5</property>
-                            <property name="flag">wxALIGN_CENTER_HORIZONTAL|wxALL</property>
-                            <property name="proportion">1</property>
-                            <object class="wxCheckBox" expanded="1">
-                                <property name="bg"></property>
-                                <property name="checked">0</property>
-                                <property name="context_help"></property>
-                                <property name="context_menu">1</property>
-                                <property name="enabled">1</property>
-                                <property name="fg"></property>
-                                <property name="font"></property>
-                                <property name="hidden">0</property>
-                                <property name="id">wxID_ANY</property>
-                                <property name="label">Wrap Jump Entries</property>
-                                <property name="maximum_size"></property>
-                                <property name="minimum_size"></property>
-                                <property name="name">Cfg_WrapJumpEntries</property>
-                                <property name="permission">public</property>
-                                <property name="pos"></property>
-                                <property name="size"></property>
-                                <property name="style"></property>
-                                <property name="subclass"></property>
-                                <property name="tooltip"></property>
-                                <property name="validator_data_type"></property>
-                                <property name="validator_style">wxFILTER_NONE</property>
-                                <property name="validator_type">wxDefaultValidator</property>
-                                <property name="validator_variable"></property>
-                                <property name="window_extra_style"></property>
-                                <property name="window_name"></property>
-                                <property name="window_style"></property>
-                                <event name="OnChar"></event>
-                                <event name="OnCheckBox">OnWrapJumpEntries</event>
                                 <event name="OnEnterWindow"></event>
                                 <event name="OnEraseBackground"></event>
                                 <event name="OnKeyDown"></event>
@@ -282,7 +207,6 @@
                                 <property name="bg"></property>
                                 <property name="choices">&quot;Browse_Marks  &quot; &quot;Book_Marks&quot; &quot;Hide&quot;</property>
                                 <property name="context_help"></property>
-                                <property name="context_menu">1</property>
                                 <property name="enabled">1</property>
                                 <property name="fg"></property>
                                 <property name="font"></property>
@@ -300,10 +224,6 @@
                                 <property name="style">wxRA_SPECIFY_COLS</property>
                                 <property name="subclass"></property>
                                 <property name="tooltip"></property>
-                                <property name="validator_data_type"></property>
-                                <property name="validator_style">wxFILTER_NONE</property>
-                                <property name="validator_type">wxDefaultValidator</property>
-                                <property name="validator_variable"></property>
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
                                 <property name="window_style"></property>
@@ -352,7 +272,6 @@
                                 <property name="bg"></property>
                                 <property name="choices">&quot;Left_Mouse&quot; &quot;Ctrl-Left_Mouse&quot;</property>
                                 <property name="context_help"></property>
-                                <property name="context_menu">1</property>
                                 <property name="enabled">1</property>
                                 <property name="fg"></property>
                                 <property name="font"></property>
@@ -370,10 +289,6 @@
                                 <property name="style">wxRA_SPECIFY_COLS</property>
                                 <property name="subclass"></property>
                                 <property name="tooltip"></property>
-                                <property name="validator_data_type"></property>
-                                <property name="validator_style">wxFILTER_NONE</property>
-                                <property name="validator_type">wxDefaultValidator</property>
-                                <property name="validator_variable"></property>
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
                                 <property name="window_style"></property>
@@ -421,7 +336,6 @@
                             <object class="wxStaticText" expanded="1">
                                 <property name="bg"></property>
                                 <property name="context_help"></property>
-                                <property name="context_menu">1</property>
                                 <property name="enabled">1</property>
                                 <property name="fg"></property>
                                 <property name="font"></property>
@@ -437,10 +351,6 @@
                                 <property name="style"></property>
                                 <property name="subclass"></property>
                                 <property name="tooltip"></property>
-                                <property name="validator_data_type"></property>
-                                <property name="validator_style">wxFILTER_NONE</property>
-                                <property name="validator_type">wxDefaultValidator</property>
-                                <property name="validator_variable"></property>
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
                                 <property name="window_style"></property>
@@ -477,7 +387,6 @@
                             <object class="wxSlider" expanded="1">
                                 <property name="bg"></property>
                                 <property name="context_help"></property>
-                                <property name="context_menu">1</property>
                                 <property name="enabled">1</property>
                                 <property name="fg"></property>
                                 <property name="font"></property>
@@ -494,10 +403,6 @@
                                 <property name="style">wxSL_AUTOTICKS|wxSL_HORIZONTAL|wxSL_LABELS</property>
                                 <property name="subclass"></property>
                                 <property name="tooltip"></property>
-                                <property name="validator_data_type"></property>
-                                <property name="validator_style">wxFILTER_NONE</property>
-                                <property name="validator_type">wxDefaultValidator</property>
-                                <property name="validator_variable"></property>
                                 <property name="value">200</property>
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
@@ -566,7 +471,6 @@
                                 <property name="bg"></property>
                                 <property name="choices">&quot;Ctrl-Left_Mouse&quot; &quot;Ctrl-Left_DblClick&quot;</property>
                                 <property name="context_help"></property>
-                                <property name="context_menu">1</property>
                                 <property name="enabled">1</property>
                                 <property name="fg"></property>
                                 <property name="font"></property>
@@ -584,10 +488,6 @@
                                 <property name="style">wxRA_SPECIFY_COLS</property>
                                 <property name="subclass"></property>
                                 <property name="tooltip"></property>
-                                <property name="validator_data_type"></property>
-                                <property name="validator_style">wxFILTER_NONE</property>
-                                <property name="validator_type">wxDefaultValidator</property>
-                                <property name="validator_variable"></property>
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
                                 <property name="window_style"></property>
@@ -626,7 +526,6 @@
                     <object class="wxStaticText" expanded="1">
                         <property name="bg"></property>
                         <property name="context_help"></property>
-                        <property name="context_menu">1</property>
                         <property name="enabled">1</property>
                         <property name="fg"></property>
                         <property name="font"></property>
@@ -642,10 +541,6 @@
                         <property name="style"></property>
                         <property name="subclass"></property>
                         <property name="tooltip"></property>
-                        <property name="validator_data_type"></property>
-                        <property name="validator_style">wxFILTER_NONE</property>
-                        <property name="validator_type">wxDefaultValidator</property>
-                        <property name="validator_variable"></property>
                         <property name="window_extra_style"></property>
                         <property name="window_name"></property>
                         <property name="window_style"></property>

@@ -1,26 +1,22 @@
 #include "sdk_precomp.h"
 
 #ifndef CB_PRECOMP
-    #include <wx/file.h>
-    #include <wx/string.h>
-    #include "filemanager.h"
-    #include "manager.h"
+#include <wx/file.h>
+#include <wx/string.h>
+#include "filemanager.h"
+#include "manager.h"
 #endif
-
 #include "tinywxuni.h"
 #include "tinyxml.h"
 
 bool TinyXML::LoadDocument(const wxString& filename, TiXmlDocument *doc)
 {
 
-    if (!doc || !wxFile::Access(filename, wxFile::read))
+    if(!doc || !wxFile::Access(filename, wxFile::read))
         return false;
 
     wxFile file(filename);
     size_t len = file.Length();
-
-    if (!len)
-		return false;
 
     char *input = new char[len+1];
     input[len] = '\0';
@@ -35,11 +31,15 @@ TiXmlDocument* TinyXML::LoadDocument(const wxString& filename)
 {
     TiXmlDocument* doc = new TiXmlDocument();
 
-    if (TinyXML::LoadDocument(filename, doc))
+    if(TinyXML::LoadDocument(filename, doc))
+    {
         return doc;
-
-    delete doc;
-    return 0;
+    }
+    else
+    {
+        delete doc;
+        return 0;
+    }
 }
 
 bool TinyXML::SaveDocument(const wxString& filename, TiXmlDocument* doc)
@@ -51,6 +51,12 @@ bool TinyXML::SaveDocument(const wxString& filename, TiXmlDocument* doc)
     printer.SetIndent("\t");
     doc->Accept(&printer);
 
-    return Manager::Get()->GetFileManager()->SaveUTF8(filename, printer.CStr(), printer.Size());
+    return Manager::Get()->GetFileManager()->Save(filename, printer.CStr(), printer.Size());
+
+//    wxTempFile file(filename);
+//    if(file.IsOpened())
+//        if(file.Write(Printer.CStr(), Printer.Size()) && file.Commit())
+//            return true;
+//    return false;
 }
 

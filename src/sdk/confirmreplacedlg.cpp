@@ -12,8 +12,6 @@
 #ifndef CB_PRECOMP
     #include <wx/xrc/xmlres.h>
     #include <wx/stattext.h>
-    #include <wx/settings.h>
-
     #include "cbeditor.h"
 #endif
 #include "cbstyledtextctrl.h"

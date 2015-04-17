@@ -14,8 +14,8 @@
 #include "TextCtrl.h"
 
 #include <wx/clipbrd.h>
-#if wxCHECK_VERSION(3, 0, 0)
-    #include <wx/dcsvg.h>
+#ifdef USE_SVG
+    #include <wx/svg/dcsvg.h>
 #endif
 #include <wx/wfstream.h>
 
@@ -30,19 +30,6 @@
 #include "rc/dnd_copy_cur.xpm"
 #include "rc/dnd_move_cur.xpm"
 #include "rc/dnd_none_cur.xpm"
-
-#include <cbcolourmanager.h>
-
-void NassiViewColors::Init()
-{
-    ColourManager* cmgr = Manager::Get()->GetColourManager();
-    defaultBrush = cmgr->GetColour(wxT("nassi_brick_background"));
-    emptyBrush = cmgr->GetColour(wxT("nassi_empty_brick_background"));
-    defaultPen = cmgr->GetColour(wxT("nassi_graphics_colour"));
-    selectionPen = cmgr->GetColour(wxT("nassi_selection_colour"));
-    sourceColor = cmgr->GetColour(wxT("nassi_source_colour"));
-    commentColor = cmgr->GetColour(wxT("nassi_comment_colour"));
-}
 
 NassiView::NassiView(NassiFileContent *nfc):
     m_nfc(nfc),
@@ -72,8 +59,6 @@ NassiView::NassiView(NassiFileContent *nfc):
 {
     m_graphFabric = new GraphFabric(this, &m_GraphBricks);
     nfc->AddObserver(this);
-
-    m_colors.Init();
 }
 const wxPoint NassiView::offset = wxPoint(20,20);
 NassiView::~NassiView()
@@ -1001,9 +986,6 @@ NassiBrick *NassiView::GenerateNewBrick(NassiTools tool)
             brick->SetTextByNumber( _("expression"), 1);
             break;
         default:
-        case NassiView::NASSI_TOOL_ESC:
-        case NassiView::NASSI_TOOL_SELECT:
-        case NassiView::NASSI_TOOL_PASTE:
         case NASSI_TOOL_INSTRUCTION:
             brick = new NassiInstructionBrick();
             brick->SetTextByNumber( _T("..."), 0);
@@ -1072,14 +1054,14 @@ void NassiView::DragStart()
             wxIcon movecursor(dnd_move_cur_xpm);
             wxIcon nonecursor(dnd_none_cur_xpm);
         #endif
-        //wxDragResult result;
+        wxDragResult result;
 
         wxDropSource dndSource(m_diagramwindow, copycursor, movecursor, nonecursor);
         dndSource.SetData(*dataptr);
         //dndSource.SetData(myData);
 
         ThisIsDnDSource = true;
-        /*result = */dndSource.DoDragDrop(wxDrag_DefaultMove );
+        result = dndSource.DoDragDrop(wxDrag_DefaultMove );
     }
     ThisIsDnDSource = false;
 
@@ -1385,10 +1367,9 @@ void NassiView::ExportPS()
 
     psdc->SetPen(*wxBLACK_PEN);
     ///draw the diagram
-    for (BricksMap::iterator it = GraphBricks.begin() ; it != GraphBricks.end() ; ++it)
-    {
+    BricksMap::iterator it;
+    for ( it = GraphBricks.begin() ; it != GraphBricks.end() ; it++)
         it->second->Draw(psdc);
-    }
 
     delete psdc;
 
@@ -1399,14 +1380,14 @@ void NassiView::ExportPS()
     while ( GraphBricks.size() )
     {
         BricksMap::iterator it = GraphBricks.begin();
-        GraphNassiBrick *gbrick2 = it->second;
-        delete gbrick2;
+        GraphNassiBrick *gbrick = it->second;
+        if ( gbrick ) delete gbrick;
         GraphBricks.erase(it->first);
     }
     delete graphFabric;
 }
 #endif
-#if wxCHECK_VERSION(3, 0, 0)
+#ifdef USE_SVG
 void NassiView::ExportSVG()
 {
     wxFileDialog dlg( m_diagramwindow, _("Choose a file to exporting into"),_T(""),_T(""),_("SVG files (*.SVG)|*.SVG"), wxFD_SAVE | wxFD_OVERWRITE_PROMPT );
@@ -1549,10 +1530,9 @@ void NassiView::ExportBitmap()
     memdc->SelectObject(bitmap);
     memdc->SetPen(*wxBLACK_PEN);
     ///draw the diagram
-    for (BricksMap::iterator it = GraphBricks.begin() ; it != GraphBricks.end() ; ++it)
-    {
+    BricksMap::iterator it;
+    for ( it = GraphBricks.begin() ; it != GraphBricks.end() ; it++)
         it->second->Draw(memdc);
-    }
 
     memdc->SelectObject(wxNullBitmap);
     delete memdc;
@@ -1566,8 +1546,8 @@ void NassiView::ExportBitmap()
     while ( GraphBricks.size() )
     {
         BricksMap::iterator it = GraphBricks.begin();
-        GraphNassiBrick *gbrick2 = it->second;
-        delete gbrick2;
+        GraphNassiBrick *gbrick = it->second;
+        if ( gbrick ) delete gbrick;
         GraphBricks.erase(it->first);
     }
     delete graphFabric;
@@ -1593,8 +1573,10 @@ GraphNassiBrick *NassiView::CreateGraphBrick(NassiBrick *brick)
 }
 GraphNassiBrick *NassiView::GetBrickAtPosition(const wxPoint &pos)
 {
-    for (BricksMap::iterator it = m_GraphBricks.begin() ; it != m_GraphBricks.end() ; ++it)
+    BricksMap::iterator it;
+    for ( it = m_GraphBricks.begin() ; it != m_GraphBricks.end() ; it++)
     {
+
         GraphNassiBrick *gbrick = it->second;
         if ( gbrick->HasPoint(pos) )
             return gbrick;
@@ -1621,8 +1603,3 @@ void NassiView::MoveCaret(const wxPoint& pt)
     if ( caret ) caret->Move( unscrolledpoint );
 }
 
-void NassiView::UpdateColors()
-{
-    m_colors.Init();
-    m_diagramwindow->Refresh();
-}

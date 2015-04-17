@@ -1,9 +1,9 @@
 /**************************************************************************//**
- * \file      DoxyBlocksLogger.h
- * \author    Gary Harris
- * \date      27/3/10
+ * \file		DoxyBlocksLogger.h
+ * \author	Gary Harris
+ * \date		27/3/10
  *
- * DoxyBlocks - doxygen integration for Code::Blocks. \n
+ * DoxyBlocks - doxygen integration for Code::Blocks.					\n
  * Copyright (C) 2010 Gary Harris.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,14 +23,16 @@
 #ifndef DOXYBLOCKSLOGGER_H_INCLUDED
 #define DOXYBLOCKSLOGGER_H_INCLUDED
 
-#include <loggers.h>
+// For compilers that support precompilation, includes <wx/wx.h>
+#include <wx/wxprec.h>
 
-// forward decls
-class wxBoxSizer;
-class wxPanel;
-class wxWindow;
+#ifndef WX_PRECOMP
+    #include <wx/wx.h>
+#endif
+#include "loggers.h"
 
-const long ID_LOG_DOXYBLOCKS = wxNewId(); //!< The all-important control ID.
+const int ID_LOG_DOXYBLOCKS =  wxID_HIGHEST + 9060;		//!< The all-important control ID.
+
 
 /*! \brief DoxyBlocks log window class.
  *
@@ -38,8 +40,8 @@ const long ID_LOG_DOXYBLOCKS = wxNewId(); //!< The all-important control ID.
  */
 class DoxyBlocksLogger : public TextCtrlLogger
 {
-    wxPanel    *panel; //!< The log's panel.
-    wxBoxSizer *sizer; //!< The panel's sizer.
+    wxPanel		*panel;			//!< The log's panel.
+    wxBoxSizer	*sizer;			//!< The panel's sizer.
 public:
     /*! \brief Constructor
      */
@@ -49,5 +51,7 @@ public:
     virtual wxWindow* CreateControl(wxWindow* parent);
     void OpenLink(long urlStart, long urlEnd, bool bUseInternalViewer);
 };
+
+
 
 #endif // DOXYBLOCKSLOGGER_H_INCLUDED

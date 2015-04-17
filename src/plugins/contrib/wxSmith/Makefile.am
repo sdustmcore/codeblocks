@@ -1,28 +1,25 @@
 SUBDIRS = properties wxwidgets . plugin
 
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+AM_CPPFLAGS = -DWXMAKINGDLL_PROPGRID -DwxPG_USE_WXMODULE=0
+
+INCLUDES = $(WX_CXXFLAGS) \
 		-I$(top_srcdir)/src/include \
 		-I$(top_srcdir)/src/sdk/wxscintilla/include \
-		$(WXPROPGRID_INCLUDE) \
-		-I$(top_srcdir)/src/include/scripting/include \
-		-I$(top_srcdir)/src/include/scripting/squirrel \
-		-I$(top_srcdir)/src/include/scripting/sqplus \
-		-I$(top_srcdir)/src/include/scripting/bindings \
-		-I$(top_srcdir)/src/include/mozilla_chardet \
-		-I$(top_srcdir)/src/include/mozilla_chardet/mfbt \
-		-I$(top_srcdir)/src/include/mozilla_chardet/nsprpub/pr/include \
-		-I$(top_srcdir)/src/include/mozilla_chardet/xpcom \
-		-I$(top_srcdir)/src/include/mozilla_chardet/xpcom/base \
-		-I$(top_srcdir)/src/include/mozilla_chardet/xpcom/glue
+		-I$(top_srcdir)/src/sdk/wxpropgrid/include \
+                -I$(top_srcdir)/src/include/scripting/include \
+                -I$(top_srcdir)/src/include/scripting/squirrel \
+                -I$(top_srcdir)/src/include/scripting/sqplus \
+                -I$(top_srcdir)/src/include/scripting/bindings \
+		-I$(top_srcdir)/src/include/mozilla_chardet
 
 lib_LTLIBRARIES = libwxsmithlib.la
 
 libwxsmithlib_la_LDFLAGS = -version-info 0:1:0 -shared
 
-libwxsmithlib_la_LIBADD = ../../../sdk/libcodeblocks.la \
+libwxsmithlib_la_LIBADD = $(PLUGIN_WX_LIBS) \
+				../../../sdk/libcodeblocks.la \
 				properties/libwxsmith_properties.la \
-				wxwidgets/libwxsmith_wxwidgets.la \
-				$(WX_LIBS)
+				wxwidgets/libwxsmith_wxwidgets.la
 
 libwxsmithlib_la_SOURCES = \
 ./wxsadvqpp.cpp \
@@ -76,10 +73,8 @@ pkgconfig_DATA = wxsmith.pc
 EXTRA_DIST = \
 $(srcdir)/*.cbp \
 $(srcdir)/*.bat \
-$(srcdir)/update* \
-$(srcdir)/wxsmith/* \
-manifest.xml \
-wxs.doxy
+$(srcdir)/update \
+manifest.xml
 
 pkgdata_DATA = wxsmith.zip
 CLEANFILES = $(pkgdata_DATA)

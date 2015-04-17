@@ -24,6 +24,7 @@ public:
 
   HeaderFixup();
   virtual ~HeaderFixup();
+  virtual int Configure();
   virtual int GetConfigurationPriority() const
   { return 50; }
   virtual int GetConfigurationGroup() const

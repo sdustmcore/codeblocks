@@ -161,7 +161,7 @@ const char *HTMLExporter::HTMLBodyBEG =
   "<body>\n"
   "<pre>\n";
 
-string HTMLExporter::HTMLBody(const wxMemoryBuffer &styled_text, int lineCount, int tabWidth)
+string HTMLExporter::HTMLBody(const wxMemoryBuffer &styled_text, int lineCount)
 {
   string html_body("<code><span style=\"font: 8pt Courier New;\">");
   const char *buffer = reinterpret_cast<char *>(styled_text.GetData());
@@ -214,9 +214,7 @@ string HTMLExporter::HTMLBody(const wxMemoryBuffer &styled_text, int lineCount, 
     html_body += string("<span class=\"style") + to_string(current_style) + "\">";
   }
 
-  int charLinePos = 0;
-
-  for (size_t i = 0; i < buffer_size; i += 2, ++charLinePos)
+  for (size_t i = 0; i < buffer_size; i += 2)
   {
     if (buffer[i + 1] != current_style)
     {
@@ -243,15 +241,6 @@ string HTMLExporter::HTMLBody(const wxMemoryBuffer &styled_text, int lineCount, 
         break;
 
       case '\r':
-        --charLinePos; // account for auto-increment
-        break;
-
-      case '\t':
-        {
-            const int extraSpaces = tabWidth - charLinePos % tabWidth;
-            html_body += std::string(extraSpaces, ' ');
-            charLinePos += extraSpaces - 1; // account for auto-increment
-        }
         break;
 
       case '\n':
@@ -268,8 +257,6 @@ string HTMLExporter::HTMLBody(const wxMemoryBuffer &styled_text, int lineCount, 
         {
           html_body += "\n";
         }
-
-        charLinePos = -1; // account for auto-increment
         break;
 
       default:
@@ -289,7 +276,7 @@ const char *HTMLExporter::HTMLBodyEND =
   "</body>\n"
   "</html>\n";
 
-void HTMLExporter::Export(const wxString &filename, const wxString &title, const wxMemoryBuffer &styled_text, const EditorColourSet *color_set, int lineCount, int tabWidth)
+void HTMLExporter::Export(const wxString &filename, const wxString &title, const wxMemoryBuffer &styled_text, const EditorColourSet *color_set, int lineCount)
 {
   string html_code;
   HighlightLanguage lang = const_cast<EditorColourSet *>(color_set)->GetLanguageForFilename(title);
@@ -302,7 +289,7 @@ void HTMLExporter::Export(const wxString &filename, const wxString &title, const
   html_code += HTMLStyleEND;
   html_code += HTMLHeaderEND;
   html_code += HTMLBodyBEG;
-  html_code += HTMLBody(styled_text, lineCount, tabWidth);
+  html_code += HTMLBody(styled_text, lineCount);
   html_code += HTMLBodyEND;
 
   wxFile file(filename, wxFile::write);

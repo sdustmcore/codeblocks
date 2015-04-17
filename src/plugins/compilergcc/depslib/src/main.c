@@ -83,6 +83,7 @@ int main(void)
         "../../../sdk",
         "../../../../../../wxWindows-2.4.2/include",
         "../../../../../../wxWindows-2.4.2-build/lib/wx/include/mswd-2.4",
+        "../../../../../../wxWindows-2.4.2/contrib/include",
         "/usr/include",
         0
     };
@@ -150,7 +151,7 @@ return 0;
     }
 
     depsGetStats(&stats); depsOK();
-    printf("scanned %ld files for #include, cache used %ld, cache updated %ld\n",
+    printf("scanned %d files for #include, cache used %d, cache updated %d\n",
         stats.scanned, stats.cache_used, stats.cache_updated);
 
     depsDone(); depsOK();
@@ -182,7 +183,7 @@ return 0;
     }
 
     depsGetStats(&stats);
-    printf("scanned %ld files for #include, cache used %ld, cache updated %ld\n",
+    printf("scanned %d files for #include, cache used %d, cache updated %d\n",
         stats.scanned, stats.cache_used, stats.cache_updated);
 
     depsCacheWrite("depends.cache");

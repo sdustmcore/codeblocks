@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<resource xmlns="http://www.wxwidgets.org/wxxrc" version="2.5.3.0">
+<resource>
 	<object class="wxPanel" name="dlgCompilerOptions">
 		<object class="wxBoxSizer">
 			<orient>wxVERTICAL</orient>
@@ -11,7 +11,6 @@
 						</object>
 						<flag>wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 						<border>8</border>
-						<option>1</option>
 					</object>
 					<object class="sizeritem">
 						<object class="wxBoxSizer">
@@ -33,7 +32,7 @@
 													<object class="wxButton" name="btnSetDefaultCompiler">
 														<label>Set as default</label>
 													</object>
-													<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
+													<flag>wxTOP|wxALIGN_LEFT|wxALIGN_TOP</flag>
 													<border>4</border>
 												</object>
 												<object class="spacer">
@@ -44,38 +43,32 @@
 													<object class="wxButton" name="btnAddCompiler">
 														<label>Copy</label>
 													</object>
-													<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
+													<flag>wxTOP|wxALIGN_LEFT|wxALIGN_TOP</flag>
 													<border>4</border>
 												</object>
 												<object class="sizeritem">
 													<object class="wxButton" name="btnRenameCompiler">
 														<label>Rename</label>
 													</object>
-													<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
+													<flag>wxTOP|wxALIGN_LEFT|wxALIGN_TOP</flag>
 													<border>4</border>
 												</object>
 												<object class="sizeritem">
 													<object class="wxButton" name="btnDelCompiler">
 														<label>Delete</label>
 													</object>
-													<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
+													<flag>wxTOP|wxRIGHT|wxALIGN_LEFT|wxALIGN_TOP</flag>
 													<border>4</border>
-												</object>
-												<object class="spacer">
-													<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
-													<border>5</border>
-													<size>24,-1</size>
 												</object>
 												<object class="sizeritem">
 													<object class="wxButton" name="btnResetCompiler">
 														<label>Reset defaults</label>
 													</object>
-													<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
+													<flag>wxTOP|wxRIGHT|wxALIGN_LEFT|wxALIGN_TOP</flag>
 													<border>4</border>
 												</object>
 											</object>
-											<flag>wxTOP|wxRIGHT|wxALIGN_RIGHT|wxALIGN_TOP</flag>
-											<border>4</border>
+											<flag>wxALIGN_RIGHT|wxALIGN_TOP</flag>
 										</object>
 									</object>
 								</object>
@@ -88,12 +81,13 @@
 									<hidden>1</hidden>
 									<fg>#800000</fg>
 								</object>
-								<flag>wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
+								<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
 								<border>8</border>
 							</object>
 							<object class="sizeritem">
 								<object class="wxNotebook" name="nbMain">
 									<size>600,-1</size>
+									<style>wxNB_DEFAULT|wxHSCROLL</style>
 									<object class="notebookpage">
 										<object class="wxPanel" name="tabCompiler">
 											<object class="wxBoxSizer">
@@ -120,7 +114,7 @@
 																	<item>Append target options to project options</item>
 																</content>
 															</object>
-															<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+															<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
 														</object>
 													</object>
 													<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
@@ -138,19 +132,24 @@
 																<object class="wxBoxSizer">
 																	<orient>wxVERTICAL</orient>
 																	<object class="sizeritem">
-																		<object class="unknown" name="pgCompilerFlags">
+																		<object class="wxStaticText" name="ID_STATICTEXT2">
+																			<label>Categories:</label>
 																		</object>
-																		<flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_BOTTOM</flag>
-																		<border>5</border>
-																		<option>1</option>
+																		<flag>wxTOP|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_TOP</flag>
+																		<border>8</border>
 																	</object>
 																	<object class="sizeritem">
-																		<object class="wxStaticText" name="ID_STATICTEXT31">
-																			<label>NOTE: Right-click to setup or edit compiler flags.</label>
-																			<fg>#800000</fg>
-																		</object>
-																		<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_TOP</flag>
+																		<object class="wxChoice" name="cmbCategory" />
+																		<flag>wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 																		<border>8</border>
+																	</object>
+																	<object class="sizeritem">
+																		<object class="wxCheckListBox" name="lstCompilerOptions">
+																			<style>wxLB_HSCROLL</style>
+																		</object>
+																		<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+																		<border>8</border>
+																		<option>1</option>
 																	</object>
 																</object>
 															</object>
@@ -170,26 +169,10 @@
 																	</object>
 																</object>
 															</object>
-															<label>Other compiler options</label>
+															<label>Other options</label>
 														</object>
 														<object class="notebookpage">
 															<object class="wxPanel" name="ID_PANEL3">
-																<object class="wxBoxSizer">
-																	<orient>wxVERTICAL</orient>
-																	<object class="sizeritem">
-																		<object class="wxTextCtrl" name="txtResourceCompilerOptions">
-																			<style>wxTE_MULTILINE|wxHSCROLL</style>
-																		</object>
-																		<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
-																		<border>8</border>
-																		<option>1</option>
-																	</object>
-																</object>
-															</object>
-															<label>Other resource compiler options</label>
-														</object>
-														<object class="notebookpage">
-															<object class="wxPanel" name="ID_PANEL6">
 																<object class="wxBoxSizer">
 																	<orient>wxVERTICAL</orient>
 																	<object class="sizeritem">
@@ -240,7 +223,7 @@
 																	<item>Append target options to project options</item>
 																</content>
 															</object>
-															<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+															<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
 														</object>
 													</object>
 													<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
@@ -310,7 +293,7 @@
 																			<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
 																		</object>
 																	</object>
-																	<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_TOP|wxALIGN_CENTER_HORIZONTAL</flag>
+																	<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_LEFT|wxALIGN_TOP</flag>
 																	<border>4</border>
 																</object>
 																<object class="sizeritem">
@@ -386,7 +369,7 @@
 																								<item>Append target options to project options</item>
 																							</content>
 																						</object>
-																						<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+																						<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
 																					</object>
 																				</object>
 																				<flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
@@ -399,7 +382,7 @@
 																			</object>
 																			<object class="sizeritem">
 																				<object class="wxListBox" name="lstIncludeDirs">
-																					<style>wxLB_EXTENDED|wxLB_HSCROLL|wxLB_NEEDED_SB</style>
+																					<style>wxLB_SINGLE|wxLB_HSCROLL|wxLB_NEEDED_SB</style>
 																				</object>
 																				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 																				<border>8</border>
@@ -436,7 +419,7 @@
 																								<item>Append target options to project options</item>
 																							</content>
 																						</object>
-																						<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+																						<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
 																					</object>
 																				</object>
 																				<flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
@@ -449,7 +432,7 @@
 																			</object>
 																			<object class="sizeritem">
 																				<object class="wxListBox" name="lstLibDirs">
-																					<style>wxLB_EXTENDED|wxLB_HSCROLL|wxLB_NEEDED_SB</style>
+																					<style>wxLB_SINGLE|wxLB_HSCROLL|wxLB_NEEDED_SB</style>
 																				</object>
 																				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 																				<border>8</border>
@@ -486,7 +469,7 @@
 																								<item>Append target options to project options</item>
 																							</content>
 																						</object>
-																						<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+																						<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
 																					</object>
 																				</object>
 																				<flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
@@ -499,7 +482,7 @@
 																			</object>
 																			<object class="sizeritem">
 																				<object class="wxListBox" name="lstResDirs">
-																					<style>wxLB_EXTENDED|wxLB_HSCROLL|wxLB_NEEDED_SB</style>
+																					<style>wxLB_SINGLE|wxLB_HSCROLL|wxLB_NEEDED_SB</style>
 																				</object>
 																				<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 																				<border>8</border>
@@ -557,7 +540,7 @@
 														</object>
 														<object class="sizeritem">
 															<object class="wxButton" name="btnCopyDirs">
-																<label>Copy to...</label>
+																<label>Copy all to...</label>
 															</object>
 															<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
 														</object>
@@ -653,10 +636,10 @@
 														</object>
 														<object class="sizeritem">
 															<object class="wxStaticText" name="ID_STATICTEXT7">
-																<label>NOTE: All programs must exist either in the &quot;bin&quot; sub-directory of this path, or in any of the &quot;Additional paths&quot;...</label>
+																<label>NOTE: All programs below, must exist either in the &quot;bin&quot; sub-directory of this path or in any of the &quot;Additional paths&quot;...</label>
 																<fg>#800000</fg>
 															</object>
-															<flag>wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+															<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 															<border>8</border>
 														</object>
 													</object>
@@ -783,9 +766,17 @@
 																					<object class="sizeritem">
 																						<object class="wxBoxSizer">
 																							<object class="sizeritem">
-																								<object class="wxChoice" name="cmbDebugger" />
-																								<flag>wxALL|wxALIGN_LEFT|wxALIGN_BOTTOM</flag>
+																								<object class="wxTextCtrl" name="txtDebugger" />
+																								<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+																								<border>8</border>
 																								<option>1</option>
+																							</object>
+																							<object class="sizeritem">
+																								<object class="wxButton" name="btnDebugger">
+																									<label>...</label>
+																									<size>20,-1</size>
+																								</object>
+																								<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
 																							</object>
 																						</object>
 																						<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
@@ -1050,14 +1041,11 @@
 														<object class="sizeritem">
 															<object class="wxStaticText" name="ID_STATICTEXT28">
 																<label>Silent build:</label>
-																<hidden>1</hidden>
 															</object>
 															<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 														</object>
 														<object class="sizeritem">
-															<object class="wxTextCtrl" name="txtMakeCmd_SilentBuild">
-																<hidden>1</hidden>
-															</object>
+															<object class="wxTextCtrl" name="txtMakeCmd_SilentBuild" />
 															<flag>wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 															<border>8</border>
 														</object>
@@ -1077,147 +1065,6 @@
 											</object>
 										</object>
 										<label>&quot;Make&quot; commands</label>
-									</object>
-									<object class="notebookpage">
-										<object class="wxPanel" name="tabBuild">
-											<object class="wxBoxSizer">
-												<orient>wxVERTICAL</orient>
-												<object class="sizeritem">
-													<object class="wxFlexGridSizer">
-														<cols>2</cols>
-														<vgap>8</vgap>
-														<hgap>8</hgap>
-														<growablecols>1</growablecols>
-														<object class="sizeritem">
-															<object class="wxStaticText" name="ID_STATICTEXT25">
-																<label>Number of processes for parallel builds:</label>
-																<fg>#800000</fg>
-															</object>
-															<flag>wxTOP|wxRIGHT|wxALIGN_LEFT|wxALIGN_TOP</flag>
-															<border>4</border>
-														</object>
-														<object class="sizeritem">
-															<object class="wxSpinCtrl" name="spnParallelProcesses">
-																<value>1</value>
-																<min>1</min>
-																<max>16</max>
-															</object>
-															<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
-														</object>
-														<object class="sizeritem">
-															<object class="wxStaticText" name="ID_STATICTEXT26">
-																<label>Max nr. of errors to log (0=unlimited):</label>
-															</object>
-															<flag>wxTOP|wxRIGHT|wxALIGN_LEFT|wxALIGN_TOP</flag>
-															<border>4</border>
-														</object>
-														<object class="sizeritem">
-															<object class="wxSpinCtrl" name="spnMaxErrors">
-																<value>50</value>
-															</object>
-															<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
-														</object>
-													</object>
-													<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
-													<border>8</border>
-												</object>
-												<object class="sizeritem">
-													<object class="wxStaticLine" name="ID_STATICLINE6" />
-													<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
-													<border>8</border>
-												</object>
-												<object class="sizeritem">
-													<object class="wxCheckBox" name="chkIncludeFileCwd">
-														<label>Explicitly add currently compiling file&apos;s directory to compiler search dirs</label>
-													</object>
-													<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
-													<border>8</border>
-												</object>
-												<object class="sizeritem">
-													<object class="wxCheckBox" name="chkIncludePrjCwd">
-														<label>Explicitly add project&apos;s top-level directory to compiler search dirs</label>
-													</object>
-													<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
-													<border>8</border>
-												</object>
-												<object class="sizeritem">
-													<object class="wxCheckBox" name="chkSkipIncludeDeps">
-														<label>Skip include dependency check to compute what files need to be compiled (HANDLE WITH CARE!)</label>
-														<help>Enabling this option will skip the calculation of files to be forced to be compiled due to #includes.&#x0A;Setting this option wrong may break the build process.&#x0A;It is intended for compilers/languages not working with the default #include statements.</help>
-													</object>
-													<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
-													<border>8</border>
-												</object>
-												<object class="sizeritem">
-													<object class="wxStaticLine" name="ID_STATICLINE7" />
-													<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
-													<border>8</border>
-												</object>
-												<object class="sizeritem">
-													<object class="wxCheckBox" name="chkSaveHtmlLog">
-														<label>Save build log to HTML file when build is finished.</label>
-													</object>
-													<flag>wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
-													<border>8</border>
-												</object>
-												<object class="sizeritem">
-													<object class="wxBoxSizer">
-														<object class="sizeritem">
-															<object class="wxCheckBox" name="chkFullHtmlLog">
-																<label>Always output the full command line in the generated HTML file</label>
-															</object>
-															<flag>wxLEFT|wxALIGN_LEFT|wxALIGN_TOP</flag>
-															<border>24</border>
-														</object>
-													</object>
-													<flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
-													<border>4</border>
-												</object>
-												<object class="sizeritem">
-													<object class="wxCheckBox" name="chkBuildProgressBar">
-														<label>Display build progress bar</label>
-													</object>
-													<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
-													<border>8</border>
-												</object>
-												<object class="sizeritem">
-													<object class="wxCheckBox" name="chkBuildProgressPerc">
-														<label>Display build progress percentage in log</label>
-													</object>
-													<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
-													<border>8</border>
-												</object>
-												<object class="sizeritem">
-													<object class="wxStaticLine" name="ID_STATICLINE_IGNORE" />
-													<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
-													<border>8</border>
-												</object>
-												<object class="sizeritem">
-													<object class="wxStaticBoxSizer">
-														<label>Rebuild Workspace / Project</label>
-														<orient>wxVERTICAL</orient>
-														<object class="sizeritem">
-															<object class="wxCheckBox" name="chkRebuildSeperately">
-																<label>Clean and Build all projects/targets one by one</label>
-															</object>
-															<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
-															<border>8</border>
-														</object>
-														<object class="sizeritem">
-															<object class="wxStaticText" name="ID_STATICTEXT29">
-																<label>NOTE: Default is to clean all projects/targets at once, before building them.</label>
-																<fg>#800000</fg>
-															</object>
-															<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
-															<border>8</border>
-														</object>
-													</object>
-													<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-													<border>8</border>
-												</object>
-											</object>
-										</object>
-										<label>Build options</label>
 									</object>
 									<object class="notebookpage">
 										<object class="wxPanel" name="tabOther">
@@ -1248,83 +1095,229 @@
 															<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 															<option>1</option>
 														</object>
+														<object class="sizeritem">
+															<object class="wxStaticText" name="ID_STATICTEXT24">
+																<label>Build method:</label>
+															</object>
+															<flag>wxTOP|wxRIGHT|wxALIGN_LEFT|wxALIGN_TOP</flag>
+															<border>4</border>
+														</object>
+														<object class="sizeritem">
+															<object class="wxChoice" name="cmbBuildMethod">
+																<content>
+																	<item>Work with Makefiles (GNU &quot;make&quot; is required)</item>
+																	<item>Invoke compiler directly</item>
+																</content>
+																<selection>0</selection>
+															</object>
+															<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+															<option>1</option>
+														</object>
 													</object>
 													<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 													<border>8</border>
 												</object>
 												<object class="sizeritem">
-													<object class="wxCheckBox" name="chkNonPlatComp">
-														<label>Enable non-platform compilers</label>
-														<tooltip>Enable to use i.e. cross-platform compilers</tooltip>
-													</object>
-													<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-													<border>8</border>
-												</object>
-												<object class="sizeritem">
-													<object class="wxStaticLine" name="ID_STATICLINE8" />
-													<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-													<border>8</border>
-												</object>
-												<object class="sizeritem">
-													<object class="wxBoxSizer">
+													<object class="wxStaticBoxSizer">
+														<label>Compiler-independent options</label>
+														<orient>wxVERTICAL</orient>
 														<object class="sizeritem">
-															<object class="wxBoxSizer">
-																<orient>wxVERTICAL</orient>
+															<object class="wxFlexGridSizer">
+																<cols>2</cols>
+																<vgap>8</vgap>
+																<hgap>8</hgap>
+																<growablecols>1</growablecols>
 																<object class="sizeritem">
-																	<object class="wxStaticText" name="ID_STATICTEXT30">
-																		<label>Compiler output to be ignored:</label>
+																	<object class="wxStaticText" name="ID_STATICTEXT25">
+																		<label>Number of processes for parallel builds:</label>
 																	</object>
-																	<flag>wxBOTTOM|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
-																	<border>8</border>
+																	<flag>wxTOP|wxRIGHT|wxALIGN_LEFT|wxALIGN_TOP</flag>
+																	<border>4</border>
 																</object>
 																<object class="sizeritem">
-																	<object class="wxFlexGridSizer">
-																		<cols>2</cols>
-																		<growablecols>0</growablecols>
-																		<object class="sizeritem">
-																			<object class="wxTextCtrl" name="txtIgnore" />
-																			<flag>wxBOTTOM|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
-																			<border>8</border>
-																			<option>1</option>
-																		</object>
-																		<object class="sizeritem">
-																			<object class="wxButton" name="btnIgnoreAdd">
-																				<label>Add</label>
-																			</object>
-																			<flag>wxBOTTOM|wxLEFT|wxALIGN_LEFT|wxALIGN_TOP</flag>
-																			<border>8</border>
-																		</object>
-																		<object class="spacer">
-																			<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
-																		</object>
-																		<object class="sizeritem">
-																			<object class="wxButton" name="btnIgnoreRemove">
-																				<label>Remove</label>
-																			</object>
-																			<flag>wxLEFT|wxALIGN_LEFT|wxALIGN_TOP</flag>
-																			<border>8</border>
-																		</object>
+																	<object class="wxSpinCtrl" name="spnParallelProcesses">
+																		<value>2</value>
+																		<min>1</min>
+																		<max>16</max>
 																	</object>
-																	<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+																	<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
+																</object>
+																<object class="sizeritem">
+																	<object class="wxStaticText" name="ID_STATICTEXT26">
+																		<label>Max nr. of errors to log (0=unlimited):</label>
+																	</object>
+																	<flag>wxTOP|wxRIGHT|wxALIGN_LEFT|wxALIGN_TOP</flag>
+																	<border>4</border>
+																</object>
+																<object class="sizeritem">
+																	<object class="wxSpinCtrl" name="spnMaxErrors">
+																		<value>50</value>
+																	</object>
+																	<flag>wxALIGN_LEFT|wxALIGN_TOP</flag>
 																</object>
 															</object>
 															<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+															<border>8</border>
+															<option>1</option>
+														</object>
+														<object class="sizeritem">
+															<object class="wxStaticLine" name="ID_STATICLINE6" />
+															<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+															<border>8</border>
+														</object>
+														<object class="sizeritem">
+															<object class="wxCheckBox" name="chkIncludeFileCwd">
+																<label>Explicitly add currently compiling file&apos;s directory to compiler search dirs</label>
+															</object>
+															<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+															<border>8</border>
+														</object>
+														<object class="sizeritem">
+															<object class="wxCheckBox" name="chkIncludePrjCwd">
+																<label>Explicitly add project&apos;s top-level directory to compiler search dirs</label>
+															</object>
+															<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+															<border>8</border>
+														</object>
+														<object class="sizeritem">
+															<object class="wxStaticLine" name="ID_STATICLINE7" />
+															<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+															<border>8</border>
+														</object>
+														<object class="sizeritem">
+															<object class="wxCheckBox" name="chkSaveHtmlLog">
+																<label>Save build log to HTML file when build is finished.</label>
+															</object>
+															<flag>wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+															<border>8</border>
+														</object>
+														<object class="sizeritem">
+															<object class="wxBoxSizer">
+																<object class="sizeritem">
+																	<object class="wxCheckBox" name="chkFullHtmlLog">
+																		<label>Always output the full command line in the generated HTML file</label>
+																	</object>
+																	<flag>wxLEFT|wxALIGN_LEFT|wxALIGN_TOP</flag>
+																	<border>24</border>
+																</object>
+															</object>
+															<flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 															<border>4</border>
 														</object>
 														<object class="sizeritem">
-															<object class="wxListBox" name="lstIgnore" />
-															<flag>wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
-															<border>2</border>
-															<option>1</option>
+															<object class="wxCheckBox" name="chkBuildProgressBar">
+																<label>Display build progress bar</label>
+															</object>
+															<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+															<border>8</border>
+														</object>
+														<object class="sizeritem">
+															<object class="wxCheckBox" name="chkBuildProgressPerc">
+																<label>Display build progress percentage in log</label>
+															</object>
+															<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+															<border>8</border>
+														</object>
+														<object class="sizeritem">
+															<object class="wxStaticLine" name="ID_STATICLINE8" />
+															<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+															<border>8</border>
+														</object>
+														<object class="sizeritem">
+															<object class="wxStaticBoxSizer">
+																<label>Rebuild Workspace / Project</label>
+																<orient>wxVERTICAL</orient>
+																<object class="sizeritem">
+																	<object class="wxCheckBox" name="chkRebuildSeperately">
+																		<label>Clean and Build all projects/targets one by one</label>
+																	</object>
+																	<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+																	<border>8</border>
+																</object>
+																<object class="sizeritem">
+																	<object class="wxStaticText" name="ID_STATICTEXT29">
+																		<label>NOTE: Default is to clean all projects/targets at once, before building them.</label>
+																		<fg>#800000</fg>
+																	</object>
+																	<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+																	<border>8</border>
+																</object>
+															</object>
+															<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+															<border>8</border>
+														</object>
+														<object class="sizeritem">
+															<object class="wxStaticLine" name="ID_STATICLINE_IGNORE"/>
+															<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+															<border>8</border>
+														</object>
+														<object class="sizeritem">
+															<object class="wxFlexGridSizer">
+																<object class="sizeritem">
+																	<object class="wxBoxSizer">
+																		<object class="sizeritem">
+																			<object class="wxStaticText" name="ID_STATICTEXT27">
+																				<label>Compiler output to be ignored:</label>
+																			</object>
+																			<flag>wxBOTTOM|wxEXPAND</flag>
+																			<border>8</border>
+																		</object>
+																		<object class="sizeritem">
+																			<object class="wxFlexGridSizer">
+																				<object class="sizeritem">
+																					<object class="wxTextCtrl" name="txtIgnore"/>
+																					<option>1</option>
+																					<flag>wxBOTTOM|wxEXPAND</flag>
+																					<border>8</border>
+																				</object>
+																				<object class="sizeritem">
+																					<object class="wxButton" name="btnIgnoreAdd">
+																						<label>Add</label>
+																					</object>
+																					<flag>wxBOTTOM|wxLEFT</flag>
+																					<border>8</border>
+																				</object>
+																				<object class="spacer">
+																					<flag>wxEXPAND</flag>
+																				</object>
+																				<object class="sizeritem">
+																					<object class="wxButton" name="btnIgnoreRemove">
+																						<label>Remove</label>
+																					</object>
+																					<flag>wxLEFT</flag>
+																					<border>8</border>
+																				</object>
+																				<cols>2</cols>
+																				<growablecols>0</growablecols>
+																			</object>
+																			<flag>wxEXPAND</flag>
+																		</object>
+																		<orient>wxVERTICAL</orient>
+																	</object>
+																	<flag>wxEXPAND</flag>
+																	<border>0</border>
+																</object>
+																<object class="sizeritem">
+																	<object class="wxListBox" name="lstIgnore"/>
+																	<option>1</option>
+																	<flag>wxLEFT|wxEXPAND</flag>
+																	<border>8</border>
+																</object>
+																<cols>2</cols>
+																<growablecols>1</growablecols>
+																<growablerows/>
+															</object>
+															<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+															<border>8</border>
 														</object>
 													</object>
-													<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-													<border>5</border>
-													<option>3</option>
+													<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
+													<border>8</border>
 												</object>
 												<object class="spacer">
 													<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
 													<border>8</border>
+													<option>1</option>
 												</object>
 												<object class="sizeritem">
 													<object class="wxButton" name="btnAdvanced">
@@ -1344,7 +1337,7 @@
 							</object>
 						</object>
 						<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>
-						<option>5</option>
+						<option>1</option>
 					</object>
 				</object>
 				<flag>wxLEFT|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>

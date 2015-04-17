@@ -21,7 +21,7 @@ namespace BlkAllc
 
     const bool enable_global_debug = false;
     const bool verbose = false;
-}
+};
 
 
 template <class T, unsigned int pool_size, const bool debug>
@@ -66,10 +66,10 @@ public:
 
     BlockAllocator() : first(0), ref_count(0), max_refs(0), total_refs(0)
     {
-    #if defined(__GNUC__)
+	#if defined(__GNUC__)
         assert(__builtin_constant_p(debug));
     #endif
-    };
+	};
 
     ~BlockAllocator()
     {
@@ -116,7 +116,7 @@ class BlockAllocated
 
 public:
 
-    inline void* operator new(cb_unused size_t size)
+    inline void* operator new(size_t /*size*/)
     {
         return allocator.New();
     };

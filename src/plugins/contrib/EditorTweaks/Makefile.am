@@ -1,4 +1,4 @@
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+INCLUDES = $(WX_CXXFLAGS) \
 		-I$(top_srcdir)/src/include \
 		-I$(top_srcdir)/src/sdk/wxscintilla/include
 
@@ -8,22 +8,18 @@ pluginlib_LTLIBRARIES = libEditorTweaks.la
 
 libEditorTweaks_la_LDFLAGS = -module -version-info 0:1:0 -shared -no-undefined -avoid-version
 
-libEditorTweaks_la_LIBADD = ../../../sdk/libcodeblocks.la $(WX_LIBS)
+libEditorTweaks_la_LIBADD = $(PLUGIN_WX_LIBS) ../../../sdk/libcodeblocks.la
 
-libEditorTweaks_la_SOURCES = EditorTweaks.cpp \
-		EditorTweaksConfDlg.cpp
+libEditorTweaks_la_SOURCES = EditorTweaks.cpp
 
-noinst_HEADERS = EditorTweaks.h \
-		EditorTweaksConfDlg.h
+noinst_HEADERS = EditorTweaks.h
 
 EXTRA_DIST = 	$(srcdir)/*.cbp \
-		EditorTweaksConfDlg.xrc \
-		manifest.xml \
-		$(srcdir)/wxsmith/*.wxs
+		manifest.xml
 
 pkgdata_DATA = EditorTweaks.zip
 
 CLEANFILES = $(pkgdata_DATA)
 
-EditorTweaks.zip: $(EXTRA_DIST)
-	PWD=`pwd` cd $(srcdir) && zip $(PWD)/EditorTweaks.zip manifest.xml *.xrc > /dev/null
+EditorTweaks.zip: manifest.xml
+	PWD=`pwd` cd $(srcdir) && zip $(PWD)/EditorTweaks.zip manifest.xml > /dev/null

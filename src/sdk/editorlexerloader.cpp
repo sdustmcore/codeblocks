@@ -25,12 +25,12 @@
 EditorLexerLoader::EditorLexerLoader(EditorColourSet* target)
     : m_pTarget(target)
 {
-    //ctor
+	//ctor
 }
 
 EditorLexerLoader::~EditorLexerLoader()
 {
-    //dtor
+	//dtor
 }
 
 void EditorLexerLoader::Load(LoaderBase* loader)
@@ -75,7 +75,7 @@ void EditorLexerLoader::DoLexer(TiXmlElement* node)
 {
     if (!node->Attribute("name") || !node->Attribute("index"))
     {
-        Manager::Get()->GetLogManager()->Log(_("No name or index..."));
+    	Manager::Get()->GetLogManager()->Log(_("No name or index..."));
         return;
     }
 
@@ -135,7 +135,7 @@ void EditorLexerLoader::DoStyles(HighlightLanguage language, TiXmlElement* node)
 
             for (size_t i = 0; i < indices.GetCount(); ++i)
             {
-                if (indices[i].IsEmpty())
+            	if (indices[i].IsEmpty())
                     continue;
                 long value = 0;
                 indices[i].ToLong(&value);
@@ -216,48 +216,11 @@ void EditorLexerLoader::DoLangAttributes(HighlightLanguage language, TiXmlElemen
 
     CommentToken token;
     token.lineComment = wxString( attribs->Attribute("LineComment"), wxConvUTF8 );
-    token.doxygenLineComment = wxString( attribs->Attribute("DoxygenLineComment"), wxConvUTF8 );
     token.streamCommentStart = wxString( attribs->Attribute("StreamCommentStart"), wxConvUTF8 );
     token.streamCommentEnd = wxString( attribs->Attribute("StreamCommentEnd"), wxConvUTF8 );
-    token.doxygenStreamCommentStart = wxString( attribs->Attribute("DoxygenStreamCommentStart"), wxConvUTF8 );
-    token.doxygenStreamCommentEnd = wxString( attribs->Attribute("DoxygenStreamCommentEnd"), wxConvUTF8 );
     token.boxCommentStart = wxString( attribs->Attribute("BoxCommentStart"), wxConvUTF8 );
     token.boxCommentMid = wxString( attribs->Attribute("BoxCommentMid"), wxConvUTF8 );
     token.boxCommentEnd = wxString( attribs->Attribute("BoxCommentEnd"), wxConvUTF8 );
 
     m_pTarget->SetCommentToken(language, token);
-
-    std::set<int> CommentLexerStyles, CharacterLexerStyles, StringLexerStyles, PreprocessorLexerStyles;
-    bool hasLexerStylesSet = false;
-    hasLexerStylesSet |= DoLangAttributesLexerStyles(attribs, "LexerCommentStyles", CommentLexerStyles);
-    hasLexerStylesSet |= DoLangAttributesLexerStyles(attribs, "LexerCharacterStyles", CharacterLexerStyles);
-    hasLexerStylesSet |= DoLangAttributesLexerStyles(attribs, "LexerStringStyles", StringLexerStyles);
-    hasLexerStylesSet |= DoLangAttributesLexerStyles(attribs, "LexerPreprocessorStyles", PreprocessorLexerStyles);
-
-    // only set styles if configured. Since different languages use the same lexer.
-    // So if any of the languages has these styles configured we use them.
-    // If another language has not configured them the previously defined wont get lost.
-    if ( hasLexerStylesSet )
-    {
-        m_pTarget->SetCommentLexerStyles(language, CommentLexerStyles);
-        m_pTarget->SetStringLexerStyles(language, StringLexerStyles);
-        m_pTarget->SetCharacterLexerStyles(language, CharacterLexerStyles);
-        m_pTarget->SetPreprocessorLexerStyles(language, PreprocessorLexerStyles);
-    }
-}
-
-bool EditorLexerLoader::DoLangAttributesLexerStyles(TiXmlElement* attribs, const char *attributeName, std::set<int> &styles)
-{
-    styles.clear();
-    wxString str = wxString ( attribs->Attribute(attributeName), wxConvUTF8 );
-    wxArrayString strarray = GetArrayFromString(str, _T(","));
-
-    for ( unsigned int i = 0; i < strarray.Count(); ++i )
-    {
-        long style;
-        strarray[i].ToLong(&style);
-        styles.insert((unsigned int)style);
-    }
-
-    return !str.IsEmpty();
 }

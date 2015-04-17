@@ -1,22 +1,23 @@
+#include "BrowseTrackerLayout.h"
 /*
-    This file is part of Browse Tracker, a plugin for Code::Blocks
-    Copyright (C) 2007 Pecan Heber
+	This file is part of Browse Tracker, a plugin for Code::Blocks
+	Copyright (C) 2007 Pecan Heber
 
-    This program is free software; you can redistribute it and/or
-    modify it under the terms of the GNU General Public License
-    as published by the Free Software Foundation; either version 2
-    of the License, or (at your option) any later version.
+	This program is free software; you can redistribute it and/or
+	modify it under the terms of the GNU General Public License
+	as published by the Free Software Foundation; either version 2
+	of the License, or (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+	You should have received a copy of the GNU General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
-// RCS-ID: $Id$
+// RCS-ID: $Id: BrowseTrackerLayout.cpp 24 2008-01-02 15:19:04Z Pecan $
 
 /*
 * This file is part of Code::Bocks, an open-source cross-platform IDE
@@ -25,13 +26,12 @@
 * This program is distributed under the terms of the GNU General Public License as published by
 * the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
 *
-* $Revision$
-* $Id$
-* $HeadURL$
+* $Revision: 4606 $
+* $Id: BrowseTrackerLayout.cpp 24 2008-01-02 15:19:04Z Pecan $
+* $HeadURL: https://svn.berlios.de/svnroot/repos/codeblocks/trunk/src/sdk/BrowseTrackerLayout.cpp $
 */
 
 #include "sdk_precomp.h"
-#include "BrowseTrackerLayout.h"
 
 #ifndef CB_PRECOMP
     #include <wx/confbase.h>
@@ -58,14 +58,14 @@ BrowseTrackerLayout::BrowseTrackerLayout(cbProject* project)
 // ----------------------------------------------------------------------------
     : m_pProject(project)
 {
-    //ctor
+	//ctor
 }
 
 // ----------------------------------------------------------------------------
 BrowseTrackerLayout::~BrowseTrackerLayout()
 // ----------------------------------------------------------------------------
 {
-    //dtor
+	//dtor
 }
 
 // IMPORTANT! We have to be careful of what to unicode and what not to.
@@ -148,7 +148,7 @@ bool BrowseTrackerLayout::Open(const wxString& filename, FileBrowse_MarksHash& m
             }
             if (elem->QueryIntAttribute("tabpos", &tabpos) == TIXML_SUCCESS)
             {
-                ;//pf->editorTabPos = tabpos;
+				;//pf->editorTabPos = tabpos;
             }
 
             TiXmlElement* cursor = elem->FirstChildElement();
@@ -239,17 +239,18 @@ bool BrowseTrackerLayout::Save(const wxString& filename, FileBrowse_MarksHash& m
     TiXmlElement* tgtidx = static_cast<TiXmlElement*>(rootnode->InsertEndChild(TiXmlElement("ActiveTarget")));
     tgtidx->SetAttribute("name", cbU2C(m_pProject->GetActiveBuildTarget()));
 
-    ProjectFile* active = 0L;
+	ProjectFile* active = 0L;
     cbEditor* ed = Manager::Get()->GetEditorManager()->GetBuiltinActiveEditor();
-    if (ed)
-        active = ed->GetProjectFile();
+	if (ed)
+		active = ed->GetProjectFile();
 
-    for (FilesList::iterator it = m_pProject->GetFilesList().begin(); it != m_pProject->GetFilesList().end(); ++it)
-    {
-        ProjectFile* f = *it;
+	int count = m_pProject->GetFilesCount();
+	for (int i = 0; i < count; ++i)
+	{
+		ProjectFile* f = m_pProject->GetFile(i);
 
-        if (f->editorOpen || f->editorPos || f->editorTopLine || f->editorTabPos)
-        {
+		if (f->editorOpen || f->editorPos || f->editorTopLine || f->editorTabPos)
+		{
             TiXmlElement* node = static_cast<TiXmlElement*>(rootnode->InsertEndChild(TiXmlElement("File")));
             node->SetAttribute("name", cbU2C(f->relativeFilename));
             node->SetAttribute("open", f->editorOpen);
@@ -260,13 +261,13 @@ bool BrowseTrackerLayout::Save(const wxString& filename, FileBrowse_MarksHash& m
             cursor->SetAttribute("position", f->editorPos);
             cursor->SetAttribute("topLine", f->editorTopLine);
 
-            ////EditorBase* eb = 0;
+            EditorBase* eb = 0;
             // write out a string of browse mark positions
             #if defined(LOGGING)
             ////LOGIT( _T("ProjectFilename[%s]"),f->file.GetFullPath().c_str() );
             #endif
 
-            ////eb = Manager::Get()->GetEditorManager()->GetEditor(f->file.GetFullPath());
+            eb = Manager::Get()->GetEditorManager()->GetEditor(f->file.GetFullPath());
             #if defined(LOGGING)
             ////if (eb) LOGIT( _T("EditorBase Filename[%d][%s]"), i, eb->GetFilename().c_str() );
             #endif
@@ -285,10 +286,10 @@ bool BrowseTrackerLayout::Save(const wxString& filename, FileBrowse_MarksHash& m
 ////                for (EbBrowse_MarksHash::iterator it = m_FileBrowse_MarksArchive.begin();
 ////                        it != m_FileBrowse_MarksArchive.end(); ++it)
 ////                {
-////                    #if defined(LOGGING)
-////                    LOGIT( _T("m_FileBrowse_MarksArchive[i][%d][%p]"), i, it->first );
-////                    #endif
-////                    ++i;
+////                	#if defined(LOGGING)
+////                	LOGIT( _T("m_FileBrowse_MarksArchive[i][%d][%p]"), i, it->first );
+////                	#endif
+////                	++i;
 ////                }
 ////            }
 ////            #endif
@@ -296,10 +297,10 @@ bool BrowseTrackerLayout::Save(const wxString& filename, FileBrowse_MarksHash& m
             ////LOGIT( _T("Layout processing for[%s]"),/*f->relativeFilename.c_str(),*/ f->file.GetFullPath().c_str() );
             #endif
             // Save the BrowseMarks
-            FileBrowse_MarksHash::iterator it2 = m_FileBrowse_MarksArchive.find(f->file.GetFullPath());
-            if (it2 != m_FileBrowse_MarksArchive.end() ) do
+            FileBrowse_MarksHash::iterator it = m_FileBrowse_MarksArchive.find(f->file.GetFullPath());
+            if (it != m_FileBrowse_MarksArchive.end() ) do
             {
-                const BrowseMarks* pBrowse_Marks = it2->second;
+                BrowseMarks* pBrowse_Marks = it->second;
                 if (not pBrowse_Marks) break;
                 wxString browseMarks = pBrowse_Marks->GetStringOfBrowse_Marks();
                 #if defined(LOGGING)
@@ -314,10 +315,10 @@ bool BrowseTrackerLayout::Save(const wxString& filename, FileBrowse_MarksHash& m
             ////    #endif
             ////}
             // Save the Book_Marks
-            it2 = m_EdBook_MarksArchive.find(f->file.GetFullPath());
-            if (it2 != m_EdBook_MarksArchive.end() ) do
+            it = m_EdBook_MarksArchive.find(f->file.GetFullPath());
+            if (it != m_EdBook_MarksArchive.end() ) do
             {
-                const BrowseMarks* pBook_Marks = it2->second;
+                BrowseMarks* pBook_Marks = it->second;
                 if (not pBook_Marks) break;
                 wxString bookMarks = pBook_Marks->GetStringOfBrowse_Marks();
                 #if defined(LOGGING)
@@ -332,18 +333,18 @@ bool BrowseTrackerLayout::Save(const wxString& filename, FileBrowse_MarksHash& m
             ////    #endif
             ////}
 
-        }
-    }//for
+		}
+	}//for
 
-    const wxArrayString& en = m_pProject->ExpandedNodes();
-    for (unsigned int i = 0; i < en.GetCount(); ++i)
-    {
-        if (!en[i].IsEmpty())
-        {
+	const wxArrayString& en = m_pProject->ExpandedNodes();
+	for (unsigned int i = 0; i < en.GetCount(); ++i)
+	{
+		if (!en[i].IsEmpty())
+		{
             TiXmlElement* node = static_cast<TiXmlElement*>(rootnode->InsertEndChild(TiXmlElement("Expand")));
             node->SetAttribute("folder", cbU2C(en[i]));
-        }
-    }
+		}
+	}
     return cbSaveTinyXMLDocument(&doc, filename);
 }
 // ----------------------------------------------------------------------------
@@ -362,7 +363,7 @@ void BrowseTrackerLayout::DumpBrowse_Marks( const wxString /*hashType*/, FileBro
         phash = &m_FileBook_MarksArchive;
     FileBrowse_MarksHash& hash = *phash;
     #if defined(LOGGING)
-    LOGIT( _T("Dump_%s Size[%lu]"), hashType.wx_str(), static_cast<unsigned long>(hash.size()) );
+    LOGIT( _T("Dump_%s Size[%d]"), hashType.c_str(), hash.size() );
     #endif
     for (FileBrowse_MarksHash::iterator it = hash.begin(); it != hash.end(); ++it)
     {

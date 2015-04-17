@@ -1,11 +1,9 @@
 #include "sdk.h"
 #ifndef CB_PRECOMP
-    #include <wx/intl.h>
-    #include <wx/string.h>
-    #include <wx/regex.h>
-
-    #include "cbeditor.h"
-    #include "manager.h"
+#include <wx/intl.h>
+#include <wx/string.h>
+#include "cbeditor.h"
+#include "manager.h"
 #endif
 #include "RndGen.h"
 #include "cbstyledtextctrl.h"
@@ -17,11 +15,7 @@
     inline void ini_random() { };
 	inline unsigned int random()
 	{
-		static std::mersenne_twister_engine<unsigned int, 32, 624, 397, 31,
-                                        0x9908b0df, 11,
-                                        0xffffffff,  7,
-                                        0x9d2c5680, 15,
-                                        0xefc60000, 18, 1812433253> randgen(time(0));
+		static std::mersenne_twister<unsigned int, 32, 624, 397, 31, 0x9908b0df, 11, 7, 0x9d2c5680, 15, 0xefc60000, 18> randgen(time(0));
 		return randgen();
 	};
 #else
@@ -96,27 +90,27 @@ void RndGen::OnSave(CodeBlocksEvent& event)
 			wxString replace;
 			if(what == _T("ALNUM"))
 			{
-				for(int j = 0; j<arg; ++j)
+				for(int i = 0; i<arg; ++i)
 					replace += c[random() % c.length()];
 			}
 			if(what == _T("DIGITS"))
 			{
-				for(int j = 0; j<arg; ++j)
+				for(int i = 0; i<arg; ++i)
 					replace += c[random() % 10];
 			}
 			if(what == _T("CHARS"))
 			{
-				for(int j = 0; j<arg; ++j)
+				for(int i = 0; i<arg; ++i)
 					replace += c[10+ random() % (c.length() - 10)];
 			}
 			if(what == _T("UPPERCHARS"))
 			{
-				for(int j = 0; j<arg; ++j)
+				for(int i = 0; i<arg; ++i)
 					replace += c[36 + random() % 26];
 			}
 			if(what == _T("LOWERCHARS"))
 			{
-				for(int j = 0; j<arg; ++j)
+				for(int i = 0; i<arg; ++i)
 					replace += c[10 + random() % 26];
 			}
 			s.Replace(search, replace, false);

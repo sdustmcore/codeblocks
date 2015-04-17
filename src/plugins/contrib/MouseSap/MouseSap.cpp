@@ -18,7 +18,6 @@
 
 #include <sdk.h>
 #ifndef CB_PRECOMP
-    #include <wx/app.h>
 	#include <wx/intl.h>
 	#include <wx/listctrl.h>
 	#include "cbeditor.h"
@@ -63,7 +62,7 @@ END_EVENT_TABLE()
 MouseSap* MouseSap::pMouseSap;
 
 // ----------------------------------------------------------------------------
-MouseSap::MouseSap() : m_pMyLog(nullptr), m_bEditorsAttached(false), m_bMouseSapEnabled(false), m_pMMSapEvents(nullptr)
+MouseSap::MouseSap()
 // ----------------------------------------------------------------------------
 {
 	//ctor
@@ -368,7 +367,7 @@ void MouseSap::DetachAll()
 {
 	// delete all handlers
     #if defined(LOGGING)
-	LOGIT(wxT("MMSap:DetachAll - detaching all [%lu] targets"), static_cast<unsigned long>(m_EditorPtrs.GetCount()) );
+	LOGIT(wxT("MMSap:DetachAll - detaching all [%d] targets"),m_EditorPtrs.GetCount() );
     #endif
 
     // Detach from memorized windows and remove event handlers
@@ -475,13 +474,13 @@ void MouseSap::OnWindowOpen(wxEvent& event)
     // Have to do this especially for split windows since CodeBlocks does not have
     // events when opening/closing split windows
 
-    wxWindow* Window = (wxWindow*)(event.GetEventObject());
+    wxWindow* pWindow = (wxWindow*)(event.GetEventObject());
 
     // Some code (at times) is not issuing event EVT_APP_STARTUP_DONE
     // so here we do it ourselves. If not initialized and this is the first
     // scintilla window, initialize now.
     if ( (not m_bEditorsAttached)
-        && ( Window->GetName().Lower() == wxT("sciwindow")) )
+        && ( pWindow->GetName().Lower() == wxT("sciwindow")) )
         OnAppStartupDoneInit();
 
     // Attach a split window (or any other window)
@@ -563,8 +562,8 @@ void MMSapEvents::OnMouseEvent(wxMouseEvent& event)    //MSW
     // differentiate window, left, right split window
     cbEditor* ed = 0;
     cbStyledTextCtrl* pControl = 0;
-    /*cbStyledTextCtrl* pLeftSplitWin = 0;
-    cbStyledTextCtrl* pRightSplitWin = 0;*/
+    cbStyledTextCtrl* pLeftSplitWin = 0;
+    cbStyledTextCtrl* pRightSplitWin = 0;
 
     ed  = Manager::Get()->GetEditorManager()->GetBuiltinActiveEditor();
     if ( not ed ) { event.Skip(); return; }
@@ -574,8 +573,8 @@ void MMSapEvents::OnMouseEvent(wxMouseEvent& event)    //MSW
     if ( pControl not_eq wxWindow::FindFocus()  )
         { event.Skip(); return; }
 
-    /*pLeftSplitWin = ed->GetLeftSplitViewControl();
-    pRightSplitWin = ed->GetRightSplitViewControl();*/
+    pLeftSplitWin = ed->GetLeftSplitViewControl();
+    pRightSplitWin = ed->GetRightSplitViewControl();
 
     #if defined(LOGGING)
     //LOGIT(_T("OnMouseSap[%d]"), eventType);

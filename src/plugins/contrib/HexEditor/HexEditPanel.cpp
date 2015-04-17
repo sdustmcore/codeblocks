@@ -52,7 +52,6 @@
 #include <editormanager.h>
 #include <configmanager.h>
 #include <logmanager.h>
-#include "prep.h"
 
 namespace
 {
@@ -865,13 +864,13 @@ void HexEditPanel::RefreshStatus()
         else
         {
 //            LogManager::Get()->DebugLog( F( _T("HEExpr Calculate: %d"), (int)sw.Time() ) );
-            unsigned long long uintLoc;
+            unsigned long long uint;
             long long          sint;
             long double        flt;
 
-            if ( executor.GetResult( uintLoc ) )
+            if ( executor.GetResult( uint ) )
             {
-                m_ExpressionVal->SetLabel( wxString::Format( _T("%llu"), uintLoc) );
+                m_ExpressionVal->SetLabel( wxString::Format( _T("%llu"), uint) );
             }
             else if ( executor.GetResult( sint ) )
             {
@@ -906,7 +905,6 @@ void HexEditPanel::RefreshStatus()
         {
             case true:  m_Endianess->SetLabel( _("LE") ); break;
             case false: m_Endianess->SetLabel( _("BE") ); break;
-            default: break;
         }
 
         m_BlockSize->SetLabel( wxString::Format( _("%dB"), m_DigitView->GetBlockBytes() ) );
@@ -1380,7 +1378,6 @@ void HexEditPanel::OnSpecialKeyDown(wxKeyEvent& event)
         {
             case 'G': ProcessGoto(); return;
             case 'F': ProcessSearch(); return;
-            default: break;
         }
     }
 
@@ -1820,7 +1817,6 @@ void HexEditPanel::OnButton4Click1(wxCommandEvent& /*event*/)
     {
         case 0: test = &Expression::GetTests(); break;
         case 1: test = &FileContentDisk::GetTests(); break;
-        default: break;
     }
 
     if ( !test ) return;

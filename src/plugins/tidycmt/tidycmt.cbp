@@ -13,7 +13,7 @@
 				<Option compiler="gcc" />
 				<Option host_application="..\..\devel\codeblocks.exe" />
 				<Compiler>
-					<Add option="$(#CB_RELEASE_TYPE)" />
+					<Add option="-g" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
 					<Add option="-fmessage-length=0" />
@@ -27,6 +27,8 @@
 					<Add option="-DCB_PRECOMP" />
 					<Add option="-DWX_PRECOMP" />
 					<Add option="-DwxUSE_UNICODE" />
+					<Add option="-DWXMAKINGDLL_PROPGRID" />
+					<Add option="-DwxPG_USE_WXMODULE=0" />
 					<Add directory="..\..\include" />
 					<Add directory="..\..\sdk\wxscintilla\include" />
 					<Add directory="$(#WX.include)" />
@@ -35,11 +37,12 @@
 				<Linker>
 					<Add library="wxmsw28$(WX_SUFFIX)" />
 					<Add library="codeblocks" />
+					<Add library="wxscintilla" />
 					<Add directory="..\..\devel" />
 					<Add directory="$(#WX.lib)\gcc_dll$(WX_CFG)" />
 				</Linker>
 				<ExtraCommands>
-					<Add after="zip -j9 ..\..\devel\share\CodeBlocks\tidycmt.zip manifest.xml" />
+					<Add after="zip -j9 $(#cb)\devel\share\CodeBlocks\tidycmt.zip manifest.xml" />
 					<Mode after="always" />
 				</ExtraCommands>
 			</Target>
@@ -52,7 +55,7 @@
 			<Add alias="All" targets="default;" />
 		</VirtualTargets>
 		<Linker>
-			<Add option="-Wl,--enable-auto-image-base" />
+			<Add option="--enable-auto-image-base" />
 		</Linker>
 		<Unit filename="manifest.xml" />
 		<Unit filename="tidycmt.cpp" />

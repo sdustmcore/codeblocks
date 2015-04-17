@@ -26,8 +26,6 @@ class ClassWizardDlg : public wxScrollingDialog
         const wxString& GetHeaderFilename()         const { return m_Header;         }
         bool  IsValidImplementationFilename()       const { return m_GenerateImplementation && m_Implementation != _T(""); }
         const wxString& GetImplementationFilename() const { return m_Implementation; }
-        bool  AddPathToProject()                    const { return m_AddPathToProject; }
-        wxString GetIncludeDir();
 
     private:
         struct MemberVar_impl { wxString Typ; wxString Var; wxString Get; wxString Set; };
@@ -47,7 +45,6 @@ class ClassWizardDlg : public wxScrollingDialog
         void OnHeaderChange(wxCommandEvent& event);
         void OnOKClick(wxCommandEvent& event);
         void OnCancelClick(wxCommandEvent& event);
-        void OnAddPathToProjectClick(wxCommandEvent& event);
 
         // methods
         bool DoHeader();
@@ -79,9 +76,6 @@ class ClassWizardDlg : public wxScrollingDialog
         MemberVarsArray m_MemberVars;
 
         bool            m_Documentation;
-
-        bool            m_AddPathToProject;
-        bool            m_UseRelativePath;
 
         bool            m_CommonDir;
         wxString        m_IncludeDir;

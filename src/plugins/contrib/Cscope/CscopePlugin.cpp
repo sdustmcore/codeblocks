@@ -133,6 +133,21 @@ void CscopePlugin::OnRelease(bool appShutDown)
 
 }
 
+int CscopePlugin::Configure()
+{
+    //create and display the configuration dialog for your plugin
+    cbConfigurationDialog dlg(Manager::Get()->GetAppWindow(), wxID_ANY, _("Your dialog title"));
+    cbConfigurationPanel* panel = GetConfigurationPanel(&dlg);
+    if (panel)
+    {
+        dlg.AttachConfigurationPanel(panel);
+        PlaceWindow(&dlg);
+        return dlg.ShowModal() == wxID_OK ? 0 : -1;
+    }
+    return -1;
+}
+
+
 
 void CscopePlugin::BuildModuleMenu(const ModuleType type, wxMenu* menu, const FileTreeData* /*data*/)
 {
@@ -186,8 +201,8 @@ void CscopePlugin::BuildModuleMenu(const ModuleType type, wxMenu* menu, const Fi
 
         //menu->Append(idOnFindSymbol,                       _T("Find C symbol '") + word + _T("'"));
         //menu->Append(idOnFindGlobalDefinition,             _T("Find '") + word + _T("' global definition"));
-        menu->Append(idOnFindFunctionsCalledByThisFuncion, _("Find functions called by '") + word + _T("'"));
-        menu->Append(idOnFindFunctionsCallingThisFunction, _("Find functions calling '") + word + _T("'"));
+        menu->Append(idOnFindFunctionsCalledByThisFuncion, _T("Find functions called by '") + word + _T("'"));
+        menu->Append(idOnFindFunctionsCallingThisFunction, _T("Find functions calling '") + word + _T("'"));
     }
     else
     {
@@ -195,8 +210,8 @@ void CscopePlugin::BuildModuleMenu(const ModuleType type, wxMenu* menu, const Fi
             idximp = idxocc;
         //menu->Insert(++idximp,idOnFindSymbol,                       _T("Find C symbol '") + word + _T("'"));
         //menu->Insert(++idximp,idOnFindGlobalDefinition,             _T("Find '") + word + _T("' global definition"));
-        menu->Insert(++idximp,idOnFindFunctionsCalledByThisFuncion, _("Find functions called by '") + word + _T("'"));
-        menu->Insert(++idximp,idOnFindFunctionsCallingThisFunction, _("Find functions calling '") + word + _T("'"));
+        menu->Insert(++idximp,idOnFindFunctionsCalledByThisFuncion, _T("Find functions called by '") + word + _T("'"));
+        menu->Insert(++idximp,idOnFindFunctionsCallingThisFunction, _T("Find functions calling '") + word + _T("'"));
     }
 }
 
@@ -217,23 +232,25 @@ bool CscopePlugin::CreateListFile(wxString &list_file)
     if (! prj) return false;
 
     std::vector< wxFileName > files;
-	m_view->GetWindow()->SetMessage(_("Creating file list..."), 5);
+	m_view->GetWindow()->SetMessage(_T("Creating file list..."), 5);
 
-    for (FilesList::iterator it = prj->GetFilesList().begin(); it != prj->GetFilesList().end(); ++it)
+    for ( unsigned int k = 0 ; k < static_cast<unsigned int>(prj->GetFilesCount()) ; ++k )
     {
-        wxFileName fn( (*it)->file.GetFullPath() );
+        wxFileName fn( prj->GetFile(k)->file.GetFullPath() );
         files.push_back(fn);
     }
 
 	//create temporary file and save the file-list there
 	wxFileName projectfilename(prj->GetFilename());
 
-	list_file = prj->GetBasePath() + projectfilename.GetName() + _T(".cscope_file_list");
+	list_file = prj->GetBasePath() +
+                projectfilename.GetName() +
+                _T(".cscope_file_list");
 
 	wxFFile file(list_file, _T("w+b"));
 	if (!file.IsOpened())
 	{
-		wxLogMessage(_("Failed to open temporary file ") + list_file);
+		wxLogMessage(_T("Failed to open temporary file ") + list_file);
 		list_file.Empty();
 		return false;
 	}
@@ -363,7 +380,7 @@ void CscopePlugin::OnFind(wxCommandEvent &event)
 //        endMsg += _T("find C symbol '") + WordAtCaret + _T("'");
 //    }
 
-    cmd += WordAtCaret + _T(" -i \"") + list_file + _T("\"");
+    cmd += WordAtCaret + _T(" -i ") + list_file;
     DoCscopeCommand(cmd, endMsg);
 }
 wxString CscopePlugin::GetCscopeBinaryName()

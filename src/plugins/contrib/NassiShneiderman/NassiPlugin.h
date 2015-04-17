@@ -35,6 +35,8 @@ class NassiPlugin : public cbMimePlugin
 
     /// configuration interface
     //{
+        /** Invoke configuration dialog. */
+        virtual int Configure();
 
         /** Return the plugin's configuration priority.
           * This is a number (default is 50) that is used to sort plugins
@@ -164,9 +166,6 @@ class NassiPlugin : public cbMimePlugin
         void OnNewDiagram(wxCommandEvent &event);
         void ParseC(wxCommandEvent &event);
         void OnInsertCFromDiagram(wxCommandEvent &event);
-        void OnUpdateUIMenuItem(wxUpdateUIEvent &event);
-
-        void OnSettingsChanged(CodeBlocksEvent &event);
 
         static void PopulateToolbar16(wxToolBar* toolBar);
         static void PopulateToolbar22(wxToolBar* toolBar);

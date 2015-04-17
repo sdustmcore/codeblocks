@@ -7,14 +7,13 @@
  * $HeadURL$
  */
 
-#include <algorithm>
-
+#include "help_common.h"
+#include <configmanager.h>
 #include <wx/intl.h>
 #include <wx/dynarray.h>
 #include <wx/textfile.h>
-#include <configmanager.h>
+#include <algorithm>
 
-#include "help_common.h"
 
 using std::find;
 using std::make_pair;

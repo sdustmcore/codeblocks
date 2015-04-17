@@ -32,76 +32,6 @@
 #include "manager.h"
 #include "main.h"
 
-/** \mainpage Code::Blocks SDK
- *
- * The open source, cross platform, free C, C++ and Fortran IDE. The majority
- * of features in Code::Blocks are implemented through a variety of plugins.
- *
- * The following are some useful places to jump into the sdk.
- *
- * Plugin interfaces:
- * \dot
- * digraph Plugins
- * {
- *   node [fontname="FreeSans", fontsize="10", shape=record];
- *   rankdir="LR";
- *   a [label="cbPlugin", URL="\ref cbPlugin", tooltip="Base class for all Code::Blocks plugins.", height=0.2];
- *
- *   b [label="cbCodeCompletionPlugin", URL="\ref cbCodeCompletionPlugin", tooltip="Base class for code-completion plugins.",  height=0.2];
- *   a -> b [dir="back", color="MidnightBlue"];
- *   c [label="cbCompilerPlugin",       URL="\ref cbCompilerPlugin",       tooltip="Base class for compiler plugins.",         height=0.2];
- *   a -> c [dir="back", color="MidnightBlue"];
- *   d [label="cbDebuggerPlugin",       URL="\ref cbDebuggerPlugin",       tooltip="Base class for debugger plugins.",         height=0.2];
- *   a -> d [dir="back", color="MidnightBlue"];
- *   e [label="cbMimePlugin",           URL="\ref cbMimePlugin",           tooltip="Base class for mime plugins.",             height=0.2];
- *   a -> e [dir="back", color="MidnightBlue"];
- *   f [label="cbSmartIndentPlugin",    URL="\ref cbSmartIndentPlugin",    tooltip="Base class for automatic indent plugins.", height=0.2];
- *   a -> f [dir="back", color="MidnightBlue"];
- *   g [label="cbToolPlugin",           URL="\ref cbToolPlugin",           tooltip="Base class for tool plugins.",             height=0.2];
- *   a -> g [dir="back", color="MidnightBlue"];
- *   h [label="cbWizardPlugin",         URL="\ref cbWizardPlugin",         tooltip="Base class for wizard plugins.",           height=0.2];
- *   a -> h [dir="back", color="MidnightBlue"];
- * }
- * \enddot
- *
- * Managers:
- * \dot
- * digraph Managers
- * {
- *   node [fontname="FreeSans", fontsize="10", shape=record];
- *   rankdir="LR";
- *   a [label="Mgr\<MgrT\>", URL="\ref Mgr", tooltip="Singleton base for managers.", height=0.2];
- *
- *   b [label="CCManager",        URL="\ref CCManager",        tooltip="Governs access and shared code-completion functions.",  height=0.2];
- *   a -> b [dir="back", color="MidnightBlue"];
- *   c [label="ColourManager",    URL="\ref ColourManager",    tooltip="Manages configurable colour settings.",                 height=0.2];
- *   a -> c [dir="back", color="MidnightBlue"];
- *   d [label="ConfigManager",    URL="\ref ConfigManager",    tooltip="Unified settings storage.",                             height=0.2];
- *   a -> d [dir="back", color="MidnightBlue"];
- *   e [label="DebuggerManager",  URL="\ref DebuggerManager",  tooltip="Handles debugger plugins.",                             height=0.2];
- *   a -> e [dir="back", color="MidnightBlue"];
- *   f [label="EditorManager",    URL="\ref EditorManager",    tooltip="Handles open editors.",                                 height=0.2];
- *   a -> f [dir="back", color="MidnightBlue"];
- *   g [label="FileManager",      URL="\ref FileManager",      tooltip="Manages low level file access.",                        height=0.2];
- *   a -> g [dir="back", color="MidnightBlue"];
- *   h [label="LogManager",       URL="\ref LogManager",       tooltip="Access shared logging functions.",                      height=0.2];
- *   a -> h [dir="back", color="MidnightBlue"];
- *   i [label="MacrosManager",    URL="\ref MacrosManager",    tooltip="Handles text replacement macros.",                      height=0.2];
- *   a -> i [dir="back", color="MidnightBlue"];
- *   j [label="PluginManager",    URL="\ref PluginManager",    tooltip="Manages installed plugins.",                            height=0.2];
- *   a -> j [dir="back", color="MidnightBlue"];
- *   k [label="ProjectManager",   URL="\ref ProjectManager",   tooltip="Manages projects and the workspace.",                   height=0.2];
- *   a -> k [dir="back", color="MidnightBlue"];
- *   l [label="ScriptingManager", URL="\ref ScriptingManager", tooltip="Handles script registration and usage.",                height=0.2];
- *   a -> l [dir="back", color="MidnightBlue"];
- * }
- * \enddot
- *
- * Also see the <a href="http://wiki.codeblocks.org/index.php?title=Developer_documentation">developer documentation</a>
- * in the wiki.
- */
-
-
 class cbSplashScreen;
 
 class CodeBlocksApp : public wxApp
@@ -111,7 +41,7 @@ class CodeBlocksApp : public wxApp
         virtual int OnExit();
         virtual int OnRun();
         wxString GetAppPath() const;
-        int ParseCmdLine(MainFrame* handlerFrame, const wxString& CmdLine = wxEmptyString);
+        int ParseCmdLine(MainFrame* handlerFrame);
         void OnAppActivate(wxActivateEvent& event);
         bool OnCmdLineParsed(wxCmdLineParser& parser);
         void OnFatalException();
@@ -123,7 +53,6 @@ class CodeBlocksApp : public wxApp
         // in response of a print-document apple event
         virtual void         MacPrintFile(const wxString &fileName) ;
 #endif
-        void AddFileToOpenDelayed(const wxString& filename);
     protected:
         void OnBatchBuildDone(CodeBlocksEvent& event);
         void OnTBIconLeftDown(wxTaskBarIconEvent& event);
@@ -136,13 +65,12 @@ class CodeBlocksApp : public wxApp
         void InitLocale();
         int BatchJob();
         wxLocale m_locale; // locale we'll be using
-        wxArrayString m_DelayedFilesToOpen;
     private:
+        void ComplainBadInstall();
         void SetupPersonality(const wxString& personality);
 
 
-        wxString m_Prefix; // directory specified in --prefix switch
-        wxString m_UserDataDir; // directory specified in --user-data-dir switch
+        wxString m_Prefix; // --prefix switch
         wxString m_BatchTarget;
         wxString m_Script;
         wxString m_AutoFile; // --file foo.cpp[:line]

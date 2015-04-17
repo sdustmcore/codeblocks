@@ -8,9 +8,6 @@
 
 #include "ibaseworkspaceloader.h"
 
-#define WORKSPACE_LAYOUT_FILE_VERSION_MAJOR 1
-#define WORKSPACE_LAYOUT_FILE_VERSION_MINOR 0
-
 class WorkspaceLoader : public IBaseWorkspaceLoader
 {
     public:
@@ -19,9 +16,6 @@ class WorkspaceLoader : public IBaseWorkspaceLoader
 
         bool Open(const wxString& filename, wxString& Title);
         bool Save(const wxString& title, const wxString& filename);
-
-        bool SaveLayout(const wxString& filename);
-        bool LoadLayout(const wxString& filename);
 };
 
 #endif // WORKSPACELOADER_H

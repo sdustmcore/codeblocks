@@ -33,7 +33,7 @@
 #include "filefilters.h"
 #include "newfromtemplatedlg.h"
 
-template<> TemplateManager* Mgr<TemplateManager>::instance = nullptr;
+template<> TemplateManager* Mgr<TemplateManager>::instance = 0;
 template<> bool  Mgr<TemplateManager>::isShutdown = false;
 
 TemplateManager::TemplateManager()
@@ -45,17 +45,20 @@ TemplateManager::TemplateManager()
 TemplateManager::~TemplateManager()
 {
     //dtor
+    // this is a core manager, so it is removed when the app is shutting down.
+    // in this case, the app has already un-hooked us, so no need to do it ourselves...
+//  Manager::Get()->GetAppWindow()->RemoveEventHandler(this);
 }
 
-void TemplateManager::CreateMenu(cb_unused wxMenuBar* menuBar)
+void TemplateManager::CreateMenu(wxMenuBar* menuBar)
 {
 }
 
-void TemplateManager::ReleaseMenu(cb_unused wxMenuBar* menuBar)
+void TemplateManager::ReleaseMenu(wxMenuBar* menuBar)
 {
 }
 
-void TemplateManager::BuildToolsMenu(cb_unused wxMenu* menu)
+void TemplateManager::BuildToolsMenu(wxMenu* menu)
 {
 }
 
@@ -64,10 +67,8 @@ void TemplateManager::LoadUserTemplates()
     m_UserTemplates.Clear();
     wxString baseDir = ConfigManager::GetConfigFolder() + wxFILE_SEP_PATH + _T("UserTemplates");
 
-    if (!wxDirExists(baseDir)) // avoid warnings in debug builds
-        return;
-
     wxDir dir(baseDir);
+
     if (!dir.IsOpened())
         return;
 
@@ -110,10 +111,6 @@ cbProject* TemplateManager::NewFromTemplate(NewFromTemplateDlg& dlg, wxString* p
         switch (wiz->GetOutputType(dlg.GetWizardIndex()))
         {
             case totProject: prj = dynamic_cast<cbProject*>(ret); break;
-            case totTarget: // fall-though
-            case totFiles:  // fall-though
-            case totCustom: // fall-though
-            case totUser:   // fall-though
             default: break;
         }
     }
@@ -132,26 +129,27 @@ cbProject* TemplateManager::NewProjectFromUserTemplate(NewFromTemplateDlg& dlg, 
     wxString path = Manager::Get()->GetConfigManager(_T("template_manager"))->Read(_T("/projects_path"));
     wxString sep = wxFileName::GetPathSeparator();
     // select directory to copy user template files
-    path = ChooseDirectory(nullptr, _("Choose a directory to create the new project"),
+    path = ChooseDirectory(0, _("Choose a directory to create the new project"),
                         path, _T(""), false, true);
     if (path.IsEmpty())
+    {
         return NULL;
-    else if (path.Mid(path.Length() - 1) == wxFILE_SEP_PATH)
+    }
+    else if(path.Mid(path.Length() - 1) == wxFILE_SEP_PATH)
+    {
         path.RemoveLast();
+    }
 
     // check for existing files; if found, notify about overwriting them
-    if (wxDirExists(path))
+    wxDir dir(path);
+    if (dir.HasFiles() || dir.HasSubDirs())
     {
-        wxDir dir(path);
-        if (dir.HasFiles() || dir.HasSubDirs())
+        if (cbMessageBox(path + _(" already contains other files.\n"
+                                "If you continue, files with the same names WILL BE OVERWRITTEN.\n"
+                                "Are you sure you want to continue?"),
+                                _("Files exist in directory"), wxICON_EXCLAMATION | wxYES_NO | wxNO_DEFAULT) != wxID_YES)
         {
-            if (cbMessageBox(path + _(" already contains other files.\n"
-                                      "If you continue, files with the same names WILL BE OVERWRITTEN.\n"
-                                      "Are you sure you want to continue?"),
-                                    _("Files exist in directory"), wxICON_EXCLAMATION | wxYES_NO | wxNO_DEFAULT) != wxID_YES)
-            {
-                return nullptr;
-            }
+            return 0;
         }
     }
 
@@ -161,7 +159,11 @@ cbProject* TemplateManager::NewProjectFromUserTemplate(NewFromTemplateDlg& dlg, 
     templ << sep << dlg.GetSelectedUserTemplate();
     if (!wxDirExists(templ))
     {
+        #if wxCHECK_VERSION(2, 9, 0)
         Manager::Get()->GetLogManager()->DebugLog(F(_T("Cannot open user-template source path '%s'!"), templ.wx_str()));
+        #else
+        Manager::Get()->GetLogManager()->DebugLog(F(_T("Cannot open user-template source path '%s'!"), templ.c_str()));
+        #endif
         return NULL;
     }
 
@@ -212,7 +214,7 @@ cbProject* TemplateManager::NewProjectFromUserTemplate(NewFromTemplateDlg& dlg, 
                 project_filename = fname.GetFullPath();
             }
             prj = Manager::Get()->GetProjectManager()->LoadProject(project_filename);
-            if (prj && !newname.IsEmpty())
+            if(prj && !newname.IsEmpty())
             {
                 prj->SetTitle(newname);
                 for (int i = 0; i < prj->GetBuildTargetsCount(); ++i)
@@ -231,7 +233,7 @@ cbProject* TemplateManager::NewProjectFromUserTemplate(NewFromTemplateDlg& dlg, 
                     outFname.SetName(newname);
                     bt->SetOutputFilename(outFname.GetFullPath());
                 }
-                Manager::Get()->GetProjectManager()->GetUI().RebuildTree(); // so the tree shows the new name
+                Manager::Get()->GetProjectManager()->RebuildTree(); // so the tree shows the new name
                 CodeBlocksEvent evt(cbEVT_PROJECT_OPEN, 0, prj);
                 Manager::Get()->ProcessEvent(evt);
             }
@@ -268,7 +270,7 @@ void TemplateManager::SaveUserTemplate(cbProject* prj)
     while (true)
     {
         // ask for template title (unique)
-        wxTextEntryDialog dlg(nullptr, _("Enter a title for this template"), _("Enter title"), title);
+        wxTextEntryDialog dlg(0, _("Enter a title for this template"), _("Enter title"), title);
         PlaceWindow(&dlg);
         if (dlg.ShowModal() != wxID_OK)
             return;
@@ -291,11 +293,10 @@ void TemplateManager::SaveUserTemplate(cbProject* prj)
     int total_count = prj->GetFilesCount();
     templ << wxFILE_SEP_PATH;
     wxFileName fname;
-
-    for (FilesList::iterator it = prj->GetFilesList().begin(); it != prj->GetFilesList().end(); ++it)
+    for (int i = 0; i < total_count; ++i)
     {
-        wxString src = (*it)->file.GetFullPath();
-        wxString dst = templ + (*it)->relativeToCommonTopLevelPath;
+        wxString src = prj->GetFile(i)->file.GetFullPath();
+        wxString dst = templ + prj->GetFile(i)->relativeToCommonTopLevelPath;
         #if wxCHECK_VERSION(2, 9, 0)
         Manager::Get()->GetLogManager()->DebugLog(F(_T("Copying %s to %s"), src.wx_str(), dst.wx_str()));
         #else

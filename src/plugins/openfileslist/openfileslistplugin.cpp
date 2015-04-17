@@ -7,26 +7,27 @@
  * $HeadURL$
  */
 
-#include "sdk.h"
-
-#ifndef CB_PRECOMP
-    #include <manager.h>
-    #include <configmanager.h>
-    #include <editormanager.h>
-    #include <projectmanager.h>
-    #include <logmanager.h>
-    #include <editorbase.h>
-    #include <sdk_events.h>
-    #include <misctreeitemdata.h>
-
-    #include <wx/window.h>
-    #include <wx/treectrl.h>
-    #include <wx/bitmap.h>
-    #include <wx/imaglist.h>
-    #include <wx/menu.h>
-#endif
-
 #include "openfileslistplugin.h"
+
+#include <manager.h>
+#include <configmanager.h>
+#include <editormanager.h>
+#include <projectmanager.h>
+#include <logmanager.h>
+#include <editorbase.h>
+#include <sdk_events.h>
+#include <misctreeitemdata.h>
+
+#include <wx/window.h>
+#include <wx/treectrl.h>
+#include <wx/bitmap.h>
+#include <wx/imaglist.h>
+#include <wx/menu.h>
+
+namespace compatibility
+{
+    typedef TernaryCondTypedef<wxMinimumVersion<2,5>::eval, wxTreeItemIdValue, long int>::eval tree_cookie_t;
+}
 
 namespace
 {
@@ -39,7 +40,7 @@ namespace
     class OpenFilesListData : public wxTreeItemData
     {
         public:
-            OpenFilesListData(EditorBase* ed_in) : ed(ed_in) {}
+            OpenFilesListData(EditorBase* ed) : ed(ed) {}
             EditorBase* GetEditor() const { return ed; }
         private:
             EditorBase* ed;
@@ -122,10 +123,8 @@ void OpenFilesListPlugin::OnAttach()
     pm->RegisterEventSink(cbEVT_PROJECT_OPEN, new cbEventFunctor<OpenFilesListPlugin, CodeBlocksEvent>(this, &OpenFilesListPlugin::OnProjectOpened));
 }
 
-void OpenFilesListPlugin::OnRelease(bool appShutDown)
+void OpenFilesListPlugin::OnRelease()
 {
-    if (appShutDown)
-        return;
     // remove registered event sinks
     Manager::Get()->RemoveAllEventSinksFor(this);
 
@@ -136,7 +135,6 @@ void OpenFilesListPlugin::OnRelease(bool appShutDown)
 
     // finally destroy the tree
     m_pTree->Destroy();
-    m_pTree = nullptr;
 }
 
 void OpenFilesListPlugin::BuildMenu(wxMenuBar* menuBar)
@@ -178,14 +176,14 @@ int OpenFilesListPlugin::GetOpenFilesListIcon(EditorBase* ed)
 
 void OpenFilesListPlugin::RebuildOpenFilesTree()
 {
-    if (Manager::IsAppShuttingDown())
+    if(Manager::IsAppShuttingDown())
         return;
 
     EditorManager* mgr = Manager::Get()->GetEditorManager();
 
     m_pTree->Freeze();
     m_pTree->DeleteChildren(m_pTree->GetRootItem());
-    if (!mgr->GetEditorsCount())
+    if(!mgr->GetEditorsCount())
     {
         m_pTree->Thaw();
         return;
@@ -194,13 +192,13 @@ void OpenFilesListPlugin::RebuildOpenFilesTree()
     for (int i = 0; i < mgr->GetEditorsCount(); ++i)
     {
         EditorBase* ed = mgr->GetEditor(i);
-        if (!ed || !ed->VisibleToTree())
+        if(!ed || !ed->VisibleToTree())
             continue;
 
         wxString shortname = ed->GetShortName();
         int mod = GetOpenFilesListIcon(ed);
         wxTreeItemId item = m_pTree->AppendItem(m_pTree->GetRootItem(), shortname, mod, mod, new OpenFilesListData(ed));
-        if (mgr->GetActiveEditor() == ed)
+        if(mgr->GetActiveEditor() == ed)
             m_pTree->SelectItem(item);
     }
 
@@ -211,7 +209,7 @@ void OpenFilesListPlugin::RebuildOpenFilesTree()
 
 void OpenFilesListPlugin::RefreshOpenFilesTree(EditorBase* ed, bool remove)
 {
-    if (Manager::IsAppShuttingDown() || !ed)
+    if(Manager::IsAppShuttingDown() || !ed)
         return;
 
     EditorManager* mgr = Manager::Get()->GetEditorManager();
@@ -219,7 +217,7 @@ void OpenFilesListPlugin::RefreshOpenFilesTree(EditorBase* ed, bool remove)
 
     m_pTree->Freeze();
 
-    wxTreeItemIdValue cookie = 0;
+    compatibility::tree_cookie_t cookie = 0;
     wxTreeItemId item = m_pTree->GetFirstChild(m_pTree->GetRootItem(), cookie);
     wxString shortname = ed->GetShortName();
     bool found = false;
@@ -227,21 +225,21 @@ void OpenFilesListPlugin::RefreshOpenFilesTree(EditorBase* ed, bool remove)
     while (item)
     {
         EditorBase* data = static_cast<EditorBase*>(static_cast<OpenFilesListData*>(m_pTree->GetItemData(item))->GetEditor());
-        if (data && ed == data)
+        if(data && ed == data)
         {
             // and apply changes to current item
             if (!remove)
             {
                 found = true;
                 int mod = GetOpenFilesListIcon(ed);
-                if (m_pTree->GetItemText(item) != shortname)
+                if(m_pTree->GetItemText(item) != shortname)
                     m_pTree->SetItemText(item, shortname);
                 if (m_pTree->GetItemImage(item) != mod)
                 {
                     m_pTree->SetItemImage(item, mod, wxTreeItemIcon_Normal);
                     m_pTree->SetItemImage(item, mod, wxTreeItemIcon_Selected);
                 }
-                if (ed == aed)
+                if(ed == aed)
                     m_pTree->SelectItem(item);
             }
             else
@@ -255,8 +253,8 @@ void OpenFilesListPlugin::RefreshOpenFilesTree(EditorBase* ed, bool remove)
     if (!found && !remove && ed->VisibleToTree() && !shortname.IsEmpty())
     {
         int mod = GetOpenFilesListIcon(ed);
-        item = m_pTree->AppendItem(m_pTree->GetRootItem(), shortname, mod, mod, new OpenFilesListData(ed));
-        if (mgr->GetActiveEditor() == ed)
+        wxTreeItemId item = m_pTree->AppendItem(m_pTree->GetRootItem(), shortname, mod, mod, new OpenFilesListData(ed));
+        if(mgr->GetActiveEditor() == ed)
             m_pTree->SelectItem(item);
         m_pTree->SortChildren(m_pTree->GetRootItem());
     }
@@ -265,24 +263,22 @@ void OpenFilesListPlugin::RefreshOpenFilesTree(EditorBase* ed, bool remove)
 }
 
 // tree item double-clicked
-void OpenFilesListPlugin::OnTreeItemActivated(wxTreeEvent& event)
+void OpenFilesListPlugin::OnTreeItemActivated(wxTreeEvent &event)
 {
-    if (Manager::IsAppShuttingDown())
+    if(Manager::IsAppShuttingDown())
         return;
-
-    EditorBase* ed = static_cast<EditorBase*>( static_cast<OpenFilesListData*>(m_pTree->GetItemData(event.GetItem()))->GetEditor() );
-    if (ed)
+    EditorBase* ed = static_cast<EditorBase*>(static_cast<OpenFilesListData*>(m_pTree->GetItemData(event.GetItem()))->GetEditor());
+    if(ed)
         Manager::Get()->GetEditorManager()->SetActiveEditor(ed);
 }
 
 // tree item right-clicked
-void OpenFilesListPlugin::OnTreeItemRightClick(wxTreeEvent& event)
+void OpenFilesListPlugin::OnTreeItemRightClick(wxTreeEvent &event)
 {
-    if (Manager::IsAppShuttingDown())
+    if(Manager::IsAppShuttingDown())
         return;
-
-    EditorBase* ed = static_cast<EditorBase*>( static_cast<OpenFilesListData*>(m_pTree->GetItemData(event.GetItem()))->GetEditor() );
-    if (ed)
+    EditorBase* ed = static_cast<EditorBase*>(static_cast<OpenFilesListData*>(m_pTree->GetItemData(event.GetItem()))->GetEditor());
+    if(ed)
     {
         wxPoint pt = m_pTree->ClientToScreen(event.GetPoint());
         ed->DisplayContextMenu(pt,mtOpenFilesList);
@@ -352,7 +348,7 @@ void OpenFilesListPlugin::OnEditorSaved(CodeBlocksEvent& event)
     RefreshOpenFilesTree(event.GetEditor());
 }
 
-void OpenFilesListPlugin::OnProjectOpened(cb_unused CodeBlocksEvent& event)
+void OpenFilesListPlugin::OnProjectOpened(CodeBlocksEvent& event)
 {
     if (m_EditorArray.IsEmpty())
         return;

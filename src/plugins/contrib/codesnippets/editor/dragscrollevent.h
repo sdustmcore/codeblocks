@@ -1,5 +1,5 @@
 /***************************************************************
- * Name:      sDragScrollEvent
+ * Name:      DragScrollEvent
  *
  * Purpose:   This class implements the events sent by/for a
  *            DragScroll request to the
@@ -26,21 +26,21 @@ class cbPlugin;
 	    idDragScrollInvokeConfig
 	};
 // ----------------------------------------------------------------------------
-class sDragScrollEvent : public wxCommandEvent
+class DragScrollEvent : public wxCommandEvent
 // ----------------------------------------------------------------------------
 {
 public:
 	/** Constructor. */
-	sDragScrollEvent(wxEventType commandType = wxEVT_NULL, int id = 0);
+	DragScrollEvent(wxEventType commandType = wxEVT_NULL, int id = 0);
 
 	/** Copy constructor. */
-	sDragScrollEvent( const sDragScrollEvent& event);
+	DragScrollEvent( const DragScrollEvent& event);
 
 	/** Destructor. */
-	~sDragScrollEvent();
+	~DragScrollEvent();
 
 
-	virtual wxEvent* Clone() const { return new sDragScrollEvent(*this);}
+	virtual wxEvent* Clone() const { return new DragScrollEvent(*this);}
 
 
 	//-int       GetWindowID() const {return m_WindowID;}
@@ -57,15 +57,15 @@ private:
 	//-wxWindow*  m_pWindow;
 	wxString   m_EventTypeLabel;
 
-	DECLARE_DYNAMIC_CLASS(sDragScrollEvent);
+	DECLARE_DYNAMIC_CLASS(DragScrollEvent);
 };
 
-typedef void (wxEvtHandler::*sDragScrollEventFunction)(sDragScrollEvent&);
+typedef void (wxEvtHandler::*DragScrollEventFunction)(DragScrollEvent&);
 
-extern const wxEventType wxEVT_S_DRAGSCROLL_EVENT;
-#define EVT_S_DRAGSCROLL_EVENT(id, fn) \
-	DECLARE_EVENT_TABLE_ENTRY(wxEVT_S_DRAGSCROLL_EVENT, id, -1, \
-	(wxObjectEventFunction)(wxEventFunction) (sDragScrollEventFunction) & fn,(wxObject *) NULL ),
+extern const wxEventType wxEVT_DRAGSCROLL_EVENT;
+#define EVT_DRAGSCROLL_EVENT(id, fn) \
+	DECLARE_EVENT_TABLE_ENTRY(wxEVT_DRAGSCROLL_EVENT, id, -1, \
+	(wxObjectEventFunction)(wxEventFunction) (DragScrollEventFunction) & fn,(wxObject *) NULL ),
 
 #endif // DRAGSCROLL_EVENT_H
 

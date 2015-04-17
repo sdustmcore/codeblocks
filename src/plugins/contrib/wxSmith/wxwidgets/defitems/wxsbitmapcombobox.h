@@ -1,6 +1,7 @@
-/*
+/** \file wxsbitmapcombobox.h
+*
 * This file is part of wxSmith plugin for Code::Blocks Studio
-* Copyright (C) 2006-2007  Bartlomiej Swiecki
+* Copyright (C) 2010 Gary Harris
 *
 * wxSmith is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -15,20 +16,15 @@
 * You should have received a copy of the GNU General Public License
 * along with wxSmith. If not, see <http://www.gnu.org/licenses/>.
 *
-* $Revision$
-* $Id$
-* $HeadURL$
 */
 
 #ifndef WXSBITMAPCOMBOBOX_H
 #define WXSBITMAPCOMBOBOX_H
 
-#include <wx/bmpcbox.h>
-
 #include "../wxswidget.h"
-#include "wxsimagelist.h"
-#include "../properties/wxsimagelisteditordlg.h"
+#include <wx/dynarray.h>
 
+WX_DECLARE_OBJARRAY(wxsBitmapData, BmpComboBitmapDataArray);
 
 /** \brief Class for wxsBitmapComboBox widget */
 class wxsBitmapComboBox: public wxsWidget
@@ -39,18 +35,15 @@ class wxsBitmapComboBox: public wxsWidget
 
     private:
 
-        virtual void        OnBuildCreatingCode();
-        virtual wxObject   *OnBuildPreview(wxWindow* Parent,long Flags);
-        virtual void        OnEnumWidgetProperties(long Flags);
+        virtual void OnBuildCreatingCode();
+        virtual wxObject* OnBuildPreview(wxWindow* Parent,long Flags);
+        virtual void OnEnumWidgetProperties(long Flags);
 
-                void        FindAllImageLists(wxArrayString &aNames);
-                void        UpdateComboItemList(void);
-                void        ParseComboItem(wxString inSource, wxString &outItem, int &outIndex);
+        wxArrayString 	m_arrChoices;											//!< Array of entries for the choice list.
+        long 					m_defaultSelection;									//!< The item selected by default.
+		wxString    		m_sImageList;                     						//!< The selected image list .
+		wxString    		m_arrImageListNames[128];					//!< Array of image list names.
 
-
-
-        wxString        mImageList;                 // list to use to select images
-        wxArrayString   mItems;                     // text of drop-down items
 };
 
 #endif

@@ -13,7 +13,6 @@
 
 #include <sdk.h>
 #ifndef CB_PRECOMP
-    #include <wx/app.h>
 	#include <wx/intl.h>
 	#include <wx/listctrl.h>
 	#include "configmanager.h"
@@ -35,7 +34,7 @@
 #include "editormanager.h"
 
 #include "startherepage.h"
-// remove this line - comment line to test commits at SourceForge
+
 // ----------------------------------------------------------------------------
 //  TextCtrlLogger class to allow IsLoggerControl() access to "control" pointer
 // ----------------------------------------------------------------------------
@@ -853,7 +852,7 @@ void cbDragScroll::DetachAll()
 // ----------------------------------------------------------------------------
 {
 	// delete all handlers
-	LOGIT(wxT("cbDS:DetachAll - detaching all [%lu] targets"), static_cast<unsigned long>(m_WindowPtrs.GetCount()) );
+	LOGIT(wxT("cbDS:DetachAll - detaching all [%d] targets"),m_WindowPtrs.GetCount() );
 
     // Detach from memorized windows and remove event handlers
     while( m_WindowPtrs.GetCount() )
@@ -1103,17 +1102,17 @@ void cbDragScroll::OnWindowOpen(wxEvent& event)
 {
     // wxEVT_CREATE entry
 
-    wxWindow* window = (wxWindow*)(event.GetEventObject());
+    wxWindow* pWindow = (wxWindow*)(event.GetEventObject());
 
     // Some code (at times) is not issueing EVT_APP_STARTUP_DONE;
     // so here we do it ourselves. If not initialized and this is the first
     // scintilla window, initialize now.
 
     if ( (not m_bNotebooksAttached)
-        && ( window->GetName().Lower() == wxT("sciwindow")) )
+        && ( pWindow->GetName().Lower() == wxT("sciwindow")) )
     {
         #if defined(LOGGING)
-        LOGIT( _T("OnWindowOpen[%s]"), window->GetName().c_str());
+        LOGIT( _T("OnWindowOpen[%s]"), pWindow->GetName().c_str());
         #endif
         OnAppStartupDoneInit();
     }
@@ -1586,18 +1585,7 @@ void MouseEventsHandler::OnMouseEvent(wxMouseEvent& event)    //MSW
         // if editor window, use scintilla scroll
         if (pStyledTextCtrl )//&& (m_pEvtObject == p_cbStyledTextCtrl))
         {
-            if (scrollx >= 0)
                 pStyledTextCtrl->LineScroll (scrollx,scrolly);
-            else
-            {   //work around scintilla colume scroll left bug
-                // any LineScroll(-1,y) will jump to colume 0
-                int xpixels = 0; int ypixels = 0; int xoffset = 0;
-                xoffset = pStyledTextCtrl->GetXOffset();
-                pStyledTextCtrl->GetTextExtent(_T("M"),&xpixels, &ypixels);
-                xoffset = pStyledTextCtrl->GetXOffset() + (scrollx * xpixels);
-                if (xoffset < 0) xoffset = 0;
-                pStyledTextCtrl->SetXOffset(xoffset);
-            }
         }
         else //use wxControl scrolling
         {
@@ -1823,21 +1811,11 @@ void MouseEventsHandler::OnMouseEvent(wxMouseEvent& event)    //GTK
         if ((scrollx==0) && (scrolly==0)) return;
         scrollx *= m_Direction; scrolly *= m_Direction;
 
+
         // if editor window, use scintilla scroll
-        if (pStyledTextCtrl )//&& (m_pEvtObject == p_cbStyledTextCtrl))
+        if (pStyledTextCtrl )
         {
-            if (scrollx >= 0)
                 pStyledTextCtrl->LineScroll (scrollx,scrolly);
-            else
-            {   //work around scintilla colume scroll left bug
-                // any LineScroll(-1,y) will jump to colume 0
-                int xpixels = 0; int ypixels = 0; int xoffset = 0;
-                xoffset = pStyledTextCtrl->GetXOffset();
-                pStyledTextCtrl->GetTextExtent(_T("M"),&xpixels, &ypixels);
-                xoffset = pStyledTextCtrl->GetXOffset() + (scrollx * xpixels);
-                if (xoffset < 0) xoffset = 0;
-                pStyledTextCtrl->SetXOffset(xoffset);
-            }
         }
         else //use wxControl scrolling
         {
@@ -1850,7 +1828,6 @@ void MouseEventsHandler::OnMouseEvent(wxMouseEvent& event)    //GTK
                 ((wxWindow*)pEvtObject)->ScrollLines(scrolly);
             }
             else  // use listCtrl for x scrolling
-            if ( scrolly && pEvtObject->IsKindOf(CLASSINFO(wxListCtrl)))
             {
                 //NOTE: wxListCtrl->ScrollList(x,y) is not supported under Linux
                 // This is here just in case it gets supported by wxWidgets

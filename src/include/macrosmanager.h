@@ -27,8 +27,8 @@ public:
     friend class Mgr<MacrosManager>;
     void CreateMenu(wxMenuBar* menuBar);
     void ReleaseMenu(wxMenuBar* menuBar);
-    void ReplaceMacros(wxString& buffer, ProjectBuildTarget* target = nullptr, bool subrequest = false);
-    wxString ReplaceMacros(const wxString& buffer, ProjectBuildTarget* target = nullptr);
+    void ReplaceMacros(wxString& buffer, ProjectBuildTarget* target = 0, bool subrequest = false);
+    wxString ReplaceMacros(const wxString& buffer, ProjectBuildTarget* target = 0);
     void ReplaceEnvVars(wxString& buffer) { ReplaceMacros(buffer); }  /* misnomer, should be ReplaceVariables */;
     void RecalcVars(cbProject* project, EditorBase* editor, ProjectBuildTarget* target);
     void ClearProjectKeys();
@@ -67,16 +67,12 @@ protected:
     wxRegEx             m_RE_If;
     wxRegEx             m_RE_IfSp;
     wxRegEx             m_RE_Script;
-    wxRegEx             m_RE_ToAbsolutePath;
-    wxRegEx             m_RE_To83Path;
-    wxRegEx             m_RE_RemoveQuotes;
     UserVariableManager *m_UserVarMan;
 
 private:
     MacrosManager();
     ~MacrosManager();
     wxString EvalCondition(const wxString& cond, const wxString& true_clause, const wxString& false_clause, ProjectBuildTarget* target);
-    int MatchBrace(const wxString& buffer, int index);
 };
 
 #endif // MACROSMANAGER_H

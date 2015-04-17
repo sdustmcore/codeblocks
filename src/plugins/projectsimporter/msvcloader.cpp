@@ -100,7 +100,7 @@ bool MSVCLoader::Open(const wxString& filename)
     return ParseSourceFiles();
 }
 
-bool MSVCLoader::Save(cb_unused const wxString& filename)
+bool MSVCLoader::Save(const wxString& filename)
 {
     // no support to save MSVC projects
     return false;
@@ -211,7 +211,11 @@ bool MSVCLoader::ReadConfigurations()
             {
                 m_Configurations.Add(tmp);
                 m_ConfigurationsLineIndex.Add(currentLine);
+                #if wxCHECK_VERSION(2, 9, 0)
                 Manager::Get()->GetLogManager()->DebugLog(F(_T("Detected configuration '%s' at line %d"), tmp.wx_str(), currentLine));
+                #else
+                Manager::Get()->GetLogManager()->DebugLog(F(_T("Detected configuration '%s' at line %d"), tmp.c_str(), currentLine));
+                #endif
             }
         }
     }
@@ -520,8 +524,8 @@ void MSVCLoader::ProcessCompilerOptions(ProjectBuildTarget* target, const wxStri
                 wxArrayString options;
                 if (ParseResponseFile(m_pProject->GetBasePath() + opt.Mid(1), options))
                 {
-                    for (size_t j = 0; j < options.GetCount(); ++j)
-                        ProcessCompilerOptions(target, options[j]);
+                    for (size_t i = 0; i < options.GetCount(); ++i)
+                        ProcessCompilerOptions(target, options[i]);
                 }
                 else
                 { // Fallback: Remember GCC will process Pre-processor macros only
@@ -588,11 +592,6 @@ void MSVCLoader::ProcessLinkerOptions(ProjectBuildTarget* target, const wxString
             {
                 // do nothing (ignore silently)
             }
-            else if (opt.Matches(_T("/dll")))
-            {
-                opt = opt.Mid(4);
-                target->AddLinkerOption(_T("--dll ") + RemoveQuotes(opt));
-            }
             else if (opt.StartsWith(_T("/out:")))
             {
                 // do nothing; it is handled below, in common options
@@ -602,8 +601,8 @@ void MSVCLoader::ProcessLinkerOptions(ProjectBuildTarget* target, const wxString
                 wxArrayString options;
                 if (ParseResponseFile(m_pProject->GetBasePath() + opt.Mid(1), options))
                 {
-                    for (size_t j = 0; j < options.GetCount(); ++j)
-                        ProcessLinkerOptions(target, options[j]);
+                    for (size_t i = 0; i < options.GetCount(); ++i)
+                        ProcessLinkerOptions(target, options[i]);
                 } // else ignore
             }
             else if (opt.Find(_T(".lib")) == -1) // don't add linking lib (added below, in common options)

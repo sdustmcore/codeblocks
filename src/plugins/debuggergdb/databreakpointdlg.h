@@ -13,29 +13,26 @@
 #endif
 
 //(*Headers(DataBreakpointDlg)
-#include <wx/sizer.h>
-#include <wx/radiobox.h>
-#include <wx/textctrl.h>
 #include <wx/checkbox.h>
+#include <wx/sizer.h>
 #include "scrollingdialog.h"
+#include <wx/radiobox.h>
 //*)
 
 class DataBreakpointDlg: public wxScrollingDialog
 {
     public:
 
-        DataBreakpointDlg(wxWindow *parent, const wxString& dataExpression, bool enabled, int selection);
+        DataBreakpointDlg(wxWindow* parent,wxWindowID id = -1,bool enabled=true,int selection=1);
         virtual ~DataBreakpointDlg();
 
         //(*Identifiers(DataBreakpointDlg)
-        static const long ID_CHK_ENABLED;
-        static const long ID_TXT_DATA_EXPRESION;
-        static const long ID_RDO_CONDITION;
+        static const long ID_CHECKBOX1;
+        static const long ID_RADIOBOX1;
         //*)
-
-        bool IsBreakpointEnabled();
+        
+        bool IsEnabled();
         int GetSelection();
-        wxString GetDataExpression() const;
 
     protected:
 
@@ -43,9 +40,9 @@ class DataBreakpointDlg: public wxScrollingDialog
         //*)
 
         //(*Declarations(DataBreakpointDlg)
-        wxTextCtrl* m_dataExpression;
-        wxCheckBox* m_enabled;
-        wxRadioBox* m_condition;
+        wxCheckBox* CheckBox1;
+		wxBoxSizer* BoxSizer1;
+        wxRadioBox* RadioBox1;
         wxStdDialogButtonSizer* StdDialogButtonSizer1;
         //*)
 

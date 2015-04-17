@@ -54,8 +54,8 @@ class DLLIMPORT cbEditor : public EditorBase
           * <em>Note: you cannot create a cbEditor object directly. Instead
           * use EditorManager's methods to do it...</em>
           */
-        cbEditor(wxWindow* parent, const wxString& filename, EditorColourSet* theme = nullptr);
-        cbEditor(wxWindow* parent, LoaderBase* fileLdr, const wxString& filename, EditorColourSet* theme = nullptr);
+        cbEditor(wxWindow* parent, const wxString& filename, EditorColourSet* theme = 0L);
+        cbEditor(wxWindow* parent, LoaderBase* fileLdr, const wxString& filename, EditorColourSet* theme = 0L);
         /** cbEditor destructor. */
         ~cbEditor();
     public:
@@ -67,7 +67,7 @@ class DLLIMPORT cbEditor : public EditorBase
         };
 
         /** Don't use this. It throws an exception if you do. */
-        void operator=(cb_unused const cbEditor& rhs){ cbThrow(_T("Can't assign an cbEditor* !!!")); }
+        virtual void operator=(const cbEditor& /*rhs*/){ cbThrow(_T("Can't assign an cbEditor* !!!")); }
 
         // properties
 
@@ -95,7 +95,7 @@ class DLLIMPORT cbEditor : public EditorBase
         SplitType GetSplitType() const { return m_SplitType; }
 
         /** Returns true if editor is OK, i.e. constructor was called with a filename
-          * parameter and file was opened successfully. If it returns false, you
+          * parameter and file was opened succesfully. If it returns false, you
           * should delete the editor...
           */
         bool IsOK() const { return m_IsOK; }
@@ -197,19 +197,24 @@ class DLLIMPORT cbEditor : public EditorBase
           */
         void Print(bool selectionOnly, PrintColourMode pcm, bool line_numbers);
 
-        /** This method is obsolete, use the abbreviations plugin instead. */
+        /** Try to auto-complete the current word.
+          *
+          * This has nothing to do with code-completion plugins. Editor auto-completion
+          * is a feature that saves typing common blocks of code, e.g.
+          *
+          * If you have typed "forb" (no quotes) and select auto-complete, then
+          * it will convert "forb" to "for ( ; ; ){ }".
+          * If the word up to the caret position is an unknown keyword, nothing happens.
+          *
+          * These keywords/code pairs can be edited in the editor configuration
+          * dialog.
+          */
         void AutoComplete();
 
         /** Move the caret at the specified line.
           * @param line Line to move caret to.
           * @param centerOnScreen If true (default), tries to bring the specified line to the centre of the editor.*/
         void GotoLine(int line, bool centerOnScreen = true);
-
-        /** Move the caret at the specified line.
-          * @param line      Line to move caret to (where the token is).
-          * @param tokenName Token name (string) to highlight, if found
-          * @return Editor found, position set and token highlighted? */
-        bool GotoTokenPosition(int line, const wxString& tokenName);
 
         /** Add debugger breakpoint at specified line. If @c line is -1, use current line. */
         bool AddBreakpoint(int line = -1, bool notifyDebugger = true);
@@ -228,9 +233,6 @@ class DLLIMPORT cbEditor : public EditorBase
 
         /** Go to previous debugger breakpoint. */
         void GotoPreviousBreakpoint();
-
-        /** Refresh all markers for the breakpoints (only the markers for the current debugger will be shown) */
-        void RefreshBreakpointMarkers();
 
         /** Toggle bookmark at specified line. If @c line is -1, use current line. */
         void ToggleBookmark(int line = -1);
@@ -273,14 +275,13 @@ class DLLIMPORT cbEditor : public EditorBase
         bool HasSelection() const;
         bool CanPaste() const;
         bool IsReadOnly() const;
-        void SetReadOnly(bool readonly = true);
 
         bool CanSelectAll() const;
         void SelectAll();
 
         // Workaround for shift-tab bug in wx2.4.2
-        void DoIndent();   //!< Indents current line/block
-        void DoUnIndent(); //!< UnIndents current line/block
+        void DoIndent(); /// Indents current line/block
+        void DoUnIndent(); /// UnIndents current line/block
 
         // misc. functions
         virtual wxMenu* CreateContextSubMenu(long id);
@@ -296,14 +297,10 @@ class DLLIMPORT cbEditor : public EditorBase
         bool GetUseBom() const;
         void SetUseBom( bool bom );
 
-        void SetZoom(int zoom, bool both = true);
-
         /// Apply the editor defaults to any (possibly foreign) cbStyledTextCtrl.
         static void ApplyStyles(cbStyledTextCtrl* control);
-
-        void AutoIndentDone();
     private:
-        cbEditor(cb_unused const cbEditor& rhs); // prevent copy construction
+        cbEditor(const cbEditor& /*rhs*/); // prevent copy construction
 
         // functions
         bool LineHasMarker(int marker, int line = -1) const;
@@ -318,12 +315,12 @@ class DLLIMPORT cbEditor : public EditorBase
         void SetMarkerStyle(int marker, int markerType, wxColor fore, wxColor back);
         void UnderlineFoldedLines(bool underline);
         cbStyledTextCtrl* CreateEditor();
-        void ConnectEvents(cbStyledTextCtrl* stc);
         void SetEditorStyle();
         void SetEditorStyleBeforeFileOpen();
         void SetEditorStyleAfterFileOpen();
         static void InternalSetEditorStyleBeforeFileOpen(cbStyledTextCtrl* control);
         static void InternalSetEditorStyleAfterFileOpen(cbStyledTextCtrl* control);
+        void DetectEncoding();
         bool Open(bool detectEncoding = true);
         void DoAskForCodeCompletion(); // relevant to code-completion plugins
         static wxColour GetOptionColour(const wxString& option, const wxColour _default);
@@ -339,11 +336,6 @@ class DLLIMPORT cbEditor : public EditorBase
         void OnEditorModified(wxScintillaEvent& event);
         void OnUserListSelection(wxScintillaEvent& event);
         void OnZoom(wxScintillaEvent& event);
-        /** notify all the registered EditorHook functions
-         * @param event indicates which event is received by the cbEditor
-         * You should bind OnScintillaEvent to every wxScintillaEvent events, either directly or
-         * indirectly, see cbEditor::ConnectEvents() for more details.
-         */
         void OnScintillaEvent(wxScintillaEvent& event);
         void OnClose(wxCloseEvent& event);
 
@@ -354,9 +346,7 @@ class DLLIMPORT cbEditor : public EditorBase
 
         void DestroySplitView();
 
-        void DoInitializations(const wxString& filename, LoaderBase* fileLdr = nullptr);
-
-        void BreakpointMarkerToggle(int line);
+        void DoInitializations(const wxString& filename, LoaderBase* fileLdr = 0);
 
         // variables
         bool m_IsOK;
@@ -366,6 +356,7 @@ class DLLIMPORT cbEditor : public EditorBase
         cbStyledTextCtrl* m_pControl2;
         cbStyledTextCtrl* m_foldBackup;
         SplitType m_SplitType;
+        int m_ID;
         bool m_Modified;
         int m_Index;
         wxTimer m_timerWait;
@@ -373,7 +364,6 @@ class DLLIMPORT cbEditor : public EditorBase
         EditorColourSet* m_pTheme;
         HighlightLanguage m_lang;
         wxDateTime m_LastModified; // to check if the file was modified outside the editor
-        bool m_autoIndentDone;
 
         // DO NOT ADD ANY MORE VARIABLES HERE!
         // ADD THEM IN cbEditorInternalData INSTEAD!

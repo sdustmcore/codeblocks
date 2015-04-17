@@ -17,7 +17,7 @@
 	along with this program; if not, write to the Free Software
 	Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
-// RCS-ID: $Id$
+// RCS-ID: $Id: snippetitemdata.cpp 28 2007-04-01 14:32:57Z Pecan $
 
 #ifdef WX_PRECOMP
     #include "wx_pch.h"
@@ -31,31 +31,31 @@
 // ----------------------------------------------------------------------------
 // statics
 // ----------------------------------------------------------------------------
-long     SnippetTreeItemData::m_HighestSnippetID = 0;
-unsigned SnippetTreeItemData::m_itemsChangedCount = 0;
+long     SnippetItemData::m_HighestSnippetID = 0;
+unsigned SnippetItemData::m_itemsChangedCount = 0;
 
 // ----------------------------------------------------------------------------
-SnippetTreeItemData::SnippetTreeItemData(SnippetItemType type, SnippetItemID oldID)
+SnippetItemData::SnippetItemData(SnippetItemType type, SnippetItemID oldID)
 // ----------------------------------------------------------------------------
     : m_Type(type), m_Snippet(wxEmptyString), m_ID(oldID)
 {
     InitializeItem(oldID);
 }
 // ----------------------------------------------------------------------------
-SnippetTreeItemData::SnippetTreeItemData(SnippetItemType type, wxString snippet, SnippetItemID oldID)
+SnippetItemData::SnippetItemData(SnippetItemType type, wxString snippet, SnippetItemID oldID)
 // ---------------------------------------------------------------------------
     : m_Type(type), m_Snippet(snippet), m_ID(oldID)
 {
     InitializeItem(oldID);
 }
 // ----------------------------------------------------------------------------
-SnippetTreeItemData::~SnippetTreeItemData()
+SnippetItemData::~SnippetItemData()
 // ----------------------------------------------------------------------------
 {
 	//dtor
 }
 // ----------------------------------------------------------------------------
-void SnippetTreeItemData::InitializeItem(SnippetItemID oldID)
+void SnippetItemData::InitializeItem(SnippetItemID oldID)
 // ----------------------------------------------------------------------------
 {
     //m_ID already set by ctor init m_ID(oldID)

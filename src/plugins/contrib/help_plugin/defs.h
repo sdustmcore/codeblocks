@@ -170,7 +170,6 @@ class QByteArray : public std::string
 
         QByteArray &setNum(unsigned int n, int base = 10)
         {
-            (void)(base);
             char buffer[100];
             std::sprintf(buffer, "%ud", n);
             assign(buffer);
@@ -179,7 +178,6 @@ class QByteArray : public std::string
 
         static QByteArray number(unsigned int n, int base = 10)
         {
-            (void)(base);
             char buffer[100];
             std::sprintf(buffer, "%ud", n);
             return QByteArray(buffer);
@@ -291,7 +289,7 @@ class QMap : public std::map<Key, T>
 
             if (i.second == false && overwrite)
             {
-                this->find(k)->second = t;
+                find(k)->second = t;
             }
 
             return i.first;
@@ -299,7 +297,7 @@ class QMap : public std::map<Key, T>
 
         int remove(const Key &k)
         {
-            return this->erase(k);
+            return erase(k);
         }
 };
 

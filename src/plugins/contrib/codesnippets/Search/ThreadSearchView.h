@@ -3,7 +3,7 @@
  * Purpose:   This class implements the panel that is added to
  *            Code::Blocks Message notebook or layout.
  *            It runs the search worker thread and receives
- *            sThreadSearchEvent from it to update the list log.
+ *            ThreadSearchEvent from it to update the list log.
  * Author:    Jerome ANTOINE
  * Created:   2007-10-08
  * Copyright: Jerome ANTOINE
@@ -44,7 +44,7 @@ class wxStaticBoxSizer;
 class wxBoxSizer;
 
 class ThreadSearch;
-class sThreadSearchEvent;
+class ThreadSearchEvent;
 class ThreadSearchThread;
 class ThreadSearchFindData;
 class SearchInPanel;
@@ -113,7 +113,7 @@ public:
 	  * @param event : event sent by the worker thread (ThreadSearchThread)
 	  * Thread safe mechanism. Clone the worker thread event to the mutex protected events array.
 	  */
-	void PostThreadSearchEvent(const sThreadSearchEvent& event);
+	void PostThreadSearchEvent(const ThreadSearchEvent& event);
 
 	/** SetToolBar
 	  * C::B plugins manager provides a toolbar instance to ThreadSearch instance
@@ -225,7 +225,7 @@ protected:
 	void EnableControls(bool enable);
 
 public:
-    void OnThreadSearchErrorEvent(const sThreadSearchEvent& event);
+    void OnThreadSearchErrorEvent(const ThreadSearchEvent& event);
     void OnCboSearchExprEnter(wxCommandEvent &event); // wxGlade: <event_handler>
     void OnBtnSearchClick(wxCommandEvent &event); // wxGlade: <event_handler>
     void OnBtnOptionsClick(wxCommandEvent &event); // wxGlade: <event_handler>

@@ -77,7 +77,7 @@
     #define wxPG_TEXTCTRL_AND_BUTTON_SPACING        4
 #else
     #define wxPG_TEXTCTRL_AND_BUTTON_SPACING        2
-#endif
+#endif 
 
 #define wxPG_BUTTON_SIZEDEC                         0
 
@@ -490,7 +490,7 @@ wxPGWindowList wxPGTextCtrlEditor::CreateControls( wxPropertyGrid* propGrid,
 
     if ( !property->IsValueUnspecified() )
     {
-        int flags = property->HasFlag(wxPG_PROP_READONLY) ?
+        int flags = property->HasFlag(wxPG_PROP_READONLY) ? 
             0 : wxPG_EDITABLE_VALUE;
         text = property->GetValueString(flags);
     }
@@ -545,7 +545,7 @@ void wxPGTextCtrlEditor::UpdateControl( wxPGProperty* property, wxWindow* ctrl )
     wxPropertyGrid* pg = property->GetGrid();
 
     pg->SetupTextCtrlValue(s);
-    tc->SetValue(s);
+    tc->SetValue(s);    
 
     // Must always fix indentation, just in case
 #if defined(__WXMSW__) && !defined(__WXWINCE__)
@@ -656,7 +656,7 @@ void wxPGTextCtrlEditor_OnFocus( wxPGProperty* property,
 {
     // Make sure there is correct text (instead of unspecified value
     // indicator or inline help)
-    int flags = property->HasFlag(wxPG_PROP_READONLY) ?
+    int flags = property->HasFlag(wxPG_PROP_READONLY) ? 
         0 : wxPG_EDITABLE_VALUE;
     wxString correctText = property->GetValueString(flags);
 
@@ -676,12 +676,9 @@ void wxPGTextCtrlEditor::OnFocus( wxPGProperty* property,
     wxPGTextCtrlEditor_OnFocus(property, tc);
 }
 
-wxPGTextCtrlEditor::~wxPGTextCtrlEditor()
-{
-    // Reset the global pointer. Useful when wxPropertyGrid is accessed
-    // from an external main loop.
-    wxPG_EDITOR(TextCtrl) = NULL;
-}
+
+wxPGTextCtrlEditor::~wxPGTextCtrlEditor() { }
+
 
 // -----------------------------------------------------------------------
 // wxPGChoiceEditor
@@ -833,7 +830,7 @@ public:
         pg->OnComboItemPaint((wxPGCustomComboControl*)this,item,dc,(wxRect&)rect,flags);
 #if !wxPG_USING_WXOWNERDRAWNCOMBOBOX
         return true;
-#endif
+#endif    
     }
     virtual wxCoord OnMeasureItem( size_t item ) const
     {
@@ -1378,12 +1375,8 @@ bool wxPGChoiceEditor::CanContainCustomImage() const
 }
 
 
-wxPGChoiceEditor::~wxPGChoiceEditor()
-{
-    // Reset the global pointer. Useful when wxPropertyGrid is accessed
-    // from an external main loop.
-    wxPG_EDITOR(Choice) = NULL;
-}
+wxPGChoiceEditor::~wxPGChoiceEditor() { }
+
 
 // -----------------------------------------------------------------------
 // wxPGComboBoxEditor
@@ -1460,12 +1453,9 @@ void wxPGComboBoxEditor::OnFocus( wxPGProperty* property,
     wxPGTextCtrlEditor_OnFocus(property, cb->GetTextCtrl());
 }
 
-wxPGComboBoxEditor::~wxPGComboBoxEditor()
-{
-    // Reset the global pointer. Useful when wxPropertyGrid is accessed
-    // from an external main loop.
-    wxPG_EDITOR(ComboBox) = NULL;
-}
+
+wxPGComboBoxEditor::~wxPGComboBoxEditor() { }
+
 
 // -----------------------------------------------------------------------
 // wxPGChoiceAndButtonEditor
@@ -1514,12 +1504,9 @@ wxPGWindowList wxPGChoiceAndButtonEditor::CreateControls( wxPropertyGrid* propGr
     return wxPGWindowList(ch, bt);
 }
 
-wxPGChoiceAndButtonEditor::~wxPGChoiceAndButtonEditor()
-{
-    // Reset the global pointer. Useful when wxPropertyGrid is accessed
-    // from an external main loop.
-    wxPG_EDITOR(ChoiceAndButton) = NULL;
-}
+
+wxPGChoiceAndButtonEditor::~wxPGChoiceAndButtonEditor() { }
+
 
 // -----------------------------------------------------------------------
 // wxPGTextCtrlAndButtonEditor
@@ -1542,12 +1529,9 @@ wxPGWindowList wxPGTextCtrlAndButtonEditor::CreateControls( wxPropertyGrid* prop
     return wxPGWindowList(wnd, wnd2);
 }
 
-wxPGTextCtrlAndButtonEditor::~wxPGTextCtrlAndButtonEditor()
-{
-    // Reset the global pointer. Useful when wxPropertyGrid is accessed
-    // from an external main loop.
-    wxPG_EDITOR(TextCtrlAndButton) = NULL;
-}
+
+wxPGTextCtrlAndButtonEditor::~wxPGTextCtrlAndButtonEditor() { }
+
 
 // -----------------------------------------------------------------------
 // wxPGCheckBoxEditor
@@ -1814,8 +1798,7 @@ wxPGWindowList wxPGCheckBoxEditor::CreateControls( wxPropertyGrid* propGrid,
         // If mouse cursor was on the item, toggle the value now.
         if ( propGrid->GetInternalFlags() & wxPG_FL_ACTIVATION_BY_CLICK )
         {
-            // C::B patch: Fix shadowed variable warning
-            pt = cb->ScreenToClient(::wxGetMousePosition());
+            wxPoint pt = cb->ScreenToClient(::wxGetMousePosition());
             if ( pt.x <= (wxPG_XBEFORETEXT-2+cb->m_boxHeight) )
             {
                 if ( cb->m_state & wxSCB_STATE_CHECKED )
@@ -1824,7 +1807,7 @@ wxPGWindowList wxPGCheckBoxEditor::CreateControls( wxPropertyGrid* propGrid,
                     cb->m_state |= wxSCB_STATE_CHECKED;
 
                 // Makes sure wxPG_EVT_CHANGING etc. is sent for this initial
-                // click
+                // click 
                 propGrid->ChangePropertyValue(property,
                                               wxPGVariant_Bool(cb->m_state));
             }
@@ -1913,12 +1896,9 @@ void wxPGCheckBoxEditor::SetValueToUnspecified( wxPGProperty* WXUNUSED(property)
     ctrl->Refresh();
 }
 
-wxPGCheckBoxEditor::~wxPGCheckBoxEditor()
-{
-    // Reset the global pointer. Useful when wxPropertyGrid is accessed
-    // from an external main loop.
-    wxPG_EDITOR(CheckBox) = NULL;
-}
+
+wxPGCheckBoxEditor::~wxPGCheckBoxEditor() { }
+
 
 #endif // wxPG_INCLUDE_CHECKBOX
 
@@ -2024,7 +2004,7 @@ void wxPropertyGrid::CorrectEditorWidgetPosY()
             m_labelEditor->Move(pos.x, r.y + offset);
         }
 
-        if ( m_wndEditor || m_wndEditor2 )
+        if ( m_wndEditor || m_wndEditor2 ) 
         {
             wxRect r = GetEditorWidgetRect(selected, 1);
 
@@ -2238,7 +2218,7 @@ wxWindow* wxPropertyGrid::GenerateEditorButton( const wxPoint& pos, const wxSize
    p.x = pos.x + sz.x - but->GetSize().x - 2;
    but->Move(p);
 
-#else
+#else 
     wxSize s(sz.y-(wxPG_BUTTON_SIZEDEC*2)+(wxPG_NAT_BUTTON_BORDER_Y*2),
         sz.y-(wxPG_BUTTON_SIZEDEC*2)+(wxPG_NAT_BUTTON_BORDER_Y*2));
 
@@ -2360,7 +2340,7 @@ void wxPropertyGrid::SetEditorAppearance( const wxPGCell& cell )
     // We used to obtain wxVisualAttributes via
     // editor->GetDefaultAttributes() here, but that is not
     // very consistently implemented in wx2.8, so it is safer
-    // to just use colours from wxSystemSettings etc.
+    // to just use colours from wxSystemSettings etc. 
 
     const wxColour& fgCol = cell.GetFgCol();
     if ( wxGDI_IS_OK(fgCol) )

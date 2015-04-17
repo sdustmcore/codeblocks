@@ -16,9 +16,9 @@
 * You should have received a copy of the GNU General Public License
 * along with wxSmith. If not, see <http://www.gnu.org/licenses/>.
 *
-* $Revision$
-* $Id$
-* $HeadURL$
+* $Revision: 4504 $
+* $Id: wxsFileDialog.cpp 4504 2007-10-02 21:52:30Z byo $
+* $HeadURL: svn+ssh://byo@svn.berlios.de/svnroot/repos/codeblocks/trunk/src/plugins/contrib/wxSmith/wxwidgets/defitems/wxsFileDialog.cpp $
 */
 
 #include "wxsfiledialog.h"
@@ -59,17 +59,30 @@ void wxsFileDialog::OnBuildCreatingCode()
             if ( m_Wildcard.empty() )
             {
                 Codef(_T("%C(%W, %t, %t, %t, wxFileSelectorDefaultWildcardStr, %T, %P, %S, %N);\n"),
-                      m_Message.wx_str(),
-                      m_DefaultDir.wx_str(),
-                      m_DefaultFile.wx_str());
+                    #if wxCHECK_VERSION(2, 9, 0)
+                    m_Message.wx_str(),
+                    m_DefaultDir.wx_str(),
+                    m_DefaultFile.wx_str());
+                    #else
+                    m_Message.c_str(),
+                    m_DefaultDir.c_str(),
+                    m_DefaultFile.c_str());
+                    #endif
             }
             else
             {
                 Codef(_T("%C(%W, %t, %t, %t, %t, %T, %P, %S, %N);\n"),
-                      m_Message.wx_str(),
-                      m_DefaultDir.wx_str(),
-                      m_DefaultFile.wx_str(),
-                      m_Wildcard.wx_str());
+                    #if wxCHECK_VERSION(2, 9, 0)
+                    m_Message.wx_str(),
+                    m_DefaultDir.wx_str(),
+                    m_DefaultFile.wx_str(),
+                    m_Wildcard.wx_str());
+                    #else
+                    m_Message.c_str(),
+                    m_DefaultDir.c_str(),
+                    m_DefaultFile.c_str(),
+                    m_Wildcard.c_str());
+                    #endif
             }
             BuildSetupWindowCode();
             return;

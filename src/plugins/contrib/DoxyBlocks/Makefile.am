@@ -1,6 +1,6 @@
 SUBDIRS = images
 
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+INCLUDES = $(WX_CXXFLAGS) \
 		-I$(top_srcdir)/src/include \
 		-I$(top_srcdir)/src/sdk/wxscintilla/include
 
@@ -10,8 +10,8 @@ pluginlib_LTLIBRARIES = libDoxyBlocks.la
 
 libDoxyBlocks_la_LDFLAGS = -module -version-info 0:1:0 -shared -no-undefined -avoid-version
 
-libDoxyBlocks_la_LIBADD = ../../../sdk/libcodeblocks.la \
-			$(WX_LIBS)
+libDoxyBlocks_la_LIBADD = $(PLUGIN_WX_LIBS) \
+			../../../sdk/libcodeblocks.la
 
 libDoxyBlocks_la_SOURCES = AutoDoc.cpp \
 				Config.cpp \
@@ -25,14 +25,14 @@ noinst_HEADERS = Config.h \
 		DoxyBlocks.h \
 		Expressions.h \
 		DoxyBlocksLogger.h \
-		version.h
+		pch.h
 
-EXTRA_DIST = $(srcdir)/*.cbp \
-		wxsmith/ConfigPanel.wxs \
+EXTRA_DIST = 	$(srcdir)/*.cbp \
+		$(srcdir)/wxsmith/ConfigPanel.wxs \
 		manifest.xml \
 		ChangeLog.txt \
-		DoxyBlocks.rc \
-		$(srcdir)/update* \
+		update \
+		update.bat \
 		$(srcdir)/images/*.png \
 		$(srcdir)/images/16x16/*.png
 

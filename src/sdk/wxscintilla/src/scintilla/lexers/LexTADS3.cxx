@@ -42,6 +42,7 @@
 #include "Scintilla.h"
 #include "SciLexer.h"
 
+#include "PropSetSimple.h"
 #include "WordList.h"
 #include "LexAccessor.h"
 #include "Accessor.h"
@@ -697,7 +698,7 @@ static inline bool IsAnIdentifier(const int style) {
 }
 
 static inline bool IsAnOperator(const int style) {
-    return style == SCE_T3_OPERATOR || style == SCE_T3_BRACE;
+    return style == SCE_T3_OPERATOR || SCE_T3_BRACE;
 }
 
 static inline bool IsSpaceEquivalent(const int ch, const int style) {

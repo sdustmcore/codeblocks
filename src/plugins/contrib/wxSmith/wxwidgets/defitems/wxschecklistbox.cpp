@@ -73,7 +73,11 @@ void wxsCheckListBox::OnBuildCreatingCode()
                 {
                     Codef( _T("%ACheck("));
                 }
+                #if wxCHECK_VERSION(2, 9, 0)
                 Codef( _T("%AAppend(%t)"), ArrayChoices[i].wx_str());
+                #else
+                Codef( _T("%AAppend(%t)"), ArrayChoices[i].c_str());
+                #endif
                 if ( ArrayChecks[i] )
                 {
                     Codef(_T(")"));
@@ -84,7 +88,6 @@ void wxsCheckListBox::OnBuildCreatingCode()
             return;
         }
 
-        case wxsUnknownLanguage: // fall through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsCheckListBox::OnBuildCreatingCode"),GetLanguage());

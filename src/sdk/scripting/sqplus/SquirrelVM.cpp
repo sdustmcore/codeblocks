@@ -35,14 +35,13 @@ SquirrelError::SquirrelError()
 	}
 }
 
-// C::B patch: Add additional initialisation flags
+// C::B patch: Add additional initilisation flags
 void SquirrelVM::Init(SquirrelInitFlags flags)
 {
 	_VM = sq_open(1024);
 	sq_setprintfunc(_VM,SquirrelVM::PrintFunc);
-//	sq_setprintfunc(_VM,SquirrelVM::PrintFunc,SquirrelVM::PrintFunc);
 	sq_pushroottable(_VM);
-    // C::B patch: Add additional initialisation flags
+    // C::B patch: Add additional initilisation flags
 	if (flags & sqifIO) sqstd_register_iolib(_VM);
 	if (flags & sqifBlob) sqstd_register_bloblib(_VM);
 	if (flags & sqifMath) sqstd_register_mathlib(_VM);
@@ -54,7 +53,7 @@ void SquirrelVM::Init(SquirrelInitFlags flags)
 	//TODO error handler, compiler error handler
 }
 
-BOOL_T SquirrelVM::Update()
+BOOL SquirrelVM::Update()
 {
 	//update remote debugger
 	return TRUE;
@@ -137,7 +136,7 @@ SquirrelObject SquirrelVM::RunScript(const SquirrelObject &o,SquirrelObject *_th
 }
 
 
-BOOL_T SquirrelVM::BeginCall(const SquirrelObject &func)
+BOOL SquirrelVM::BeginCall(const SquirrelObject &func)
 {
 	if(_CallState != -1)
 		return FALSE;
@@ -147,7 +146,7 @@ BOOL_T SquirrelVM::BeginCall(const SquirrelObject &func)
 	return TRUE;
 }
 
-BOOL_T SquirrelVM::BeginCall(const SquirrelObject &func,SquirrelObject &_this)
+BOOL SquirrelVM::BeginCall(const SquirrelObject &func,SquirrelObject &_this)
 {
 	if(_CallState != -1)
 		throw SquirrelError(sqT("call already initialized"));

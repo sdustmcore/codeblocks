@@ -13,7 +13,6 @@
 #include <cbplugin.h> // for "class cbPlugin"
 #include <vector>
 #include <wx/string.h>
-#include <wx/timer.h>
 
 class AlignerMenuEntry
 {
@@ -31,10 +30,6 @@ class EditorTweaks : public cbPlugin
         EditorTweaks();
         /** Destructor. */
         virtual ~EditorTweaks();
-        int GetConfigurationPriority() const {return 50;}
-        int GetConfigurationGroup() const {return cgEditor;}
-        cbConfigurationPanel* GetConfigurationPanel(wxWindow* parent);
-        //cbConfigurationPanel* GetProjectConfigurationPanel(wxWindow*  /*parent*/, cbProject* /*project*/){return 0;}
 
 
         /** This method is called by Code::Blocks and is used by the plugin
@@ -72,7 +67,6 @@ class EditorTweaks : public cbPlugin
           * @return The plugin should return true if it needed the toolbar, false if not
           */
         virtual bool BuildToolBar(wxToolBar* /*toolBar*/){ return false; }
-
     protected:
         /** Any descendent plugin should override this virtual method and
           * perform any necessary initialization. This method is called by
@@ -98,13 +92,13 @@ class EditorTweaks : public cbPlugin
         virtual void OnRelease(bool appShutDown);
 
         void OnEditorOpen(CodeBlocksEvent& event);
+        void OnEditorClose(CodeBlocksEvent& event);
+        void OnEditorUpdateUI(CodeBlocksEvent& event);
+        void OnEditorActivate(CodeBlocksEvent& event);
+        void OnEditorDeactivate(CodeBlocksEvent& event);
 
         void OnKeyPress(wxKeyEvent& event);
-        void OnChar(wxKeyEvent& event);
-        /** wrapping on word boundaries*/
         void OnWordWrap(wxCommandEvent &event);
-        /** wrapping between any characters, it is good for wrapping Asian language */
-        void OnCharWrap(wxCommandEvent &event);
         void OnShowLineNumbers(wxCommandEvent &event);
         void OnTabChar(wxCommandEvent &event);
         void OnTabIndent(wxCommandEvent &event);
@@ -112,8 +106,6 @@ class EditorTweaks : public cbPlugin
         void OnTabSize4(wxCommandEvent &event);
         void OnTabSize6(wxCommandEvent &event);
         void OnTabSize8(wxCommandEvent &event);
-        void OnMakeIndentsConsistent(wxCommandEvent& event);
-        void OnShowWhitespaceChars(wxCommandEvent& event);
         void OnShowEOL(wxCommandEvent &event);
         void OnStripTrailingBlanks(wxCommandEvent &event);
         void OnEnsureConsistentEOL(wxCommandEvent &event);
@@ -125,47 +117,25 @@ class EditorTweaks : public cbPlugin
         void OnUnfold(wxCommandEvent &event);
         void DoFoldAboveLevel(int level, int fold);
 
-        // Event handler for menu items' update event, update the menu items' status here
         void OnUpdateUI(wxUpdateUIEvent &event);
-        // update all the UI menu's status, this usually happens when a new editor is activated
         void UpdateUI();
 
-        void StripTrailingBlanks(cbStyledTextCtrl* control);
-        void MakeIndentsConsistent(cbEditor* ed);
-
+//        void EditorEventHook(cbEditor* editor, wxScintillaEvent& event);
     private:
 		void OnAlign(wxCommandEvent& event);
-		void DoAlign(unsigned int idx);
 		void OnAlignOthers(wxCommandEvent& event);
-        void OnAlignAuto(wxCommandEvent& event);
-        void DoAlignAuto();
-        void OnAlignLast(wxCommandEvent& event);
 		void OnSuppressInsert(wxCommandEvent& event);
-		void OnLaptopFriendly(wxCommandEvent& event);
-		void OnConvertBraces(wxCommandEvent& event);
 		void AlignToString(const wxString AlignmentString);
 		wxString GetPadding(const wxString& Padding, const int Count);
 		bool GetSelectionLines(int& LineStart, int& LineEnd);
-        void DoBufferEditorPos(int delta = 0, bool isScrollTimer = false);
-        void OnScrollTimer(wxTimerEvent& event);
-
-        // return a valid control if it is ready to operate
-        cbStyledTextCtrl* GetSafeControl();
 
 		std::vector<AlignerMenuEntry> AlignerMenuEntries;
-		unsigned int AlignerLastUsedIdx;
-        bool AlignerLastUsedAuto;
-        bool AlignerLastUsed;
 
     private:
-
-        bool m_suppress_insert;
-        bool m_laptop_friendly;
-        bool m_convert_braces;
-        int  m_buffer_caret;
+        int m_EditorHookId;
+        int m_suppress_insert;
         wxMenu *m_tweakmenu;
         wxMenuItem *m_tweakmenuitem;
-        wxTimer m_scrollTimer;
 
         DECLARE_EVENT_TABLE();
 };

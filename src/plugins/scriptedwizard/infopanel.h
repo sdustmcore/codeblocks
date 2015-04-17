@@ -6,12 +6,17 @@
 #ifndef INFOPANEL_H
 #define INFOPANEL_H
 
+#include <wx/wxprec.h>
 
-//(*HeadersPCH(InfoPanel)
-#include <wx/sizer.h>
-#include <wx/stattext.h>
+#ifdef __BORLANDC__
+    #pragma hdrstop
+#endif
+
+//(*Headers(InfoPanel)
 #include <wx/checkbox.h>
 #include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/stattext.h>
 //*)
 
 class wxString;
@@ -41,9 +46,9 @@ class InfoPanel: public wxPanel
 		//*)
 
 		//(*Declarations(InfoPanel)
-		wxCheckBox* chkSkip;
 		wxBoxSizer* BoxSizer1;
 		wxStaticText* lblIntro;
+		wxCheckBox* chkSkip;
 		//*)
 
 	private:

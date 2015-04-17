@@ -106,13 +106,7 @@ namespace ScriptBindings
         wxString result;
         wxString& str1 = *SqPlus::GetInstance<wxString,false>(v, 1);
         if (sa.GetType(2) == OT_INTEGER)
-        {
-#ifdef _SQ64
-            result.Printf(_T("%s%ld"), str1.c_str(), sa.GetInt(2));
-#else
             result.Printf(_T("%s%d"), str1.c_str(), sa.GetInt(2));
-#endif
-        }
         else if (sa.GetType(2) == OT_FLOAT)
             result.Printf(_T("%s%f"), str1.c_str(), sa.GetFloat(2));
         else if (sa.GetType(2) == OT_USERPOINTER)
@@ -168,65 +162,25 @@ namespace ScriptBindings
     {
         StackHandler sa(v);
         wxString& self = *SqPlus::GetInstance<wxString,false>(v, 1);
-        SQInteger search_char = static_cast<SQInteger>( sa.GetInt(2) );
-        if ( !search_char ) // Probably it's a wxString
-        {
-            wxString& temp = *SqPlus::GetInstance<wxString,false>(v, 2);
-            #if wxCHECK_VERSION(2, 9, 0)
-            search_char = static_cast<SQInteger>( temp.GetChar(0).GetValue() );
-            #else
-            search_char = static_cast<SQInteger>( temp.GetChar(0) );
-            #endif
-        }
-        return SqPlus::ReturnCopy( v, self.AfterFirst( static_cast<wxChar>( search_char ) ) );
+        return SqPlus::ReturnCopy(v, self.AfterFirst((wxChar)sa.GetInt(2)));
     }
     SQInteger wxString_AfterLast(HSQUIRRELVM v)
     {
         StackHandler sa(v);
         wxString& self = *SqPlus::GetInstance<wxString,false>(v, 1);
-        SQInteger search_char = static_cast<SQInteger>( sa.GetInt(2) );
-        if ( !search_char ) // Probably it's a wxString
-        {
-            wxString& temp = *SqPlus::GetInstance<wxString,false>(v, 2);
-            #if wxCHECK_VERSION(2, 9, 0)
-            search_char = static_cast<SQInteger>( temp.GetChar(0).GetValue() );
-            #else
-            search_char = static_cast<SQInteger>( temp.GetChar(0) );
-            #endif
-        }
-        return SqPlus::ReturnCopy( v, self.AfterLast( static_cast<wxChar>( search_char ) ) );
+        return SqPlus::ReturnCopy(v, self.AfterLast((wxChar)sa.GetInt(2)));
     }
     SQInteger wxString_BeforeFirst(HSQUIRRELVM v)
     {
         StackHandler sa(v);
         wxString& self = *SqPlus::GetInstance<wxString,false>(v, 1);
-        SQInteger search_char = static_cast<SQInteger>( sa.GetInt(2) );
-        if ( !search_char ) // Probably it's a wxString
-        {
-            wxString& temp = *SqPlus::GetInstance<wxString,false>(v, 2);
-            #if wxCHECK_VERSION(2, 9, 0)
-            search_char = static_cast<SQInteger>( temp.GetChar(0).GetValue() );
-            #else
-            search_char = static_cast<SQInteger>( temp.GetChar(0) );
-            #endif
-        }
-        return SqPlus::ReturnCopy( v, self.BeforeFirst( static_cast<wxChar>( search_char ) ) );
+        return SqPlus::ReturnCopy(v, self.BeforeFirst((wxChar)sa.GetInt(2)));
     }
     SQInteger wxString_BeforeLast(HSQUIRRELVM v)
     {
         StackHandler sa(v);
         wxString& self = *SqPlus::GetInstance<wxString,false>(v, 1);
-        SQInteger search_char = static_cast<SQInteger>( sa.GetInt(2) );
-        if ( !search_char ) // Probably it's a wxString
-        {
-            wxString& temp = *SqPlus::GetInstance<wxString,false>(v, 2);
-            #if wxCHECK_VERSION(2, 9, 0)
-            search_char = static_cast<SQInteger>( temp.GetChar(0).GetValue() );
-            #else
-            search_char = static_cast<SQInteger>( temp.GetChar(0) );
-            #endif
-        }
-        return SqPlus::ReturnCopy( v, self.BeforeLast( static_cast<wxChar>( search_char ) ) );
+        return SqPlus::ReturnCopy(v, self.BeforeLast((wxChar)sa.GetInt(2)));
     }
     SQInteger wxString_Replace(HSQUIRRELVM v)
     {
@@ -253,11 +207,8 @@ namespace ScriptBindings
                 func(&wxArrayString::Clear, "Clear").
 //                func(&wxArrayString::Index, "Index").
                 staticFuncVarArgs(&wxArrayString_Index, "Index", "*").
-                func(&wxArrayString::GetCount, "GetCount")
-                #if !wxCHECK_VERSION(2, 9, 0) // Strange that this does not work with wx 2.9.x?!
-                .func(&wxArrayString::Item, "Item")
-                #endif
-                ;
+                func(&wxArrayString::GetCount, "GetCount").
+                func(&wxArrayString::Item, "Item");
 
         //////////////
         // wxColour //
@@ -285,7 +236,7 @@ namespace ScriptBindings
 #else
         typedef bool(wxFileName::*WXFN_SETCWD)();
 #endif
-        typedef bool(wxFileName::*WXFN_ISFILEWRITEABLE)()const;
+	typedef bool(wxFileName::*WXFN_ISFILEWRITEABLE)()const;
 
         SqPlus::SQClassDef<wxFileName>("wxFileName").
                 emptyCtor().

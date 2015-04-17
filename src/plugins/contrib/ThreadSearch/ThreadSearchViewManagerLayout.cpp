@@ -12,13 +12,11 @@
 
 #include <sdk.h> // Code::Blocks SDK
 #ifndef CB_PRECOMP
-    #include "globals.h"
     #include "manager.h"
     #include "sdk_events.h"
 #endif
 
 #include "ThreadSearchViewManagerLayout.h"
-#include "ThreadSearchView.h"
 
 ThreadSearchViewManagerLayout::~ThreadSearchViewManagerLayout()
 {
@@ -89,8 +87,3 @@ bool ThreadSearchViewManagerLayout::IsViewShown()
     return m_IsShown && IsWindowReallyShown((wxWindow*)m_pThreadSearchView);
 }
 
-
-void ThreadSearchViewManagerLayout::Raise()
-{
-    m_pThreadSearchView->GetParent()->Raise();
-}

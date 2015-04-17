@@ -39,7 +39,6 @@
 									<handler function="OnBrdAll" entry="EVT_CHECKBOX" />
 								</object>
 								<flag>wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-								<border>5</border>
 							</object>
 							<object class="sizeritem">
 								<object class="wxCheckBox" name="ID_CHECKBOX3" variable="BrdRight" member="yes">
@@ -60,7 +59,7 @@
 								<border>5</border>
 							</object>
 						</object>
-						<flag>wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxTOP|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 					</object>
 					<object class="sizeritem">
@@ -69,7 +68,7 @@
 							<size>38,-1d</size>
 							<handler function="OnBrdSizeChange" entry="EVT_SPINCTRL" />
 						</object>
-						<flag>wxTOP|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 					</object>
 					<object class="sizeritem">
@@ -77,11 +76,10 @@
 							<label>Dialog Units</label>
 							<handler function="OnBrdDlgChange" entry="EVT_CHECKBOX" />
 						</object>
-						<flag>wxTOP|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
+						<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 					</object>
 				</object>
-				<flag>wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 			</object>
 			<object class="sizeritem">
@@ -165,7 +163,7 @@
 								<border>5</border>
 							</object>
 						</object>
-						<flag>wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxTOP|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 					</object>
 					<object class="sizeritem">
@@ -181,18 +179,16 @@
 							<handler function="OnPlaceChange" entry="EVT_CHECKBOX" />
 						</object>
 						<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
 					</object>
 					<object class="sizeritem">
 						<object class="wxCheckBox" name="ID_CHECKBOX5" variable="PlaceExp" member="yes">
 							<label>Expand</label>
 							<handler function="OnPlaceChange" entry="EVT_CHECKBOX" />
 						</object>
-						<flag>wxTOP|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
+						<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 					</object>
 				</object>
-				<flag>wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 			</object>
 			<object class="sizeritem">
@@ -205,11 +201,11 @@
 							<size>38,-1d</size>
 							<handler function="OnProportionChange" entry="EVT_SPINCTRL" />
 						</object>
-						<flag>wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
+						<flag>wxTOP|wxEXPAND|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
 						<border>5</border>
 					</object>
 				</object>
-				<flag>wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 				<border>5</border>
 			</object>
 		</object>

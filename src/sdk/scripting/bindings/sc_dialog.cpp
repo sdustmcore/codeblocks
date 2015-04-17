@@ -36,7 +36,7 @@ namespace ScriptBindings
                 // first try to load dlgName as wxDialog, if that does not work, try to load it as wxScrollingDialog
                 // if both does not work, throw an exception
                 if (   !wxXmlResource::Get()->LoadDialog(this, parent, dlgName)
-                    && !wxXmlResource::Get()->LoadObject(this, parent, dlgName,_T("wxScrollingDialog")) )
+				    && !wxXmlResource::Get()->LoadObject(this, parent, dlgName,_T("wxScrollingDialog")) )
                 {
                     cbThrow(wxEmptyString);
                 }
@@ -45,7 +45,7 @@ namespace ScriptBindings
             void OnButton(wxCommandEvent& event);
     };
 
-    XrcDialog* s_ActiveDialog = nullptr;
+    XrcDialog* s_ActiveDialog = 0;
 
     BEGIN_EVENT_TABLE(XrcDialog, wxScrollingDialog)
         EVT_CHOICE(-1, XrcDialog::OnButton)
@@ -86,7 +86,7 @@ namespace ScriptBindings
             XrcDialog* old = s_ActiveDialog;
             try
             {
-                s_ActiveDialog = new XrcDialog(nullptr, dlgName, callback);
+                s_ActiveDialog = new XrcDialog(0, dlgName, callback);
                 int ret = s_ActiveDialog->ShowModal();
                 delete s_ActiveDialog;
                 s_ActiveDialog = old;
@@ -104,8 +104,6 @@ namespace ScriptBindings
                             _("Error"), wxICON_ERROR);
             }
         }
-        else
-            Manager::Get()->GetLogManager()->DebugLog(_T("Loading XRC: '") + actual + _T("' FAILED!"));
         return -1;
     }
 
@@ -131,7 +129,7 @@ namespace ScriptBindings
             return sa.Return((SQInteger)-1);
         }
 
-        wxWindow* win = nullptr;
+        wxWindow* win = 0;
         if (sa.GetType(2) == OT_STRING)
             win = wxWindow::FindWindowByName(cbC2U(sa.GetString(2)), s_ActiveDialog);
         else

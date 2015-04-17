@@ -18,7 +18,7 @@
     #endif
     #define DDE_SERVICE    _T("CODEBLOCKS")
 #else
-    #define DDE_SERVICE    _T("/tmp/CODEBLOCKS%s.socket")
+    #define DDE_SERVICE    _T("/tmp/CODEBLOCKS.socket")
 #endif
 #define DDE_TOPIC    _T("CodeBlocksDDEServer")
 #include <wx/ipc.h>
@@ -45,13 +45,11 @@ namespace Associations
     bool Check();
 
     void DoSetAssociation(const wxString& ext, const wxString& descr, const wxString& exe, int icoNum);
-    bool DoCheckAssociation(const wxString& ext, const wxString& descr, const wxString& exe, int icoNum);  // TODO: descriptions are not checked at all, and actually it's not necessary
-                                                                                                           //       (extension + executable is actually enough)
-                                                                                                           //        ---> decide whether to remove parameter from "Check" function or implement
+    bool DoCheckAssociation(const wxString& ext, const wxString& descr, const wxString& exe, int icoNum);
     void DoClearAssociation(const wxString& ext);
 
     void UpdateChanges();
-}
+};
 
 class ManageAssocsDialog : public wxScrollingDialog
 {

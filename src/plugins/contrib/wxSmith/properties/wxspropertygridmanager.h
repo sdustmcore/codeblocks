@@ -33,10 +33,8 @@
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/manager.h>
 
-#include <prep.h>
-
 #if wxCHECK_VERSION(2, 9, 0)
-#define wxPGId wxPGProperty*
+#define wxPGId                          wxPGProperty*
 #endif
 
 class wxsPropertyContainer;
@@ -88,7 +86,7 @@ class wxsPropertyGridManager: public wxPropertyGridManager
          * \param NewContainer new container associated with this manager,
          *        if 0, container has been unbinded and manager must be cleared.
          */
-        virtual void OnContainerChanged(cb_unused wxsPropertyContainer* NewContainer) {}
+        virtual void OnContainerChanged(wxsPropertyContainer* NewContainer) {}
 
     private:
 
@@ -97,13 +95,13 @@ class wxsPropertyGridManager: public wxPropertyGridManager
 
         /** \brief Function unbinding given container
          *
-         * This function destroys all property entries using given container.
+         * This function destroys all property enteries using given container.
          * It's automatically called in container's destructor but it may
          * be used in other places too.
          *
          * \param PC pointer to property container
          */
-        void UnbindPropertyContainer(wxsPropertyContainer* PC, bool doFreeze = true);
+        void UnbindPropertyContainer(wxsPropertyContainer* PC);
 
         /** \brief Function updating content of property grid
          *  \param PC container which changed it's content, if 0, content
@@ -132,11 +130,8 @@ class wxsPropertyGridManager: public wxPropertyGridManager
         /** \brief Changing main property container */
         void SetNewMainContainer(wxsPropertyContainer* NewMain);
 
-        /** \brief Handler for reporting change event */
+        /** \brief Handler for roporting change event */
         void OnChange(wxPropertyGridEvent& event);
-
-        /** \brief Handler for jumping to event handler when user double click on the event name */
-        void OnDoubleClick(wxPropertyGridEvent& event);
 
         /** \brief Data of selected property */
         struct SelectionData
@@ -155,7 +150,7 @@ class wxsPropertyGridManager: public wxPropertyGridManager
         /** \brief Restoring selected property
          *
          * \param Data structure containing selection data, if NULL,
-         *        selection will be restored from internal variable
+         *        selection will be resotred from internal variable
          */
         void RestoreSelected(const SelectionData* Data=0);
 
@@ -176,7 +171,7 @@ class wxsPropertyGridManager: public wxPropertyGridManager
         WX_DECLARE_HASH_SET(wxsPropertyContainer*,wxPointerHash,wxPointerEqual,wxSetCont);
 
         wxArrayPGId  PGIDs;                         ///< \brief Array of property identifiers
-        wxArrayProps PGEntries;                     ///< \brief Array mapping entries in grid to properties
+        wxArrayProps PGEnteries;                    ///< \brief Array mapping enteries in grid to properties
         wxArrayLong  PGIndexes;                     ///< \brief Array of internal property indexes used inside wxsProperty
         wxArrayCont  PGContainers;                  ///< \brief Array of container objects associated with properties
         wxSetCont    PGContainersSet;               ///< \brief Set of used containers, will be used to quickly determine if given container is used in manager

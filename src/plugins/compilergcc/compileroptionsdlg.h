@@ -21,8 +21,6 @@ class wxSpinEvent;
 class wxTreeEvent;
 class wxCommandEvent;
 class wxKeyEvent;
-class wxPropertyGrid;
-class wxPropertyGridEvent;
 class wxUpdateUIEvent;
 
 class CompilerOptionsDlg : public cbConfigurationPanel
@@ -55,6 +53,7 @@ class CompilerOptionsDlg : public cbConfigurationPanel
         void DoFillCompilerPrograms();
         void DoFillVars();
         void DoFillOthers();
+        void DoFillCategories();
         void DoFillOptions();
         void DoFillCompilerDependentSettings();
         void DoSaveCompilerDependentSettings();
@@ -63,7 +62,6 @@ class CompilerOptionsDlg : public cbConfigurationPanel
         void DoLoadOptions();
         void DoSaveCompilerPrograms();
         void DoSaveVars();
-        void DoSaveCompilerDefinition();
         void CompilerChanged();
         void UpdateCompilerForTargets(int compilerIdx);
         void AutoDetectCompiler();
@@ -76,7 +74,7 @@ class CompilerOptionsDlg : public cbConfigurationPanel
         void OnTreeSelectionChanging(wxTreeEvent& event);
         void OnCompilerChanged(wxCommandEvent& event);
         void OnCategoryChanged(wxCommandEvent& event);
-        void OnOptionChanged(wxPropertyGridEvent& event);
+        void OnOptionToggled(wxCommandEvent& event);
         void OnAddDirClick(wxCommandEvent& event);
         void OnEditDirClick(wxCommandEvent& event);
         void OnRemoveDirClick(wxCommandEvent& event);
@@ -113,28 +111,20 @@ class CompilerOptionsDlg : public cbConfigurationPanel
         void OnUpdateUI(wxUpdateUIEvent& event);
         void OnDirty(wxCommandEvent& event); // some controls who change their value -> dirty
         void OnMyCharHook(wxKeyEvent& event);
-        void OnFlagsPopup(wxPropertyGridEvent& event);
-        void OnFlagsPopupClick(wxCommandEvent& event);
-        void OnOptionDoubleClick(wxPropertyGridEvent& event);
 
-    private:
-        wxPropertyGrid*              m_FlagsPG;
-        CompilerGCC*                 m_Compiler;
-        CompilerOptions              m_Options;
-        wxArrayString                m_LinkerOptions;
-        wxArrayString                m_LinkLibs;
-        wxArrayString                m_CompilerOptions;
-        wxArrayString                m_ResourceCompilerOptions;
-        int                          m_CurrentCompilerIdx;
-        cbProject*                   m_pProject;
-        ProjectBuildTarget*          m_pTarget;
-        bool                         m_bDirty;                       //!< true if a setting has changed since last save
-        bool                         m_bFlagsDirty;                  //!< true if a flag (not its value) has changed since last save
-        std::vector<CustomVarAction> m_CustomVarActions;             //!< the actions carried out on the custom vars that need to be saved/applied
-        wxString                     m_NewProjectOrTargetCompilerId; //!< keeps track of the changes of compiler of the selected project/target
+        CompilerGCC* m_Compiler;
+        CompilerOptions m_Options;
+        wxArrayString m_LinkerOptions;
+        wxArrayString m_LinkLibs;
+        wxArrayString m_CompilerOptions;
+        int m_CurrentCompilerIdx;
+        cbProject* m_pProject;
+        ProjectBuildTarget* m_pTarget;
+        bool m_bDirty;                    //!< true if a setting has changed since last save
+        std::vector<CustomVarAction>    m_CustomVarActions; //!< the actions carried out on the custom vars that need to be saved/applied
+        wxString m_NewProjectOrTargetCompilerId; //!< keeps track of the changes of compiler of the selected project/target
 
-        bool                         m_BuildingTree;                 //!< flag to ignore tree changing events while building it
-        static int                   m_MenuOption;
+        bool m_BuildingTree; //!< flag to ignore tree changing events while building it
 
         DECLARE_EVENT_TABLE()
 };

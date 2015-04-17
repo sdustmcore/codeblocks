@@ -6,9 +6,14 @@
 #ifndef XTRA_RES_H
 #define XTRA_RES_H
 
+#include <wx/wxprec.h>
 #include <wx/xrc/xmlres.h>
 #include <wx/xrc/xh_dlg.h>
 #include <wx/toolbar.h>
+
+#ifdef __BORLANDC__
+    #pragma hdrstop
+#endif
 
 
 class wxXmlResourceHandler;

@@ -16,11 +16,12 @@
 	along with this program; if not, write to the Free Software
 	Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
-// RCS-ID: $Id$
+// RCS-ID: $Id: ProjectData.cpp 24 2008-01-02 15:19:04Z Pecan $
 
 #if defined(CB_PRECOMP)
 #include "sdk.h"
 #else
+    #include "sdk_common.h"
 	#include "sdk_events.h"
 	#include "manager.h"
 	#include "editormanager.h"
@@ -286,7 +287,7 @@ void ProjectData::DumpHash( const wxString
         phash = &m_FileBook_MarksArchive;
     FileBrowse_MarksHash& hash = *phash;
 
-    LOGIT( _T("--- DumpProjectHash ---[%s]Count[%lu]"), hashType.wx_str(), static_cast<unsigned long>(hash.size()), m_ProjectFilename.wx_str() );
+    LOGIT( _T("--- DumpProjectHash ---[%s]Count[%d]"), hashType.c_str(), hash.size(), m_ProjectFilename.c_str() );
     for (FileBrowse_MarksHash::iterator it = hash.begin(); it != hash.end(); it++)
     {
         wxString filename = it->first; //an Editor filename withing this project
@@ -313,7 +314,7 @@ void ProjectData::DumpBrowse_Marks( const wxString
         phash = &m_FileBook_MarksArchive;
     FileBrowse_MarksHash& hash = *phash;
 
-    LOGIT( _T("Dump_%s Size[%lu]"), hashType.wx_str(), static_cast<unsigned long>(hash.size()) );
+    LOGIT( _T("Dump_%s Size[%d]"), hashType.c_str(), hash.size() );
 
     for (FileBrowse_MarksHash::iterator it = hash.begin(); it != hash.end(); ++it)
     {

@@ -10,9 +10,6 @@
 
 #include <sdk.h> // Code::Blocks SDK
 #ifndef CB_PRECOMP
-    #include <wx/combobox.h>
-    #include <wx/menu.h>
-    #include <wx/toolbar.h>
     #include <wx/xrc/xmlres.h>
     #include "cbeditor.h"
     #include "configmanager.h"
@@ -34,7 +31,7 @@ namespace
 }
 
 // ----------------------------------------------------------------------------
-// CodeBlocks main.cpp managers all the following UI entries in one routine.
+// CodeBlocks main.cpp managers all the following UI entires in one routine.
 // So if only one changes, all will change. Therefore, to enable/disable copy/paste,
 // we have to capture all the following to see if it really belongs to us
 int idEditUndo = XRCID("idEditUndo");
@@ -71,22 +68,18 @@ int idMenuEditPaste = XRCID("idEditPaste");
 // events handling
 BEGIN_EVENT_TABLE(ThreadSearch, cbPlugin)
     // add any events you want to handle here
-    EVT_UPDATE_UI (controlIDs.Get(ControlIDs::idMenuViewThreadSearch),   ThreadSearch::OnMnuViewThreadSearchUpdateUI)
-    EVT_MENU      (controlIDs.Get(ControlIDs::idMenuViewThreadSearch),   ThreadSearch::OnMnuViewThreadSearch)
-    EVT_UPDATE_UI (controlIDs.Get(ControlIDs::idMenuViewFocusThreadSearch),   ThreadSearch::OnMnuViewFocusThreadSearchUpdateUI)
-    EVT_MENU      (controlIDs.Get(ControlIDs::idMenuViewFocusThreadSearch),   ThreadSearch::OnMnuViewFocusThreadSearch)
-    EVT_UPDATE_UI (controlIDs.Get(ControlIDs::idMenuSearchThreadSearch), ThreadSearch::OnMnuSearchThreadSearchUpdateUI)
-    EVT_MENU      (controlIDs.Get(ControlIDs::idMenuSearchThreadSearch), ThreadSearch::OnMnuSearchThreadSearch)
-    EVT_MENU      (controlIDs.Get(ControlIDs::idMenuCtxThreadSearch),    ThreadSearch::OnCtxThreadSearch)
+    EVT_UPDATE_UI (idMenuViewThreadSearch,   ThreadSearch::OnMnuViewThreadSearchUpdateUI)
+    EVT_MENU      (idMenuViewThreadSearch,   ThreadSearch::OnMnuViewThreadSearch)
+    EVT_UPDATE_UI (idMenuSearchThreadSearch, ThreadSearch::OnMnuSearchThreadSearchUpdateUI)
+    EVT_MENU      (idMenuSearchThreadSearch, ThreadSearch::OnMnuSearchThreadSearch)
+    EVT_MENU      (idMenuCtxThreadSearch,    ThreadSearch::OnCtxThreadSearch)
     EVT_MENU      (idMenuEditCopy,           ThreadSearch::OnMnuEditCopy)
     EVT_UPDATE_UI (idMenuEditCopy,           ThreadSearch::OnMnuEditCopyUpdateUI)
     EVT_MENU      (idMenuEditPaste,          ThreadSearch::OnMnuEditPaste)
-    EVT_TOOL      (controlIDs.Get(ControlIDs::idBtnOptions),             ThreadSearch::OnBtnOptionsClick)
-    EVT_TOOL      (controlIDs.Get(ControlIDs::idBtnSearch),              ThreadSearch::OnBtnSearchClick)
-    EVT_TEXT_ENTER(controlIDs.Get(ControlIDs::idCboSearchExpr),          ThreadSearch::OnCboSearchExprEnter)
-    EVT_TEXT      (controlIDs.Get(ControlIDs::idCboSearchExpr),          ThreadSearch::OnCboSearchExprEnter)
-    EVT_TEXT_ENTER(controlIDs.Get(ControlIDs::idSearchDirPath),       ThreadSearch::OnCboSearchExprEnter)
-    EVT_TEXT_ENTER(controlIDs.Get(ControlIDs::idSearchMask),          ThreadSearch::OnCboSearchExprEnter)
+    EVT_TOOL      (idBtnOptions,             ThreadSearch::OnBtnOptionsClick)
+    EVT_TOOL      (idBtnSearch,              ThreadSearch::OnBtnSearchClick)
+    EVT_TEXT_ENTER(idCboSearchExpr,          ThreadSearch::OnCboSearchExprEnter)
+    EVT_TEXT      (idCboSearchExpr,          ThreadSearch::OnCboSearchExprEnter)
 // ---------------------------------------------------------------------------
     // CodeBlocks main.cpp managers all the following UI entires in ONE routine.
     // So if only one changes, all may change.
@@ -173,14 +166,14 @@ void ThreadSearch::OnAttach()
     bool showPanel;
     int  sashPosition;
     ThreadSearchViewManagerBase::eManagerTypes mgrType;
-    wxArrayString searchPatterns, searchDirs, searchMasks;
+    wxArrayString searchPatterns;
 
     // Loads configuration from default.conf
-    LoadConfig(showPanel, sashPosition, mgrType, searchPatterns, searchDirs, searchMasks);
+    LoadConfig(showPanel, sashPosition, mgrType, searchPatterns);
 
     // Adds window to the manager
     m_pThreadSearchView = new ThreadSearchView(*this);
-    m_pThreadSearchView->SetSearchHistory(searchPatterns, searchDirs, searchMasks);
+    m_pThreadSearchView->SetSearchHistory(searchPatterns);
 
     // Builds manager
     m_pViewManager = ThreadSearchViewManagerBase::BuildThreadSearchViewManagerBase(m_pThreadSearchView, true, mgrType);
@@ -206,7 +199,7 @@ void ThreadSearch::OnAttach()
     m_OnReleased = false;
 }
 
-void ThreadSearch::OnRelease(bool /*appShutDown*/)
+void ThreadSearch::OnRelease(bool appShutDown)
 {
     // do de-initialization for your plugin
     // if appShutDown is false, the plugin is unloaded because Code::Blocks is being shut down,
@@ -250,12 +243,28 @@ void ThreadSearch::OnThreadSearchViewDestruction()
     SaveConfig(m_pViewManager->IsViewShown(),
                m_pThreadSearchView->GetSashPosition(),
                m_pViewManager->GetManagerType(),
-               m_pThreadSearchView->GetSearchHistory(),
-               m_pThreadSearchView->GetSearchDirsHistory(),
-               m_pThreadSearchView->GetSearchMasksHistory());
+               m_pThreadSearchView->GetSearchHistory());
 
     // Reset of the pointer as view is being deleted
     m_pThreadSearchView = NULL;
+}
+
+
+int ThreadSearch::Configure()
+{
+    if ( !IsAttached() )
+        return -1;
+
+    // Creates and displays the configuration dialog for the plugin
+    cbConfigurationDialog dlg(Manager::Get()->GetAppWindow(), wxID_ANY, wxT("Thread search"));
+    cbConfigurationPanel* panel = GetConfigurationPanel(&dlg);
+    if (panel)
+    {
+        dlg.AttachConfigurationPanel(panel);
+        PlaceWindow(&dlg);
+        return dlg.ShowModal() == wxID_OK ? 0 : -1;
+    }
+    return -1;
 }
 
 void ThreadSearch::BuildMenu(wxMenuBar* menuBar)
@@ -276,7 +285,7 @@ void ThreadSearch::BuildMenu(wxMenuBar* menuBar)
         {
             if (items[i]->IsSeparator())
             {
-                menu->InsertCheckItem(i, controlIDs.Get(ControlIDs::idMenuViewThreadSearch), _("Thread search"),
+                menu->InsertCheckItem(i, idMenuViewThreadSearch, _("Thread search"),
                                       _("Toggle displaying the 'Thread search' panel"));
                 break;
             }
@@ -285,12 +294,9 @@ void ThreadSearch::BuildMenu(wxMenuBar* menuBar)
         if ( i == items.GetCount() )
         {
             // not found, just append
-            menu->AppendCheckItem(controlIDs.Get(ControlIDs::idMenuViewThreadSearch), _("Thread search"),
+            menu->AppendCheckItem(idMenuViewThreadSearch, _("Thread search"),
                                   _("Toggle displaying the 'Thread search' panel"));
         }
-
-        menu->Append(controlIDs.Get(ControlIDs::idMenuViewFocusThreadSearch), _("Focus Thread Search"),
-                     _("Makes the search box of the Thread search panel the focused control"));
     }
 
     idx = menuBar->FindMenu(_("Sea&rch"));
@@ -304,7 +310,7 @@ void ThreadSearch::BuildMenu(wxMenuBar* menuBar)
         {
             if (items[i]->IsSeparator())
             {
-                menu->Insert(i, controlIDs.Get(ControlIDs::idMenuSearchThreadSearch), _("Thread search"),
+                menu->Insert(i, idMenuSearchThreadSearch, _("Thread search"),
                                 _("Perform a Threaded search with the current word"));
                 menu->InsertSeparator(i);
                 break;
@@ -314,7 +320,7 @@ void ThreadSearch::BuildMenu(wxMenuBar* menuBar)
         if ( i == items.GetCount() )
         {
             // not found, just append
-            menu->Append(controlIDs.Get(ControlIDs::idMenuSearchThreadSearch), _("Thread search"),
+            menu->Append(idMenuSearchThreadSearch, _("Thread search"),
                             _("Perform a Threaded search with the current word"));
             menu->AppendSeparator();
         }
@@ -331,7 +337,7 @@ void ThreadSearch::RemoveMenuItems()
         wxMenu* viewMenu = menuBar->GetMenu(idx);
         if ( viewMenu != 0 )
         {
-            viewMenu->Remove(controlIDs.Get(ControlIDs::idMenuViewThreadSearch));
+            viewMenu->Remove(idMenuViewThreadSearch);
         }
     }
 
@@ -341,7 +347,7 @@ void ThreadSearch::RemoveMenuItems()
         wxMenu* searchMenu = menuBar->GetMenu(idx);
         if ( searchMenu != 0 )
         {
-            searchMenu->Remove(controlIDs.Get(ControlIDs::idMenuSearchThreadSearch));
+            searchMenu->Remove(idMenuSearchThreadSearch);
         }
     }
 }
@@ -356,7 +362,7 @@ void ThreadSearch::OnMnuViewThreadSearch(wxCommandEvent& event)
 }
 
 
-void ThreadSearch::OnMnuSearchThreadSearch(wxCommandEvent& /*event*/)
+void ThreadSearch::OnMnuSearchThreadSearch(wxCommandEvent& event)
 {
     if ( !IsAttached() )
         return;
@@ -374,20 +380,8 @@ void ThreadSearch::OnMnuSearchThreadSearch(wxCommandEvent& /*event*/)
     }
 }
 
-void ThreadSearch::OnMnuViewFocusThreadSearch(wxCommandEvent& /*event*/)
-{
-    if ( !IsAttached() )
-        return;
 
-    GetCursorWord(m_SearchedWord);
-
-    m_pViewManager->ShowView(true);
-    m_pViewManager->Raise();
-    m_pThreadSearchView->FocusSearchCombo(m_SearchedWord);
-}
-
-
-void ThreadSearch::OnCtxThreadSearch(wxCommandEvent& /*event*/)
+void ThreadSearch::OnCtxThreadSearch(wxCommandEvent& event)
 {
     if ( !IsAttached() )
         return;
@@ -397,13 +391,12 @@ void ThreadSearch::OnCtxThreadSearch(wxCommandEvent& /*event*/)
 }
 
 
-void ThreadSearch::OnMnuViewThreadSearchUpdateUI(wxUpdateUIEvent& /*event*/)
+void ThreadSearch::OnMnuViewThreadSearchUpdateUI(wxUpdateUIEvent& event)
 {
     if ( !IsAttached() )
         return;
 
-    wxMenuBar *menubar = Manager::Get()->GetAppFrame()->GetMenuBar();
-    menubar->Check(controlIDs.Get(ControlIDs::idMenuViewThreadSearch), m_pViewManager->IsViewShown());
+    Manager::Get()->GetAppFrame()->GetMenuBar()->Check(idMenuViewThreadSearch, m_pViewManager->IsViewShown());
 }
 
 
@@ -415,16 +408,8 @@ void ThreadSearch::OnMnuSearchThreadSearchUpdateUI(wxUpdateUIEvent& event)
     event.Enable(m_pThreadSearchView->IsSearchRunning() == false);
 }
 
-void ThreadSearch::OnMnuViewFocusThreadSearchUpdateUI(wxUpdateUIEvent& event)
-{
-    if ( !IsAttached() )
-        return;
 
-    event.Enable(m_pThreadSearchView->IsSearchRunning() == false);
-}
-
-
-void ThreadSearch::BuildModuleMenu(const ModuleType type, wxMenu* pMenu, const FileTreeData* /*data*/)
+void ThreadSearch::BuildModuleMenu(const ModuleType type, wxMenu* pMenu, const FileTreeData* data)
 {
     wxMenuItem* pMenuItem = NULL;
     if (!pMenu || !IsAttached())
@@ -443,12 +428,12 @@ void ThreadSearch::BuildModuleMenu(const ModuleType type, wxMenu* pMenu, const F
             int dIndex = GetInsertionMenuIndex(pMenu);
             if ( dIndex >= 0 )
             {
-                pMenuItem = pMenu->Insert(dIndex, controlIDs.Get(ControlIDs::idMenuCtxThreadSearch), sText);
+                pMenuItem = pMenu->Insert(dIndex, idMenuCtxThreadSearch, sText);
             }
             else
             {
                 pMenu->AppendSeparator();
-                pMenuItem = pMenu->Append(controlIDs.Get(ControlIDs::idMenuCtxThreadSearch), sText);
+                pMenuItem = pMenu->Append(idMenuCtxThreadSearch, sText);
             }
 
             // Disables item if a threaded search is running
@@ -498,15 +483,13 @@ void ThreadSearch::Notify()
     SaveConfig(m_pViewManager->IsViewShown(),
                m_pThreadSearchView->GetSashPosition(),
                m_pViewManager->GetManagerType(),
-               m_pThreadSearchView->GetSearchHistory(),
-               m_pThreadSearchView->GetSearchDirsHistory(),
-               m_pThreadSearchView->GetSearchMasksHistory());
+               m_pThreadSearchView->GetSearchHistory());
 }
 
 
 void ThreadSearch::LoadConfig(bool& showPanel, int& sashPosition,
                               ThreadSearchViewManagerBase::eManagerTypes& mgrType,
-                              wxArrayString& searchPatterns, wxArrayString& searchDirs, wxArrayString& searchMasks)
+                              wxArrayString& searchPatterns)
 {
     if ( !IsAttached() )
         return;
@@ -524,8 +507,8 @@ void ThreadSearch::LoadConfig(bool& showPanel, int& sashPosition,
     m_UseDefValsForThreadSearch  = pCfg->ReadBool(wxT("/UseDefaultValues"),      true);
     m_ShowSearchControls         = pCfg->ReadBool(wxT("/ShowSearchControls"),    true);
     m_ShowDirControls            = pCfg->ReadBool(wxT("/ShowDirControls"),       false);
-    m_ShowCodePreview            = pCfg->ReadBool(wxT("/ShowCodePreview"),       false);
-    m_DeletePreviousResults      = pCfg->ReadBool(wxT("/DeletePreviousResults"), false);
+    m_ShowCodePreview            = pCfg->ReadBool(wxT("/ShowCodePreview"),       true);
+    m_DeletePreviousResults      = pCfg->ReadBool(wxT("/DeletePreviousResults"), true);
     m_DisplayLogHeaders          = pCfg->ReadBool(wxT("/DisplayLogHeaders"),     true);
     m_DrawLogLines               = pCfg->ReadBool(wxT("/DrawLogLines"),          false);
 
@@ -559,19 +542,12 @@ void ThreadSearch::LoadConfig(bool& showPanel, int& sashPosition,
     }
 
     searchPatterns = pCfg->ReadArrayString(wxT("/SearchPatterns"));
-    searchDirs = pCfg->ReadArrayString(wxT("/SearchDirs"));
-    if (searchDirs.empty())
-        searchDirs.push_back(m_FindData.GetSearchPath());
-    searchMasks = pCfg->ReadArrayString(wxT("/SearchMasks"));
-    if (searchMasks.empty())
-        searchMasks.push_back(m_FindData.GetSearchMask());
 }
 
 
 void ThreadSearch::SaveConfig(bool showPanel, int sashPosition,
-                              ThreadSearchViewManagerBase::eManagerTypes /*mgrType*/,
-                              const wxArrayString& searchPatterns, const wxArrayString& searchDirs,
-                              const wxArrayString& searchMasks)
+                              ThreadSearchViewManagerBase::eManagerTypes mgrType,
+                              const wxArrayString& searchPatterns)
 {
     ConfigManager* pCfg = Manager::Get()->GetConfigManager(_T("ThreadSearch"));
 
@@ -605,8 +581,6 @@ void ThreadSearch::SaveConfig(bool showPanel, int sashPosition,
     pCfg->Write(wxT("/FileSorting"),           m_FileSorting);
 
     pCfg->Write(wxT("/SearchPatterns"),        searchPatterns);
-    pCfg->Write(wxT("/SearchDirs"),            searchDirs);
-    pCfg->Write(wxT("/SearchMasks"),           searchMasks);
 }
 
 
@@ -618,34 +592,26 @@ bool ThreadSearch::BuildToolBar(wxToolBar* toolBar)
     m_pToolbar = toolBar;
     m_pThreadSearchView->SetToolBar(toolBar);
 
-    const wxString &prefix = m_pThreadSearchView->GetImagePrefix();
-
+    wxString prefix;
     ConfigManager *cfg = Manager::Get()->GetConfigManager(_T("app"));
     if (cfg->ReadBool(_T("/environment/toolbar_size"),true))
+    {
+        prefix = ConfigManager::GetDataFolder() + _T("/images/ThreadSearch/16x16/");
         m_pToolbar->SetToolBitmapSize(wxSize(16,16));
+    }
     else
+    {
+        prefix = ConfigManager::GetDataFolder() + _T("/images/ThreadSearch/22x22/");
         m_pToolbar->SetToolBitmapSize(wxSize(22,22));
+    }
+    m_pCboSearchExpr               = new wxComboBox    (toolBar, idCboSearchExpr, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, NULL, wxCB_DROPDOWN);
 
-    m_pCboSearchExpr = new wxComboBox(toolBar, controlIDs.Get(ControlIDs::idCboSearchExpr),
-                                      wxEmptyString, wxDefaultPosition, wxSize(130, -1), 0, NULL, wxCB_DROPDOWN);
     m_pCboSearchExpr->SetToolTip(_("Text to search"));
 
-    toolBar->AddControl(m_pCboSearchExpr);
-    toolBar->AddTool(controlIDs.Get(ControlIDs::idBtnSearch), _(""),
-                     wxBitmap(prefix + wxT("findf.png"), wxBITMAP_TYPE_PNG),
-                     wxBitmap(prefix + wxT("findfdisabled.png"), wxBITMAP_TYPE_PNG),
-                     wxITEM_NORMAL, _("Run search"));
-    toolBar->AddTool(controlIDs.Get(ControlIDs::idBtnOptions), _(""),
-                     wxBitmap(prefix + wxT("options.png"), wxBITMAP_TYPE_PNG),
-                     wxBitmap(prefix + wxT("optionsdisabled.png"), wxBITMAP_TYPE_PNG),
-                     wxITEM_NORMAL, _("Show options window"));
-    m_pThreadSearchView->UpdateOptionsButtonImage(m_FindData);
 
-    m_pCboSearchExpr->Append(m_pThreadSearchView->GetSearchHistory());
-    if ( m_pCboSearchExpr->GetCount() > 0 )
-    {
-        m_pCboSearchExpr->SetSelection(0);
-    }
+    toolBar->AddControl(m_pCboSearchExpr);
+    toolBar->AddTool(idBtnSearch,_(""),wxBitmap(prefix + wxT("findf.png"), wxBITMAP_TYPE_PNG),wxBitmap(prefix + wxT("findfdisabled.png"), wxBITMAP_TYPE_PNG),wxITEM_NORMAL,_("Run search")); //Control(pBtnSearch);
+    toolBar->AddTool(idBtnOptions,_(""),wxBitmap(prefix + wxT("options.png"), wxBITMAP_TYPE_PNG),wxBitmap(prefix + wxT("optionsdisabled.png"), wxBITMAP_TYPE_PNG),wxITEM_NORMAL,_("Show options window")); //Control(pBtnSearch);
 
     toolBar->Realize();
     #if wxCHECK_VERSION(2, 8, 0)
@@ -685,8 +651,7 @@ void ThreadSearch::OnBtnSearchClick(wxCommandEvent &event)
         // User wants to search for a word.
         // Forwarding the event would search for the view combo text whereas we want
         // to look for the toolbar combo text.
-        const long id = controlIDs.Get(ControlIDs::idCboSearchExpr);
-        wxComboBox* pCboBox = static_cast<wxComboBox*>(m_pToolbar->FindControl(id));
+        wxComboBox* pCboBox = static_cast<wxComboBox*>(m_pToolbar->FindControl(idCboSearchExpr));
         wxASSERT(pCboBox != NULL);
         RunThreadSearch(pCboBox->GetValue());
     }
@@ -727,8 +692,7 @@ void ThreadSearch::OnCboSearchExprEnter(wxCommandEvent &event)
     // Event handler used when user clicks on enter after typing
     // in combo box text control.
     // Runs a multi threaded search with combo text
-    const long id = controlIDs.Get(ControlIDs::idCboSearchExpr);
-    wxComboBox* pCboBox = static_cast<wxComboBox*>(m_pToolbar->FindControl(id));
+    wxComboBox* pCboBox = static_cast<wxComboBox*>(m_pToolbar->FindControl(idCboSearchExpr));
     wxASSERT(pCboBox != NULL);
     if ( event.GetEventType() == wxEVT_COMMAND_TEXT_ENTER )
         RunThreadSearch(pCboBox->GetValue());
@@ -772,42 +736,14 @@ bool ThreadSearch::GetCursorWord(wxString& sWord)
     {
         cbStyledTextCtrl* control = ed->GetControl();
 
-        sWord = control->GetSelectedText();
-        if (sWord != wxEmptyString)
-        {
-            sWord.Trim(true);
-            sWord.Trim(false);
-
-            wxString::size_type pos = sWord.find(wxT('\n'));
-            if (pos != wxString::npos)
-            {
-                sWord.Remove(pos, sWord.length() - pos);
-                sWord.Trim(true);
-                sWord.Trim(false);
-            }
-
-            return !sWord.IsEmpty();
-        }
-
         // Gets word under cursor
         int pos = control->GetCurrentPos();
         int ws  = control->WordStartPosition(pos, true);
         int we  = control->WordEndPosition(pos, true);
-        const wxString word = control->GetTextRange(ws, we);
-        if (!word.IsEmpty()) // Avoid empty strings
+        if ( ws < we ) // Avoid empty strings
         {
-            sWord.Clear();
-            while (--ws > 0)
-            {
-                const wxChar ch = control->GetCharAt(ws);
-                if (ch <= _T(' '))
-                    continue;
-                else if (ch == _T('~'))
-                    sWord << _T("~");
-                break;
-            }
             // m_SearchedWord will be used if 'Find occurrences' ctx menu is clicked
-            sWord << word;
+            sWord = control->GetTextRange(ws, we);
             wordFound = true;
         }
     }

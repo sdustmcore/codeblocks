@@ -68,6 +68,7 @@ class SEditorManager : public wxEvtHandler
         cbAuiNotebook* GetNotebook(){ return m_pNotebook; }
         void CreateMenu(wxMenuBar* menuBar);
         void ReleaseMenu(wxMenuBar* menuBar);
+        void Configure();
         int GetEditorsCount();
         SAutoCompleteMap& GetAutoCompleteMap(){ return m_AutoCompleteMap; }
 

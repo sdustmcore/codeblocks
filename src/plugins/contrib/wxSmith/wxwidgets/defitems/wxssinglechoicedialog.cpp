@@ -16,9 +16,9 @@
 * You should have received a copy of the GNU General Public License
 * along with wxSmith. If not, see <http://www.gnu.org/licenses/>.
 *
-* $Revision$
-* $Id$
-* $HeadURL$
+* $Revision: 4504 $
+* $Id: wxsSingleChoiceDialog.cpp 4504 2007-10-02 21:52:30Z byo $
+* $HeadURL: svn+ssh://byo@svn.berlios.de/svnroot/repos/codeblocks/trunk/src/plugins/contrib/wxSmith/wxwidgets/defitems/wxsSingleChoiceDialog.cpp $
 */
 
 #include "wxssinglechoicedialog.h"
@@ -57,19 +57,34 @@ void wxsSingleChoiceDialog::OnBuildCreatingCode()
             if ( m_Content.GetCount() > 0 )
             {
                 ChoicesName = GetCoderContext()->GetUniqueName(_T("__wxSingleChoiceDialogChoices"));
+                #if wxCHECK_VERSION(2, 9, 0)
                 Codef(_T("wxString %s[%d] = \n{\n"),ChoicesName.wx_str(),(int)m_Content.GetCount());
+                #else
+                Codef(_T("wxString %s[%d] = \n{\n"),ChoicesName.c_str(),(int)m_Content.GetCount());
+                #endif
                 for ( size_t i = 0; i < m_Content.GetCount(); ++i )
                 {
+                    #if wxCHECK_VERSION(2, 9, 0)
                     Codef(_T("\t%t%s\n"),m_Content[i].wx_str(),((i!=m_Content.GetCount()-1)?_T(","):_T("")));
+                    #else
+                    Codef(_T("\t%t%s\n"),m_Content[i].c_str(),((i!=m_Content.GetCount()-1)?_T(","):_T("")));
+                    #endif
                 }
                 Codef(_T("};\n"));
             }
 
             Codef(_T("%C(%W, %t, %t, %d, %s, 0, %T, %P);\n"),
-                  m_Message.wx_str(),
-                  m_Caption.wx_str(),
-                  (int)m_Content.GetCount(),
-                  (m_Content.IsEmpty()?_T("0"):ChoicesName.wx_str()));
+                #if wxCHECK_VERSION(2, 9, 0)
+                m_Message.wx_str(),
+                m_Caption.wx_str(),
+                (int)m_Content.GetCount(),
+                (m_Content.IsEmpty()?_T("0"):ChoicesName.wx_str()));
+                #else
+                m_Message.c_str(),
+                m_Caption.c_str(),
+                (int)m_Content.GetCount(),
+                (m_Content.IsEmpty()?_T("0"):ChoicesName.c_str()));
+                #endif
 
             BuildSetupWindowCode();
             return;

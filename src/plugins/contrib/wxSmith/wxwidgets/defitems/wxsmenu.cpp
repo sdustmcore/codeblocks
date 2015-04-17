@@ -25,7 +25,6 @@
 #include "wxsmenueditor.h"
 #include "../wxsitemresdata.h"
 #include <globals.h>
-#include <prep.h>
 #include "scrollingdialog.h"
 
 namespace
@@ -49,7 +48,7 @@ namespace
                 PlaceWindow(this,pdlCentre,true);
             }
 
-            void OnOK(cb_unused wxCommandEvent& event)
+            void OnOK(wxCommandEvent& event)
             {
                 Editor->ApplyChanges();
                 EndModal(wxID_OK);
@@ -217,27 +216,30 @@ void wxsMenu::OnBuildCreatingCode()
             }
             if ( GetParent() && GetParent()->GetClassName()==_T("wxMenuBar") )
             {
+                #if wxCHECK_VERSION(2, 9, 0)
                 Codef(_T("%MAppend(%O, %t);\n"),m_Label.wx_str());
+                #else
+                Codef(_T("%MAppend(%O, %t);\n"),m_Label.c_str());
+                #endif
             }
             BuildSetupWindowCode();
             break;
 
-        case wxsUnknownLanguage: // fall-through
         default:
             wxsCodeMarks::Unknown(_T("wxsMenu::OnBuildCreatingCode"),GetLanguage());
     }
 }
 
-void wxsMenu::OnEnumToolProperties(cb_unused long Flags)
+void wxsMenu::OnEnumToolProperties(long Flags)
 {
     if ( GetParent() )
     {
-        // If there's parent we got label for this menu
+        // If there's parent we got labl for this menu
         WXS_SHORT_STRING(wxsMenu,m_Label,_("Title"),_T("label"),_T(""),true);
     }
 }
 
-bool wxsMenu::OnMouseDClick(cb_unused wxWindow* Preview,cb_unused int PosX,cb_unused int PosY)
+bool wxsMenu::OnMouseDClick(wxWindow* Preview,int PosX,int PosY)
 {
     MenuEditorDialog Dlg(this);
     Dlg.ShowModal();

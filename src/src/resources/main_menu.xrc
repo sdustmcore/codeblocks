@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<resource xmlns="http://www.wxwidgets.org/wxxrc" version="2.5.3.0">
+<?xml version="1.0" encoding="utf-8"?>
+<resource>
   <object class="wxMenuBar" name="main_menu_bar">
     <object class="wxMenu" name="file_menu">
       <label>&amp;File</label>
@@ -174,16 +174,19 @@
       <object class="wxMenuItem" name="idEditCut">
         <label>Cu&amp;t</label>
         <bitmap>images\16x16\editcut.png</bitmap>
+        <accel>Ctrl-X</accel>
         <help>Copy selected text to clipboard and erase it</help>
       </object>
       <object class="wxMenuItem" name="idEditCopy">
         <label>&amp;Copy</label>
         <bitmap>images\16x16\editcopy.png</bitmap>
+        <accel>Ctrl-C</accel>
         <help>Copy selected text to clipboard</help>
       </object>
       <object class="wxMenuItem" name="idEditPaste">
         <label>&amp;Paste</label>
         <bitmap>images\16x16\editpaste.png</bitmap>
+        <accel>Ctrl-V</accel>
         <help>Paste text from clipboard</help>
       </object>
       <object class="separator"/>
@@ -254,17 +257,17 @@
       <object class="wxMenu" name="idEditEOLMode">
         <label>&amp;End-of-line mode</label>
         <object class="wxMenuItem" name="idEditEOLCRLF">
-          <label>Windows (CR &amp;&amp; LF)</label>
+          <label>CR &amp;&amp; LF</label>
           <help>End-of-line mode uses carriage return and line feed</help>
           <radio>1</radio>
         </object>
         <object class="wxMenuItem" name="idEditEOLCR">
-          <label>Mac (CR)</label>
+          <label>CR</label>
           <help>End-of-line mode uses carriage return only</help>
           <radio>1</radio>
         </object>
         <object class="wxMenuItem" name="idEditEOLLF">
-          <label>Unix (LF)</label>
+          <label>LF</label>
           <help>End-of-line mode uses line feed only</help>
           <radio>1</radio>
         </object>
@@ -415,16 +418,6 @@
             <label>Paste</label>
             <help>Paste before current line</help>
           </object>
-          <object class="wxMenuItem" name="idEditLineUp">
-            <label>Move up</label>
-            <accel>Alt-UP</accel>
-            <help>Transpose current line(s) up</help>
-          </object>
-          <object class="wxMenuItem" name="idEditLineDown">
-            <label>Move down</label>
-            <accel>Alt-DOWN</accel>
-            <help>Transpose current line(s) down</help>
-          </object>
         </object>
         <object class="wxMenu" name="idEditSpecialCommandsCase">
           <label>Case</label>
@@ -437,34 +430,12 @@
             <help>Make selection lowercase</help>
           </object>
         </object>
-        <object class="wxMenu" name="idEditSpecialCommandsOther">
-          <label>Other</label>
-          <object class="wxMenuItem" name="idEditInsertNewLine">
-            <label>Insert new line</label>
-            <accel>Shift+Return</accel>
-            <help>Insert line below current line</help>
-          </object>
-          <object class="wxMenuItem" name="idEditGotoLineEnd">
-            <label>Goto line end</label>
-            <accel>Ctrl+Return</accel>
-            <help>Goto current line end</help>
-          </object>
-        </object>
       </object>
       <object class="separator"/>
       <object class="wxMenuItem" name="idEditSelectAll">
         <label>Select &amp;all</label>
+        <accel>Ctrl-A</accel>
         <help>Selects the entire text range</help>
-      </object>
-      <object class="wxMenuItem" name="idEditSelectNext">
-        <label>&amp;Select next occurrence</label>
-        <accel>Ctrl-E</accel>
-        <help>Selects the next occurrence of the currently selected text. Allows editing all the occurrences.</help>
-      </object>
-      <object class="wxMenuItem" name="idEditSelectNextSkip">
-        <label>&amp;Select skip to next occurrence</label>
-        <accel>Shift-Ctrl-E</accel>
-        <help>Deselects the current text and then selects the next occurrence of the same text. Allows editing all the occurrences.</help>
       </object>
       <object class="separator"/>
       <object class="wxMenuItem" name="idEditCommentSelected">
@@ -490,15 +461,15 @@
         <help>Boxcomments the selected lines of code</help>
       </object>
       <object class="separator"/>
+      <object class="wxMenuItem" name="idEditAutoComplete">
+        <label>Auto-complete</label>
+        <accel>Ctrl-J</accel>
+        <help>Auto-completes the word under the caret (nothing to do with code-completion plugins)</help>
+      </object>
       <object class="wxMenuItem" name="idEditGotoMatchingBrace">
         <label>Goto matching brace</label>
         <accel>Ctrl-Shift-B</accel>
         <help>Moves the caret to the matching brace (if any)</help>
-      </object>
-      <object class="separator"/>
-      <object class="wxMenuItem" name="idEditShowCallTip">
-        <label>Show call tip</label>
-        <accel>Ctrl-Shift-Space</accel>
       </object>
     </object>
     <object class="wxMenu" name="menu_view">
@@ -517,24 +488,9 @@
       </object>
       <object class="wxMenu" name="idViewToolbars">
         <label>Toolbars</label>
-        <object class="wxMenuItem" name="idViewToolFit">
-          <label>&amp;Fit toolbars</label>
-          <help>Try to reorder toolbars in such a way that all of them are visible</help>
-        </object>
-        <object class="wxMenuItem" name="idViewToolOptimize">
-          <label>&amp;Optimize toolbars</label>
-          <help>Try to reorder the toolbars in such a way that the use minimum space</help>
-        </object>
-        <object class="separator"/>
         <object class="wxMenuItem" name="idViewToolMain">
           <label>&amp;Main</label>
           <help>Show/hide main toolbar</help>
-          <checkable>1</checkable>
-          <enabled>1</enabled>
-        </object>
-        <object class="wxMenuItem" name="idViewToolDebugger">
-          <label>&amp;Debugger</label>
-          <help>Show/hide debugger toolbar</help>
           <checkable>1</checkable>
           <enabled>1</enabled>
         </object>
@@ -553,21 +509,9 @@
         <checkable>1</checkable>
         <enabled>1</enabled>
       </object>
-      <object class="wxMenuItem" name="idViewStartPage">
-        <label>Start &amp;Page</label>
-        <help>Show/hide start page</help>
-        <checkable>1</checkable>
-        <enabled>1</enabled>
-      </object>
       <object class="wxMenuItem" name="idViewScriptConsole">
         <label>S&amp;cript console</label>
         <help>Show/hide the script console</help>
-        <checkable>1</checkable>
-        <enabled>1</enabled>
-      </object>
-      <object class="wxMenuItem" name="idViewHideEditorTabs">
-        <label>Hide editor tabs</label>
-        <help>Show/hide the editor tabs</help>
         <checkable>1</checkable>
         <enabled>1</enabled>
       </object>
@@ -580,7 +524,6 @@
       <object class="separator"/>
       <object class="wxMenuItem" name="idViewFullScreen">
         <label>F&amp;ull screen</label>
-        <accel>SHIFT-F11</accel>
         <help>Switch to full screen view</help>
         <checkable>1</checkable>
         <enabled>1</enabled>
@@ -590,15 +533,6 @@
         <label>Focus editor</label>
         <help>Set focus on the active editor</help>
       </object>
-      <object class="wxMenuItem" name="idViewFocusManagement">
-        <label>Focus management panel</label>
-        <help>Set focus on the management panel</help>
-      </object>
-      <object class="wxMenuItem" name="idViewFocusLogsAndOthers">
-        <label>Focus logs and others</label>
-        <help>Set focus on the logs and others panel</help>
-      </object>
-      <object class="separator"/>
       <object class="wxMenuItem" name="idViewSwitchTabs">
         <label>S&amp;witch tabs</label>
         <accel>Ctrl+Tab</accel>
@@ -614,7 +548,7 @@
         <help>Search for text</help>
       </object>
       <object class="wxMenuItem" name="idSearchFindInFiles">
-        <label>Find in fil&amp;es...</label>
+        <label>&amp;Find in files...</label>
         <bitmap>images\16x16\findf.png</bitmap>
         <accel>Ctrl-Shift-F</accel>
         <help>Search for text</help>
@@ -631,18 +565,6 @@
         <accel>Shift-F3</accel>
         <help>Repeat the last search in the opposite direction</help>
       </object>
-      <object class="wxMenuItem" name="idSearchFindSelectedNext">
-        <label>Find &amp;next selected</label>
-        <bitmap>images\16x16\filefindnext.png</bitmap>
-        <accel></accel>
-        <help>Search for selected text in the same direction</help>
-      </object>
-      <object class="wxMenuItem" name="idSearchFindSelectedPrevious">
-        <label>Find &amp;previous selected</label>
-        <bitmap>images\16x16\filefindprev.png</bitmap>
-        <accel></accel>
-        <help>Search for selected text in the opposite direction</help>
-      </object>
       <object class="separator"/>
       <object class="wxMenuItem" name="idSearchReplace">
         <label>&amp;Replace...</label>
@@ -651,7 +573,7 @@
         <help>Find and replace text</help>
       </object>
       <object class="wxMenuItem" name="idSearchReplaceInFiles">
-        <label>Replace in file&amp;s...</label>
+        <label>&amp;Replace in files...</label>
         <bitmap>images\16x16\searchreplacef.png</bitmap>
         <accel>Ctrl-Shift-R</accel>
         <help>Find and replace text</help>
@@ -700,13 +622,9 @@
         <label>E&amp;ditor...</label>
         <help>Change editor's settings</help>
       </object>
-      <object class="wxMenuItem" name="idSettingsCompiler">
-        <label>&amp;Compiler...</label>
-        <help>Change compiler settings</help>
-      </object>
-      <object class="wxMenuItem" name="idSettingsDebugger">
-        <label>&amp;Debugger...</label>
-        <help>Change debugger settings</help>
+      <object class="wxMenuItem" name="idSettingsCompilerDebugger">
+        <label>&amp;Compiler and debugger...</label>
+        <help>Change compiler and debugger settings</help>
       </object>
       <object class="wxMenuItem" name="idSettingsGlobalUserVars">
         <label>&amp;Global variables...</label>

@@ -15,13 +15,7 @@
     <!--#define wxSCI_VHDL_COMMENT 1
                 #define wxSCI_VHDL_COMMENTLINEBANG 2-->
     <Style name="Comment"
-           index="1"
-           fg="34,138,34" />
-    <Style name="DocComment"
-           index="2"
-           fg="128,128,255" />
-    <Style name="blockComment"
-           index="15"
+           index="1,2"
            fg="34,138,34" />
     <!--fg="160,160,160"-->
     <!--#define wxSCI_VHDL_NUMBER 3-->
@@ -128,18 +122,11 @@
                 error_line="37" />
     <LanguageAttributes
         LineComment="--"
-        DoxygenLineComment="--!"
         StreamCommentStart=""
         StreamCommentEnd=""
-        DoxygenStreamCommentStart=""
-        DoxygenStreamCommentEnd=""
-        BoxCommentStart="--"
-        BoxCommentMid="--"
-        BoxCommentEnd="--"
-        CaseSensitive="0"
-        LexerCommentStyles="1,2"
-        LexerCharacterStyles=""
-        LexerStringStyles="4,7"
-        LexerPreprocessorStyles=""/>
+        BoxCommentStart=""
+        BoxCommentMid=""
+        BoxCommentEnd=""
+        CaseSensitive="0"/>
   </Lexer>
 </CodeBlocks_lexer_properties>

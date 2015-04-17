@@ -7,6 +7,8 @@
  * $HeadURL$
  */
 
+#ifdef __WXMSW__ // For Windows Only
+
 #include <sdk.h>
 #ifndef CB_PRECOMP
 #   include "compiler.h"
@@ -157,7 +159,7 @@ wxString CompilerOWGenerator::SetupLinkerOptions(Compiler* compiler, ProjectBuil
         */
         if (!OtherLinkerOptions.IsEmpty())
         {
-            Count = OtherLinkerOptions.GetCount();
+            int Count = OtherLinkerOptions.GetCount();
             for (i = 0; i < Count; ++i)
             {
                 Temp = OtherLinkerOptions[i];
@@ -275,3 +277,5 @@ void CompilerOWGenerator::MapDebuggerOptions(const wxString& Opt)
       m_DebuggerType = wxEmptyString;
   }
 }
+
+#endif // __WXMSW__

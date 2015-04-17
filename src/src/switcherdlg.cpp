@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2007-08-19
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: switcherdlg.cpp,v 1.6 2007/08/20 17:38:24 anthemion Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWidgets licence
 /////////////////////////////////////////////////////////////////////////////
@@ -246,7 +246,7 @@ void wxSwitcherItems::PaintItems(wxDC& dc, wxWindow* win)
     wxColour selectionTextColour = wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT);
     wxFont standardFont = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     wxFont groupFont = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-    groupFont.SetWeight(wxFONTWEIGHT_BOLD);
+    groupFont.SetWeight(wxBOLD);
 
     if (GetBackgroundColour().Ok())
         backgroundColour = GetBackgroundColour();
@@ -267,7 +267,7 @@ void wxSwitcherItems::PaintItems(wxDC& dc, wxWindow* win)
     {
         standardFont = GetItemFont();
         groupFont = wxFont(standardFont.GetPointSize(), standardFont.GetFamily(), standardFont.GetStyle(),
-            wxFONTWEIGHT_BOLD, standardFont.GetUnderlined(), standardFont.GetFaceName());
+            wxBOLD, standardFont.GetUnderlined(), standardFont.GetFaceName());
     }
 
     int textMarginX = wxSWITCHER_TEXT_MARGIN_X;
@@ -345,7 +345,7 @@ wxSize wxSwitcherItems::CalculateItemSize(wxDC& dc)
     wxSize sz(150, 16);
     wxFont standardFont = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     wxFont groupFont = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-    groupFont.SetWeight(wxFONTWEIGHT_BOLD);
+    groupFont.SetWeight(wxBOLD);
 
     int textMarginX = wxSWITCHER_TEXT_MARGIN_X;
     int textMarginY = wxSWITCHER_TEXT_MARGIN_Y;
@@ -492,6 +492,8 @@ void wxMultiColumnListCtrl::OnPaint(wxPaintEvent& WXUNUSED(event))
     wxPaintDC dc(this);
 #endif
 
+    wxRect rect = GetClientRect();
+
     if (m_items.GetColumnCount() == 0)
         CalculateLayout(dc);
 
@@ -583,7 +585,7 @@ void wxMultiColumnListCtrl::OnKey(wxKeyEvent& event)
         return;
     }
 
-    if (event.GetKeyCode() == WXK_ESCAPE || event.GetKeyCode() == WXK_RETURN || event.GetKeyCode() == WXK_NUMPAD_ENTER)
+    if (event.GetKeyCode() == WXK_ESCAPE || event.GetKeyCode() == WXK_RETURN)
     {
         // The window will close, don't select the item under mouse pointer
         m_ptMouse.x = m_ptMouse.y = -2;

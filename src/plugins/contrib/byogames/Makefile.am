@@ -1,4 +1,4 @@
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+INCLUDES = $(WX_CXXFLAGS) \
 		-I$(top_srcdir)/src/include \
 		-I$(top_srcdir)/src/sdk/wxscintilla/include
 
@@ -8,7 +8,7 @@ pluginlib_LTLIBRARIES = libbyogames.la
 
 libbyogames_la_LDFLAGS = -module -version-info 0:1:0 -shared -no-undefined -avoid-version
 
-libbyogames_la_LIBADD = ../../../sdk/libcodeblocks.la $(WX_LIBS)
+libbyogames_la_LIBADD = $(PLUGIN_WX_LIBS) ../../../sdk/libcodeblocks.la
 
 libbyogames_la_SOURCES = byocbtris.cpp \
             byogame.cpp \
@@ -27,8 +27,9 @@ noinst_HEADERS = byogameselect.h \
             byoconf.h \
 		byosnake.h
 
-EXTRA_DIST = $(srcdir)/wxsmith/*.wxs \
-            $(srcdir)/*.cbp \
+EXTRA_DIST = wxsmith/byoGameSelect.wxs \
+            byogames.cbp \
+            byogames-unix.cbp \
             manifest.xml
 
 pkgdata_DATA = byogames.zip

@@ -19,7 +19,7 @@
 #include "menuitemsmanager.h"
 #include <wx/intl.h>
 
-struct SquirrelError;
+class SquirrelError;
 
 /** @brief Provides scripting in Code::Blocks.
   *
@@ -94,7 +94,7 @@ class DLLIMPORT ScriptingManager : public Mgr<ScriptingManager>, public wxEvtHan
           *        accumulated error messages are cleared.
           * @return The error string. If empty, it means "no errors".
           */
-        wxString GetErrorString(SquirrelError* exception = nullptr, bool clearErrors = true);
+        wxString GetErrorString(SquirrelError* exception = 0, bool clearErrors = true);
 
         /** @brief Display error dialog.
           *
@@ -106,7 +106,7 @@ class DLLIMPORT ScriptingManager : public Mgr<ScriptingManager>, public wxEvtHan
           * @param clearErrors If true (default), when this function returns all
           *        accumulated error messages are cleared.
           */
-        void DisplayErrors(SquirrelError* exception = nullptr, bool clearErrors = true);
+        void DisplayErrors(SquirrelError* exception = 0, bool clearErrors = true);
 
         /** @brief Injects script output.
           *
@@ -216,14 +216,14 @@ class DLLIMPORT ScriptingManager : public Mgr<ScriptingManager>, public wxEvtHan
         const TrustedScripts& GetTrustedScripts();
 
         // needed for SqPlus bindings
-        ScriptingManager& operator=(cb_unused const ScriptingManager& rhs) // prevent assignment operator
+        ScriptingManager& operator=(const ScriptingManager& /*rhs*/) // prevent assignment operator
         {
         	cbThrow(_T("Can't assign a ScriptingManager* !!!"));
         	return *this;
 		}
     private:
         // needed for SqPlus bindings
-        ScriptingManager(cb_unused const ScriptingManager& rhs); // prevent copy construction
+        ScriptingManager(const ScriptingManager& /*rhs*/); // prevent copy construction
 
         void OnScriptMenu(wxCommandEvent& event);
         void OnScriptPluginMenu(wxCommandEvent& event);

@@ -1,19 +1,14 @@
 SUBDIRS = lib_finder
 
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+INCLUDES = $(WX_CXXFLAGS) \
 		-I$(top_srcdir)/src/include \
 		-I$(top_srcdir)/src/sdk/wxscintilla/include \
-		-I$(srcdir)/../wxContribItems/wxFlatNotebook/include \
+		-I$(srcdir)/../wxSmithContribItems/wxflatnotebook/wxFlatNotebook/include \
 		-I$(top_srcdir)/src/include/scripting/include \
 		-I$(top_srcdir)/src/include/scripting/sqplus \
 		-I$(top_srcdir)/src/include/scripting/squirrel \
 		-I$(top_srcdir)/src/include/scripting/bindings \
-		-I$(top_srcdir)/src/include/mozilla_chardet \
-		-I$(top_srcdir)/src/include/mozilla_chardet/mfbt \
-		-I$(top_srcdir)/src/include/mozilla_chardet/nsprpub/pr/include \
-		-I$(top_srcdir)/src/include/mozilla_chardet/xpcom \
-		-I$(top_srcdir)/src/include/mozilla_chardet/xpcom/base \
-		-I$(top_srcdir)/src/include/mozilla_chardet/xpcom/glue
+		-I$(top_srcdir)/src/include/mozilla_chardet
 
 pluginlibdir = $(pkglibdir)/plugins
 
@@ -21,9 +16,9 @@ pluginlib_LTLIBRARIES = liblib_finder.la
 
 liblib_finder_la_LDFLAGS = -module -version-info 0:1:0 -shared -no-undefined -avoid-version
 
-liblib_finder_la_LIBADD = ../../../sdk/libcodeblocks.la \
-		../wxContribItems/wxFlatNotebook/libwxflatnotebook.la \
-		$(WX_LIBS)
+liblib_finder_la_LIBADD = $(PLUGIN_WX_LIBS) \
+		../../../sdk/libcodeblocks.la \
+		../wxSmithContribItems/wxflatnotebook/wxFlatNotebook/libwxflatnotebook.la
 
 liblib_finder_la_SOURCES = \
 		librariesdlg.cpp \
@@ -61,11 +56,14 @@ noinst_HEADERS = \
 		projectconfigurationpanel.h
 
 EXTRA_DIST = \
-	$(srcdir)/*.cbp \
-	$(srcdir)/update* \
+	lib_finder.cbp \
+	lib_finder-unix.cbp \
+	update \
+	update.bat \
 	readme.txt \
 	manifest.xml \
 	$(srcdir)/wxsmith/*.wxs
+#	license.txt
 
 pkgdata_DATA = lib_finder.zip
 CLEANFILES = $(pkgdata_DATA)

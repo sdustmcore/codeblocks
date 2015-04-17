@@ -1,8 +1,3 @@
-/*
- * This file is part of the Code::Blocks IDE and licensed under the GNU General Public License, version 3
- * http://www.gnu.org/licenses/gpl-3.0.html
- */
-
 #ifndef HEADER_GUARD_8367E1F8
 #define HEADER_GUARD_8367E1F8
 /*
@@ -17,7 +12,6 @@ class wxMenu;
 class FileTreeData;
 
 #include "cbplugin.h"
-#include "prep.h"
 
 class HeaderGuard : public cbPlugin
 {
@@ -26,8 +20,8 @@ class HeaderGuard : public cbPlugin
         virtual ~HeaderGuard(){};
 
         virtual void BuildMenu(wxMenuBar* menuBar){}
-        virtual void BuildModuleMenu(cb_unused const ModuleType type, cb_unused wxMenu* menu, cb_unused const FileTreeData* data = 0){}
-        virtual bool BuildToolBar(cb_unused wxToolBar* toolBar){ return false; }
+        virtual void BuildModuleMenu(const ModuleType type, wxMenu* menu, const FileTreeData* data = 0){}
+        virtual bool BuildToolBar(wxToolBar* toolBar){ return false; }
 
     private:
 
@@ -35,7 +29,7 @@ class HeaderGuard : public cbPlugin
 
         void OnSave(CodeBlocksEvent& event);
 
-        virtual void OnRelease(cb_unused bool appShutDown){};
+        virtual void OnRelease(bool appShutDown){};
 };
 
 #endif // header guard

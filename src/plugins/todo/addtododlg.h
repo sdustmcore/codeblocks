@@ -6,8 +6,6 @@
 #ifndef ADDTODODLG_H
 #define ADDTODODLG_H
 
-#include <bitset>
-
 #include <wx/string.h>
 
 #include "scrollingdialog.h"
@@ -25,23 +23,22 @@ enum ToDoPosition
 
 enum ToDoCommentType
 {
-    tdctLine = 0,      // line comments (for example C++ style)
-    tdctStream,        // Stream comments (for example C style)
-    tdctDoxygenLine,   // Doxygen line comment
-    tdctDoxygenStream, // Doxygen stream comment
-    tdctWarning,       // compiler warning
-    tdctError          // compiler error
+    tdctCpp = 0, // C++ style,
+    tdctC,       // C style
+    tdctDoxygenC, // Doxygen C style
+    tdctDoxygenCPP, // Doxygen CPP style
+    tdctWarning, // compiler warning
+    tdctError    // compiler error
 };
-// when user want to add a new todo item, this dialog will shown to let user setting properties
+
 class AddTodoDlg : public wxScrollingDialog
 {
     public:
-        AddTodoDlg(wxWindow* parent, wxArrayString users, wxArrayString types, std::bitset<(int)tdctError+1> supportedTdcts);
+        AddTodoDlg(wxWindow* parent, wxArrayString users, wxArrayString types);
         ~AddTodoDlg();
 
         wxString GetText() const;
         wxString GetUser() const;
-        bool DateRequested() const;
         int GetPriority() const;
         ToDoPosition GetPosition() const;
         wxString GetType() const;
@@ -56,7 +53,6 @@ class AddTodoDlg : public wxScrollingDialog
 
         wxArrayString m_Users;
         wxArrayString m_Types;
-        std::bitset<(int)tdctError+1> m_supportedTdcts;
         DECLARE_EVENT_TABLE()
 };
 

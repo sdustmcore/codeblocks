@@ -7,7 +7,7 @@ if ! HAVE_ZLIB
 SUBDIRS += zlib
 endif
 
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+INCLUDES = $(WX_CXXFLAGS) \
 		-I$(top_srcdir)/src/include \
 		-I$(top_srcdir)/src/sdk/wxscintilla/include \
 		-I$(top_srcdir)/src/include/scripting/include \
@@ -20,19 +20,22 @@ pluginlib_LTLIBRARIES = libhelp_plugin.la
 
 libhelp_plugin_la_LDFLAGS = -module -version-info 0:1:0 -shared -no-undefined -avoid-version
 
-libhelp_plugin_la_LIBADD = ../../../sdk/libcodeblocks.la \
-					$(WX_LIBS)
-
+libhelp_plugin_la_LIBADD = $(PLUGIN_WX_LIBS) \
+							../../../sdk/libcodeblocks.la \
+							../../../sdk/scripting/bindings/libsqbindings.la \
+							../../../sdk/scripting/sqplus/libsqplus.la \
+							../../../sdk/scripting/sqstdlib/libsqstdlib.la \
+							../../../sdk/scripting/squirrel/libsquirrel.la
 
 if ! HAVE_BZIP2
 libhelp_plugin_la_LIBADD += bzip2/libbzip2.la
-AM_CPPFLAGS += -I$(srcdir)/bzip2
+INCLUDES += -Ibzip2
 else
 libhelp_plugin_la_LIBADD += -lbz2
 endif
 if ! HAVE_ZLIB
 libhelp_plugin_la_LIBADD += zlib/libz.la
-AM_CPPFLAGS += -I$(srcdir)/zlib
+INCLUDES += -Izlib
 else
 libhelp_plugin_la_LIBADD += -lz
 endif

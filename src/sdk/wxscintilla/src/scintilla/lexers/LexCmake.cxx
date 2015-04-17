@@ -17,6 +17,7 @@
 #include "Scintilla.h"
 #include "SciLexer.h"
 
+#include "PropSetSimple.h"
 #include "WordList.h"
 #include "LexAccessor.h"
 #include "Accessor.h"
@@ -226,13 +227,14 @@ static void ColouriseCmakeDoc(unsigned int startPos, int length, int, WordList *
 
             break;
         case SCE_CMAKE_COMMENT:
-            if ( cCurrChar == '\n' || cCurrChar == '\r' ) {
-                if ( styler.SafeGetCharAt(i-1) == '\\' ) {
+            if ( cNextChar == '\n' || cNextChar == '\r' ) {
+                // Special case:
+                if ( cCurrChar == '\\' ) {
                     styler.ColourTo(i-2,state);
-                    styler.ColourTo(i-1,SCE_CMAKE_DEFAULT);
+                    styler.ColourTo(i,SCE_CMAKE_DEFAULT);
                 }
                 else {
-                    styler.ColourTo(i-1,state);
+                    styler.ColourTo(i,state);
                     state = SCE_CMAKE_DEFAULT;
                 }
             }
@@ -334,7 +336,10 @@ static void ColouriseCmakeDoc(unsigned int startPos, int length, int, WordList *
             break;
         }
 
-        if ( state == SCE_CMAKE_STRINGDQ || state == SCE_CMAKE_STRINGLQ || state == SCE_CMAKE_STRINGRQ ) {
+        if ( state == SCE_CMAKE_COMMENT) {
+            styler.ColourTo(i,state);
+        }
+        else if ( state == SCE_CMAKE_STRINGDQ || state == SCE_CMAKE_STRINGLQ || state == SCE_CMAKE_STRINGRQ ) {
             bool bIngoreNextDollarSign = false;
 
             if ( bVarInString && cCurrChar == '$' ) {

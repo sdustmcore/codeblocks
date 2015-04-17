@@ -26,7 +26,6 @@ class EditorLexerLoader
         void DoSingleKeywordNode(HighlightLanguage language, TiXmlElement* node, const wxString& nodename);
         void DoSampleCode(HighlightLanguage language, TiXmlElement* node);
         void DoLangAttributes(HighlightLanguage language, TiXmlElement* node);
-        bool DoLangAttributesLexerStyles(TiXmlElement* attribs, const char *attributeName, std::set<int> &styles);
         EditorColourSet* m_pTarget;
 	private:
 };

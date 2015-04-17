@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<resource xmlns="http://www.wxwidgets.org/wxxrc" version="2.5.3.0">
+<!--
+ * This file is part of the Code::Blocks IDE and licensed under the GNU General Public License, version 3
+ * http://www.gnu.org/licenses/gpl-3.0.html
+ *
+ * Copyright: 2008 Jens Lody
+ * 
+ * $Revision$
+ * $Id$
+ * $HeadURL$
+ -->
+<resource xmlns="http://www.wxwidgets.org/wxxrc">
 	<object class="wxPanel" name="IncrementalSearchConfDlg">
 		<object class="wxBoxSizer">
 			<orient>wxVERTICAL</orient>
@@ -275,30 +285,6 @@
 								</object>
 								<flag>wxALL|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
 								<border>5</border>
-							</object>
-							<object class="sizeritem">
-								<object class="wxBoxSizer">
-									<object class="sizeritem">
-										<object class="wxStaticText" name="ID_STATICTEXT9">
-											<label>Maximum amount of items in search history</label>
-										</object>
-										<flag>wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL</flag>
-										<border>5</border>
-										<option>1</option>
-									</object>
-									<object class="sizeritem">
-										<object class="wxSpinCtrl" name="idIncSearchComboMaxItems">
-											<value>20</value>
-											<min>1</min>
-											<max>200</max>
-											<tooltip>1 - 200</tooltip>
-											<help>Maximum amount of items in search history must be between 1 and 200 (both included).&#x0A;Setting a value smaler than the actual count of elements truncates the history, if the dialog is closed.</help>
-										</object>
-										<flag>wxALL|wxALIGN_RIGHT|wxALIGN_BOTTOM</flag>
-										<border>5</border>
-									</object>
-								</object>
-								<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_BOTTOM</flag>
 							</object>
 						</object>
 						<flag>wxALL|wxEXPAND|wxALIGN_LEFT|wxALIGN_TOP</flag>

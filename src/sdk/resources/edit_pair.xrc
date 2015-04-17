@@ -1,9 +1,8 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<resource xmlns="http://www.wxwidgets.org/wxxrc" version="2.5.3.0">
+<?xml version="1.0" encoding="utf-8"?>
+<resource>
   <object class="wxScrollingDialog" name="dlgEditPair">
     <title>Edit pair</title>
     <centered>1</centered>
-    <style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
     <object class="wxBoxSizer">
       <orient>wxVERTICAL</orient>
       <object class="sizeritem">

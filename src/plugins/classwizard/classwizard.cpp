@@ -9,18 +9,18 @@
 
 #include "sdk.h"
 #ifndef CB_PRECOMP
-    #include <wx/fs_zip.h>
-    #include <wx/intl.h>
-    #include <wx/menu.h>
-    #include <wx/string.h>
-    #include <wx/utils.h>
-    #include <wx/xrc/xmlres.h>
-    #include "cbproject.h"
-    #include "configmanager.h"
-    #include "globals.h"
-    #include "logmanager.h"
-    #include "manager.h"
-    #include "projectmanager.h"
+#include <wx/fs_zip.h>
+#include <wx/intl.h>
+#include <wx/menu.h>
+#include <wx/string.h>
+#include <wx/utils.h>
+#include <wx/xrc/xmlres.h>
+#include "cbproject.h"
+#include "configmanager.h"
+#include "globals.h"
+#include "logmanager.h"
+#include "manager.h"
+#include "projectmanager.h"
 #endif
 #include <wx/filesys.h>
 #include "classwizard.h"
@@ -92,7 +92,7 @@ void ClassWizard::BuildMenu(wxMenuBar* menuBar)
         Manager::Get()->GetLogManager()->DebugLog(_T("Could not find File menu!"));
 }
 
-void ClassWizard::OnLaunch(cb_unused wxCommandEvent& event)
+void ClassWizard::OnLaunch(wxCommandEvent& event)
 {
     ProjectManager* prjMan = Manager::Get()->GetProjectManager();
     cbProject* prj = prjMan->GetActiveProject();
@@ -118,29 +118,7 @@ void ClassWizard::OnLaunch(cb_unused wxCommandEvent& event)
             prjMan->AddFileToProject(dlg.GetHeaderFilename(), prj, targets);
             if ( (targets.GetCount() != 0) && (dlg.IsValidImplementationFilename()) )
                 prjMan->AddFileToProject(dlg.GetImplementationFilename(), prj, targets);
-            if (dlg.AddPathToProject())
-            {
-                // Add the include Path to the Build targets....
-                for (size_t i = 0; i < targets.GetCount(); ++i)
-                {
-                    ProjectBuildTarget* buildTarget = prj->GetBuildTarget(targets[i]);  // Get the top level build Target
-                    if (buildTarget)
-                    {
-                        wxString include_dir = dlg.GetIncludeDir();
-                        if (!include_dir.IsEmpty())
-                            buildTarget->AddIncludeDir(include_dir);
-                    }
-                    else
-                    {
-                        wxString information;
-                        information.Printf(_("Could not find build target ID = %i.\nThe include directory won't be added to this target. Please do it manually"), targets[i]);
-                        cbMessageBox(information, _("Information"),
-                                     wxOK | wxICON_INFORMATION,
-                                     Manager::Get()->GetAppWindow());
-                    }
-                }
-            }
-            prjMan->GetUI().RebuildTree();
+            prjMan->RebuildTree();
         }
     }
 }

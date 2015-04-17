@@ -24,8 +24,6 @@
 #include <wx/combobox.h>
 #include "wxscombobox.h"
 
-#include <prep.h>
-
 namespace
 {
     wxsRegisterItem<wxsComboBox> Reg(_T("ComboBox"),wxsTWidget,_T("Standard"),290);
@@ -72,7 +70,11 @@ void wxsComboBox::OnBuildCreatingCode()
                 {
                     Codef(_T("%ASetSelection( "));;
                 }
+                #if wxCHECK_VERSION(2, 9, 0)
                 Codef( _T("%AAppend(%t)"), ArrayChoices[i].wx_str());
+                #else
+                Codef( _T("%AAppend(%t)"), ArrayChoices[i].c_str());
+                #endif
                 if ( DefaultSelection == (int)i )
                 {
                     Codef(_T(" )"));
@@ -84,7 +86,6 @@ void wxsComboBox::OnBuildCreatingCode()
             return;
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsComboBox::OnBuildCreatingCode"),GetLanguage());
@@ -108,7 +109,7 @@ wxObject* wxsComboBox::OnBuildPreview(wxWindow* Parent,long Flags)
     return SetupWindow(Preview,Flags);
 }
 
-void wxsComboBox::OnEnumWidgetProperties(cb_unused long Flags)
+void wxsComboBox::OnEnumWidgetProperties(long Flags)
 {
     WXS_ARRAYSTRING(wxsComboBox,ArrayChoices,_("Choices"),_T("content"),_T("item"))
     WXS_LONG(wxsComboBox,DefaultSelection,_("Selection"),_T("selection"),-1)

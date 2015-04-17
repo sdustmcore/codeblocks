@@ -31,8 +31,8 @@ EditPairDlg::EditPairDlg(wxWindow* parent, wxString& key, wxString& value, const
     m_BrowseMode(allowBrowse)
 {
     //ctor
-    wxXmlResource::Get()->LoadObject(this, parent, _T("dlgEditPair"),_T("wxScrollingDialog"));
-    SetTitle(title);
+	wxXmlResource::Get()->LoadObject(this, parent, _T("dlgEditPair"),_T("wxScrollingDialog"));
+	SetTitle(title);
     XRCCTRL(*this, "btnBrowse", wxButton)->Enable(m_BrowseMode != bmDisable);
     XRCCTRL(*this, "txtKey", wxTextCtrl)->SetValue(key);
     XRCCTRL(*this, "txtValue", wxTextCtrl)->SetValue(value);
@@ -43,12 +43,12 @@ EditPairDlg::~EditPairDlg()
     //dtor
 }
 
-void EditPairDlg::OnUpdateUI(cb_unused wxUpdateUIEvent& event)
+void EditPairDlg::OnUpdateUI(wxUpdateUIEvent& /*event*/)
 {
     XRCCTRL(*this, "wxID_OK", wxButton)->Enable(!XRCCTRL(*this, "txtKey", wxTextCtrl)->GetValue().IsEmpty());
 }
 
-void EditPairDlg::OnBrowse(cb_unused wxCommandEvent& event)
+void EditPairDlg::OnBrowse(wxCommandEvent& /*event*/)
 {
     switch (m_BrowseMode)
     {
@@ -77,7 +77,6 @@ void EditPairDlg::OnBrowse(cb_unused wxCommandEvent& event)
                 XRCCTRL(*this, "txtValue", wxTextCtrl)->SetValue(dir);
             break;
         }
-        case bmDisable: // fall through
         default: break;
     }
 }

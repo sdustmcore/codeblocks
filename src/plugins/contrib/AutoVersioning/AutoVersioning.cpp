@@ -19,8 +19,6 @@
 #include <projectmanager.h>
 #include <tinyxml/tinyxml.h>
 #endif
-#include <tinyxml/tinywxuni.h>
-#include <wx/textfile.h>
 
 #include "projectloader_hooks.h"
 
@@ -175,15 +173,6 @@ void AutoVersioning::OnProjectLoadingHook(cbProject* project, TiXmlElement* elem
                 {
                     Config.Settings.DateDeclarations = Help?true:false;
                 }
-                if(pElem->QueryIntAttribute("use_define", &Help) == TIXML_SUCCESS)
-                {
-                    Config.Settings.UseDefine = Help?true:false;
-                }
-                // GJH 03/03/10 Added manifest updating.
-                if(pElem->QueryIntAttribute("update_manifest", &Help) == TIXML_SUCCESS)
-                {
-                    Config.Settings.UpdateManifest = Help?true:false;
-                }
                 if(pElem->QueryIntAttribute("do_auto_increment", &Help) == TIXML_SUCCESS)
                 {
                     Config.Settings.DoAutoIncrement = Help?true:false;
@@ -214,26 +203,24 @@ void AutoVersioning::OnProjectLoadingHook(cbProject* project, TiXmlElement* elem
                     Config.ChangesLog.ShowChangesEditor = Help?true:false;
                 }
             }
-            // do not try to read from version.h, if autoversioning is not enabled for the project,
-            // to avoid error messages if verbose debuglog is on
-            avVersionState VersionState;
-            m_versionHeaderPath = FileNormalize(cbC2U(Config.Settings.HeaderPath.c_str()),project->GetBasePath());
-
-            avHeader VersionHeader;
-            if(VersionHeader.LoadFile(m_versionHeaderPath))
-            {
-                VersionState.Values.Major = VersionHeader.GetValue(_("MAJOR"));
-                VersionState.Values.Minor = VersionHeader.GetValue(_("MINOR"));
-                VersionState.Values.Build = VersionHeader.GetValue(_("BUILD"));
-                VersionState.Values.Revision = VersionHeader.GetValue(_("REVISION"));
-                VersionState.Values.BuildCount = VersionHeader.GetValue(_("BUILDS_COUNT"));
-                VersionState.Status.SoftwareStatus = cbU2C(VersionHeader.GetString(_("STATUS")));
-                VersionState.Status.Abbreviation = cbU2C(VersionHeader.GetString(_("STATUS_SHORT")));
-                VersionState.BuildHistory = VersionHeader.GetValue(_("BUILD_HISTORY"));
-            }
-            m_ProjectMap[project] = Config;
-            m_ProjectMapVersionState[project] = VersionState;
         }
+        avVersionState VersionState;
+        m_versionHeaderPath = FileNormalize(cbC2U(Config.Settings.HeaderPath.c_str()),project->GetBasePath());
+
+        avHeader VersionHeader;
+        if(VersionHeader.LoadFile(m_versionHeaderPath))
+        {
+            VersionState.Values.Major = VersionHeader.GetValue(_("MAJOR"));
+            VersionState.Values.Minor = VersionHeader.GetValue(_("MINOR"));
+            VersionState.Values.Build = VersionHeader.GetValue(_("BUILD"));
+            VersionState.Values.Revision = VersionHeader.GetValue(_("REVISION"));
+            VersionState.Values.BuildCount = VersionHeader.GetValue(_("BUILDS_COUNT"));
+            VersionState.Status.SoftwareStatus = cbU2C(VersionHeader.GetString(_("STATUS")));
+            VersionState.Status.Abbreviation = cbU2C(VersionHeader.GetString(_("STATUS_SHORT")));
+            VersionState.BuildHistory = VersionHeader.GetValue(_("BUILD_HISTORY"));
+        }
+        m_ProjectMap[project] = Config;
+        m_ProjectMapVersionState[project] = VersionState;
     }
     else
     {
@@ -268,9 +255,6 @@ void AutoVersioning::OnProjectLoadingHook(cbProject* project, TiXmlElement* elem
             TiXmlElement Settings("Settings");
             Settings.SetAttribute("autoincrement", NewConfig.Settings.Autoincrement);
             Settings.SetAttribute("date_declarations", NewConfig.Settings.DateDeclarations);
-            Settings.SetAttribute("use_define", NewConfig.Settings.UseDefine);
-            // GJH 03/03/10 Added manifest updating.
-            Settings.SetAttribute("update_manifest", NewConfig.Settings.UpdateManifest);
             Settings.SetAttribute("do_auto_increment", NewConfig.Settings.DoAutoIncrement);
             Settings.SetAttribute("ask_to_increment", NewConfig.Settings.AskToIncrement);
             Settings.SetAttribute("language", NewConfig.Settings.Language.c_str());
@@ -356,9 +340,9 @@ void AutoVersioning::OnTimerVerify(wxTimerEvent& WXUNUSED(event))
     {
         if (!m_Modified)
         {
-            for (FilesList::iterator it = m_Project->GetFilesList().begin(); it != m_Project->GetFilesList().end(); ++it)
+            for (int i=0; i < m_Project->GetFilesCount(); ++i)
             {
-                const ProjectFile* file = *it;
+                const ProjectFile* file = m_Project->GetFile(i);
                 if (file->GetFileState() == fvsModified)
                 {
                     m_Modified = true;
@@ -410,7 +394,7 @@ void AutoVersioning::OnMenuAutoVersioning(wxCommandEvent&)
                         target_array.Add(i);
                     }
                     Manager::Get()->GetProjectManager()->AddFileToProject(m_versionHeaderPath, m_Project, target_array);
-                    Manager::Get()->GetProjectManager()->GetUI().RebuildTree();
+                    Manager::Get()->GetProjectManager()->RebuildTree();
                     wxMessageBox(_("Project configured!"));
                 }
             }
@@ -494,9 +478,6 @@ void AutoVersioning::SetVersionAndSettings(cbProject& Project, bool update)
 
     VersionEditorDialog.SetAuto(GetConfig().Settings.Autoincrement);
     VersionEditorDialog.SetDates(GetConfig().Settings.DateDeclarations);
-    VersionEditorDialog.SetDefine(GetConfig().Settings.UseDefine);
-	// GJH 03/03/10 Added manifest updating.
-    VersionEditorDialog.SetManifest(GetConfig().Settings.UpdateManifest);
 
     VersionEditorDialog.SetSvn(GetConfig().Settings.Svn);
     VersionEditorDialog.SetSvnDirectory(cbC2U(GetConfig().Settings.SvnDirectory.c_str()));
@@ -532,9 +513,6 @@ void AutoVersioning::SetVersionAndSettings(cbProject& Project, bool update)
     GetConfig().Scheme.BuildTimesToIncrementMinor = VersionEditorDialog.GetBuildTimesToMinorIncrement();
     GetConfig().Settings.Autoincrement = VersionEditorDialog.GetAuto();
     GetConfig().Settings.DateDeclarations = VersionEditorDialog.GetDates();
-    GetConfig().Settings.UseDefine = VersionEditorDialog.GetDefine();
-	// GJH 03/03/10 Added manifest updating.
-    GetConfig().Settings.UpdateManifest = VersionEditorDialog.GetManifest();
     GetConfig().Settings.AskToIncrement = VersionEditorDialog.GetCommitAsk();
     GetConfig().Settings.DoAutoIncrement = VersionEditorDialog.GetCommit();
     GetConfig().Settings.Language = cbU2C(VersionEditorDialog.GetLanguage());
@@ -599,11 +577,6 @@ void AutoVersioning::UpdateVersionHeader()
     }
 
     wxString prefix = cbC2U(GetConfig().Code.Prefix.c_str());
-    wxString def_define_char = _T("");
-    wxString def_define_long = _T("");
-    wxString def_equal = _T("");
-    wxString def_array = _T("");
-    wxString def_end = _T("");
 
     if(prefix != _T(""))
     {
@@ -620,58 +593,42 @@ void AutoVersioning::UpdateVersionHeader()
         headerOutput << _T("namespace ") << cbC2U(GetConfig().Code.NameSpace.c_str()) << _T("{") << _T("\n");
         headerOutput << _T("\t") << _T("\n");
     }
-    if(GetConfig().Settings.UseDefine)
-    {
-        def_define_char << _T("#define ");
-        def_define_long << def_define_char;
-        def_equal << _T(" ");
-        def_array << _T("");
-        def_end << _T("");
-    }
-    else
-    {
-        def_define_char << _T("static const char ");
-        def_define_long << _T("static const long ");
-        def_equal << _T(" = ");
-        def_array << _T("[]");
-        def_end << _T(";");
-    }
 
     if(GetConfig().Settings.DateDeclarations)
     {
         wxDateTime actualDate = wxDateTime::Now();
         headerOutput << _T("\t") << _T("//Date Version Types") << _T("\n");
-        headerOutput << _T("\t") << def_define_char << prefix << _T("DATE") << def_array << def_equal << actualDate.Format(_T("\"%d\"")) << def_end << _T("\n");
-        headerOutput << _T("\t") << def_define_char << prefix << _T("MONTH") << def_array << def_equal << actualDate.Format(_T("\"%m\"")) << def_end << _T("\n");
-        headerOutput << _T("\t") << def_define_char << prefix << _T("YEAR") << def_array << def_equal << actualDate.Format(_T("\"%Y\"")) << def_end << _T("\n");
+        headerOutput << _T("\t") << _T("static const char ") << prefix << _T("DATE[] = ") << actualDate.Format(_T("\"%d\"")) << _T(";\n");
+        headerOutput << _T("\t") << _T("static const char ") << prefix << _T("MONTH[] = ") << actualDate.Format(_T("\"%m\"")) << _T(";\n");
+        headerOutput << _T("\t") << _T("static const char ") << prefix << _T("YEAR[] = ") << actualDate.Format(_T("\"%Y\"")) << _T(";\n");
         long ubuntuYearNumber = 0;
         actualDate.Format(_T("%y")).ToLong(&ubuntuYearNumber);
         wxString ubuntuYear;
         ubuntuYear.Printf(_T("%ld"),ubuntuYearNumber);
-        headerOutput << _T("\t") << def_define_char << prefix << _T("UBUNTU_VERSION_STYLE") << def_array << def_equal << _T(" \"") << ubuntuYear << actualDate.Format(_T(".%m")) << _T("\"") << def_end << _T("\n");
+        headerOutput << _T("\t") << _T("static const char ") << prefix << _T("UBUNTU_VERSION_STYLE[] = \"") << ubuntuYear << actualDate.Format(_T(".%m")) << _T("\";\n");
         headerOutput << _T("\t") << _T("\n");
     }
 
     headerOutput << _T("\t") << _T("//Software Status") << _T("\n");
-    headerOutput << _T("\t") << def_define_char << prefix << _T("STATUS") << def_array << def_equal << _T(" \"") << cbC2U(GetVersionState().Status.SoftwareStatus.c_str()) << _T("\"") << def_end << _T("\n");
-    headerOutput << _T("\t") << def_define_char << prefix << _T("STATUS_SHORT") << def_array << def_equal << _T(" \"") << cbC2U(GetVersionState().Status.Abbreviation.c_str()) << _T("\"") << def_end << _T("\n");
+    headerOutput << _T("\t") << _T("static const char ") << prefix << _T("STATUS[] = \"") << cbC2U(GetVersionState().Status.SoftwareStatus.c_str()) << _T("\";\n");
+    headerOutput << _T("\t") << _T("static const char ") << prefix << _T("STATUS_SHORT[] = \"") << cbC2U(GetVersionState().Status.Abbreviation.c_str()) << _T("\";\n");
     headerOutput << _T("\t") << _T("\n");
 
     wxString myPrintf;
     headerOutput << _T("\t") << _T("//Standard Version Type") << _T("\n");
     myPrintf.Printf(_T("%ld"), GetVersionState().Values.Major);
-    headerOutput << _T("\t") << def_define_long << prefix << _T("MAJOR ") << def_equal << myPrintf << def_end << _T("\n");
+    headerOutput << _T("\t") << _T("static const long ") << prefix << _T("MAJOR = ") << myPrintf << _T(";\n");
     myPrintf.Printf(_T("%ld"), GetVersionState().Values.Minor);
-    headerOutput << _T("\t") << def_define_long << prefix << _T("MINOR ") << def_equal << myPrintf << def_end << _T("\n");
+    headerOutput << _T("\t") << _T("static const long ") << prefix << _T("MINOR = ") << myPrintf << _T(";\n");
     myPrintf.Printf(_T("%ld"), GetVersionState().Values.Build);
-    headerOutput << _T("\t") << def_define_long << prefix << _T("BUILD ") << def_equal << myPrintf << def_end << _T("\n");
+    headerOutput << _T("\t") << _T("static const long ") << prefix << _T("BUILD = ") << myPrintf << _T(";\n");
     myPrintf.Printf(_T("%ld"), GetVersionState().Values.Revision);
-    headerOutput << _T("\t") << def_define_long << prefix << _T("REVISION ") << def_equal << myPrintf << def_end << _T("\n");
+    headerOutput << _T("\t") << _T("static const long ") << prefix << _T("REVISION = ") << myPrintf << _T(";\n");
     headerOutput << _T("\t") << _T("\n");
 
     headerOutput << _T("\t") << _T("//Miscellaneous Version Types") << _T("\n");
     myPrintf.Printf(_T("%ld"), GetVersionState().Values.BuildCount);
-    headerOutput << _T("\t") << def_define_long << prefix << _T("BUILDS_COUNT ") << def_equal << myPrintf << def_end <<_T("\n");
+    headerOutput << _T("\t") << _T("static const long ") << prefix << _T("BUILDS_COUNT = ") << myPrintf << _T(";\n");
 
     myPrintf.Printf(_T("%ld,%ld,%ld,%ld"), GetVersionState().Values.Major, GetVersionState().Values.Minor,
             GetVersionState().Values.Build, GetVersionState().Values.Revision);
@@ -683,23 +640,23 @@ void AutoVersioning::UpdateVersionHeader()
 
     myPrintf.Printf(_T("\"%ld.%ld.%ld.%ld\""), GetVersionState().Values.Major, GetVersionState().Values.Minor,
             GetVersionState().Values.Build, GetVersionState().Values.Revision);
-    headerOutput << _T("\t") << def_define_char << prefix << _T("FULLVERSION_STRING ") << def_array << def_equal << myPrintf << def_end << _T("\n");
+    headerOutput << _T("\t") << _T("static const char ") << prefix << _T("FULLVERSION_STRING[] = ") << myPrintf << _T(";\n");
 
     if(GetConfig().Settings.Svn)
     {
         wxString revision,date;
         if (!QuerySvn(cbC2U(GetConfig().Settings.SvnDirectory.c_str()), revision, date))
-            wxMessageBox(_("Possible Causes:\n-You don't have SVN installed.\n-Incompatible version of SVN.\n-SVN configuration files not found.\n\nVerify the Autoversioning SVN directory."),_("SVN Error"),wxICON_ERROR);
+            wxMessageBox(_("Svn configuration files not found.\nVerify the Autoversioning svn directory."),_("Error"),wxICON_ERROR);
         headerOutput << _T("\t") << _T("\n");
         headerOutput << _T("\t") << _T("//SVN Version") << _T("\n");
-        headerOutput << _T("\t") << def_define_char << prefix << _T("SVN_REVISION") << def_array << def_equal << _T("\"") + revision + _T("\"")<< def_end << _T("\n");
-        headerOutput << _T("\t") << def_define_char << prefix << _T("SVN_DATE") << def_array << def_equal << _T("\"") + date + _T("\"")<< def_end << _T("\n");
+        headerOutput << _T("\t") << _T("static const char ") << prefix << _T("SVN_REVISION[] = ") << _T("\"") + revision + _T("\"")<< _T(";\n");
+        headerOutput << _T("\t") << _T("static const char ") << prefix << _T("SVN_DATE[] = ") << _T("\"") + date + _T("\"")<< _T(";\n");
     }
 
     headerOutput << _T("\t") << _T("\n");
     headerOutput << _T("\t") << _T("//These values are to keep track of your versioning state, don't modify them.") << _T("\n");
     myPrintf.Printf(_T("%ld"), GetVersionState().BuildHistory);
-    headerOutput << _T("\t") << def_define_long << prefix << _T("BUILD_HISTORY ") << def_equal << myPrintf << def_end << _T("\n");
+    headerOutput << _T("\t") << _T("static const long ") << prefix << _T("BUILD_HISTORY = ") << myPrintf << _T(";\n");
 
     headerOutput << _T("\t") << _T("\n\n");
 
@@ -716,59 +673,6 @@ void AutoVersioning::UpdateVersionHeader()
     versionHeaderFile.Close();
 
     m_timerStatus->Start(1000);
-}
-
-/*! \brief 	Update manifest.xml with the latest version string.
- * \author 	Gary Harris
- * \date		03/03/10
- *
- * \return void
- *
- * This function inserts a new version string into the project's manifest.xml.
- * It searches for the line containing the XML string "<Value version="X.Y.ZZZ" />"
- * and builds and inserts a new version string based on the current AutoVersion
- * values.
- * \note I first used TinyXML to do the XML work but it trashes some text when rewriting the file,
- * in particular text in the "thanks to" field that is on lines following the value field. This is usually
- * done to wrap text onto subsequent lines in the plug-in's About dialogue and is probably not strictly
- * valid XML. TinyXML seems not to like text on following lines.
- */
-void AutoVersioning::UpdateManifest()
-{
-	wxFileName fnManifest(Manager::Get()->GetProjectManager()->GetActiveProject()->GetCommonTopLevelPath() + wxT("manifest.xml"));
-	wxString sPathManifest(fnManifest.GetFullPath());
-	if (wxFile::Exists(sPathManifest))
-	{
-		wxTextFile fileManifest(sPathManifest);
-		fileManifest.Open();
-		if(fileManifest.IsOpened()){
-			fileManifest.GetFirstLine();
-			wxString sLine;
-			size_t i;
-			while(!(sLine = fileManifest.GetNextLine()).IsEmpty())
-			{
-				if(sLine.Find(wxT("<Value version=")) != wxNOT_FOUND)
-				{
-					i = fileManifest.GetCurrentLine();
-					int iFirst, iLast;
-					// Find the first double quote.
-					iFirst = sLine.Find('"');
-					// Find the last double quote.
-					iLast = sLine.Find('"', true);
-					// Create a new version string...
-					wxString sVersion = sLine.SubString(iFirst, iLast);
-					wxString sNewVersion = wxString::Format(wxT("\"%ld.%ld.%ld\""), GetVersionState().Values.Major, GetVersionState().Values.Minor, GetVersionState().Values.Build);
-					// ...and insert it into the XML.
-					sLine.Replace(sVersion, sNewVersion);
-					// Remove the existing line and replace it with the new one.
-					fileManifest.RemoveLine(i);
-					fileManifest.InsertLine(sLine, i);
-					fileManifest.Write();
-					break;
-				}
-			}
-		}
-	}
 }
 
 void AutoVersioning::CommitChanges()
@@ -819,12 +723,6 @@ void AutoVersioning::CommitChanges()
 
             m_Modified = false;
             UpdateVersionHeader();
-			// GJH 03/03/10 Added manifest updating.
-            if(GetConfig().Settings.UpdateManifest)
-            {
-				UpdateManifest();
-            }
-
         }
     }
 }

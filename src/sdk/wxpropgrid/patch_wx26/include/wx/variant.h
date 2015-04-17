@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     10/09/98
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: variant.h,v 1.51 2006/11/03 21:37:08 VZ Exp $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -21,20 +21,17 @@
 */
 
 #include "wxsflagsproperty.h"
-
 #include <globals.h>
-#include <prep.h>
-
 #include <wx/tokenzr.h>
 
 // Helper macro for fetching variable
 #define VALUE   wxsVARIABLE(Object,Offset,long)
 
-wxsFlagsProperty::wxsFlagsProperty(const wxString& PGName, const wxString& DataName,long _Offset,const long* _Values,const wxChar** _Names,bool _UpdateEntries,long _Default,bool _UseNamesInXml,int Priority):
+wxsFlagsProperty::wxsFlagsProperty(const wxString& PGName, const wxString& DataName,long _Offset,const long* _Values,const wxChar** _Names,bool _UpdateEnteries,long _Default,bool _UseNamesInXml,int Priority):
     wxsProperty(PGName,DataName,Priority),
     Offset(_Offset),
     Default(_Default),
-    UpdateEntries(_UpdateEntries),
+    UpdateEnteries(_UpdateEnteries),
     Values(_Values),
     Names(_Names),
     UseNamesInXml(_UseNamesInXml)
@@ -49,22 +46,19 @@ void wxsFlagsProperty::PGCreate(wxsPropertyContainer* Object,wxPropertyGridManag
     PGRegister(Object,Grid,Id);
 }
 
-bool wxsFlagsProperty::PGRead(cb_unused wxsPropertyContainer* Object,
-                              wxPropertyGridManager* Grid, wxPGId Id,
-                              cb_unused long Index)
+bool wxsFlagsProperty::PGRead(wxsPropertyContainer* Object,wxPropertyGridManager* Grid,wxPGId Id,long Index)
 {
     VALUE = Grid->GetPropertyValue(Id).GetLong();
     return true;
 }
 
-bool wxsFlagsProperty::PGWrite(cb_unused wxsPropertyContainer* Object,
-                               wxPropertyGridManager* Grid, wxPGId Id,
-                               cb_unused long Index)
+bool wxsFlagsProperty::PGWrite(wxsPropertyContainer* Object,wxPropertyGridManager* Grid,wxPGId Id,long Index)
 {
-    if ( UpdateEntries )
+    if ( UpdateEnteries )
     {
         #if wxCHECK_VERSION(2, 9, 0)
-        wxPGChoices(Id->GetChoices()).Set(Names,Values);
+        wxPGChoices choices = Grid->GetGrid()->GetSelection()->GetChoices();  
+        choices.Set(Names,Values);
         #else
         Grid->GetPropertyChoices(Id).Set(Names,Values);
         #endif
@@ -73,8 +67,7 @@ bool wxsFlagsProperty::PGWrite(cb_unused wxsPropertyContainer* Object,
     return true;
 }
 
-bool wxsFlagsProperty::XmlRead(cb_unused wxsPropertyContainer* Object,
-                               TiXmlElement* Element)
+bool wxsFlagsProperty::XmlRead(wxsPropertyContainer* Object,TiXmlElement* Element)
 {
     if ( !Element )
     {
@@ -114,8 +107,7 @@ bool wxsFlagsProperty::XmlRead(cb_unused wxsPropertyContainer* Object,
     return true;
 }
 
-bool wxsFlagsProperty::XmlWrite(cb_unused wxsPropertyContainer* Object,
-                                TiXmlElement* Element)
+bool wxsFlagsProperty::XmlWrite(wxsPropertyContainer* Object,TiXmlElement* Element)
 {
     if ( VALUE != Default )
     {
@@ -147,14 +139,12 @@ bool wxsFlagsProperty::XmlWrite(cb_unused wxsPropertyContainer* Object,
     return false;
 }
 
-bool wxsFlagsProperty::PropStreamRead(cb_unused wxsPropertyContainer* Object,
-                                      wxsPropertyStream* Stream)
+bool wxsFlagsProperty::PropStreamRead(wxsPropertyContainer* Object,wxsPropertyStream* Stream)
 {
     return Stream->GetLong(GetDataName(),VALUE,Default);
 }
 
-bool wxsFlagsProperty::PropStreamWrite(cb_unused wxsPropertyContainer* Object,
-                                       wxsPropertyStream* Stream)
+bool wxsFlagsProperty::PropStreamWrite(wxsPropertyContainer* Object,wxsPropertyStream* Stream)
 {
     return Stream->PutLong(GetDataName(),VALUE,Default);
 }

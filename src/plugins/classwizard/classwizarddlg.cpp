@@ -9,14 +9,12 @@
 
 #include <sdk.h>
 #ifndef CB_PRECOMP
-  #include <wx/button.h>
   #include <wx/checkbox.h>
   #include <wx/combobox.h>
   #include <wx/event.h>
   #include <wx/file.h>
   #include <wx/filename.h>
   #include <wx/intl.h>
-  #include <wx/listbox.h>
   #include <wx/textctrl.h>
   #include <wx/xrc/xmlres.h>
 
@@ -43,7 +41,6 @@ BEGIN_EVENT_TABLE(ClassWizardDlg, wxScrollingDialog)
     EVT_BUTTON   (XRCID("btnRemoveMemberVar"), ClassWizardDlg::OnRemoveMemberVar)
     EVT_BUTTON   (XRCID("btnCommonDir"),       ClassWizardDlg::OnCommonDirClick)
     EVT_CHECKBOX (XRCID("chkLowerCase"),       ClassWizardDlg::OnLowerCaseClick)
-    EVT_CHECKBOX (XRCID("chkAddPathToProject"),ClassWizardDlg::OnAddPathToProjectClick)
     EVT_BUTTON   (XRCID("btnIncludeDir"),      ClassWizardDlg::OnIncludeDirClick)
     EVT_BUTTON   (XRCID("btnImplDir"),         ClassWizardDlg::OnImplDirClick)
     EVT_TEXT     (XRCID("txtHeader"),          ClassWizardDlg::OnHeaderChange)
@@ -151,7 +148,7 @@ void ClassWizardDlg::OnAncestorChange(wxCommandEvent& WXUNUSED(event))
     DoGuardBlock();
 }
 
-void ClassWizardDlg::OnAddMemberVar(cb_unused wxCommandEvent& event)
+void ClassWizardDlg::OnAddMemberVar(wxCommandEvent& event)
 {
     wxString member = XRCCTRL(*this, "txtMemberVar",    wxTextCtrl)->GetValue();
     bool     getter = XRCCTRL(*this, "chkGetter",       wxCheckBox)->GetValue();
@@ -204,7 +201,7 @@ void ClassWizardDlg::OnAddMemberVar(cb_unused wxCommandEvent& event)
     XRCCTRL(*this, "lstMemberVars", wxListBox)->Append(DoMemVarRepr(memtyp, memvar));
 }
 
-void ClassWizardDlg::OnRemoveMemberVar(cb_unused wxCommandEvent& event)
+void ClassWizardDlg::OnRemoveMemberVar(wxCommandEvent& event)
 {
     wxString selection = XRCCTRL(*this, "lstMemberVars", wxListBox)->GetStringSelection();
     if (selection.IsEmpty())
@@ -244,11 +241,6 @@ void ClassWizardDlg::OnCommonDirClick(wxCommandEvent& WXUNUSED(event))
         path = dlg.GetPath();
         XRCCTRL(*this, "txtCommonDir", wxTextCtrl)->SetValue(path);
     }
-}
-
-void ClassWizardDlg::OnAddPathToProjectClick(wxCommandEvent& event)
-{
-    XRCCTRL(*this, "chkRelativePath", wxCheckBox)->Enable(event.IsChecked());
 }
 
 void ClassWizardDlg::OnLowerCaseClick(wxCommandEvent& WXUNUSED(event))
@@ -328,13 +320,13 @@ void ClassWizardDlg::OnOKClick(wxCommandEvent& WXUNUSED(event))
     m_AncestorFilename = XRCCTRL(*this, "txtInheritanceFilename", wxTextCtrl)->GetValue();
     m_AncestorScope    = XRCCTRL(*this, "cmbInheritanceScope", wxComboBox)->GetValue();
     if (m_Ancestor.IsEmpty())
+    {
         m_Inherits = false; // Fix error
+    }
 
     m_Documentation = XRCCTRL(*this, "chkDocumentation", wxCheckBox)->GetValue();
 
-    m_AddPathToProject = XRCCTRL(*this, "chkAddPathToProject", wxCheckBox)->GetValue();
-    m_UseRelativePath  = XRCCTRL(*this, "chkRelativePath", wxCheckBox)->GetValue();
-    m_CommonDir        = XRCCTRL(*this, "chkCommonDir", wxCheckBox)->GetValue();
+    m_CommonDir = XRCCTRL(*this, "chkCommonDir", wxCheckBox)->GetValue();
     if (m_CommonDir)
     {
         m_IncludeDir = XRCCTRL(*this, "txtCommonDir", wxTextCtrl)->GetValue();
@@ -359,9 +351,21 @@ void ClassWizardDlg::OnOKClick(wxCommandEvent& WXUNUSED(event))
     // Common stuff
     bool usestabs = Manager::Get()->GetConfigManager(_T("editor"))->ReadBool(_T("/use_tab"),    false);
     int  tabsize  = Manager::Get()->GetConfigManager(_T("editor"))->ReadInt(_T("/tab_size"),    4);
+    int  eolmode  = Manager::Get()->GetConfigManager(_T("editor"))->ReadInt(_T("/eol/eolmode"), 0);
 
     m_TabStr = usestabs ? wxString(_T("\t")) : wxString(_T(' '), tabsize);
-    m_EolStr = GetEOLStr();
+    if (eolmode == 2)
+    {
+        m_EolStr = _T("\n");
+    }
+    else if (eolmode == 1)
+    {
+        m_EolStr = _T("\r");
+    }
+    else
+    {
+        m_EolStr = _T("\r\n");
+    }
 
     // actual file creation starts here
     bool success = DoHeader();
@@ -713,20 +717,4 @@ void ClassWizardDlg::DoForceDirectory(const wxFileName & filename)
 wxString ClassWizardDlg::DoMemVarRepr(const wxString & typ, const wxString & var)
 {
     return (_T("[") + typ + _T("] : ") + var);
-}
-
-wxString ClassWizardDlg::GetIncludeDir()
-{
-    if (!m_UseRelativePath)
-        return m_IncludeDir;
-
-    wxString relative = m_IncludeDir;
-    wxFileName fname = m_IncludeDir;
-    if (fname.IsAbsolute())
-    {
-        wxString basePath = Manager::Get()->GetProjectManager()->GetActiveProject()->GetCommonTopLevelPath();
-        fname.MakeRelativeTo(basePath);
-        relative = fname.GetFullPath();
-    }
-    return relative;
 }

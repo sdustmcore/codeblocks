@@ -13,7 +13,23 @@
 
 #include "cbthreadedtask.h"
 #include "settings.h"
-#include "prep.h"
+
+// -------------------------------------------------------------------
+//  Determine if a GNU compiler with version less than 3.4 is being used
+// -------------------------------------------------------------------
+#ifdef __GNUC__
+    #if ( (__GNUC__ < 3) || ( (__GNUC__ == 3) && (__GNUC_MINOR__ < 4) ) )
+        #define GCC_LT_34
+    #endif
+#endif // __GNUC__
+
+#ifdef GCC_LT_34
+class cbThreadPool;
+#include "cbthreadpool_extras.h"
+#define QUALIFY_IF_GCC_GE_34(x)
+#else
+#define QUALIFY_IF_GCC_GE_34(x) x
+#endif
 
 /// A Thread Pool implementation
 class DLLIMPORT cbThreadPool
@@ -25,14 +41,14 @@ class DLLIMPORT cbThreadPool
       * @param id Used with the events
       * @param concurrentThreads Number of threads in the pool. -1 means current CPU count
       */
-    cbThreadPool(wxEvtHandler *owner, int id = -1, int concurrentThreads = -1, unsigned int stackSize = 0);
+    cbThreadPool(wxEvtHandler *owner, int id = -1, int concurrentThreads = -1);
 
     /// cbThreadPool dtor
     ~cbThreadPool();
 
     /** Changes the number of threads in the pool
       *
-      * @param concurrentThreads New number of threads. -1 or 0 means current CPU count
+      * @param concurrentThreads New number of threads. -1 means current CPU count
       * @note If tasks are running, it'll delay it until they're all done.
       */
     void SetConcurrentThreads(int concurrentThreads);
@@ -44,9 +60,6 @@ class DLLIMPORT cbThreadPool
       * number of threads that will be set by it when all tasks be done.
       */
     int GetConcurrentThreads() const;
-
-    /** return the pool ID */
-    int GetId() const { return m_ID; }
 
     /** Adds a new task to the pool
       *
@@ -70,7 +83,7 @@ class DLLIMPORT cbThreadPool
     /** Begin a batch process
       *
       * @note EVIL: Call it if you want to add all tasks first and get none executed yet.
-      * If you DON'T call it, tasks will be executed as you add them (in fact it's what
+      * If you DON'T call it, taks will be executed as you add them (in fact it's what
       * one would expect).
       */
     void BatchBegin();
@@ -83,83 +96,15 @@ class DLLIMPORT cbThreadPool
     void BatchEnd();
 
   private:
-
-    /// Josuttis' implementation of CountedPtr
-    /* class for counted reference semantics
-     * - deletes the object to which it refers when the last CountedPtr
-     *   that refers to it is destroyed
-     */
-    template <typename T>
-    class CountedPtr
-    {
-      private:
-        T *ptr;         // pointer to the value
-        long *count;    // shared number of owners
-
-      public:
-        // initialize pointer with existing pointer
-        // - requires that the pointer p is a return value of new
-        explicit CountedPtr(T *p = 0);
-        // copy pointer (one more owner)
-        CountedPtr(const CountedPtr<T> &p) throw();
-        // destructor (delete value if this was the last owner)
-        ~CountedPtr() throw();
-        // assignment (unshare old and share new value)
-        CountedPtr<T> &operator = (const CountedPtr<T> &p) throw();
-         // access the value to which the pointer refers
-        T &operator * () const throw();
-        T *operator -> () const throw();
-
-      private:
-        void dispose(); //decrease the counter, and if it get 0, destroy both counter and ptr
-    };
-
-    /** A Worker Thread class.
-      *
-      * These are the ones that execute the tasks.
-      * You shouldn't worry about it since it's for "private" purposes of the Pool.
-      */
-    class cbWorkerThread : public wxThread
-    {
-      public:
-        /** cbWorkerThread ctor
-          *
-          * @param pool Thread Pool this Worker Thread belongs to
-          * @param semaphore Used to synchronize the Worker Threads, it is a reference to the CountedPtr
-          * object
-          */
-        cbWorkerThread(cbThreadPool *pool, CountedPtr<wxSemaphore> &semaphore);
-
-        /// Entry point of this thread. The magic happens here.
-        ExitCode Entry();
-
-        /// Tell the thread to abort. It will also tell the task to abort (if any)
-        void Abort();
-
-        /** Tells whether we should abort or not
-          *
-          * @return true if we should abort
-          */
-        bool Aborted() const;
-
-        /// Aborts the running task (if any)
-        void AbortTask();
-
-      private:
-        bool m_abort;
-        cbThreadPool *m_pPool;
-        // a counted semaphore shared with all the cbWorkerThread
-        CountedPtr<wxSemaphore> m_semaphore;
-        cbThreadedTask *m_pTask;
-        wxMutex m_taskMutex;// to protect the member variable accessing from multiply threads
-    };
-
+    #ifndef GCC_LT_34
+    #include "cbthreadpool_extras.h"
+    #endif
     typedef std::vector<cbWorkerThread *> WorkerThreadsArray;
 
     /// All tasks are added to one of these. It'll also save the autodelete value
     struct cbThreadedTaskElement
     {
-      cbThreadedTaskElement(cbThreadedTask *_task = nullptr, bool _autodelete = false)
+      cbThreadedTaskElement(cbThreadedTask *_task = 0, bool _autodelete = false)
       : task(_task),
         autodelete(_autodelete)
       {
@@ -172,7 +117,7 @@ class DLLIMPORT cbThreadPool
         if (autodelete)
         {
           delete task;
-          task = nullptr; // better safe than sorry
+          task = 0; // better safe than sorry
         }
       }
 
@@ -182,52 +127,24 @@ class DLLIMPORT cbThreadPool
 
     typedef std::list<cbThreadedTaskElement> TasksQueue;
 
-    wxEvtHandler *m_pOwner; // events notification will send to this guy
-    int m_ID;           // id used to fill the ID field of the event
-    bool m_batching;    // whether in batch mode of adding tasks
+    wxEvtHandler *m_pOwner;
+    int m_ID;
+    bool m_batching;
 
-    // current number of concurrent threads, this is the maximum value of the m_workingThreads
-    // this variable should always be positive, 0 and -1 is not allowed.
-    int m_concurrentThreads;
-    unsigned int m_stackSize; // stack size for every threads
+    int m_concurrentThreads; // current number of concurrent threads
+    int m_concurrentThreadsSchedule; // if we cannot apply the new value of concurrent threads, keep it here
+    WorkerThreadsArray m_threads; // the working threads are stored here
+    TasksQueue m_tasksQueue; // and the pending tasks here
 
-    // if we cannot apply the new value of concurrent threads, keep it here, usually the time to
-    // apply a scheduled value is when all the tasks is done.
-    int m_concurrentThreadsSchedule;
+    int m_workingThreads; // how many working threads are running a task
 
-    // the total threads(cbWorkerThread) are stored here, this contains all the threads either is
-    // currently running or in idle() mode.
-    WorkerThreadsArray m_threads;
+    mutable wxMutex m_Mutex; // we better be safe
 
-    // the pending tasks (cbThreadedTaskElement), usually we have many tasks to run in the pool, but
-    // we have limited number of threads to run those tasks, so tasks which don't have the chance to
-    // run will be put in the queue. Once a thread finishes a task, it will fetch a new task from
-    // this task queue.
-    TasksQueue m_tasksQueue;
-
-    // true if any task added, reset to false if all the tasks is done
-    bool m_taskAdded;
-
-    int m_workingThreads; // how many working threads are running tasks
-
-    mutable wxMutex m_Mutex; // we better be safe, protect the change of member variables
-
-    // used to synchronize the Worker Threads, the counted value is that how many threads are
-    // sharing this semaphore. The semaphore's initial value is the thread number we can used to
-    // run the tasks.
-    CountedPtr<wxSemaphore> m_semaphore;
+    CountedPtr<wxSemaphore> m_semaphore; // used to synchronise the Worker Threads
 
     void _SetConcurrentThreads(int concurrentThreads); // like SetConcurrentThreads, but non-thread safe
-
-    // awakes all threads, this is used when we are going to abort all the threads, there are two
-    // cases we need to call Broadcast(), one is the destructor, the other is the user need to
-    // change the concurrent thread numbers, so we abort all the threads, and re-create them again.
-    void Broadcast();
-
-    // awakes only a few threads, this usually happens when we add some tasks, and there are some
-    // threads which is currently in idle mode, so we can awake these idle threads to run tasks.
-    void AwakeNeeded();
-
+    void Broadcast(); // awakes all threads
+    void AwakeNeeded(); // awakes only a few threads
 
   protected:
     friend class cbWorkerThread;
@@ -238,19 +155,16 @@ class DLLIMPORT cbThreadPool
       */
     cbThreadedTaskElement GetNextTask();
 
-    /// Mechanism for the threads to tell the Pool they're running, a thread is switch from the idle
-    /// mode to working mode. This is triggered by semaphore released somewhere
+    /// Mechanism for the threads to tell the Pool they're running
     void WorkingThread();
 
-    /** Mechanism for the threads to tell the Pool they're done and will go to idle, so we can assign
-      * another task to this thread.
+    /** Mechanism for the threads to tell the Pool they're done and will wait
       *
-      * @return true if everything is OK, false if we should abort, this usually happens we need to
-      * set a scheduled m_concurrentThreads value.
+      * @return true if everything is OK, false if we should abort
       */
     bool WaitingThread();
 
-    /** Called by a Worker Thread to inform a single task has finished, this will send a cbEVT_THREADTASK_ENDED event
+    /** Called by a Worker Thread to inform a task has finished
       *
       * @param thread The Worker Thread
       */
@@ -261,18 +175,15 @@ class DLLIMPORT cbThreadPool
 /* **************** INLINE MEMBERS **************** */
 /* ************************************************ */
 
-inline cbThreadPool::cbThreadPool(wxEvtHandler *owner, int id, int concurrentThreads, unsigned int stackSize)
+inline cbThreadPool::cbThreadPool(wxEvtHandler *owner, int id, int concurrentThreads)
 : m_pOwner(owner),
   m_ID(id),
   m_batching(false),
   m_concurrentThreads(-1),
-  m_stackSize(stackSize),
   m_concurrentThreadsSchedule(0),
-  m_taskAdded(false),
   m_workingThreads(0),
   m_semaphore(new wxSemaphore)
 {
-  // m_concurrentThreads will be set to a positive integer value.
   SetConcurrentThreads(concurrentThreads);
 }
 
@@ -296,31 +207,34 @@ inline void cbThreadPool::BatchBegin()
 
 inline void cbThreadPool::Broadcast()
 {
-  // if m_concurrentThreads == -1, which means the pool is not initialized yet
   if (m_concurrentThreads == -1)
+  {
     return;
-  // let the idle(pending) worker thread to execute tasks, those worker threads are waiting for semaphore
+  }
+
   for (std::size_t i = 0; i < static_cast<std::size_t>(m_concurrentThreads - m_workingThreads); ++i)
+  {
     m_semaphore->Post();
+  }
 }
 
 inline void cbThreadPool::AwakeNeeded()
 {
-  // if m_concurrentThreads == -1, which means the pool is not initialized yet
   if (m_concurrentThreads == -1)
+  {
     return;
+  }
 
-  // the thread number to awake should be less than the idle thread number and the tasks queue's size
-  std::size_t awakeThreadNumber = std::min<std::size_t>(m_tasksQueue.size(),
-                                                        (m_concurrentThreads - m_workingThreads));
-  for (std::size_t i = 0; i < awakeThreadNumber; ++i)
+  for (std::size_t i = 0; i < m_tasksQueue.size(); ++i)
+  {
     m_semaphore->Post();
+  }
 }
 
 /* *** Josuttis' CountedPtr *** */
 
 template <typename T>
-inline cbThreadPool::CountedPtr<T>::CountedPtr(T *p)
+inline QUALIFY_IF_GCC_GE_34(cbThreadPool::)CountedPtr<T>::CountedPtr(T *p)
 : ptr(p),
   count(new long(1))
 {
@@ -328,7 +242,7 @@ inline cbThreadPool::CountedPtr<T>::CountedPtr(T *p)
 }
 
 template <typename T>
-inline cbThreadPool::CountedPtr<T>::CountedPtr(const CountedPtr<T> &p) throw()
+inline QUALIFY_IF_GCC_GE_34(cbThreadPool::)CountedPtr<T>::CountedPtr(const CountedPtr<T> &p) throw()
 : ptr(p.ptr),
   count(p.count)
 {
@@ -336,13 +250,13 @@ inline cbThreadPool::CountedPtr<T>::CountedPtr(const CountedPtr<T> &p) throw()
 }
 
 template <typename T>
-inline cbThreadPool::CountedPtr<T>::~CountedPtr() throw()
+inline QUALIFY_IF_GCC_GE_34(cbThreadPool::)CountedPtr<T>::~CountedPtr() throw()
 {
   dispose();
 }
 
 template <typename T>
-inline cbThreadPool::CountedPtr<T> &cbThreadPool::CountedPtr<T>::operator = (const CountedPtr<T> &p) throw()
+inline QUALIFY_IF_GCC_GE_34(cbThreadPool::)CountedPtr<T> &QUALIFY_IF_GCC_GE_34(cbThreadPool::)CountedPtr<T>::operator = (const CountedPtr<T> &p) throw()
 {
   if (this != &p)
   {
@@ -356,19 +270,19 @@ inline cbThreadPool::CountedPtr<T> &cbThreadPool::CountedPtr<T>::operator = (con
 }
 
 template <typename T>
-inline T &cbThreadPool::CountedPtr<T>::operator * () const throw()
+inline T &QUALIFY_IF_GCC_GE_34(cbThreadPool::)CountedPtr<T>::operator * () const throw()
 {
   return *ptr;
 }
 
 template <typename T>
-inline T *cbThreadPool::CountedPtr<T>::operator -> () const throw()
+inline T *QUALIFY_IF_GCC_GE_34(cbThreadPool::)CountedPtr<T>::operator -> () const throw()
 {
   return ptr;
 }
 
 template <typename T>
-inline void cbThreadPool::CountedPtr<T>::dispose()
+inline void QUALIFY_IF_GCC_GE_34(cbThreadPool::)CountedPtr<T>::dispose()
 {
   if (--*count == 0)
   {

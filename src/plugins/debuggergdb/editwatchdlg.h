@@ -7,19 +7,20 @@
 #define EDITWATCHDLG_H
 
 #include "scrollingdialog.h"
-
-#include "debugger_defs.h"
+#include "debuggertree.h"
 
 class EditWatchDlg : public wxScrollingDialog
 {
     public:
-        EditWatchDlg(cb::shared_ptr<GDBWatch> w, wxWindow* parent);
+        EditWatchDlg(Watch* w = 0, wxWindow* parent = 0);
         virtual ~EditWatchDlg();
 
+        virtual const Watch& GetWatch(){ return m_Watch; }
     protected:
         void EndModal(int retCode);
 
-        cb::shared_ptr<GDBWatch> m_watch;
+        Watch m_Watch;
+    private:
 };
 
 #endif // EDITWATCHDLG_H

@@ -99,7 +99,7 @@ void Associations::SetCore()
     wxChar name[MAX_PATH] = {0};
     GetModuleFileName(0L, name, MAX_PATH);
 
-    for (int i = 0; i <= 12; ++i)        // beware, the number 12 is hardcoded ;)
+    for(int i = 0; i <= 12; ++i)        // beware, the number 12 is hardcoded ;)
         ::DoSetAssociation(name, i);
 
     UpdateChanges();
@@ -110,7 +110,7 @@ void Associations::SetAll()
     wxChar name[MAX_PATH] = {0};
     GetModuleFileName(0L, name, MAX_PATH);
 
-    for (unsigned int i = 0; i < CountAssocs(); ++i)
+    for(unsigned int i = 0; i < CountAssocs(); ++i)
         ::DoSetAssociation(name, i);
 
     UpdateChanges();
@@ -121,8 +121,10 @@ void Associations::ClearAll()
     wxChar name[MAX_PATH] = {0};
     GetModuleFileName(0L, name, MAX_PATH);
 
-    for (unsigned int i = 0; i < CountAssocs(); ++i)
+    for(unsigned int i = 0; i < CountAssocs(); ++i)
+    {
         DoClearAssociation(knownTypes[i].ext);
+    };
 
     UpdateChanges();
 }
@@ -134,7 +136,7 @@ bool Associations::Check()
 
     bool result = true;
 
-    for (int i = 0; i <= 12; ++i)        // beware, the number 12 is hardcoded ;)
+    for(int i = 0; i <= 12; ++i)        // beware, the number 12 is hardcoded ;)
         result &= ::DoCheckAssociation(name, i);
 
     return  result;
@@ -143,7 +145,7 @@ bool Associations::Check()
 void Associations::DoSetAssociation(const wxString& ext, const wxString& descr, const wxString& exe, int icoNum)
 {
     wxString BaseKeyName(_T("HKEY_CURRENT_USER\\Software\\Classes\\"));
-    if (platform::WindowsVersion() == platform::winver_Windows9598ME)
+    if(platform::WindowsVersion() == platform::winver_Windows9598ME)
         BaseKeyName = _T("HKEY_CLASSES_ROOT\\");
 
     wxString node(_T("CodeBlocks.") + ext);
@@ -181,7 +183,7 @@ void Associations::DoSetAssociation(const wxString& ext, const wxString& descr, 
     key.Create();
     key = DDE_TOPIC;
 
-    if (ext.IsSameAs(FileFilters::CODEBLOCKS_EXT) || ext.IsSameAs(FileFilters::WORKSPACE_EXT))
+    if(ext.IsSameAs(FileFilters::CODEBLOCKS_EXT) || ext.IsSameAs(FileFilters::WORKSPACE_EXT))
     {
         wxString batchbuildargs = Manager::Get()->GetConfigManager(_T("app"))->Read(_T("/batch_build_args"), appglobals::DefaultBatchBuildArgs);
         key.SetName(BaseKeyName + node + _T("\\shell\\Build\\command"));
@@ -197,32 +199,32 @@ void Associations::DoSetAssociation(const wxString& ext, const wxString& descr, 
 void Associations::DoClearAssociation(const wxString& ext)
 {
     wxString BaseKeyName(_T("HKEY_CURRENT_USER\\Software\\Classes\\"));
-    if (platform::WindowsVersion() == platform::winver_Windows9598ME)
+    if(platform::WindowsVersion() == platform::winver_Windows9598ME)
         BaseKeyName = _T("HKEY_CLASSES_ROOT\\");
 
     wxRegKey key; // defaults to HKCR
     key.SetName(BaseKeyName + _T(".") + ext);
-    if (key.Exists())
+    if(key.Exists())
     {
         wxString s;
         #if wxCHECK_VERSION(2, 9, 0)
-        if (key.QueryValue(wxEmptyString, s) && s.StartsWith(_T("CodeBlocks")))
+        if(key.QueryValue(wxEmptyString, s) && s.StartsWith(_T("CodeBlocks")))
         #else
-        if (key.QueryValue(NULL, s) && s.StartsWith(_T("CodeBlocks")))
+        if(key.QueryValue(NULL, s) && s.StartsWith(_T("CodeBlocks")))
         #endif
             key.DeleteSelf();
     }
 
     key.SetName(BaseKeyName + _T("CodeBlocks.") + ext);
-    if (key.Exists())
+    if(key.Exists())
         key.DeleteSelf();
 }
 
-bool Associations::DoCheckAssociation(const wxString& ext, cb_unused const wxString& descr, const wxString& exe, int icoNum)
+bool Associations::DoCheckAssociation(const wxString& ext, const wxString& descr, const wxString& exe, int icoNum)
 {
     wxString BaseKeyName(_T("HKEY_CURRENT_USER\\Software\\Classes\\"));
 
-    if (platform::WindowsVersion() == platform::winver_Windows9598ME)
+    if(platform::WindowsVersion() == platform::winver_Windows9598ME)
         BaseKeyName = _T("HKEY_CLASSES_ROOT\\");
 
     wxRegKey key; // defaults to HKCR
@@ -283,7 +285,7 @@ bool Associations::DoCheckAssociation(const wxString& ext, cb_unused const wxStr
     if (strVal != DDE_TOPIC)
         return false;
 
-    if (ext.IsSameAs(FileFilters::CODEBLOCKS_EXT) || ext.IsSameAs(FileFilters::WORKSPACE_EXT))
+    if(ext.IsSameAs(FileFilters::CODEBLOCKS_EXT) || ext.IsSameAs(FileFilters::WORKSPACE_EXT))
     {
         wxString batchbuildargs = Manager::Get()->GetConfigManager(_T("app"))->Read(_T("/batch_build_args"), appglobals::DefaultBatchBuildArgs);
         key.SetName(BaseKeyName + _T("CodeBlocks.") + ext + _T("\\shell\\Build\\command"));
@@ -328,7 +330,7 @@ ManageAssocsDialog::ManageAssocsDialog(wxWindow* parent)
     wxChar exe[MAX_PATH] = {0};
     GetModuleFileName(0L, exe, MAX_PATH);
 
-    for (unsigned int i = 0; i < Associations::CountAssocs(); ++i)
+    for(unsigned int i = 0; i < Associations::CountAssocs(); ++i)
     {
         list->Append(d + knownTypes[i].ext + _T("  (") + knownTypes[i].descr + _T(")"));
         list->Check(i, Associations::DoCheckAssociation(knownTypes[i].ext, knownTypes[i].descr, exe, knownTypes[i].index));
@@ -337,14 +339,14 @@ ManageAssocsDialog::ManageAssocsDialog(wxWindow* parent)
     CentreOnParent();
 }
 
-void ManageAssocsDialog::OnApply(cb_unused wxCommandEvent& event)
+void ManageAssocsDialog::OnApply(wxCommandEvent& event)
 {
     wxChar name[MAX_PATH] = {0};
     GetModuleFileName(0L, name, MAX_PATH);
 
-    for (size_t i = 0; i < list->GetCount(); ++i)
+    for(int i = 0; i < (int)list->GetCount(); ++i)
     {
-        if (list->IsChecked(i))
+        if(list->IsChecked(i))
             ::DoSetAssociation(name, i);
         else
             Associations::DoClearAssociation(knownTypes[i].ext);
@@ -354,17 +356,19 @@ void ManageAssocsDialog::OnApply(cb_unused wxCommandEvent& event)
     EndModal(0);
 }
 
-void ManageAssocsDialog::OnCancel(cb_unused wxCommandEvent& event)
+void ManageAssocsDialog::OnCancel(wxCommandEvent& event)
 {
     EndModal(0);
 }
 
-void ManageAssocsDialog::OnClearAll(cb_unused wxCommandEvent& event)
+void ManageAssocsDialog::OnClearAll(wxCommandEvent& event)
 {
     Associations::ClearAll();
     Associations::UpdateChanges();
     EndModal(0);
 }
+
+
 
 BEGIN_EVENT_TABLE(AskAssocDialog, wxScrollingDialog)
     EVT_BUTTON(XRCID("wxID_OK"), AskAssocDialog::OnOK)
@@ -372,18 +376,20 @@ BEGIN_EVENT_TABLE(AskAssocDialog, wxScrollingDialog)
     EVT_CHAR_HOOK(AskAssocDialog::OnCharHook)
 END_EVENT_TABLE()
 
+
+
 AskAssocDialog::AskAssocDialog(wxWindow* parent)
 {
     wxXmlResource::Get()->LoadObject(this, parent, _T("askAssoc"),_T("wxScrollingDialog"));
     SetEscapeId(wxID_NONE);
 }
 
-void AskAssocDialog::OnOK(cb_unused wxCommandEvent& event)
+void AskAssocDialog::OnOK(wxCommandEvent& event)
 {
     EndModal(XRCCTRL(*this, "choice", wxRadioBox)->GetSelection());
 }
 
-void AskAssocDialog::OnESC(cb_unused wxCommandEvent& event)
+void AskAssocDialog::OnESC(wxCommandEvent& event)
 {
     EndModal(ASC_ASSOC_DLG_NO_ONLY_NOW);
 }
@@ -391,9 +397,13 @@ void AskAssocDialog::OnESC(cb_unused wxCommandEvent& event)
 void AskAssocDialog::OnCharHook(wxKeyEvent& event)
 {
     if ( event.GetKeyCode() == WXK_ESCAPE )
+    {
         Close(); //wxDialog::Close() send button event with id wxID_CANCEL (wxWidgets 2.8)
-    else if ( (event.GetKeyCode() == WXK_RETURN) || (event.GetKeyCode() == WXK_NUMPAD_ENTER) )
+    }
+    else if( event.GetKeyCode() == WXK_RETURN )
+    {
         EndModal(XRCCTRL(*this, "choice", wxRadioBox)->GetSelection());
+    }
 
     event.Skip();
 }

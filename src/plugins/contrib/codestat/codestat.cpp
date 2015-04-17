@@ -69,8 +69,8 @@ cbConfigurationPanel* CodeStat::GetConfigurationPanel(wxWindow* parent)
     if (!IsAttached())
         return 0;
 
-    CodeStatConfigDlg* ConfigDialog = new CodeStatConfigDlg(parent);
-    return ConfigDialog;
+    CodeStatConfigDlg* dlg = new CodeStatConfigDlg(parent);
+    return dlg;
 }
 
 /** Main function: launch the counting process.

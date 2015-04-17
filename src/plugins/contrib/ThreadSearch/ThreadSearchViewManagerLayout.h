@@ -54,8 +54,6 @@ public:
       * @return true if view is visible.
       */
     bool IsViewShown();
-
-    virtual void Raise();
 };
 
 #endif // THREAD_SEARCH_VIEW_MANAGER_LAYOUT_H

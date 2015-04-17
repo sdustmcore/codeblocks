@@ -399,8 +399,6 @@ namespace Expression
                 result = resFloat;
                 break;
 
-            case Operation::modNone:
-            case Operation::modArg:
             default:
                 assert( false );
         }

@@ -200,8 +200,8 @@ void ThreadSearchConfPanel::set_properties()
 			radIndex = 1;
 			break;
 		}
-		case ThreadSearchViewManagerBase::TypeMessagesNotebook : // fall-though
 		default:
+		// case ThreadSearchViewManagerBase::TypeMessagesNotebook :
 		{
 			radIndex = 0;
 			break;
@@ -217,8 +217,8 @@ void ThreadSearchConfPanel::set_properties()
 			radIndex = 1;
 			break;
 		}
-		case ThreadSearchLoggerBase::TypeList : // fall-though
 		default:
+		// case ThreadSearchLoggerBase::TypeList :
 		{
 			radIndex = 0;
 			break;
@@ -252,8 +252,8 @@ void ThreadSearchConfPanel::set_properties()
 			radIndex = 1;
 			break;
 		}
-		case InsertIndexManager::SortByFilePath : // fall-through
 		default:
+		// case ThreadSearch::SortByFilePath :
 		{
 			radIndex = 0;
 			break;
@@ -276,9 +276,6 @@ void ThreadSearchConfPanel::set_properties()
 
 void ThreadSearchConfPanel::do_layout()
 {
-#if wxCHECK_VERSION(2, 9, 0)
-    #define wxADJUST_MINSIZE 0
-#endif
     // begin wxGlade: ThreadSearchConfPanel::do_layout
     wxBoxSizer* SizerTop = new wxBoxSizer(wxVERTICAL);
     wxStaticBoxSizer* SizerThreadSearchLayout = new wxStaticBoxSizer(SizerThreadSearchLayout_staticbox, wxVERTICAL);

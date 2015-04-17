@@ -14,7 +14,6 @@
     #include <wx/process.h>
     #include <wx/menu.h>
     #include <wx/msgdlg.h>
-
     #include "toolsmanager.h"
     #include "manager.h"
     #include "macrosmanager.h"
@@ -30,7 +29,7 @@
 #include <wx/listimpl.cpp>
 #include "configuretoolsdlg.h"
 
-template<> ToolsManager* Mgr<ToolsManager>::instance = nullptr;
+template<> ToolsManager* Mgr<ToolsManager>::instance = 0;
 template<> bool  Mgr<ToolsManager>::isShutdown = false;
 
 WX_DEFINE_LIST(ToolsList);
@@ -49,8 +48,8 @@ BEGIN_EVENT_TABLE(ToolsManager, wxEvtHandler)
 END_EVENT_TABLE()
 
 ToolsManager::ToolsManager()
-    : m_Menu(nullptr),
-    m_pProcess(nullptr),
+    : m_Menu(0L),
+    m_pProcess(0L),
     m_Pid(0)
 {
     LoadTools();
@@ -70,11 +69,11 @@ ToolsManager::~ToolsManager()
     m_Tools.Clear();
 }
 
-void ToolsManager::CreateMenu(cb_unused wxMenuBar* menuBar)
+void ToolsManager::CreateMenu(wxMenuBar* menuBar)
 {
 }
 
-void ToolsManager::ReleaseMenu(cb_unused wxMenuBar* menuBar)
+void ToolsManager::ReleaseMenu(wxMenuBar* menuBar)
 {
 }
 
@@ -97,7 +96,7 @@ bool ToolsManager::Execute(const cbTool* tool)
     wxString dir = tool->GetWorkingDir();
 
     // hack to force-update macros
-    Manager::Get()->GetMacrosManager()->RecalcVars(nullptr, nullptr, nullptr);
+    Manager::Get()->GetMacrosManager()->RecalcVars(0, 0, 0);
 
     Manager::Get()->GetMacrosManager()->ReplaceMacros(cmd);
     Manager::Get()->GetMacrosManager()->ReplaceMacros(params);
@@ -145,15 +144,14 @@ bool ToolsManager::Execute(const cbTool* tool)
             pipe = false; // no need to pipe output channels...
             break;
 
+        case cbTool::LAUNCH_HIDDEN:
+            break; // use the default values of pipe and flags...
+
         case cbTool::LAUNCH_VISIBLE:
         case cbTool::LAUNCH_VISIBLE_DETACHED:
             flags |= wxEXEC_NOHIDE;
             pipe = false;
             break;
-
-        case cbTool::LAUNCH_HIDDEN: // fall-through
-        default:
-            break; // use the default values of pipe and flags...
     }
 
     if (tool->GetLaunchOption() == cbTool::LAUNCH_VISIBLE_DETACHED)
@@ -173,14 +171,14 @@ bool ToolsManager::Execute(const cbTool* tool)
     }
     else
     {
-        m_pProcess = new PipedProcess(&m_pProcess, this, idToolProcess, pipe, dir);
+        m_pProcess = new PipedProcess((void**)&m_pProcess, this, idToolProcess, pipe, dir);
         m_Pid = wxExecute(cmdline, flags, m_pProcess);
 
         if (!m_Pid)
         {
             cbMessageBox(_("Couldn't execute tool. Check the log for details."), _("Error"), wxICON_ERROR);
             delete m_pProcess;
-            m_pProcess = nullptr;
+            m_pProcess = 0;
             m_Pid = 0;
             return false;
         }
@@ -242,7 +240,7 @@ cbTool* ToolsManager::GetToolByMenuId(int id)
         if (tool->GetMenuId() == id)
             return tool;
     }
-    return nullptr;
+    return 0L;
 }
 
 cbTool* ToolsManager::GetToolByIndex(int index)
@@ -255,7 +253,7 @@ cbTool* ToolsManager::GetToolByIndex(int index)
             return tool;
         ++idx;
     }
-    return nullptr;
+    return 0L;
 }
 
 void ToolsManager::LoadTools()
@@ -364,7 +362,7 @@ int ToolsManager::Configure()
 
 // events
 
-void ToolsManager::OnConfigure(cb_unused wxCommandEvent& event)
+void ToolsManager::OnConfigure(wxCommandEvent& event)
 {
     Configure();
 }
@@ -402,7 +400,7 @@ void ToolsManager::OnToolErrOutput(CodeBlocksEvent& event)
 void ToolsManager::OnToolTerminated(CodeBlocksEvent& event)
 {
     m_Pid = 0;
-    m_pProcess = nullptr;
+    m_pProcess = 0;
 
     Manager::Get()->GetLogManager()->Log(F(_T("Tool execution terminated with status %d"), event.GetInt()));
 }

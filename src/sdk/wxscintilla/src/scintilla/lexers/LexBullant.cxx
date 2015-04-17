@@ -12,6 +12,7 @@
 #include "Scintilla.h"
 #include "SciLexer.h"
 
+#include "PropSetSimple.h"
 #include "WordList.h"
 #include "LexAccessor.h"
 #include "Accessor.h"
@@ -116,7 +117,7 @@ static void ColouriseBullantDoc(unsigned int startPos, int length, int initStyle
 			}
 			blockChange=0;
 */		}
-		if (!(IsASCII(ch) && isspace(ch)))
+		if (!(isascii(ch) && isspace(ch)))
 			visibleChars++;
 
 		if (styler.IsLeadByte(ch)) {

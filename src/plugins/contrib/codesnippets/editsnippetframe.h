@@ -16,7 +16,7 @@
 	along with this program; if not, write to the Free Software
 	Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
-// RCS-ID: $Id$
+// RCS-ID: $Id: editsnippetframe.h 70 2007-04-28 16:04:53Z Pecan $
 
 #ifndef EDITSNIPPETFRAME_H
 #define EDITSNIPPETFRAME_H
@@ -92,8 +92,6 @@ class EditSnippetFrame : public wxFrame
         void OnEditEvent (wxCommandEvent &event);
         void OnEditEventUI (wxUpdateUIEvent& event);
 
-        void On_cbEditorSaveEvent(CodeBlocksEvent& event);
-
     private:
         void InitEditSnippetFrame(const wxTreeItemId SnippetItemId, int* pRetcode);
 		void EndSnippetDlg(int wxID_OKorCANCEL);
@@ -105,7 +103,7 @@ class EditSnippetFrame : public wxFrame
         wxRect DeterminePrintSize ();
         void OnFrameActivated(wxActivateEvent& event);
 
-        void SaveSnippetFramePosn();
+        void End_SnippetFrame(int wxID_OKorCANCEL);
         void CreateMenu ();
         void OnConvertEOL (wxCommandEvent &event);
         void OnEditHighlightMode(wxCommandEvent& event);
@@ -119,6 +117,9 @@ class EditSnippetFrame : public wxFrame
         wxString        m_EditSnippetLabel;
         wxString        m_EditSnippetText;
 
+        // pointer to parents return code storage area
+		int*            m_pReturnCode;
+
 		// our return code to be placed in m_pReturnCode;
 		int             m_nReturnCode;
 		wxTreeItemId    m_SnippetItemId;
@@ -130,8 +131,6 @@ class EditSnippetFrame : public wxFrame
         int             m_ActiveEventId;
         int             m_OncloseWindowEntries;
         int             m_bOnActivateBusy;
-
-        int             m_bEditorSaveEvent;
 
         DECLARE_EVENT_TABLE()
 };

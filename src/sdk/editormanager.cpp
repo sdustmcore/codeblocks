@@ -10,84 +10,147 @@
 #include "sdk_precomp.h"
 
 #ifndef CB_PRECOMP
-    #include <wx/dir.h>
-    #include <wx/menu.h>
     #include <wx/notebook.h>
-    #include <wx/settings.h>
+    #include <wx/menu.h>
     #include <wx/splitter.h>
-    #include <wx/xrc/xmlres.h>
+    #include <wx/imaglist.h>
+    #include <wx/regex.h>
+    #include <wx/listctrl.h>
 
-    #include "cbeditor.h"
-    #include "cbproject.h"
-    #include "compiler.h"
-    #include "compilerfactory.h"
-    #include "configmanager.h"
     #include "editormanager.h" // class's header file
-    #include "filemanager.h"
+    #include "configmanager.h"
+    #include <wx/xrc/xmlres.h>
+    #include "infowindow.h"
     #include "logmanager.h"
-    #include "macrosmanager.h"
-    #include "manager.h"
-    #include "pluginmanager.h"
-    #include "projectbuildtarget.h"
     #include "projectmanager.h"
+    #include "projectfile.h"
+    #include "pluginmanager.h"
+    #include "manager.h"
+    #include "macrosmanager.h"
+    #include "filemanager.h"
     #include "sdk_events.h"
+    #include "projectbuildtarget.h"
+    #include "cbproject.h"
+    #include "cbeditor.h"
+    #include "globals.h"
+    #include "sdk_events.h"
+    #include <wx/file.h>
+    #include <wx/dir.h>
 #endif
-
-#include "annoyingdialog.h"
 #include "cbstyledtextctrl.h"
-#include "cbcolourmanager.h"
 
 #include <wx/bmpbuttn.h>
-#include <wx/clipbrd.h>  // for wxTheClipboard
-#include <wx/fontutil.h>
 #include <wx/progdlg.h>
-
+#include <wx/fontutil.h>
 #include "cbauibook.h"
+
 #include "editorcolourset.h"
+#include "editorconfigurationdlg.h"
+#include "encodingdetector.h"
+#include "finddlg.h"
+#include "replacedlg.h"
 #include "confirmreplacedlg.h"
 #include "filefilters.h"
+#include "searchresultslog.h"
 #include "projectfileoptionsdlg.h"
 #include "filegroupsandmasks.h"
 
-template<> EditorManager* Mgr<EditorManager>::instance = nullptr;
+template<> EditorManager* Mgr<EditorManager>::instance = 0;
 template<> bool  Mgr<EditorManager>::isShutdown = false;
 
-int ID_NBEditorManager        = wxNewId();
-int ID_EditorManager          = wxNewId();
+int ID_NBEditorManager = wxNewId();
+int ID_EditorManager = wxNewId();
 int idEditorManagerCheckFiles = wxNewId();
 
 // static
 bool EditorManager::s_CanShutdown = true;
 
-// needed for initialization of variables
-inline int cbRegisterId(int id)
+struct cbFindReplaceData
 {
-    wxRegisterId(id);
-    return id;
+    int start;
+    int end;
+    wxString findText;
+    wxString replaceText;
+    bool initialreplacing;
+    bool findInFiles;
+    bool delOldSearches;
+    bool matchWord;
+    bool startWord;
+    bool startFile; //!< To be implemented.
+    bool matchCase;
+    bool regEx;
+    bool directionDown;
+    bool originEntireScope;
+    int scope;
+    wxString searchPath;
+    wxString searchMask;
+    bool recursiveSearch;
+    bool hiddenSearch;
+    bool NewSearch;     //!< only true when a new search has been started
+    int SearchInSelectionStart; //!< keep track of the start of a 'search' selection
+    int SearchInSelectionEnd;  //!< keep track of the end of a 'search' selection
+    bool autoWrapSearch;
+    bool findUsesSelectedText;
+    bool fixEOLs; //!< for multi-line S&R. Fixes EOLs in all the files searched.
+    int eolMode; //!< for multi-line S&R
+
+    void ConvertEOLs(int newmode);
+    bool IsMultiLine();
+
+    cbFindReplaceData()
+    {
+        eolMode = wxSCI_EOL_LF;
+        fixEOLs = false;
+    }
+};
+
+void cbFindReplaceData::ConvertEOLs(int newmode)
+{
+    if (eolMode != newmode)
+    {
+        const wxChar* eol_lf = _T("\n");
+        const wxChar* eol_crlf = _T("\r\n");
+        const wxChar* eol_cr = _T("\r");
+
+        const wxChar* eol_from = eol_lf;
+        const wxChar* eol_to = eol_lf;
+        switch(eolMode)
+        {
+            case wxSCI_EOL_CR: eol_from = eol_cr; break;
+            case wxSCI_EOL_CRLF: eol_from = eol_crlf; break;
+            default: ;
+        }
+        switch(newmode)
+        {
+            case wxSCI_EOL_CR: eol_to = eol_cr; break;
+            case wxSCI_EOL_CRLF: eol_to = eol_crlf; break;
+            default: newmode = wxSCI_EOL_LF;
+        }
+        findText.Replace(eol_from, eol_to, true);
+        replaceText.Replace(eol_from, eol_to, true);
+        eolMode = newmode;
+    }
 }
 
-static const int idNBTabSplitHorz            = wxNewId();
-static const int idNBTabSplitVert            = wxNewId();
-static const int idNBTabUnsplit              = wxNewId();
-static const int idNBTabClose                = wxNewId();
-static const int idNBTabCloseAll             = wxNewId();
-static const int idNBTabCloseAllOthers       = wxNewId();
-static const int idNBTabSave                 = wxNewId();
-static const int idNBTabSaveAll              = wxNewId();
-static const int idNBSwapHeaderSource        = wxNewId();
-static const int idNBTabOpenContainingFolder = wxNewId();
-static const int idNBTabTop                  = wxNewId();
-static const int idNBTabBottom               = wxNewId();
-static const int idNBProperties              = wxNewId();
-static const int idNBAddFileToProject        = wxNewId();
-static const int idNBRemoveFileFromProject   = wxNewId();
-static const int idNBShowFileInTree          = wxNewId();
+bool cbFindReplaceData::IsMultiLine()
+{
+    return  ((findText.Find(_T("\n")) != wxNOT_FOUND) || (findText.Find(_T("\r")) != wxNOT_FOUND));
+}
 
-// The following lines reserve 255 consecutive id's
-static const int EditorMaxSwitchTo           = 255;
-static const int idNBSwitchFile1             = wxNewId();
-static const int idNBSwitchFileMax           = cbRegisterId(idNBSwitchFile1 + EditorMaxSwitchTo - 1);
-
+static const int idNBTabSplitHorz = wxNewId();
+static const int idNBTabSplitVert = wxNewId();
+static const int idNBTabUnsplit = wxNewId();
+static const int idNBTabClose = wxNewId();
+static const int idNBTabCloseAll = wxNewId();
+static const int idNBTabCloseAllOthers = wxNewId();
+static const int idNBTabSave = wxNewId();
+static const int idNBTabSaveAll = wxNewId();
+static const int idNBSwapHeaderSource = wxNewId();
+static const int idNBTabTop = wxNewId();
+static const int idNBTabBottom = wxNewId();
+static const int idNBProperties = wxNewId();
+static const int idNBAddFileToProject = wxNewId();
+static const int idNBRemoveFileFromProject = wxNewId();
 
 /** *******************************************************
   * struct EditorManagerInternalData                      *
@@ -107,7 +170,6 @@ struct EditorManagerInternalData
 
     EditorManager* m_pOwner;
     bool m_SetFocusFlag;
-    wxString m_SelectionClipboard;
 };
 
 // *********** End of EditorManagerInternalData **********
@@ -120,7 +182,6 @@ BEGIN_EVENT_TABLE(EditorManager, wxEvtHandler)
     EVT_AUINOTEBOOK_PAGE_CHANGING(ID_NBEditorManager, EditorManager::OnPageChanging)
     EVT_AUINOTEBOOK_PAGE_CLOSE(ID_NBEditorManager, EditorManager::OnPageClose)
     EVT_AUINOTEBOOK_TAB_RIGHT_UP(ID_NBEditorManager, EditorManager::OnPageContextMenu)
-    EVT_MENU_RANGE(idNBSwitchFile1, idNBSwitchFileMax, EditorManager::OnGenericContextMenuHandler)
     EVT_MENU(idNBTabSplitHorz, EditorManager::OnGenericContextMenuHandler)
     EVT_MENU(idNBTabSplitVert, EditorManager::OnGenericContextMenuHandler)
     EVT_MENU(idNBTabUnsplit, EditorManager::OnGenericContextMenuHandler)
@@ -129,22 +190,23 @@ BEGIN_EVENT_TABLE(EditorManager, wxEvtHandler)
     EVT_MENU(idNBTabClose, EditorManager::OnClose)
     EVT_MENU(idNBTabCloseAll, EditorManager::OnCloseAll)
     EVT_MENU(idNBTabCloseAllOthers, EditorManager::OnCloseAllOthers)
-    EVT_MENU(idNBTabOpenContainingFolder, EditorManager::OnOpenContainingFolder)
     EVT_MENU(idNBTabSave, EditorManager::OnSave)
     EVT_MENU(idNBTabSaveAll, EditorManager::OnSaveAll)
     EVT_MENU(idNBSwapHeaderSource, EditorManager::OnSwapHeaderSource)
     EVT_MENU(idNBProperties, EditorManager::OnProperties)
     EVT_MENU(idNBAddFileToProject, EditorManager::OnAddFileToProject)
     EVT_MENU(idNBRemoveFileFromProject, EditorManager::OnRemoveFileFromProject)
-    EVT_MENU(idNBShowFileInTree, EditorManager::OnShowFileInTree)
     EVT_MENU(idEditorManagerCheckFiles, EditorManager::OnCheckForModifiedFiles)
 END_EVENT_TABLE()
 
 EditorManager::EditorManager()
-        : m_pNotebook(nullptr),
+        : m_pNotebook(0L),
         m_pNotebookStackHead(new cbNotebookStack),
         m_pNotebookStackTail(m_pNotebookStackHead),
         m_nNotebookStackSize(0),
+        m_LastFindReplaceData(0L),
+        m_pSearchLog(0),
+        m_SearchLogIndex(-1),
         m_isCheckingForExternallyModifiedFiles(false)
 {
     m_pData = new EditorManagerInternalData(this);
@@ -161,32 +223,22 @@ EditorManager::EditorManager()
 
     Manager::Get()->GetAppWindow()->PushEventHandler(this);
 
+    CreateSearchLog();
+    LoadAutoComplete();
     m_Zoom = Manager::Get()->GetConfigManager(_T("editor"))->ReadInt(_T("/zoom"));
-    Manager::Get()->RegisterEventSink(cbEVT_BUILDTARGET_SELECTED,       new cbEventFunctor<EditorManager, CodeBlocksEvent>(this, &EditorManager::CollectDefines));
-    Manager::Get()->RegisterEventSink(cbEVT_PROJECT_ACTIVATE,           new cbEventFunctor<EditorManager, CodeBlocksEvent>(this, &EditorManager::CollectDefines));
-    Manager::Get()->RegisterEventSink(cbEVT_WORKSPACE_LOADING_COMPLETE, new cbEventFunctor<EditorManager, CodeBlocksEvent>(this, &EditorManager::CollectDefines));
-    Manager::Get()->RegisterEventSink(cbEVT_APP_ACTIVATED,              new cbEventFunctor<EditorManager, CodeBlocksEvent>(this, &EditorManager::OnAppActivated));
-
-    ColourManager *colours = Manager::Get()->GetColourManager();
-    colours->RegisterColour(_("Editor"), _("Caret"), wxT("editor_caret"), *wxBLACK);
-    colours->RegisterColour(_("Editor"), _("Right margin"), wxT("editor_gutter"), *wxLIGHT_GREY);
-    colours->RegisterColour(_("Editor"), _("Line numbers foreground colour"), wxT("editor_linenumbers_fg"),
-                            wxSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT));
-    colours->RegisterColour(_("Editor"), _("Line numbers background colour"), wxT("editor_linenumbers_bg"),
-                            wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-
-    // These two are taken from Platform::Chrome() and Platform::ChromeHightlight()
-    colours->RegisterColour(_("Editor"), _("Margin chrome colour"), wxT("editor_margin_chrome"),
-                            wxSystemSettings::GetColour(wxSYS_COLOUR_3DFACE));
-    colours->RegisterColour(_("Editor"), _("Margin chrome highlight colour"), wxT("editor_margin_chrome_highlight"),
-                            wxSystemSettings::GetColour(wxSYS_COLOUR_3DHIGHLIGHT));
 }
 
 EditorManager::~EditorManager()
 {
+    SaveAutoComplete();
+
+    CodeBlocksLogEvent evt(cbEVT_REMOVE_LOG_WINDOW, m_pSearchLog);
+    Manager::Get()->ProcessEvent(evt);
+
     DeleteNotebookStack();
     delete m_pNotebookStackHead;
     delete m_Theme;
+    delete m_LastFindReplaceData;
     delete m_pData;
     Manager::Get()->GetConfigManager(_T("editor"))->Write(_T("/zoom"), m_Zoom);
 }
@@ -208,7 +260,7 @@ cbNotebookStack* EditorManager::GetNotebookStack()
                 found = false;
                 for (body = m_pNotebookStackHead->next; body != NULL; body = body->next)
                 {
-                    if (wnd == body->window)
+                    if(wnd == body->window)
                     {
                         found = true;
                         break;
@@ -226,7 +278,7 @@ cbNotebookStack* EditorManager::GetNotebookStack()
         {
             for (prev_body = m_pNotebookStackHead, body = prev_body->next; body != NULL; prev_body = body, body = body->next)
             {
-                if (m_pNotebook->GetPageIndex(body->window) == wxNOT_FOUND)
+                if(m_pNotebook->GetPageIndex(body->window) == wxNOT_FOUND)
                 {
                     prev_body->next = body->next;
                     delete body;
@@ -256,7 +308,7 @@ void EditorManager::DeleteNotebookStack()
 void EditorManager::RebuildNotebookStack()
 {
     DeleteNotebookStack();
-    for (size_t i = 0; i < m_pNotebook->GetPageCount(); ++i)
+    for(size_t i = 0; i < m_pNotebook->GetPageCount(); ++i)
     {
         m_pNotebookStackTail->next = new cbNotebookStack(m_pNotebook->GetPage(i));
         m_pNotebookStackTail = m_pNotebookStackTail->next;
@@ -264,21 +316,157 @@ void EditorManager::RebuildNotebookStack()
     }
 }
 
-void EditorManager::RecreateOpenEditorStyles()
+void EditorManager::CreateMenu(wxMenuBar* /*menuBar*/)
 {
-    // tell all open editors to re-create their styles
-    for (size_t i = 0; i < m_pNotebook->GetPageCount(); ++i)
+}
+
+void EditorManager::ReleaseMenu(wxMenuBar* /*menuBar*/)
+{
+}
+
+void EditorManager::Configure()
+{
+    // editor lexers loading takes some time; better reflect this with a hourglass
+    wxBeginBusyCursor();
+
+    EditorConfigurationDlg dlg(Manager::Get()->GetAppWindow());
+    PlaceWindow(&dlg);
+
+    // done, restore pointer
+    wxEndBusyCursor();
+
+    if (dlg.ShowModal() == wxID_OK)
     {
-        cbEditor* ed = InternalGetBuiltinEditor(i);
-        if (ed)
+        // tell all open editors to re-create their styles
+        for (size_t i = 0; i < m_pNotebook->GetPageCount(); ++i)
         {
-            bool saveSuccess = ed->SaveFoldState(); //First Save the old fold levels
-            ed->SetEditorStyle();
-            if (saveSuccess)
+            cbEditor* ed = InternalGetBuiltinEditor(i);
+            if (ed)
             {
-                ed->FixFoldState(); //Compare old fold levels with new and change the bugs
+                bool saveSuccess = ed->SaveFoldState(); //First Save the old fold levels
+                ed->SetEditorStyle();
+                if (saveSuccess)
+                {
+                    ed->FixFoldState(); //Compare old fold levels with new and change the bugs
+                }
             }
         }
+    }
+}
+
+void EditorManager::CreateSearchLog()
+{
+    if (Manager::IsBatchBuild())
+        return;
+
+    wxArrayInt widths;
+    wxArrayString titles;
+    titles.Add(_("File"));
+    titles.Add(_("Line"));
+    titles.Add(_("Text"));
+    widths.Add(128);
+    widths.Add(48);
+    widths.Add(640);
+
+    wxString prefix = ConfigManager::GetDataFolder() + _T("/images/16x16/");
+    wxBitmap * bmp = new wxBitmap(cbLoadBitmap(prefix + _T("filefind.png"), wxBITMAP_TYPE_PNG));
+
+    m_pSearchLog = new SearchResultsLog(titles, widths);
+    CodeBlocksLogEvent evt(cbEVT_ADD_LOG_WINDOW, m_pSearchLog, _("Search results"), bmp);
+    Manager::Get()->ProcessEvent(evt);
+}
+
+void EditorManager::LogSearch(const wxString& file, int line, const wxString& lineText)
+{
+    wxArrayString values;
+    wxString lineTextL;
+    wxString lineStr;
+
+    // line number -1 is used for empty string
+    if (line != -1)
+        lineStr.Printf(_T("%d"), line);
+    else
+        lineStr.Printf(_T(" "));
+
+    lineTextL = lineText;
+    lineTextL.Replace(_T("\t"), _T(" "));
+    lineTextL.Replace(_T("\r"), _T(" "));
+    lineTextL.Replace(_T("\n"), _T(" "));
+    lineTextL.Trim(false);
+    lineTextL.Trim(true);
+
+    values.Add(file);
+    values.Add(lineStr);
+    values.Add(lineTextL);
+
+    m_pSearchLog->Append(values, line == -1 ? Logger::caption : Logger::info);
+}
+
+void EditorManager::LoadAutoComplete()
+{
+    m_AutoCompleteMap.clear();
+    wxArrayString list = Manager::Get()->GetConfigManager(_T("editor"))->EnumerateSubPaths(_T("/auto_complete"));
+    for (unsigned int i = 0; i < list.GetCount(); ++i)
+    {
+        wxString name = Manager::Get()->GetConfigManager(_T("editor"))->Read(_T("/auto_complete/") + list[i] + _T("/name"), wxEmptyString);
+        wxString code = Manager::Get()->GetConfigManager(_T("editor"))->Read(_T("/auto_complete/") + list[i] + _T("/code"), wxEmptyString);
+        if (name.IsEmpty() || code.IsEmpty())
+            continue;
+        m_AutoCompleteMap[name] = code;
+    }
+
+    if (m_AutoCompleteMap.size() == 0)
+    {
+        // default auto-complete items
+        m_AutoCompleteMap[_T("if")]     = _T("if (|)\n\t;");
+        m_AutoCompleteMap[_T("ifb")]    = _T("if (|)\n{\n\t\n}");
+        m_AutoCompleteMap[_T("ife")]    = _T("if (|)\n{\n\t\n}\nelse\n{\n\t\n}");
+        m_AutoCompleteMap[_T("ifei")]   = _T("if (|)\n{\n\t\n}\nelse if ()\n{\n\t\n}\nelse\n{\n\t\n}");
+        m_AutoCompleteMap[_T("guard")]  = _T("#ifndef $(Guard token)\n#define $(Guard token)\n\n|\n\n#endif // $(Guard token)\n");
+        m_AutoCompleteMap[_T("while")]  = _T("while (|)\n\t;");
+        m_AutoCompleteMap[_T("whileb")] = _T("while (|)\n{\n\t\n}");
+        m_AutoCompleteMap[_T("switch")] = _T("switch (|)\n{\n\tcase :\n\t\tbreak;\n\n\tdefault:\n\t\tbreak;\n}\n");
+        m_AutoCompleteMap[_T("for")]    = _T("for (|; ; )\n\t;");
+        m_AutoCompleteMap[_T("forb")]   = _T("for (|; ; )\n{\n\t\n}");
+        m_AutoCompleteMap[_T("class")]  = _T("class $(Class name)|\n{\n\tpublic:\n\t\t$(Class name)();\n\t\t~$(Class name)();\n\tprotected:\n\t\t\n\tprivate:\n\t\t\n};\n");
+        m_AutoCompleteMap[_T("struct")] = _T("struct |\n{\n\t\n};\n");
+    }
+
+    // date and time macros
+    // these are auto-added if they 're found to be missing
+    const wxString timeAndDate[9][2] =
+    {
+        { _T("tday"),   _T("$TDAY") },
+        { _T("tdayu"),  _T("$TDAY_UTC") },
+        { _T("today"),  _T("$TODAY") },
+        { _T("todayu"), _T("$TODAY_UTC") },
+        { _T("now"),    _T("$NOW") },
+        { _T("nowl"),   _T("$NOW_L") },
+        { _T("nowu"),   _T("$NOW_UTC") },
+        { _T("nowlu"),  _T("$NOW_L_UTC") },
+        { _T("wdu"),    _T("$WEEKDAY_UTC") },
+    };
+    for (int i = 0; i < 9; ++i)
+    {
+        if (m_AutoCompleteMap.find(timeAndDate[i][0]) == m_AutoCompleteMap.end())
+            m_AutoCompleteMap[timeAndDate[i][0]] = timeAndDate[i][1];
+    }
+}
+
+void EditorManager::SaveAutoComplete()
+{
+    Manager::Get()->GetConfigManager(_T("editor"))->DeleteSubPath(_T("/auto_complete"));
+    AutoCompleteMap::iterator it;
+    int count = 0;
+    for (it = m_AutoCompleteMap.begin(); it != m_AutoCompleteMap.end(); ++it)
+    {
+        wxString code = it->second;
+        ++count;
+        wxString key;
+        key.Printf(_T("/auto_complete/entry%d/name"), count);
+        Manager::Get()->GetConfigManager(_T("editor"))->Write(key, it->first);
+        key.Printf(_T("/auto_complete/entry%d/code"), count);
+        Manager::Get()->GetConfigManager(_T("editor"))->Write(key, code);
     }
 }
 
@@ -293,7 +481,7 @@ EditorBase* EditorManager::InternalGetEditorBase(int page)
     {
         return static_cast<EditorBase*>(m_pNotebook->GetPage(page));
     }
-    return nullptr;
+    return 0;
 }
 
 cbEditor* EditorManager::InternalGetBuiltinEditor(int page)
@@ -301,12 +489,12 @@ cbEditor* EditorManager::InternalGetBuiltinEditor(int page)
     EditorBase* eb = InternalGetEditorBase(page);
     if (eb && eb->IsBuiltinEditor())
         return (cbEditor*)eb;
-    return nullptr;
+    return 0;
 }
 
 cbEditor* EditorManager::GetBuiltinEditor(EditorBase* eb)
 {
-    return eb && eb->IsBuiltinEditor() ? (cbEditor*)eb : nullptr;
+    return eb && eb->IsBuiltinEditor() ? (cbEditor*)eb : 0;
 }
 
 EditorBase* EditorManager::IsOpen(const wxString& filename)
@@ -350,7 +538,7 @@ void EditorManager::SetColourSet(EditorColourSet* theme)
 
 cbEditor* EditorManager::Open(const wxString& filename, int pos, ProjectFile* data)
 {
-    return Open(nullptr, filename, pos, data);
+    return Open(0, filename, pos, data);
 }
 
 cbEditor* EditorManager::Open(LoaderBase* fileLdr, const wxString& filename, int /*pos*/, ProjectFile* data)
@@ -361,7 +549,7 @@ cbEditor* EditorManager::Open(LoaderBase* fileLdr, const wxString& filename, int
     wxString fname = UnixFilename(fn.GetFullPath());
     //  Manager::Get()->GetLogManager()->DebugLog("Trying to open '%s'", fname.c_str());
     if (!wxFileExists(fname))
-        return nullptr;
+        return 0;
     //  Manager::Get()->GetLogManager()->DebugLog("File exists '%s'", fname.c_str());
 
     // disallow application shutdown while opening files
@@ -369,7 +557,7 @@ cbEditor* EditorManager::Open(LoaderBase* fileLdr, const wxString& filename, int
     s_CanShutdown = false;
 
     EditorBase* eb = IsOpen(fname);
-    cbEditor* ed = nullptr;
+    cbEditor* ed = 0;
     if (eb)
     {
         if (eb->IsBuiltinEditor())
@@ -379,7 +567,7 @@ cbEditor* EditorManager::Open(LoaderBase* fileLdr, const wxString& filename, int
         else
         {
             s_CanShutdown = true;
-            return nullptr; // is open but not a builtin editor
+            return 0; // is open but not a builtin editor
         }
     }
 
@@ -395,30 +583,44 @@ cbEditor* EditorManager::Open(LoaderBase* fileLdr, const wxString& filename, int
             else
             {
                 ed->Destroy();
-                ed = nullptr;
+                ed = NULL;
             }
         }
-    }
-
-    // check for ProjectFile
-    if (ed && !ed->GetProjectFile())
-    {
-        // First checks if we're already being passed a ProjectFile as a parameter
-        if (data)
-            Manager::Get()->GetLogManager()->DebugLog(_T("Project data set for ") + data->file.GetFullPath());
-        else
-            Manager::Get()->GetProjectManager()->FindProjectForFile(ed->GetFilename(), &data, false, false);
-        if (data)
-            ed->SetProjectFile(data,true);
     }
 
     if (can_updateui)
     {
         if (ed)
         {
-            SetActiveEditor(ed); // fires the cbEVT_EDITOR_ACTIVATED event
+            SetActiveEditor(ed);
             ed->GetControl()->SetFocus();
         }
+    }
+
+    // check for ProjectFile
+    if (ed && !ed->GetProjectFile())
+    {
+        // First checks if we're already being passed a ProjectFile
+        // as a parameter
+        if (data)
+            Manager::Get()->GetLogManager()->DebugLog(_T("project data set for ") + data->file.GetFullPath());
+        else
+        {
+            ProjectsArray* projects = Manager::Get()->GetProjectManager()->GetProjects();
+            for (unsigned int i = 0; i < projects->GetCount(); ++i)
+            {
+                cbProject* prj = projects->Item(i);
+                ProjectFile* pf = prj->GetFileByFilename(ed->GetFilename(), false);
+                if (pf)
+                {
+//                    Manager::Get()->GetLogManager()->DebugLog(_T("Found ") + pf->file.GetFullPath());
+                    data = pf;
+                    break;
+                }
+            }
+        }
+        if (data)
+            ed->SetProjectFile(data,true);
     }
 
     // we 're done
@@ -433,7 +635,7 @@ EditorBase* EditorManager::GetActiveEditor()
     {
         return InternalGetEditorBase(m_pNotebook->GetSelection());
     }
-    return nullptr;
+    return 0;
 }
 
 void EditorManager::ActivateNext()
@@ -456,19 +658,21 @@ void EditorManager::SetActiveEditor(EditorBase* ed)
         // Previously the Activated event was only sent for built-in editors, which makes no sense
         int sel = m_pNotebook->GetSelection();
         m_pNotebook->SetSelection(page);
-        EditorBase* eb_old = nullptr;
+        EditorBase* eb_old = 0;
         if (sel>=0)
             eb_old = static_cast<EditorBase*>(m_pNotebook->GetPage(sel));
 
-        CodeBlocksEvent evt(cbEVT_EDITOR_SWITCHED, -1, nullptr, ed, nullptr, eb_old);
+        CodeBlocksEvent evt(cbEVT_EDITOR_SWITCHED, -1, 0, ed, 0, eb_old);
         Manager::Get()->GetPluginManager()->NotifyPlugins(evt);
 
-        CodeBlocksEvent evt2(cbEVT_EDITOR_ACTIVATED, -1, nullptr, ed);
+        CodeBlocksEvent evt2(cbEVT_EDITOR_ACTIVATED, -1, 0, ed);
         Manager::Get()->GetPluginManager()->NotifyPlugins(evt2);
     }
 
     if (ed->IsBuiltinEditor())
+    {
         static_cast<cbEditor*>(ed)->GetControl()->SetFocus();
+    }
 }
 
 cbEditor* EditorManager::New(const wxString& newFileName)
@@ -479,7 +683,7 @@ cbEditor* EditorManager::New(const wxString& newFileName)
     {
         wxFile f(newFileName, wxFile::write);
         if (!f.IsOpened())
-            return nullptr;
+            return 0;
     }
     cbEditor* ed = new cbEditor(m_pNotebook, newFileName);
 //    if ((newFileName.IsEmpty() && !ed->SaveAs()) || !ed->Save())
@@ -504,10 +708,8 @@ cbEditor* EditorManager::New(const wxString& newFileName)
 
     ed->Show(true);
     SetActiveEditor(ed);
-
-    CodeBlocksEvent evt(cbEVT_EDITOR_OPEN, -1, nullptr, ed);
+    CodeBlocksEvent evt(cbEVT_EDITOR_OPEN, -1, 0, ed);
     Manager::Get()->GetPluginManager()->NotifyPlugins(evt);
-
     return ed;
 }
 
@@ -532,10 +734,10 @@ void EditorManager::AddEditorBase(EditorBase* eb)
     }
 }
 
-void EditorManager::RemoveEditorBase(EditorBase* eb, cb_unused bool deleteObject)
+void EditorManager::RemoveEditorBase(EditorBase* eb, bool /*deleteObject*/)
 {
     int page = FindPageFromEditor(eb);
-    if (page != -1 && !Manager::IsAppShuttingDown())
+    if (page != -1 && !Manager::isappShuttingDown())
         m_pNotebook->RemovePage(page);
 
     //    if (deleteObject)
@@ -554,10 +756,10 @@ bool EditorManager::UpdateProjectFiles(cbProject* project)
             continue;
         if (pf->GetParentProject() != project)
             continue;
-
+        pf->editorTopLine = ed->GetControl()->GetFirstVisibleLine();
+        pf->editorPos = ed->GetControl()->GetCurrentPos();
         pf->editorTabPos = m_pNotebook->GetTabPositionFromIndex(i) + 1;
-
-        ed->UpdateProjectFile();
+        pf->editorOpen = true;
     }
     return true;
 }
@@ -611,15 +813,33 @@ bool EditorManager::QueryClose(EditorBase *ed)
 {
     if (!ed)
         return true;
-
-    return ed->QueryClose();
+    if (ed->GetModified())
+    {
+        // TODO (mandrav#1#): Move this in EditorBase
+        wxString msg;
+        msg.Printf(_("File %s is modified...\nDo you want to save the changes?"), ed->GetFilename().c_str());
+        switch (cbMessageBox(msg, _("Save file"), wxICON_QUESTION | wxYES_NO | wxCANCEL))
+        {
+        case wxID_YES:
+            if (!ed->Save())
+                return false;
+            break;
+        case wxID_NO:
+            break;
+        case wxID_CANCEL:
+            return false;
+        }
+        ed->SetModified(false);
+    }
+    else
+    {
+        return ed->QueryClose();
+    }
+    return true;
 }
 
 int EditorManager::FindPageFromEditor(EditorBase* eb)
 {
-    if (!m_pNotebook || !eb)
-        return -1;
-
     for (size_t i = 0; i < m_pNotebook->GetPageCount(); ++i)
     {
         if (m_pNotebook->GetPage(i) == eb)
@@ -741,8 +961,6 @@ void EditorManager::Print(PrintScope ps, PrintColourMode pcm, bool line_numbers)
             }
             break;
         }
-    case psActiveEditor: // fall through
-    case psSelection:    // fall through
     default:
         {
             cbEditor* ed = GetBuiltinEditor(GetActiveEditor());
@@ -767,72 +985,9 @@ void EditorManager::CheckForExternallyModifiedFiles()
         bool b_modified = false;
 
         // no builtin editor or new file not yet saved
-        if (!ed)
-        {
-            EditorBase* eb = InternalGetEditorBase(i);
-            if (eb)
-            {
-                ProjectFile* pf = nullptr;
-
-                wxFileName fn(eb->GetFilename());
-                fn.MakeAbsolute();
-                Manager::Get()->GetProjectManager()->FindProjectForFile(fn.GetFullPath(), &pf, false, false);
-
-                bool readOnly = eb->IsReadOnly() || (fn.FileExists() && !wxFile::Access(fn.GetFullPath(), wxFile::write));
-                MarkReadOnly(i, readOnly);
-
-                if (pf)
-                {
-                    if (!fn.FileExists()) // file was deleted ?
-                    {
-                        if (pf->GetFileState() != fvsMissing) // already asked
-                        {
-                            wxString msg;
-                            msg.Printf(_("%s has been deleted, or is no longer available.\n"
-                                         "Do you wish to try to save the file to disk?\n"
-                                         "If you close it, it will most likely be lost !\n"
-                                         "If you cancel this dialog, you have to take care yourself !\n"
-                                         "Yes: save the file, No: close it, Cancel: keep your fingers crossed."), eb->GetFilename().c_str());
-                            int ret = cbMessageBox(msg, _("File changed!"), wxICON_QUESTION | wxYES_NO | wxCANCEL );
-                            switch (ret)
-                            {
-                                case wxID_YES:
-                                {
-                                    eb->Save();
-                                    break;
-                                }
-                                case wxID_NO:
-                                {
-                                    pf->SetFileState(fvsMissing);
-                                    eb->Close();
-                                    break;
-                                }
-                                case wxID_CANCEL: // fall through
-                                default:
-                                    eb->SetModified(true); // some editors might implement it
-                                    pf->SetFileState(fvsMissing);
-                                    break;
-                            }
-                        }
-                    }
-                    else
-                        pf->SetFileState(readOnly?fvsReadOnly:fvsNormal);
-                }
-                continue;
-            }
-        }
-        if (!ed->IsOK())
+        if (!ed || !ed->IsOK())
             continue;
-
-        ProjectFile* pf = ed->GetProjectFile();
-        if (pf)
-        {
-            cbProject* prj = pf->GetParentProject();
-            if (prj && !prj->GetCheckForExternallyModifiedFiles())
-                continue;
-        }
-
-        // File was deleted?
+        //File was deleted?
         if (!wxFileExists(ed->GetFilename()))
         {
             if (ed->GetModified()) // Already set the flag
@@ -845,6 +1000,7 @@ void EditorManager::CheckForExternallyModifiedFiles()
                 ed->SetModified(true);
             else
             {
+                ProjectFile* pf = ed->GetProjectFile();
                 if (pf)
                     pf->SetFileState(fvsMissing);
                 ed->Close();
@@ -852,6 +1008,7 @@ void EditorManager::CheckForExternallyModifiedFiles()
             continue;
         }
 
+        ProjectFile* pf = ed->GetProjectFile();
         wxFileName fname(ed->GetFilename());
         wxDateTime last = fname.GetModificationTime();
 
@@ -860,8 +1017,7 @@ void EditorManager::CheckForExternallyModifiedFiles()
                 wxFile::Access(ed->GetFilename().c_str(), wxFile::write))
         {
             b_modified = false;
-            ed->SetReadOnly(false);
-            MarkReadOnly(i, false);
+            ed->GetControl()->SetReadOnly(false);
             if (pf)
                 pf->SetFileState(fvsNormal);
         }
@@ -870,8 +1026,7 @@ void EditorManager::CheckForExternallyModifiedFiles()
                 !wxFile::Access(ed->GetFilename().c_str(), wxFile::write))
         {
             b_modified = false;
-            ed->SetReadOnly(true);
-            MarkReadOnly(i);
+            ed->GetControl()->SetReadOnly(true);
             if (pf)
                 pf->SetFileState(fvsReadOnly);
         }
@@ -892,13 +1047,6 @@ void EditorManager::CheckForExternallyModifiedFiles()
                 dlg.SetTitle(_("Reload file?"));
                 dlg.GetSizer()->SetSizeHints(&dlg);
                 PlaceWindow(&dlg);
-
-                // Find the window, that actually has the mouse-focus and force a release
-                // prevents crash on windows or hang on wxGTK
-                wxWindow* win = wxWindow::GetCapture();
-                if (win)
-                    win->ReleaseMouse();
-
                 ret = dlg.ShowModal();
                 reloadAll = ret == crAll;
             }
@@ -928,24 +1076,11 @@ void EditorManager::CheckForExternallyModifiedFiles()
     m_isCheckingForExternallyModifiedFiles = false;
 }
 
-void EditorManager::MarkReadOnly(int page, bool readOnly)
+bool EditorManager::IsHeaderSource(const wxFileName& candidateFile, const wxFileName& activeFile, FileType ftActive)
 {
-    if (page > -1)
+    // Verify the base name mathes
+    if (candidateFile.GetName() == activeFile.GetName())
     {
-        wxBitmap bmp = readOnly ? cbLoadBitmap(ConfigManager::GetDataFolder() + _T("/images/") + _T("readonly.png")) : wxNullBitmap;
-        if (m_pNotebook)
-            m_pNotebook->SetPageBitmap(page, bmp);
-    }
-}
-
-bool EditorManager::IsHeaderSource(const wxFileName& candidateFile, const wxFileName& activeFile, FileType ftActive, bool& isCandidate)
-{
-    // Verify the base name matches
-    if (candidateFile.GetName().CmpNoCase(activeFile.GetName()) == 0)
-    {
-        // matching case has priority over case-insensitive
-        isCandidate = (candidateFile.GetName() != activeFile.GetName());
-
         // Verify:
         // If looking for a header we have a source OR
         // If looking for a source we have a header
@@ -953,19 +1088,6 @@ bool EditorManager::IsHeaderSource(const wxFileName& candidateFile, const wxFile
         if (    ((ftActive == ftHeader) && (ftTested == ftSource))
              || ((ftActive == ftSource) && (ftTested == ftHeader)) )
         {
-            // Handle the case where two files (in different directories) have the same name:
-            // Example: A project file with three files dir1/file.h dir1/file.cpp dir2/file.h
-            // If you are in dir2/file.h and you want to swap Code::Blocks will first look if there
-            // isn't a file.h in that directory, which is in this case and would then ask the user
-            // to create a new file.cpp in dir2
-            if (candidateFile.GetPath() != activeFile.GetPath()) // Check if we are not in the same Directory
-            {
-                wxArrayString fileArray;
-                wxDir::GetAllFiles(candidateFile.GetPath(wxPATH_GET_VOLUME), &fileArray, candidateFile.GetName() + _T(".*"), wxDIR_FILES | wxDIR_HIDDEN);
-                for (unsigned i=0; i<fileArray.GetCount(); i++)                             // if in this directory there is already
-                    if (wxFileName(fileArray[i]).GetFullName() == activeFile.GetFullName()) // a header file (or source file) for our candidate
-                        return false;                                                       // file it can't be our candidate file
-            }
             if (candidateFile.FileExists())
                 return true;
         }
@@ -985,12 +1107,13 @@ wxFileName EditorManager::FindHeaderSource(const wxArrayString& candidateFilesAr
     {
         wxFileName currentCandidateFile(candidateFilesArray[i]);
 
-        if (IsHeaderSource(currentCandidateFile, activeFile, ftActive, isCandidate))
+        if (IsHeaderSource(currentCandidateFile, activeFile, ftActive))
         {
             bool isUpper = wxIsupper(currentCandidateFile.GetExt()[0]);
-            if (isUpper == extStartsWithCapital && !isCandidate)
+            if (isUpper == extStartsWithCapital)
             {
                 // we definitely found the header/source we were searching for
+                isCandidate = false;
                 return currentCandidateFile;
             }
             else
@@ -1008,56 +1131,6 @@ wxFileName EditorManager::FindHeaderSource(const wxArrayString& candidateFilesAr
     return candidateFile;
 }
 
-bool EditorManager::OpenContainingFolder()
-{
-    cbEditor* ed = GetBuiltinEditor(GetActiveEditor());
-    if (!ed)
-        return false;
-
-    ConfigManager* cfg = Manager::Get()->GetConfigManager(_T("editor"));
-#if defined __WXMSW__
-    const wxString defCmds = _T("explorer.exe /select,");
-#elif defined __WXMAC__
-    const wxString defCmds = _T("open -R");
-#else
-    const wxString defCmds = _T("xdg-open");
-
-    if (!cfg->ReadBool(_T("scanned_open_folder_mime"), false))
-    {
-        cfg->Write(_T("scanned_open_folder_mime"), true);
-        wxString cmd =   Manager::Get()->GetConfigManager(_T("app"))->Read(_T("/console_shell"), DEFAULT_CONSOLE_SHELL)
-                       + _T(" 'cat /usr/share/applications/`xdg-mime query default inode/directory` | grep Exec'");
-        wxArrayString output, errors;
-        wxExecute(cmd, output, errors, wxEXEC_SYNC);
-        if (!output.IsEmpty())
-        {
-            cmd = output[0].AfterFirst('=').BeforeFirst('%').Trim(true).Trim(false);
-            if (!cmd.IsEmpty() && cmd != defCmds)
-                cfg->Write(_T("open_containing_folder"), cmd);
-        }
-    }
-#endif
-
-    wxString cmds = cfg->Read(_T("open_containing_folder"), defCmds) + _T(" ");
-    const wxString& fullPath = ed->GetFilename();
-#if defined __WXMSW__ || defined __WXMAC__
-    cmds << fullPath;   // Open folder with the file selected
-#else
-    if (cmds.StartsWith(defCmds))
-    {
-        // Cannot select the file with "xdg-open", so just extract the folder name
-        wxString splitPath;
-        wxFileName::SplitPath(fullPath, &splitPath, nullptr, nullptr);
-        cmds << splitPath;
-    }
-    else
-        cmds << fullPath; // Open folder with the file selected
-#endif
-
-    wxExecute(cmds);
-    return true;
-}
-
 bool EditorManager::SwapActiveHeaderSource()
 {
     cbEditor* ed = GetBuiltinEditor(GetActiveEditor());
@@ -1072,7 +1145,7 @@ bool EditorManager::SwapActiveHeaderSource()
     if (ft != ftHeader && ft != ftSource)
         return false;
 
-    cbProject* project = nullptr;
+    cbProject* project = 0;
 
     // if the file in question belongs to a different open project,
     // then use that project instead.
@@ -1105,7 +1178,7 @@ bool EditorManager::SwapActiveHeaderSource()
     else if (currentCandidateFile.IsOk())
     {
         cbEditor* newEd = Open(currentCandidateFile.GetFullPath());
-        if (newEd!=nullptr) // we found and were able to open it
+        if (newEd!=0L) // we found and were able to open it
             return true; // --> RETURN;
     }
 
@@ -1132,7 +1205,7 @@ bool EditorManager::SwapActiveHeaderSource()
     if (!isCandidate && currentCandidateFile.IsOk())
     {
         cbEditor* newEd = Open(currentCandidateFile.GetFullPath());
-        if (newEd!=nullptr) // we found and were able to open it
+        if (newEd!=0L) // we found and were able to open it
             return true; // --> RETURN;
     }
 
@@ -1142,9 +1215,9 @@ bool EditorManager::SwapActiveHeaderSource()
 
         // build a list of project files
         fileArray.Clear();
-        for (FilesList::iterator it = project->GetFilesList().begin(); it != project->GetFilesList().end(); ++it)
+        for (int i = 0; i < project->GetFilesCount(); ++i)
         {
-            ProjectFile* pf = *it;
+            ProjectFile* pf = project->GetFile(i);
             if (!pf)
                 continue;
 
@@ -1161,7 +1234,7 @@ bool EditorManager::SwapActiveHeaderSource()
         else if (currentCandidateFile.IsOk())
         {
             cbEditor* newEd = Open(currentCandidateFile.GetFullPath());
-            if (newEd!=nullptr) // we found and were able to open it
+            if (newEd!=0L) // we found and were able to open it
                 return true; // --> RETURN;
         }
 
@@ -1212,7 +1285,7 @@ bool EditorManager::SwapActiveHeaderSource()
             else if (currentCandidateFile.IsOk())
             {
                 cbEditor* newEd = Open(currentCandidateFile.GetFullPath());
-                if (newEd!=nullptr) // we found and were able to open it
+                if (newEd!=0L) // we found and were able to open it
                     return true; // --> RETURN;
             }
         }
@@ -1223,22 +1296,8 @@ bool EditorManager::SwapActiveHeaderSource()
     if (candidateFile.IsOk())
     {
         cbEditor* newEd = Open(candidateFile.GetFullPath());
-        if (newEd!=nullptr) // we found and were able to open it
+        if (newEd!=0L) // we found and were able to open it
             return true; // --> RETURN;
-    }
-
-    // nothing else worked, try to find source-source pairs of auto-generated files
-    if (opf)
-    {
-        ProjectFile* candidatePF = opf->AutoGeneratedBy();
-        if (!candidatePF && !opf->generatedFiles.empty())
-            candidatePF = opf->generatedFiles.front();
-        if (candidatePF)
-        {
-            cbEditor* newEd = Open(candidatePF->file.GetFullPath());
-            if (newEd!=nullptr) // we found and were able to open it
-                return true; // --> RETURN;
-        }
     }
 
     // We couldn't find the file, maybe it does not exist. Ask the user if we
@@ -1246,7 +1305,7 @@ bool EditorManager::SwapActiveHeaderSource()
     if (cbMessageBox(_("The file seems not to exist. Do you want to create it?"),
                 _("Error"), wxICON_QUESTION | wxYES_NO) == wxID_YES)
     {
-        project = Manager::Get()->GetProjectManager()->GetActiveProject();
+        cbProject* project = Manager::Get()->GetProjectManager()->GetActiveProject();
         if (project)
             wxSetWorkingDirectory(project->GetBasePath());
 
@@ -1270,7 +1329,7 @@ bool EditorManager::SwapActiveHeaderSource()
                 {
                     ProjectFile* pf = project->GetFileByFilename(newEd->GetFilename(), false);
                     newEd->SetProjectFile(pf);
-                    Manager::Get()->GetProjectManager()->GetUI().RebuildTree();
+                    Manager::Get()->GetProjectManager()->RebuildTree();
                 }
             }
         }
@@ -1281,6 +1340,1336 @@ bool EditorManager::SwapActiveHeaderSource()
     }
 
     return false;
+}
+
+int EditorManager::ShowFindDialog(bool replace, bool explicitly_find_in_files)
+{
+    wxString phraseAtCursor;
+    bool hasSelection = false;
+    cbStyledTextCtrl* control = 0;
+
+    cbEditor* ed = GetBuiltinEditor(GetActiveEditor());
+    if (ed)
+    {
+        control = ed->GetControl();
+
+        hasSelection = control->GetSelectionStart() != control->GetSelectionEnd();
+        int wordStart = control->WordStartPosition(control->GetCurrentPos(), true);
+        int wordEnd = control->WordEndPosition(control->GetCurrentPos(), true);
+        wxString wordAtCursor = control->GetTextRange(wordStart, wordEnd);
+        phraseAtCursor = control->GetSelectedText();
+        // if selected text is part of a single line, don't suggest "search in selection"
+        if (control->LineFromPosition(control->GetSelectionStart())
+            == control->LineFromPosition(control->GetSelectionEnd()))
+            hasSelection = false;
+
+        if ( phraseAtCursor.IsEmpty())
+            phraseAtCursor = wordAtCursor;
+
+        int selstartline = control->LineFromPosition(control->GetSelectionStart());
+        int selendline   = control->LineFromPosition(control->GetSelectionEnd());
+        // the selection of several lines is not proposed as search pattern
+        if ( selstartline != selendline )
+            phraseAtCursor = wxEmptyString;
+
+    }
+
+    FindReplaceBase* dlg;
+    if (!replace)
+        dlg = new FindDlg(Manager::Get()->GetAppWindow(), phraseAtCursor, hasSelection, !ed, explicitly_find_in_files);
+    else
+        dlg = new ReplaceDlg(Manager::Get()->GetAppWindow(), phraseAtCursor, hasSelection, !ed, explicitly_find_in_files);
+
+    PlaceWindow(dlg);
+    if (dlg->ShowModal() == wxID_CANCEL)
+    {
+        dlg->Destroy();
+        return -2;
+    }
+
+    // Don't look for empty strings:
+    if (dlg->GetFindString().empty())
+    {
+        dlg->Destroy();
+        cbMessageBox(_("Can't look for an empty search criterion!"), _("Error"), wxOK | wxICON_EXCLAMATION, Manager::Get()->GetAppWindow());
+        return -2;
+    }
+
+    if (!m_LastFindReplaceData)
+        m_LastFindReplaceData = new cbFindReplaceData;
+
+    m_LastFindReplaceData->start = 0;
+    m_LastFindReplaceData->end = 0;
+    m_LastFindReplaceData->findText = dlg->GetFindString();
+    m_LastFindReplaceData->replaceText = dlg->GetReplaceString();
+    m_LastFindReplaceData->eolMode = wxSCI_EOL_LF;
+    m_LastFindReplaceData->fixEOLs = dlg->GetFixEOLs();
+    m_LastFindReplaceData->startFile = dlg->GetStartFile();
+
+    m_LastFindReplaceData->findInFiles = dlg->IsFindInFiles();
+    if (!m_LastFindReplaceData->findInFiles)
+    {
+        //AutoWrapSearch does not exist in FindInFiles dialog
+        m_LastFindReplaceData->autoWrapSearch = dlg->GetAutoWrapSearch();
+
+        //FindUsesSelectedText does not exist in Replace dialogs
+        if (!replace)
+            m_LastFindReplaceData->findUsesSelectedText = dlg->GetFindUsesSelectedText();
+    }
+    m_LastFindReplaceData->delOldSearches = dlg->GetDeleteOldSearches();
+    m_LastFindReplaceData->matchWord = dlg->GetMatchWord();
+    m_LastFindReplaceData->startWord = dlg->GetStartWord();
+    m_LastFindReplaceData->matchCase = dlg->GetMatchCase();
+    m_LastFindReplaceData->regEx = dlg->GetRegEx();
+    m_LastFindReplaceData->directionDown = dlg->GetDirection() == 1;
+    m_LastFindReplaceData->originEntireScope = dlg->GetOrigin() == 1;
+    m_LastFindReplaceData->scope = dlg->GetScope();
+    m_LastFindReplaceData->searchPath = dlg->GetSearchPath();
+    m_LastFindReplaceData->searchMask = dlg->GetSearchMask();
+    m_LastFindReplaceData->recursiveSearch = dlg->GetRecursive();
+    m_LastFindReplaceData->hiddenSearch = dlg->GetHidden();
+    m_LastFindReplaceData->initialreplacing = false;
+    m_LastFindReplaceData->NewSearch = true;
+    if (control)
+    {   // if editor : store the selection start/end
+        // only use this in case of !findInFiles and scope==1 (search in selection)
+        m_LastFindReplaceData->SearchInSelectionStart = control->GetSelectionStart();
+        m_LastFindReplaceData->SearchInSelectionEnd = control->GetSelectionEnd();
+    }
+    dlg->Destroy();
+
+    int ReturnValue = 0;
+    if (!replace)
+    {
+        if (m_LastFindReplaceData->findInFiles)
+            ReturnValue = FindInFiles(m_LastFindReplaceData);
+        else
+            ReturnValue = Find(control, m_LastFindReplaceData);
+    }
+    else
+    {
+        m_LastFindReplaceData->initialreplacing = true;
+
+        if (m_LastFindReplaceData->findInFiles)
+            ReturnValue = ReplaceInFiles(m_LastFindReplaceData);
+        else
+            ReturnValue = Replace(control, m_LastFindReplaceData);
+    }
+    m_LastFindReplaceData->NewSearch = false; // we have searched, so no longer new search
+
+    //Default back to find or replace in Editor
+    if (m_LastFindReplaceData->findInFiles)
+    {
+        m_LastFindReplaceData->findInFiles = false;
+    }
+    return ReturnValue;
+}
+
+void EditorManager::CalculateFindReplaceStartEnd(cbStyledTextCtrl* control, cbFindReplaceData* data, bool replace)
+{
+    if (!control || !data)
+        return;
+    if (data->startFile) // Beginning-of-file needs the entire scope
+    {
+        int clen = control->GetLength();
+        int slen = data->findText.Len();
+
+        data->start = 0;
+        data->end = std::min(slen, clen);
+    }
+    else if (!data->findInFiles)   // Find in current Editor
+    {
+        int ssta = control->GetSelectionStart();
+        int send = control->GetSelectionEnd();
+        int cpos = control->GetCurrentPos();
+        int clen = control->GetLength();
+
+        // when the user initially had a selection, but then changed the scope
+        // to entire scope, the values of ssta and send will have a bad influence in
+        // the following calculations, therefor check for the scenario
+        // and set the ssta en send to cpos (in the case there would be no selection
+        // that's the value they have [no selection : ssta=send=cpos])
+        // only do this when it's a new search (when the search is continued (F3/Shift-F3)
+        // there can be a selection, the last found match)
+        if ((data->scope == 0) && data->NewSearch && (ssta != cpos || send != cpos))
+        {
+            ssta = cpos;
+            send = cpos;
+        }
+
+
+
+        data->start = 0;
+        data->end   = clen;
+
+        if (!data->originEntireScope || !data->NewSearch)   // from pos or next/prev search
+        {
+            if (!data->directionDown)   // up
+                // initial replacing mode - include selection end : normal mode - skip until selection start
+                data->start = (data->initialreplacing)? std::max(send, cpos) : std::min(ssta, cpos);
+            else                      // down
+                // initial replacing mode - include selection start : normal mode - skip until selection end
+                data->start = (data->initialreplacing)? std::min(ssta, cpos) : std::max(send, cpos);
+        }
+        else                            // entire scope
+        {
+            if (!data->directionDown)   // up
+                data->start = clen;
+        }
+
+        if (!data->directionDown)       // up
+            data->end = 0;
+
+        // selected text, if user has deslected since last, then change scope
+        if (data->scope == 1 &&
+            control->GetSelectionStart()==control->GetSelectionEnd())
+                data->scope = 0; // global
+
+        if (data->scope == 1) // selected text
+        {
+            if (data->NewSearch)
+            {
+                if (!data->directionDown)   // up
+                {
+                    data->start = std::max(ssta, send);
+                    data->end   = std::min(ssta, send);
+                }
+                else // down
+                {
+                    data->start = std::min(ssta, send);
+                    data->end   = std::max(ssta, send);
+                }
+            }
+            else
+            {   // this is the result of a next/previous search
+                // rebase depending on the cursor position
+                ssta = data->SearchInSelectionStart;
+                send = data->SearchInSelectionEnd;
+                if (cpos < ssta || cpos > send)
+                {   // regular reset (this also provide some sort of wrap around) (other editors also did it like that)
+                    data->start = ssta;
+                    data->end = send;
+                }
+                else
+                {
+                    data->start = cpos;
+                    data->end = (data->directionDown)?send:ssta;
+                }
+            }
+        }
+    }
+    else        // FindInFiles
+    {           // searching direction down, entire scope
+        //Replace needs the entire scope, while find can wrap around.
+        data->start = ( replace ? 0 : control->GetCurrentPos() );
+        data->end   = control->GetLength();
+    }
+}
+
+int EditorManager::Replace(cbStyledTextCtrl* control, cbFindReplaceData* data)
+{
+    if (!control || !data)
+        return -1;
+
+    if (control->GetReadOnly())
+    {
+        cbMessageBox(_("This file is read-only.\nReplacing in a read-only file is not possible."),
+                     _("Warning"), wxICON_EXCLAMATION);
+        return -1;
+    }
+
+    bool AdvRegex=false;
+    int replacecount=0;
+    int foundcount=0;
+    int flags = 0;
+
+    {
+        int eolMode = control->GetEOLMode();
+        data->ConvertEOLs(eolMode); // Convert our S&R data to the file's EOL mode.
+        if (data->IsMultiLine() && data->fixEOLs)
+        {
+
+            // First we must ensure that the file has consistent line endings.
+            // As all the file's lines are affected, we disable change history for this step.
+
+            control->BeginUndoAction();
+            control->SetChangeCollection(false);
+            control->ConvertEOLs(eolMode);
+            control->SetChangeCollection(true);
+            control->EndUndoAction();
+        }
+    }
+    control->BeginUndoAction(); // The undo is set at this point in case we need to convert the EOLs.
+
+    CalculateFindReplaceStartEnd(control, data);
+
+    if (data->matchWord)
+        flags |= wxSCI_FIND_WHOLEWORD;
+    if (data->startWord)
+        flags |= wxSCI_FIND_WORDSTART;
+    if (data->matchCase)
+        flags |= wxSCI_FIND_MATCHCASE;
+    if (data->regEx)
+    {
+        flags |= wxSCI_FIND_REGEXP;
+        if (Manager::Get()->GetConfigManager(_T("editor"))->ReadBool(_T("/use_posix_style_regexes"), false))
+            flags |= wxSCI_FIND_POSIX;
+        #ifdef wxHAS_REGEX_ADVANCED
+        AdvRegex=Manager::Get()->GetConfigManager(_T("editor"))->ReadBool(_T("/use_advanced_regexes"), false);
+        #endif
+    }
+
+    wxRegEx re;
+    #ifdef wxHAS_REGEX_ADVANCED
+    if (AdvRegex)
+    {
+        if (data->matchCase)
+            re.Compile(data->findText,wxRE_ADVANCED|wxRE_NEWLINE);
+        else
+            re.Compile(data->findText,wxRE_ADVANCED|wxRE_NEWLINE|wxRE_ICASE);
+    }
+    #endif
+
+    int pos = -1;
+    bool replace = false;
+    bool confirm = true;
+    bool stop = false;
+    wxPoint LastDlgPosition;
+    bool HaveLastDlgPosition = false;
+    bool wrapAround = false;
+    int  data_start_initial = data->start;
+
+    while (!stop)
+    {
+        int lengthFound = 0;
+        if (!AdvRegex)
+            pos = control->FindText(data->start, data->end, data->findText, flags, &lengthFound);
+        else
+        {
+            wxString text=control->GetTextRange(data->start, data->end);
+            if (re.Matches(text))
+            {
+                size_t start,len;
+                re.GetMatch(&start,&len,0);
+                pos=start+data->start;
+                lengthFound=len;
+                if (start==0&&len==0) //For searches for "^" or "$" (and null returning variants on this) need to make sure we have forward progress and not simply matching on a previous BOL/EOL find
+                {
+                    text=text.Mid(1);
+                    if (re.Matches(text))
+                    {
+                        size_t start,len;
+                        re.GetMatch(&start,&len,0);
+                        pos=start+data->start+1;
+                        lengthFound=len;
+                    } else
+                        pos=-1;
+                }
+            } else
+                pos=-1;
+        }
+
+        if (data->startFile && pos > 0)
+            pos = -1; // Not found at the beginning of file
+
+        if (pos != -1 && data->start!=data->end)
+        {
+            control->GotoPos(pos);
+            control->EnsureVisible(control->LineFromPosition(pos));
+            control->SetSelectionVoid(pos, pos + lengthFound);
+            data->start = pos;
+            data->initialreplacing = false;  // special treatment only necessary the first time
+        }
+        else if (!wrapAround)
+        {
+            if ( (data->scope == 0) &&      // scope = global text
+                    ((data->directionDown && data_start_initial != 0) ||
+                     (!data->directionDown && data_start_initial != control->GetLength())))
+            {
+                wxString msg;
+                if (data->directionDown)
+                    msg = _("Text not found.\nSearch from the start of the document?");
+                else
+                    msg = _("Text not found.\nSearch from the end of the document?");
+
+                bool auto_wrap_around = data->autoWrapSearch;
+                if (auto_wrap_around)
+                    wxBell();
+                if (auto_wrap_around || cbMessageBox(msg, _("Result"), wxOK | wxCANCEL | wxICON_QUESTION) == wxID_OK)
+                {
+                    data->end = data_start_initial;
+                    data->start = (data->directionDown)? 0 : control->GetLength();
+                    wrapAround = true; // signal the wrap-around
+                    continue;
+                }
+                else
+                    break;  // done - user doesn't want to wrap around
+            }
+            else
+                break; // done - we're replacing in a selection of text
+        }
+        else
+            break; // done - already wrapped around once
+
+        foundcount++;
+
+        if (confirm)
+        {
+            ConfirmReplaceDlg dlg(Manager::Get()->GetAppWindow());
+            // dlg.CalcPosition(control);
+            // TODO (thomas#1#): Check whether the existing code actually works with twin view
+            // else, we need something like:
+            // PlaceWindow(&dlg, pdlRelative);
+
+            // NOTE (Tiwag#1#): dlg.CalcPosition doesn't work for me with dual monitor setup,
+            //     workaround : remember last dialog position, user can position
+            //                  it outside of text where he wants
+            // Move dialog to last position if already available,
+            // else place it according to environments settings
+            if ( HaveLastDlgPosition )
+                dlg.Move(LastDlgPosition);
+            else
+                dlg.CalcPosition(control);
+
+            int ans = dlg.ShowModal();
+            LastDlgPosition = dlg.GetPosition();
+            HaveLastDlgPosition = true;
+            switch (ans)
+            {
+            case crYes:
+                replace = true;
+                break;
+            case crNo:
+                replace = false;
+                break;
+            case crAll:
+                replace = true;
+                confirm = false;
+                break;
+            case crCancel:
+                stop = true;
+                break;
+            }
+        }
+
+        if (!stop)
+        {
+            if (replace)
+            {
+                int lengthReplace = data->replaceText.Length();
+                replacecount++;
+                if (data->regEx)
+                {
+                    // set target same as selection
+                    control->SetTargetStart(control->GetSelectionStart());
+                    control->SetTargetEnd(control->GetSelectionEnd());
+                    if (AdvRegex)
+                    {
+                        wxString text=control->GetSelectedText();
+                        re.Replace(&text,data->replaceText,1);
+                        lengthReplace=text.Len();
+                        control->ReplaceSelection(text);
+                    }
+					else
+                    {
+                        // replace with regEx support
+                        lengthReplace = control->ReplaceTargetRE(data->replaceText);
+                    }
+
+                    // reset target
+                    control->SetTargetStart(0);
+                    control->SetTargetEnd(0);
+                }
+                else
+                    control->ReplaceSelection(data->replaceText);
+                if (data->directionDown)
+                    data->start += lengthReplace;
+
+                // adjust end pos by adding the length difference between find and replace strings
+                int diff = lengthReplace - lengthFound;
+                if (data->directionDown)
+                    data->end += diff;
+                else
+                {
+                    if (data->end < diff)
+                       data->end = 0;
+                    else
+                       data->end -= diff;
+                }
+            }
+            else
+			{
+                if (data->directionDown)
+                    data->start += lengthFound;
+                else
+                    data->start -= lengthFound;
+			}
+        }
+    }
+    control->EndUndoAction();
+    wxString msg;
+    if (foundcount == 0)
+        msg = _T("No matches found for \"") + data->findText + _T("\"");
+    else if (replacecount == 0 && foundcount == 1)
+        msg = _T("One match found but not replaced");
+    else
+        msg.Printf(_("Replaced %i of %i matches"), replacecount, foundcount);
+    cbMessageBox(msg, _("Result"), wxICON_INFORMATION);
+    control->SetSCIFocus(true);
+
+    return pos;
+}
+
+int EditorManager::ReplaceInFiles(cbFindReplaceData* data)
+{
+    if (!data) return 0;
+    if (data->findText.IsEmpty()) return 0;
+
+    bool IsMultiLine = data->IsMultiLine();
+
+    // let's make a list of all the files to search in
+    wxArrayString filesList;
+
+    if (data->scope == 0) // find in open files
+    {
+        // fill the search list with the open files
+        for (size_t i = 0; i < m_pNotebook->GetPageCount(); ++i)
+        {
+            cbEditor* ed = InternalGetBuiltinEditor(i);
+            if (ed)
+                filesList.Add(ed->GetFilename());
+        }
+    }
+    else if (data->scope == 1) // find in project files
+    {
+        // fill the search list with all the project files
+        cbProject* prj = Manager::Get()->GetProjectManager()->GetActiveProject();
+        if (!prj)
+            return 0;
+
+        wxString fullpath = _T("");
+        for (int i = 0; i < prj->GetFilesCount(); ++i)
+        {
+            ProjectFile* pf = prj->GetFile(i);
+            if (pf)
+            {
+                fullpath = pf->file.GetFullPath();
+                if (filesList.Index(fullpath) == -1) // avoid adding duplicates
+                {
+                    if (wxFileExists(fullpath))  // Does the file exist?
+                        filesList.Add(fullpath);
+                }
+            }
+        }
+    }
+    else if (data->scope == 2) // find in workspace
+    {
+        // loop over all the projects in the workspace (they are contained in the ProjectManager)
+        const ProjectsArray* pProjects = Manager::Get()->GetProjectManager()->GetProjects();
+        if (pProjects)
+        {
+            int count = pProjects->GetCount();
+            for (int idxProject = 0; idxProject < count; ++idxProject)
+            {
+                cbProject* pProject = pProjects->Item(idxProject);
+                if (pProject)
+                {
+                    wxString fullpath = _T("");
+                    for (int idxFile = 0; idxFile < pProject->GetFilesCount(); ++idxFile)
+                    {
+                        ProjectFile* pf = pProject->GetFile(idxFile);
+                        if (pf)
+                        {
+                            fullpath = pf->file.GetFullPath();
+                            if (filesList.Index(fullpath) == -1) // avoid adding duplicates
+                            {
+                                if (wxFileExists(fullpath))  // Does the file exist?
+                                    filesList.Add(fullpath);
+                            }
+                        }
+                    } // end for : idx : idxFile
+                }
+            } // end for : idx : idxProject
+        }
+    }
+
+    // if the list is empty, leave
+    int filesCount = filesList.GetCount();
+    if (filesCount == 0)
+    {
+        cbMessageBox(_("No files to search in!"), _("Error"), wxICON_WARNING);
+        return 0;
+    }
+
+    bool AdvRegex=false;
+    int flags = 0;
+    if (data->matchWord)
+        flags |= wxSCI_FIND_WHOLEWORD;
+    if (data->startWord)
+        flags |= wxSCI_FIND_WORDSTART;
+    if (data->matchCase)
+        flags |= wxSCI_FIND_MATCHCASE;
+    if (data->regEx)
+    {
+        flags |= wxSCI_FIND_REGEXP;
+        if (Manager::Get()->GetConfigManager(_T("editor"))->ReadBool(_T("/use_posix_style_regexes"), false))
+            flags |= wxSCI_FIND_POSIX;
+        #ifdef wxHAS_REGEX_ADVANCED
+        AdvRegex=Manager::Get()->GetConfigManager(_T("editor"))->ReadBool(_T("/use_advanced_regexes"), false);
+        #endif
+    }
+
+    wxRegEx re;
+    #ifdef wxHAS_REGEX_ADVANCED
+    if (AdvRegex)
+    {
+        if (data->matchCase)
+            re.Compile(data->findText,wxRE_ADVANCED|wxRE_NEWLINE);
+        else
+            re.Compile(data->findText,wxRE_ADVANCED|wxRE_NEWLINE|wxRE_ICASE);
+    }
+    #endif
+
+
+    bool replace = false;
+    bool confirm = true;
+    bool stop = false;
+    bool wholeFile = false;
+    bool all = false;
+    int pos = -1;
+
+    wxPoint LastDlgPosition;
+    bool HaveLastDlgPosition = false;
+
+    wxProgressDialog* progress = 0;
+    wxString fileContents;
+    wxString enc_name = Manager::Get()->GetConfigManager(_T("editor"))->Read(_T("/default_encoding"), wxLocale::GetSystemEncodingName());
+    wxFontEncoding def_encoding = wxFontMapper::GetEncodingFromName(enc_name);
+
+    // keep a copy of the find struct
+    cbFindReplaceData dataCopy = *data;
+
+    int read_only_files_skipped = 0;
+    for (int i = 0; i<filesCount && !stop; ++i)
+    {
+        cbEditor *ed = NULL;
+        cbStyledTextCtrl *control = NULL;
+        bool fileWasNotOpen = false;
+
+        if (progress)
+        {
+            if (!progress->Update(i))
+            {
+                if (cbMessageBox(_("Are you sure you want to stop replacing in files?"), _("Confirmation"), wxICON_QUESTION | wxYES_NO) == wxID_YES)
+                    break;
+                else
+                    progress->Resume();
+            }
+        }
+
+        //Check if this file is already open
+        EditorBase *eb = IsOpen(filesList[i]);
+        if (eb)
+        {
+            //File was already open
+            fileWasNotOpen = false;
+
+            ed = GetBuiltinEditor(eb);
+            if (ed) control = ed->GetControl();
+        }
+
+        //If it's still NULL, open a new editor
+        if (!control)
+        {
+            wxFile file(filesList[i]);
+            if (!file.IsOpened())
+                continue;
+            fileContents = cbReadFileContents(file, def_encoding);
+            if (fileContents.Find(data->findText) == -1)
+                continue;
+
+            //File was not open, i opened it.
+            fileWasNotOpen = true;
+
+            ed = Open(filesList[i]);
+            if (ed) control = ed->GetControl();
+        }
+        //Still NULL?
+        if (!control || !ed)
+            continue;
+
+        if (control->GetReadOnly())
+        {
+            read_only_files_skipped++;
+            continue;
+        }
+
+        SetActiveEditor(ed);
+
+        *data = dataCopy;
+
+        bool replacementsWereMade = false;
+        // If we fix the file's EOLs for multi-line S&R, we're actually modifying it.
+        // What we really want to know is whether we actually did a replacement.
+        // If not (and the file was not open in the first place), we can safely close the file.
+
+        {
+            // We should be checking if the data has EOLs before converting them. But searching is
+            // just as expensive as doing the conversion itself, so we just convert.
+            int eolMode = control->GetEOLMode();
+            data->ConvertEOLs(eolMode);
+
+            if (IsMultiLine && data->fixEOLs)
+            {
+                control->BeginUndoAction(); //undo
+                control->SetChangeCollection(false);
+                control->ConvertEOLs(eolMode);
+                control->SetChangeCollection(true);
+                control->EndUndoAction();
+            }
+        }
+
+        control->BeginUndoAction(); // undo
+        CalculateFindReplaceStartEnd(control, data, true);
+
+        //reset bools
+        wholeFile = false;
+        if (!all) confirm = true;
+
+        //Replace in this file
+        while(!stop || wholeFile)
+        {
+            int lengthFound = 0;
+            if (!AdvRegex)
+                pos = control->FindText(data->start, data->end, data->findText, flags, &lengthFound);
+            else
+            {
+                wxString text=control->GetTextRange(data->start, data->end);
+                if (re.Matches(text))
+                {
+                    size_t start,len;
+                    re.GetMatch(&start,&len,0);
+                    pos=start+data->start;
+                    lengthFound=len;
+                    if (start==0&&len==0) //For searches for "^" or "$" (and null returning variants on this) need to make sure we have forward progress and not simply matching on a previous BOL/EOL find
+                    {
+                        text=text.Mid(1);
+                        if (re.Matches(text))
+                        {
+                            size_t start,len;
+                            re.GetMatch(&start,&len,0);
+                            pos=start+data->start+1;
+                            lengthFound=len;
+                        } else
+                            pos=-1;
+                    }
+                } else
+                    pos=-1;
+            }
+
+            if (data->startFile && pos > 0)
+                pos = -1; // Not found at the beginning of file
+
+            if (pos == -1 || data->start==data->end)
+                break;
+
+            if (confirm)
+            {
+                control->GotoPos(pos);
+                control->EnsureVisible(control->LineFromPosition(pos));
+            }
+            control->SetSelectionVoid(pos, pos + lengthFound);
+            data->start = pos;
+            data->initialreplacing = false;  // special treatment only necessary the first time
+
+            if (confirm)
+            {
+                ConfirmReplaceDlg dlg(Manager::Get()->GetAppWindow(), true);
+                // dlg.CalcPosition(control);
+                // TODO (thomas#1#): Check whether the existing code actually works with twin view
+                // else, we need something like:
+                // PlaceWindow(&dlg, pdlRelative);
+
+                // NOTE (Tiwag#1#): dlg.CalcPosition doesn't work for me with dual monitor setup,
+                //     workaround : remember last dialog position, user can position
+                //                  it outside of text where he wants
+                // Move dialog to last position if already available,
+                // else place it according to environments settings
+                if ( HaveLastDlgPosition )
+                    dlg.Move(LastDlgPosition);
+                else
+                    dlg.CalcPosition(control);
+
+                int ans = dlg.ShowModal();
+                LastDlgPosition = dlg.GetPosition();
+                HaveLastDlgPosition = true;
+                switch (ans)
+                {
+                    case crYes:
+                        replace = true;
+                        break;
+                    case crNo:
+                        replace = false;
+                        break;
+                    case crAllInFile:
+                        confirm = false;
+                        replace = true;
+                        wholeFile = true;
+                        break;
+                    case crSkipFile:
+                        confirm = false;
+                        replace = false;
+                        wholeFile = true;
+                        break;
+                    case crAll:
+                        replace = true;
+                        confirm = false;
+                        all = true;
+                        // let's create a progress dialog because it might take some time depending on the files count
+                        progress = new wxProgressDialog(_("Replace in files"),
+                                     _("Please wait while replacing in files..."),
+                                     filesCount,
+                                     Manager::Get()->GetAppWindow(),
+                                     wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
+                        PlaceWindow(progress);
+                        // now that we need no confirmation, freeze the app window
+                        Manager::Get()->GetAppWindow()->Freeze();
+                        break;
+                    case crCancel:
+                        stop = true;
+                        break;
+                }
+            }// if
+
+            if (!stop)
+            {
+                if (replace)
+                {
+                    replacementsWereMade = true;
+                    int lengthReplace = data->replaceText.Length();
+                    if (data->regEx)
+                    {
+                        // set target same as selection
+                        control->SetTargetStart(control->GetSelectionStart());
+                        control->SetTargetEnd(control->GetSelectionEnd());
+                        if (AdvRegex)
+                        {
+                            wxString text=control->GetSelectedText();
+                            re.Replace(&text,data->replaceText,1);
+                            lengthReplace=text.Len();
+                            control->ReplaceSelection(text);
+                        } else
+                        {
+                            // replace with regEx support
+                            lengthReplace = control->ReplaceTargetRE(data->replaceText);
+                        }
+                        // reset target
+                        control->SetTargetStart(0);
+                        control->SetTargetEnd(0);
+                    }
+                    else
+                        control->ReplaceSelection(data->replaceText);
+
+                    data->start += lengthReplace;
+
+                    // adjust end pos by adding the length difference
+                    //between find and replace strings
+                    int diff = lengthReplace - lengthFound;
+                    if (data->directionDown)
+                        data->end += diff;
+                    else
+                        data->end -= diff;
+                }
+                else
+                {
+                    if (data->directionDown)
+                        data->start += lengthFound;
+                    else
+                        data->start -= lengthFound;
+                }
+            }// if
+        }// while
+
+        control->EndUndoAction(); // undo
+
+        //If i opened the file and no replacement was made,
+        //close the editor
+        if (!replacementsWereMade && fileWasNotOpen)
+            Close(ed, true);
+    }// for
+
+    if (read_only_files_skipped)
+    {
+        wxString msg;
+        msg.Printf(_("Skipped %d read-only file(s)."), read_only_files_skipped);
+        InfoWindow::Display(_("Warning"), msg);
+    }
+
+    // if we showed the progress, the app window is frozen; unfreeze it
+    if (progress)
+        Manager::Get()->GetAppWindow()->Thaw();
+
+    delete progress;
+    return pos;
+}
+
+int EditorManager::Find(cbStyledTextCtrl* control, cbFindReplaceData* data)
+{
+    if (!control || !data)
+        return -1;
+
+    bool AdvRegex=false;
+    int flags = 0;
+    data->ConvertEOLs(control->GetEOLMode());
+    CalculateFindReplaceStartEnd(control, data);
+
+    if (data->matchWord)
+        flags |= wxSCI_FIND_WHOLEWORD;
+    if (data->startWord)
+        flags |= wxSCI_FIND_WORDSTART;
+    if (data->matchCase)
+        flags |= wxSCI_FIND_MATCHCASE;
+    if (data->regEx)
+    {
+        flags |= wxSCI_FIND_REGEXP;
+        if (Manager::Get()->GetConfigManager(_T("editor"))->ReadBool(_T("/use_posix_style_regexes"), false))
+            flags |= wxSCI_FIND_POSIX;
+        #ifdef wxHAS_REGEX_ADVANCED
+        AdvRegex=Manager::Get()->GetConfigManager(_T("editor"))->ReadBool(_T("/use_advanced_regexes"), false);
+        #endif
+    }
+
+    wxRegEx re;
+    #ifdef wxHAS_REGEX_ADVANCED
+    if (AdvRegex)
+    {
+        if (data->matchCase)
+            re.Compile(data->findText,wxRE_ADVANCED|wxRE_NEWLINE);
+        else
+            re.Compile(data->findText,wxRE_ADVANCED|wxRE_NEWLINE|wxRE_ICASE);
+    }
+    #endif
+
+    int pos = -1;
+    // avoid infinite loop when wrapping search around, eventually crashing WinLogon O.O
+    bool wrapAround = false;
+    int StartPos = 0;
+    int EndPos = control->GetLength();
+    if (data->scope == 1) // selectd text
+    {
+        StartPos = data->SearchInSelectionStart;
+        EndPos = data->SearchInSelectionEnd;
+    }
+    while (true) // loop while not found and user selects to start again from the top
+    {
+        int lengthFound = 0;
+        if (!AdvRegex)
+            pos = control->FindText(data->start, data->end, data->findText, flags, &lengthFound);
+        else
+        {
+            wxString text=control->GetTextRange(data->start, data->end);
+            if (re.Matches(text))
+            {
+                size_t start,len;
+                re.GetMatch(&start,&len,0);
+                pos=start+data->start;
+                lengthFound=len;
+                if (start==0&&len==0) //For searches for "^" or "$" (and null returning variants on this) need to make sure we have forward progress and not simply matching on a previous BOL/EOL find
+                {
+                    text=text.Mid(1);
+                    if (re.Matches(text))
+                    {
+                        size_t start,len;
+                        re.GetMatch(&start,&len,0);
+                        pos=start+data->start+1;
+                        lengthFound=len;
+                    }
+					else
+                        pos=-1;
+                }
+            }
+			else
+                pos=-1;
+        }
+        if (pos != -1 && data->start!=data->end)
+        {
+            int line = control->LineFromPosition(pos);
+            int onScreen = control->LinesOnScreen() >> 1;
+            int l1 = line - onScreen;
+            int l2 = line + onScreen;
+            for(int l=l1; l<=l2;l+=2)       // unfold visible lines on screen
+                control->EnsureVisible(l);
+            control->GotoLine(l1);          // center selection on screen
+            control->GotoLine(l2);
+            control->GotoLine(line);
+            control->SetSelectionVoid(pos, pos + lengthFound);
+            //            Manager::Get()->GetLogManager()->DebugLog("pos=%d, selLen=%d, length=%d", pos, data->end - data->start, lengthFound);
+            data->start = pos;
+            break; // done
+        }
+        else if (!wrapAround && !data->findInFiles) // for "find in files" we don't want to show messages
+        {
+            if (     (data->directionDown && data->start != StartPos) ||
+                     (!data->directionDown && data->start != EndPos)     )
+            {
+                wxString msg;
+                if (!data->scope == 1) // selected text
+                {
+                    if (data->directionDown)
+                        msg = _("Text not found.\nSearch from the start of the document?");
+                    else
+                        msg = _("Text not found.\nSearch from the end of the document?");
+                }
+                else
+                {
+                    if (data->directionDown)
+                        msg = _("Text not found.\nSearch from the start of the selection?");
+                    else
+                        msg = _("Text not found.\nSearch from the end of the selection?");
+                }
+
+                bool auto_wrap_around = data->autoWrapSearch;
+                if (auto_wrap_around)
+                    wxBell();
+                if (auto_wrap_around || cbMessageBox(msg, _("Result"), wxOK | wxCANCEL | wxICON_QUESTION) == wxID_OK)
+                {
+                    wrapAround = true; // signal the wrap-around
+                    if (!data->scope == 1) // selected text
+                    {
+                        if (data->directionDown)
+                        {
+                            data->start = 0;
+                            data->end = control->GetLength();
+                        }
+                        else
+                        {
+                            data->start = control->GetLength();
+                            data->end = 0;
+                        }
+                    }
+                    else // global
+                    {
+                        if (data->directionDown)
+                        {
+                            data->start = data->SearchInSelectionStart;
+                            data->end = data->SearchInSelectionEnd;
+                        }
+                        else
+                        {
+                            data->start = data->SearchInSelectionEnd;
+                            data->end = data->SearchInSelectionStart;
+                        }
+                    }
+                }
+                else
+                    break; // done
+            }
+            else
+            {
+                wxString msg;
+                msg.Printf(_("Not found: %s"), data->findText.c_str());
+                cbMessageBox(msg, _("Result"), wxICON_INFORMATION);
+                control->SetSCIFocus(true);
+                break; // done
+            }
+        }
+        else if (wrapAround)
+        {
+            wxString msg;
+            msg.Printf(_("Not found: %s"), data->findText.c_str());
+            cbMessageBox(msg, _("Result"), wxICON_INFORMATION);
+            break; // done
+        }
+        else
+            break; // done
+    }
+    return pos;
+}
+
+int EditorManager::FindInFiles(cbFindReplaceData* data)
+{
+    if (!data || data->findText.IsEmpty())
+        return 0;
+
+    // clear old search results
+    if ( data->delOldSearches )
+    {
+        m_pSearchLog->Clear();
+    }
+    int oldcount = m_pSearchLog->GetItemsCount();
+
+    // let's make a list of all the files to search in
+    wxArrayString filesList;
+
+    if (data->scope == 0) // find in open files
+    {
+        // fill the search list with the open files
+        for (size_t i = 0; i < m_pNotebook->GetPageCount(); ++i)
+        {
+            cbEditor* ed = InternalGetBuiltinEditor(i);
+            if (ed)
+                filesList.Add(ed->GetFilename());
+        }
+    }
+    else if (data->scope == 1) // find in project files
+    {
+        // fill the search list with all the project files
+        cbProject* prj = Manager::Get()->GetProjectManager()->GetActiveProject();
+        if (!prj)
+        {
+            cbMessageBox(_("No project to search in!"), _("Error"), wxICON_WARNING);
+            return 0;
+        }
+
+        wxString fullpath = _T("");
+        for (int i = 0; i < prj->GetFilesCount(); ++i)
+        {
+            ProjectFile* pf = prj->GetFile(i);
+            if (pf)
+            {
+                fullpath = pf->file.GetFullPath();
+                if (filesList.Index(fullpath) == -1) // avoid adding duplicates
+                {
+                    if (wxFileExists(fullpath))  // Does the file exist?
+                        filesList.Add(fullpath);
+                }
+            }
+        }
+    }
+    else if (data->scope == 2) // find in workspace
+    {
+        // loop over all the projects in the workspace (they are contained in the ProjectManager)
+        const ProjectsArray* pProjects = Manager::Get()->GetProjectManager()->GetProjects();
+        int count = 0;
+        if (pProjects)
+            count = pProjects->GetCount();
+        if (!count)
+        {
+            cbMessageBox(_("No workspace to search in!"), _("Error"), wxICON_WARNING);
+            return 0;
+        }
+        for (int idxProject = 0; idxProject < count; ++idxProject)
+        {
+            cbProject* pProject = pProjects->Item(idxProject);
+            if (pProject)
+            {
+                wxString fullpath = _T("");
+                for (int idxFile = 0; idxFile < pProject->GetFilesCount(); ++idxFile)
+                {
+                    ProjectFile* pf = pProject->GetFile(idxFile);
+                    if (pf)
+                    {
+                        fullpath = pf->file.GetFullPath();
+                        if (filesList.Index(fullpath) == -1) // avoid adding duplicates
+                        {
+                            if (wxFileExists(fullpath))  // Does the file exist?
+                                filesList.Add(fullpath);
+                        }
+                    }
+                } // end for : idx : idxFile
+            }
+        } // end for : idx : idxProject
+    }
+    else if (data->scope == 3) // find in custom search path and mask
+    {
+        // fill the search list with the files found under the search path
+        int flags = wxDIR_FILES |
+                    (data->recursiveSearch ? wxDIR_DIRS : 0) |
+                    (data->hiddenSearch ? wxDIR_HIDDEN : 0);
+        wxArrayString masks = GetArrayFromString(data->searchMask);
+        if (!masks.GetCount())
+            masks.Add(_T("*"));
+        unsigned int count = masks.GetCount();
+
+        for (unsigned int i = 0; i < count; ++i)
+        {
+            // wxDir::GetAllFiles() does *not* clear the array, so it suits us just fine ;)
+            wxDir::GetAllFiles(data->searchPath, &filesList, masks[i], flags);
+        }
+    }
+    else if (data->scope == 4) // find in current file only
+    {
+        cbEditor* ed = GetBuiltinActiveEditor();
+        if (ed)
+            filesList.Add(ed->GetFilename());
+    }
+
+
+    // if the list is empty, leave
+    if (filesList.GetCount() == 0)
+    {
+        cbMessageBox(_("No files to search in!"), _("Error"), wxICON_WARNING);
+        return 0;
+    }
+
+    // now that list is filled, we'll search
+    // but first we'll create a hidden cbStyledTextCtrl to do the search for us ;)
+    cbStyledTextCtrl* control = new cbStyledTextCtrl(m_pNotebook, -1, wxDefaultPosition, wxSize(0, 0));
+    control->Show(false); //hidden
+
+    // let's create a progress dialog because it might take some time depending on the files count
+    wxProgressDialog* progress = new wxProgressDialog(_("Find in files"),
+                                 _("Please wait while searching inside the files..."),
+                                 filesList.GetCount(),
+                                 Manager::Get()->GetAppWindow(),
+                                 wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
+
+    PlaceWindow(progress);
+
+    // keep a copy of the find struct
+    cbFindReplaceData localData = *data;
+
+    if ( !data->delOldSearches )
+    {
+        LogSearch(_T("=========="), -1, _T("=== \"") + data->findText + _T("\" ==="));
+        oldcount++;
+    }
+
+    int lastline = -1;
+    int count = 0;
+    for (size_t i = 0; i < filesList.GetCount(); ++i)
+    {
+        // update the progress bar
+        if (!progress->Update(i))
+            break; // user pressed "Cancel"
+
+        // re-initialize the find struct for every file searched
+        *data = localData;
+
+        // check if the file is already opened in built-in editor and do search in it
+        cbEditor* ed = IsBuiltinOpen(filesList[i]);
+        if (ed)
+            control->SetText(ed->GetControl()->GetText());
+        else // else load the file in the control
+        {
+            EncodingDetector detector(filesList[i]);
+            if (!detector.IsOK())
+            {
+                continue; // failed
+            }
+            control->SetText(detector.GetWxStr());
+        }
+
+        // now search for first occurence
+        if (Find(control, data) == -1)
+        {
+            lastline = -1;
+            continue;
+        }
+
+        int line = control->LineFromPosition(control->GetSelectionStart());
+        lastline = line;
+
+        // make the filename relative
+        wxString filename = filesList[i];
+        if (filename.StartsWith(data->searchPath))
+        {
+            wxFileName fname(filename);
+            fname.MakeRelativeTo(data->searchPath);
+            filename = fname.GetFullPath();
+        }
+
+        // log it
+        LogSearch(filename, line + 1, control->GetLine(line));
+        ++count;
+
+        // now loop finding the next occurence
+        while (FindNext(true, control, data) != -1)
+        {
+            // log it
+            line = control->LineFromPosition(control->GetSelectionStart());
+            if (line == lastline)  // avoid multiple hits on the same line (try search for "manager")
+                continue;
+
+            lastline = line;
+            LogSearch(filename, line + 1, control->GetLine(line));
+            ++count;
+        }
+    }
+    delete control; // done with it
+    delete progress; // done here too
+
+    if (count > 0)
+    {
+        static_cast<SearchResultsLog*>(m_pSearchLog)->SetBasePath(data->searchPath);
+        if (Manager::Get()->GetConfigManager(_T("message_manager"))->ReadBool(_T("/auto_show_search"), true))
+        {
+            CodeBlocksLogEvent evtSwitch(cbEVT_SWITCH_TO_LOG_WINDOW, m_pSearchLog);
+            CodeBlocksLogEvent evtShow(cbEVT_SHOW_LOG_MANAGER);
+
+            Manager::Get()->ProcessEvent(evtSwitch);
+            Manager::Get()->ProcessEvent(evtShow);
+        }
+        static_cast<SearchResultsLog*>(m_pSearchLog)->FocusEntry(oldcount);
+    }
+    else
+    {
+        wxString msg;
+        if ( data->delOldSearches )
+        {
+            msg.Printf(_("Not found: %s"), data->findText.c_str());
+            cbMessageBox(msg, _("Result"), wxICON_INFORMATION);
+            cbEditor* ed = Manager::Get()->GetEditorManager()->GetBuiltinActiveEditor();
+            if (ed)
+                ed->GetControl()->SetSCIFocus(true);
+        }
+        else
+        {
+            msg.Printf(_("not found in %d files"), filesList.GetCount());
+            LogSearch(_T(""), -1, msg );
+            static_cast<SearchResultsLog*>(m_pSearchLog)->FocusEntry(oldcount);
+        }
+    }
+
+    return count;
+}
+
+int EditorManager::FindNext(bool goingDown, cbStyledTextCtrl* control, cbFindReplaceData* data)
+{
+    if (!control)
+    {
+        cbEditor* ed = GetBuiltinEditor(GetActiveEditor());
+        if (ed)
+            control = ed->GetControl();
+    }
+
+    if (!control)
+        return -1;
+
+    if (!data)
+    {
+        data = m_LastFindReplaceData;
+        // FindNext/Previous called from Search menu (F3/Shift-F3)
+        if (data) data->findInFiles = false;
+    }
+
+    if (!data)
+        return ShowFindDialog(false, false);
+
+    if (!data->findInFiles)
+    {
+        wxString phraseAtCursor = control->GetSelectedText();
+
+        if ( not data->findUsesSelectedText )
+        {   // The mandrav find behavior
+            // change findText to selected text (if any text is selected and no search text was set before)
+            if (!phraseAtCursor.IsEmpty() && data->findText.IsEmpty())
+                data->findText = phraseAtCursor;
+        }
+        else
+        {   // The tiwag find behavior
+            // change findText to selected text (if any text is selected)
+            if (!phraseAtCursor.IsEmpty())
+            {
+                data->findText = phraseAtCursor;
+                data->originEntireScope = false;  //search from cursor
+                data->scope = 0; // global ("selected text" is useful only from Find Dialog)
+            }
+        }
+    }
+
+    data->directionDown = goingDown;
+    return Find(control, data);
 }
 
 void EditorManager::OnGenericContextMenuHandler(wxCommandEvent& event)
@@ -1295,25 +2684,19 @@ void EditorManager::OnGenericContextMenuHandler(wxCommandEvent& event)
         ed->Split(cbEditor::stVertical);
     else if (id == idNBTabUnsplit && ed)
         ed->Unsplit();
-    else if (id >= idNBSwitchFile1 && id <= idNBSwitchFileMax)
-    {
-        eb = GetEditor(id - idNBSwitchFile1);
-        if (eb)
-            SetActiveEditor(eb);
-    }
 }
 
 void EditorManager::OnPageChanged(wxAuiNotebookEvent& event)
 {
     EditorBase* eb = static_cast<EditorBase*>(m_pNotebook->GetPage(event.GetSelection()));
-    EditorBase* eb_old = nullptr;
+    EditorBase* eb_old = 0;
     if (event.GetOldSelection()!=-1)
         eb_old = static_cast<EditorBase*>(m_pNotebook->GetPage(event.GetOldSelection()));
 
-    CodeBlocksEvent evt(cbEVT_EDITOR_SWITCHED, -1, nullptr, eb, nullptr, eb_old);
+    CodeBlocksEvent evt(cbEVT_EDITOR_SWITCHED, -1, 0, eb, 0, eb_old);
     Manager::Get()->GetPluginManager()->NotifyPlugins(evt);
 
-    CodeBlocksEvent evt2(cbEVT_EDITOR_ACTIVATED, -1, nullptr, eb);
+    CodeBlocksEvent evt2(cbEVT_EDITOR_ACTIVATED, -1, 0, eb);
     Manager::Get()->GetPluginManager()->NotifyPlugins(evt2);
 
     if (Manager::Get()->GetConfigManager(_T("app"))->ReadBool(_T("/environment/tabs_stacked_based_switching")))
@@ -1322,7 +2705,7 @@ void EditorManager::OnPageChanged(wxAuiNotebookEvent& event)
         cbNotebookStack* body;
         cbNotebookStack* tmp;
         wnd = m_pNotebook->GetPage(event.GetSelection());
-        for (body = m_pNotebookStackHead; body->next != nullptr; body = body->next)
+        for (body = m_pNotebookStackHead; body->next != 0; body = body->next)
         {
             if (wnd == body->next->window)
             {
@@ -1335,7 +2718,7 @@ void EditorManager::OnPageChanged(wxAuiNotebookEvent& event)
                 break;
             }
         }
-        if (   (m_pNotebookStackHead->next == nullptr)
+        if (   (m_pNotebookStackHead->next == 0)
             || (wnd != m_pNotebookStackHead->next->window) )
         {
             body = new cbNotebookStack(wnd);
@@ -1357,7 +2740,7 @@ void EditorManager::OnPageChanging(wxAuiNotebookEvent& event)
     if (old_sel != -1 && static_cast<size_t>(old_sel) < m_pNotebook->GetPageCount())
     {
         EditorBase* eb = static_cast<EditorBase*>(m_pNotebook->GetPage(old_sel));
-        CodeBlocksEvent evt(cbEVT_EDITOR_DEACTIVATED, -1, nullptr, eb);
+        CodeBlocksEvent evt(cbEVT_EDITOR_DEACTIVATED, -1, 0, eb);
         Manager::Get()->GetPluginManager()->NotifyPlugins(evt);
     }
     event.Skip(); // allow others to process it too
@@ -1366,19 +2749,16 @@ void EditorManager::OnPageChanging(wxAuiNotebookEvent& event)
 void EditorManager::OnPageClose(wxAuiNotebookEvent& event)
 {
     int sel = event.GetSelection();
-    bool doClose = false;
-    EditorBase* eb = nullptr;
     if (sel != -1)
     {
-        // veto it in any case, so we can handle the page delete or remove ourselves
-        event.Veto();
-        eb = static_cast<EditorBase*>(m_pNotebook->GetPage(sel));
-        if (QueryClose(eb))
+        EditorBase* eb = static_cast<EditorBase*>(m_pNotebook->GetPage(sel));
+        if (!QueryClose(eb))
+            event.Veto();
+        else
         {
-            doClose = true;
             if (m_pNotebook->GetPageCount()<=1)
             {
-                CodeBlocksEvent evt(cbEVT_EDITOR_SWITCHED, -1, nullptr, nullptr, nullptr, eb);
+                CodeBlocksEvent evt(cbEVT_EDITOR_SWITCHED, -1, 0, 0, 0, eb);
                 Manager::Get()->GetPluginManager()->NotifyPlugins(evt);
             }
         }
@@ -1390,7 +2770,7 @@ void EditorManager::OnPageClose(wxAuiNotebookEvent& event)
         cbNotebookStack* body;
         cbNotebookStack* tmp;
         wnd = m_pNotebook->GetPage(event.GetSelection());
-        for (body = m_pNotebookStackHead; body->next != nullptr; body = body->next)
+        for (body = m_pNotebookStackHead; body->next != 0; body = body->next)
         {
             if (wnd == body->next->window)
             {
@@ -1403,40 +2783,13 @@ void EditorManager::OnPageClose(wxAuiNotebookEvent& event)
         }
     }
 
-    if (doClose && eb != nullptr)
-        Close(eb);
-    else
-        event.Skip(); // allow others to process it too
+    event.Skip(); // allow others to process it too
 }
 
 void EditorManager::OnPageContextMenu(wxAuiNotebookEvent& event)
 {
     if (event.GetSelection() == -1)
         return;
-
-    if (wxGetKeyState(WXK_CONTROL) && GetEditorsCount() > 1)
-    {
-        wxMenu* pop = new wxMenu;
-        EditorBase* current = GetActiveEditor();
-        for (int i = 0; i < EditorMaxSwitchTo && i < GetEditorsCount(); ++i)
-        {
-            EditorBase* other = GetEditor(i);
-            if (!other)
-                continue;
-            const wxString name = (other->GetModified() ? wxT("*") : wxEmptyString) + other->GetShortName();
-            if (other == current)
-            {
-                pop->AppendCheckItem(wxID_ANY, name); // do nothing if the current tab is selected
-                pop->FindItemByPosition(pop->GetMenuItemCount() - 1)->Check(); // and mark it as active
-            }
-            else
-                pop->Append(idNBSwitchFile1 + i, name);
-        }
-        m_pNotebook->PopupMenu(pop);
-        delete pop;
-        return;
-    }
-
     // select the notebook that sends the event, because the context menu-entries act on the actual selected tab
     m_pNotebook->SetSelection(event.GetSelection());
     wxMenu* pop = new wxMenu;
@@ -1446,110 +2799,91 @@ void EditorManager::OnPageContextMenu(wxAuiNotebookEvent& event)
         pop->Append(idNBTabCloseAll, _("Close all"));
         pop->Append(idNBTabCloseAllOthers, _("Close all others"));
     }
-
-    int any_modified = 0;
-    for (int i = 0; i<GetEditorsCount(); ++i)
-    {
-        EditorBase* ed = GetEditor(i);
-        if (ed && ed->GetModified())
-        {
-            if (++any_modified > 1)
-                break; // more than one editor is modified -> enable "Save all"
-        }
-    }
-    if (any_modified > 0)
-    {
-        pop->AppendSeparator();
-        if (GetEditor(event.GetSelection())->GetModified())
-            pop->Append(idNBTabSave, _("Save"));
-        if (any_modified > 1 || !GetEditor(event.GetSelection())->GetModified())
-            pop->Append(idNBTabSaveAll, _("Save all"));
-    }
-
     pop->AppendSeparator();
+    pop->Append(idNBTabSave, _("Save"));
+    pop->Append(idNBTabSaveAll, _("Save all"));
+    pop->AppendSeparator();
+    pop->Append(idNBSwapHeaderSource, _("Swap header/source"));
+    pop->AppendSeparator();
+    pop->Append(idNBTabTop, _("Tabs at top"));
+    pop->Append(idNBTabBottom, _("Tabs at bottom"));
+
     cbEditor* ed = GetBuiltinEditor(event.GetSelection());
     if (ed)
     {
-        pop->Append(idNBSwapHeaderSource, _("Swap header/source"));
-        pop->Append(idNBTabOpenContainingFolder, _("Open containing folder"));
-        pop->Append(idNBProperties, _("Properties..."));
         pop->AppendSeparator();
-    }
+        pop->Append(idNBProperties, _("Properties..."));
 
-    if (Manager::Get()->GetConfigManager(_T("app"))->ReadBool(_T("/environment/editor_tabs_bottom"), false))
-        pop->Append(idNBTabTop, _("Tabs at top"));
-    else
-        pop->Append(idNBTabBottom, _("Tabs at bottom"));
-
-    if (ed)
-    {
         wxMenu* splitMenu = new wxMenu;
-        if (ed->GetSplitType() != cbEditor::stHorizontal)
-            splitMenu->Append(idNBTabSplitHorz, _("Horizontally"));
-        if (ed->GetSplitType() != cbEditor::stVertical)
-            splitMenu->Append(idNBTabSplitVert, _("Vertically"));
-        if (ed->GetSplitType() != cbEditor::stNoSplit)
-        {
-            splitMenu->AppendSeparator();
-            splitMenu->Append(idNBTabUnsplit, _("Unsplit"));
-        }
+        splitMenu->Append(idNBTabSplitHorz, _("Horizontally"));
+        splitMenu->Append(idNBTabSplitVert, _("Vertically"));
+        splitMenu->AppendSeparator();
+        splitMenu->Append(idNBTabUnsplit, _("Unsplit"));
+        splitMenu->Enable(idNBTabSplitHorz, ed->GetSplitType() != cbEditor::stHorizontal);
+        splitMenu->Enable(idNBTabSplitVert, ed->GetSplitType() != cbEditor::stVertical);
+        splitMenu->Enable(idNBTabUnsplit, ed->GetSplitType() != cbEditor::stNoSplit);
+
+        pop->AppendSeparator();
         pop->Append(-1, _("Split view"), splitMenu);
 
         if (Manager::Get()->GetProjectManager()->GetActiveProject()) // project must be open
         {
             pop->AppendSeparator();
 
-            ProjectFile *projectFile = ed->GetProjectFile();
-            if (projectFile)
-            {
+            if (ed->GetProjectFile())
                 pop->Append(idNBRemoveFileFromProject, _("Remove file from project"));
-                pop->Append(idNBShowFileInTree, _("Show file in the project tree"));
-            }
             else
                 pop->Append(idNBAddFileToProject, _("Add file to active project"));
         }
     }
 
-    // allow plugins to use this menu
-    Manager::Get()->GetPluginManager()->AskPluginsForModuleMenu(mtEditorTab, pop);
+    bool any_modified = false;
+
+    for(int i = 0; i < GetEditorsCount(); ++i)
+    {
+        EditorBase* ed = GetEditor(i);
+        if (ed && ed->GetModified())
+        {
+            any_modified = true;
+            break;
+        }
+    }
+
+    pop->Enable(idNBTabSave, GetEditor(event.GetSelection())->GetModified());
+    pop->Enable(idNBTabSaveAll, any_modified );
 
     m_pNotebook->PopupMenu(pop);
     delete pop;
 }
 
-void EditorManager::OnClose(cb_unused wxCommandEvent& event)
+void EditorManager::OnClose(wxCommandEvent& /*event*/)
 {
     Manager::Get()->GetEditorManager()->Close(GetActiveEditor());
 }
 
-void EditorManager::OnCloseAll(cb_unused wxCommandEvent& event)
+void EditorManager::OnCloseAll(wxCommandEvent& /*event*/)
 {
     Manager::Get()->GetEditorManager()->CloseAll();
 }
 
-void EditorManager::OnCloseAllOthers(cb_unused wxCommandEvent& event)
+void EditorManager::OnCloseAllOthers(wxCommandEvent& /*event*/)
 {
     Manager::Get()->GetEditorManager()->CloseAllExcept(GetActiveEditor());
 }
 
-void EditorManager::OnSave(cb_unused wxCommandEvent& event)
+void EditorManager::OnSave(wxCommandEvent& /*event*/)
 {
     Manager::Get()->GetEditorManager()->Save(m_pNotebook->GetSelection());
 }
 
-void EditorManager::OnSaveAll(cb_unused wxCommandEvent& event)
+void EditorManager::OnSaveAll(wxCommandEvent& /*event*/)
 {
     Manager::Get()->GetEditorManager()->SaveAll();
 }
 
-void EditorManager::OnSwapHeaderSource(cb_unused wxCommandEvent& event)
+void EditorManager::OnSwapHeaderSource(wxCommandEvent& /*event*/)
 {
     Manager::Get()->GetEditorManager()->SwapActiveHeaderSource();
-}
-
-void EditorManager::OnOpenContainingFolder(cb_unused wxCommandEvent& event)
-{
-    Manager::Get()->GetEditorManager()->OpenContainingFolder();
 }
 
 void EditorManager::OnTabPosition(wxCommandEvent& event)
@@ -1566,10 +2900,10 @@ void EditorManager::OnTabPosition(wxCommandEvent& event)
     Manager::Get()->GetConfigManager(_T("app"))->Write(_T("/environment/editor_tabs_bottom"),       (bool)(style & wxAUI_NB_BOTTOM));
 }
 
-void EditorManager::OnProperties(cb_unused wxCommandEvent& event)
+void EditorManager::OnProperties(wxCommandEvent& /*event*/)
 {
     cbEditor* ed = GetBuiltinActiveEditor();
-    ProjectFile* pf = nullptr;
+    ProjectFile* pf = 0;
     if (ed)
         pf = ed->GetProjectFile();
     if (pf)
@@ -1582,7 +2916,7 @@ void EditorManager::OnProperties(cb_unused wxCommandEvent& event)
     }
 }
 
-void EditorManager::OnAddFileToProject(cb_unused wxCommandEvent& event)
+void EditorManager::OnAddFileToProject(wxCommandEvent& /*event*/)
 {
     cbProject *project = Manager::Get()->GetProjectManager()->GetActiveProject();
     wxString fname = GetBuiltinActiveEditor()->GetFilename();
@@ -1592,29 +2926,18 @@ void EditorManager::OnAddFileToProject(cb_unused wxCommandEvent& event)
     {
         ProjectFile* pf = project->GetFileByFilename(fname, false);
         GetBuiltinActiveEditor()->SetProjectFile(pf);
-        Manager::Get()->GetProjectManager()->GetUI().RebuildTree();
+        Manager::Get()->GetProjectManager()->RebuildTree();
     }
 }
 
-void EditorManager::OnRemoveFileFromProject(cb_unused wxCommandEvent& event)
+void EditorManager::OnRemoveFileFromProject(wxCommandEvent& /*event*/)
 {
     ProjectFile* pf = GetBuiltinActiveEditor()->GetProjectFile();
     if (pf) // should be in any case, otherwise something went wrong between popup menu creation and here
     {
         cbProject *project = pf->GetParentProject();
         Manager::Get()->GetProjectManager()->RemoveFileFromProject(pf, project);
-        Manager::Get()->GetProjectManager()->GetUI().RebuildTree();
-    }
-}
-
-void EditorManager::OnShowFileInTree(cb_unused wxCommandEvent& event)
-{
-    ProjectFile* pf = GetBuiltinActiveEditor()->GetProjectFile();
-    if (pf)
-    {
-        cbProjectManagerUI &ui = Manager::Get()->GetProjectManager()->GetUI();
-        ui.SwitchToProjectsPage();
-        ui.ShowFileInTree(*pf);
+        Manager::Get()->GetProjectManager()->RebuildTree();
     }
 }
 
@@ -1628,21 +2951,30 @@ void EditorManager::OnAppStartShutdown(wxCommandEvent& event)
     event.Skip(); // allow others to process it too
 }
 
-void EditorManager::OnCheckForModifiedFiles(cb_unused wxCommandEvent& event)
+void EditorManager::OnCheckForModifiedFiles(wxCommandEvent& /*event*/)
 {
     CheckForExternallyModifiedFiles();
 }
 
 void EditorManager::HideNotebook()
 {
-    if (m_pNotebook)
-        m_pNotebook->Hide();
+    //    if (!this)
+    //        return;
+    //    if (m_pNotebook)
+    //        m_pNotebook->Hide();
+    //    m_pData->m_NeedsRefresh = false;
+    //    return;
 }
 
 void EditorManager::ShowNotebook()
 {
-    if (m_pNotebook)
-        m_pNotebook->Show();
+    //    if (!this)
+    //        return;
+    //    if (m_pNotebook)
+    //        m_pNotebook->Show();
+    //    m_pData->m_NeedsRefresh = true;
+    //    m_pData->InvalidateTree();
+    //    return;
 }
 
 void EditorManager::OnUpdateUI(wxUpdateUIEvent& event)
@@ -1662,194 +2994,6 @@ void EditorManager::OnUpdateUI(wxUpdateUIEvent& event)
     event.Skip();
 }
 
-void EditorManager::CollectDefines(CodeBlocksEvent& event)
-{
-    cbProject* prj = Manager::Get()->GetProjectManager()->GetActiveProject();
-    if (   !prj
-        || !Manager::Get()->GetConfigManager(wxT("editor"))->ReadBool(wxT("/track_preprocessor"),  true)
-        || !Manager::Get()->GetConfigManager(wxT("editor"))->ReadBool(wxT("/collect_prj_defines"), true) )
-    {
-        event.Skip();
-        return;
-    }
-
-    wxArrayString compilerFlags = prj->GetCompilerOptions();
-    ProjectBuildTarget* tgt = prj->GetBuildTarget(prj->GetActiveBuildTarget());
-    FilesList* lst;
-    wxString id;
-    if (tgt)
-    {
-        AppendArray(tgt->GetCompilerOptions(), compilerFlags);
-        lst = &tgt->GetFilesList();
-        id  = tgt->GetCompilerID();
-    }
-    else
-    {
-        lst = &prj->GetFilesList();
-        id  = prj->GetCompilerID();
-    }
-
-    Compiler* comp = CompilerFactory::GetCompiler(id); // get global flags
-    if (comp)
-        AppendArray(comp->GetCompilerOptions(), compilerFlags);
-
-    wxArrayString defines;
-    for (size_t i = 0; i < compilerFlags.GetCount(); ++i)
-    {
-        if (   compilerFlags[i].StartsWith(wxT("-D"))
-            || compilerFlags[i].StartsWith(wxT("/D")) )
-        {
-            defines.Add(compilerFlags[i].Mid(2));
-        }
-        else if (compilerFlags[i].Find(wxT("`")) != wxNOT_FOUND)
-        {
-            wxString str = compilerFlags[i];
-            ExpandBackticks(str);
-            str.Replace(wxT("`"), wxT(" ")); // remove any leftover backticks to prevent an infinite loop
-            AppendArray(GetArrayFromString(str, wxT(" ")), compilerFlags);
-        }
-        else if (   compilerFlags[i] == wxT("-ansi")
-                 || compilerFlags[i] == wxT("-std=c90")
-                 || compilerFlags[i] == wxT("-std=c++98"))
-        {
-            defines.Add(wxT("__STRICT_ANSI__"));
-        }
-    }
-
-    defines.Add(wxT("__cplusplus"));
-    for (FilesList::iterator it = lst->begin(); it != lst->end(); ++it)
-    {
-        if ((*it)->relativeFilename.EndsWith(wxT(".c")))
-        {
-            defines.RemoveAt(defines.GetCount() - 1); // do not define '__cplusplus' if even a single C file is found
-            break;
-        }
-    }
-
-    if (id.Find(wxT("gcc")) != wxNOT_FOUND)
-    {
-        defines.Add(wxT("__GNUC__"));
-        defines.Add(wxT("__GNUG__"));
-    }
-    else if (id.Find(wxT("msvc")) != wxNOT_FOUND)
-    {
-        defines.Add(wxT("_MSC_VER"));
-        defines.Add(wxT("__VISUALC__"));
-    }
-
-    if (Manager::Get()->GetConfigManager(wxT("editor"))->ReadBool(wxT("/platform_defines"), false))
-    {
-        if (platform::windows)
-        {
-            defines.Add(wxT("_WIN32"));
-            defines.Add(wxT("__WIN32"));
-            defines.Add(wxT("__WIN32__"));
-            defines.Add(wxT("WIN32"));
-            defines.Add(wxT("__WINNT"));
-            defines.Add(wxT("__WINNT__"));
-            defines.Add(wxT("WINNT"));
-            defines.Add(wxT("__WXMSW__"));
-            defines.Add(wxT("__WINDOWS__"));
-            if (platform::bits == 64)
-            {
-                defines.Add(wxT("_WIN64"));
-                defines.Add(wxT("__WIN64__"));
-            }
-        }
-        else if (platform::macosx)
-        {
-            defines.Add(wxT("__WXMAC__"));
-            defines.Add(wxT("__WXOSX__"));
-            defines.Add(wxT("__WXCOCOA__"));
-            defines.Add(wxT("__WXOSX_MAC__"));
-            defines.Add(wxT("__APPLE__"));
-        }
-        else if (platform::linux)
-        {
-            defines.Add(wxT("LINUX"));
-            defines.Add(wxT("linux"));
-            defines.Add(wxT("__linux"));
-            defines.Add(wxT("__linux__"));
-        }
-        else if (platform::freebsd)
-        {
-            defines.Add(wxT("FREEBSD"));
-            defines.Add(wxT("__FREEBSD__"));
-        }
-        else if (platform::netbsd)
-        {
-            defines.Add(wxT("NETBSD"));
-            defines.Add(wxT("__NETBSD__"));
-        }
-        else if (platform::openbsd)
-        {
-            defines.Add(wxT("OPENBSD"));
-            defines.Add(wxT("__OPENBSD__"));
-        }
-        else if (platform::darwin)
-        {
-            defines.Add(wxT("DARWIN"));
-            defines.Add(wxT("__APPLE__"));
-        }
-        else if (platform::solaris)
-        {
-            defines.Add(wxT("sun"));
-            defines.Add(wxT("__sun"));
-            defines.Add(wxT("__SUN__"));
-            defines.Add(wxT("__SUNOS__"));
-            defines.Add(wxT("__SOLARIS__"));
-        }
-        if (platform::unix)
-        {
-            defines.Add(wxT("unix"));
-            defines.Add(wxT("__unix"));
-            defines.Add(wxT("__unix__"));
-            defines.Add(wxT("__UNIX__"));
-        }
-        if (platform::gtk)
-            defines.Add(wxT("__WXGTK__"));
-        if (platform::bits == 32)
-        {
-            defines.Add(wxT("i386"));
-            defines.Add(wxT("__i386"));
-            defines.Add(wxT("__i386__"));
-            defines.Add(wxT("__i386__"));
-            defines.Add(wxT("_X86_"));
-            defines.Add(wxT("__INTEL__"));
-        }
-        else if (platform::bits == 64)
-        {
-            defines.Add(wxT("__amd64"));
-            defines.Add(wxT("__amd64__"));
-            defines.Add(wxT("__x86_64"));
-            defines.Add(wxT("__x86_64__"));
-            defines.Add(wxT("__IA64__"));
-        }
-    }
-
-    const wxString keywords = GetStringFromArray(MakeUniqueArray(defines, true), wxT(" "), false);
-    const HighlightLanguage hlCpp = m_Theme->GetHighlightLanguage(wxT("C/C++"));
-    if (m_Theme->GetKeywords(hlCpp, 4) == keywords)
-        return; // no change
-
-    m_Theme->SetKeywords(hlCpp, 4, keywords);
-    const wxString key = wxT("/colour_sets/") + m_Theme->GetName() + wxT("/cc/");
-    Manager::Get()->GetConfigManager(wxT("editor"))->Write(key + wxT("editor/keywords/set4"), keywords);
-    Manager::Get()->GetConfigManager(wxT("editor"))->Write(key + wxT("name"), wxT("C/C++"));
-
-    // update open editors
-    for (int index = 0; index < GetEditorsCount(); ++index)
-    {
-        cbEditor* ed = GetBuiltinEditor(index);
-        if ( ed && (ed->GetLanguage() == hlCpp) )
-        {
-            cbStyledTextCtrl* stc = ed->GetControl();
-            stc->SetKeyWords(4, keywords);
-        }
-    }
-    event.Skip();
-}
-
 void EditorManager::SetZoom(int zoom)
 {
     m_Zoom = zoom;
@@ -1858,39 +3002,4 @@ void EditorManager::SetZoom(int zoom)
 int EditorManager::GetZoom() const
 {
     return m_Zoom;
-}
-
-void EditorManager::OnAppActivated(CodeBlocksEvent& event)
-{
-    event.Skip();
-    if (!platform::gtk)
-        return;
-    static bool firstLaunch = true;
-    if (firstLaunch)
-    {
-        firstLaunch = false;
-        return; // avoid startup crash
-    }
-    wxTextDataObject data;
-    bool gotData = false;
-    wxTheClipboard->UsePrimarySelection(true);
-    if (wxTheClipboard->Open())
-    {
-        // this line crashes on startup if splash lose focus
-        gotData = wxTheClipboard->GetData(data);
-        wxTheClipboard->Close();
-    }
-    wxTheClipboard->UsePrimarySelection(false);
-    if (gotData && !data.GetText().IsEmpty())
-        m_pData->m_SelectionClipboard = data.GetText();
-}
-
-wxString EditorManager::GetSelectionClipboard()
-{
-    return m_pData->m_SelectionClipboard;
-}
-
-void EditorManager::SetSelectionClipboard(const wxString& data)
-{
-    m_pData->m_SelectionClipboard = data;
 }

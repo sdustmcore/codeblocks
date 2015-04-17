@@ -66,7 +66,6 @@ class BrowseTrackerConfPanel: public cbConfigurationPanel
     virtual void OnEnableBrowseMarks( wxCommandEvent& event );
     virtual void OnToggleBrowseMarkKey( wxCommandEvent& event );
     virtual void OnClearAllBrowseMarksKey( wxCommandEvent& event );
-    virtual void OnWrapJumpEntries( wxCommandEvent& event );
 
 };
 #endif // THREAD_SEARCH_CONF_PANEL_H

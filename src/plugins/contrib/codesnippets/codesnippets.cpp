@@ -17,7 +17,7 @@
 	along with this program; if not, write to the Free Software
 	Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
-// $Id$
+// $Id: codesnippets.cpp 111 2008-01-02 17:39:38Z Pecan $
 
 #include <cstring>
 #include "sdk.h"
@@ -50,6 +50,16 @@
 #include "snippetsconfig.h"
 #include "GenericMessageBox.h"
 #include "cbauibook.h"
+#include "dragscrollevent.h"
+
+#if defined(__WXGTK__)
+    // hack to avoid name-conflict between wxWidgets GSocket and the one defined
+    // in newer glib-headers
+    #define GSocket GLibSocket
+    #include <gdk/gdkx.h>
+    #undef GSocket
+    #include "wx/gtk/win_gtk.h"
+#endif
 
 // ----------------------------------------------------------------------------
 namespace
@@ -88,20 +98,8 @@ END_EVENT_TABLE()
 CodeSnippets::CodeSnippets()
 // ----------------------------------------------------------------------------
 {
-    m_bMouseCtrlKeyDown = false;
-    m_bMouseLeftKeyDown = false;
-    m_bMouseIsDragging = false;
-    m_bDragCursorOn = false;
-    m_MouseDownX = m_MouseDownY = 0;
-    m_MouseUpX = m_MouseUpY = 0;
-    #if !wxCHECK_VERSION(2, 8, 12)
-    m_prjTreeItemAtKeyUp = m_prjTreeItemAtKeyDown= 0;
-    #endif
-    m_bMouseExitedWindow = false;
-    m_bBeginInternalDrag = false;
-    m_pDragCursor = new wxCursor(wxCURSOR_HAND);
-
 }
+
 // ----------------------------------------------------------------------------
 CodeSnippets::~CodeSnippets()
 // ----------------------------------------------------------------------------
@@ -128,6 +126,7 @@ void CodeSnippets::OnAttach()
     GetConfig()->m_bIsPlugin = true;
 
     GetConfig()->SetOpenFilesList( 0);
+    m_nDragScrollEventId = 0;
 
     // initialize version and logging
     m_pAppWin = Manager::Get()->GetAppWindow();
@@ -156,8 +155,7 @@ void CodeSnippets::OnAttach()
     // determine location of settings
     // ---------------------------------------
     //memorize the key file name as {%HOME%}\codesnippets.ini
-    //-GetConfig()->m_ConfigFolder = GetCBConfigDir();
-    GetConfig()->m_ConfigFolder = Manager::Get()->GetConfigManager(_T("app"))->GetConfigFolder();
+    GetConfig()->m_ConfigFolder = GetCBConfigDir();
     #if defined(LOGGING)
      LOGIT( _T("Argv[0][%s] Cwd[%s]"), wxTheApp->argv[0], ::wxGetCwd().GetData() );
     #endif
@@ -207,25 +205,16 @@ void CodeSnippets::OnAttach()
 
     GetConfig()->SettingsLoad();
 
-    //----------------------------
-    //  Drop Targets
-    //----------------------------
     // Set Drop targets so we can drag items in/out of the Project/Files Tree ctrls
     // memorize manager of Open files tree
     m_pProjectMgr = Manager::Get()->GetProjectManager();
-
     // set a drop target for the project managers wxAuiNotebook/cbAuiNotebook
-    m_pProjectMgr->GetUI().GetNotebook()->SetDropTarget(new DropTargets(this));
-    //-m_pProjectMgr->GetNotebook()->SetDropTarget(new DropTargets(this));
+    m_pProjectMgr->GetNotebook()->SetDropTarget(new DropTargets(this));
 
     //NB: On Linux, we don't enable dragging out of the file windows because of the drag/drop freeze bug
     #if defined(__WXMSW__)
-        wxTreeCtrl* pPrjTree = m_pProjectMgr->GetUI().GetTree();
-        //-wxTreeCtrl* pPrjTree = m_pProjectMgr->GetTree();
-        m_oldCursor = pPrjTree->GetCursor();
-        SetTreeCtrlHandler( pPrjTree, wxEVT_COMMAND_TREE_BEGIN_DRAG );
+        SetTreeCtrlHandler( m_pProjectMgr->GetTree(), wxEVT_COMMAND_TREE_BEGIN_DRAG );
     #endif
-
     GetConfig()->SetOpenFilesList( FindOpenFilesListWindow() );
     if (GetConfig()->GetOpenFilesList() )
     {
@@ -239,6 +228,8 @@ void CodeSnippets::OnAttach()
     }//if
 
     m_nOnActivateBusy = 0;
+    m_ExternalPid = 0;
+    m_KeepAliveFileName = wxEmptyString;
     GetConfig()->m_appIsShutdown = false;
     GetConfig()->m_appIsDisabled = false;
 
@@ -275,6 +266,9 @@ void CodeSnippets::OnAttach()
 	// hook App Shutdown Begin
     Manager::Get()->RegisterEventSink(cbEVT_APP_START_SHUTDOWN, new cbEventFunctor<CodeSnippets, CodeBlocksEvent>(this, &CodeSnippets::OnAppStartShutdown));
 
+    Connect(wxEVT_IDLE,
+            wxIdleEventHandler(CodeSnippets::OnIdle), NULL, this);
+
 }//OnAttach
 
 // ----------------------------------------------------------------------------
@@ -297,6 +291,40 @@ void CodeSnippets::OnRelease(bool appShutDown)
         return;
     }
 
+    // delete the temporary keepAlive communications file
+    RemoveKeepAliveFile();
+
+    // ----------------------------------
+    if (not GetSnippetsWindow()) return;
+    // ----------------------------------
+
+    // Don't close down if file checking is active
+    while ( m_nOnActivateBusy )
+    {   wxMilliSleep(10) ; wxYield();
+    }
+
+    //-CodeBlocksDockEvent evt(cbEVT_REMOVE_DOCK_WINDOW);
+    //--CodeBlocksDockEvent evt(cbEVT_HIDE_DOCK_WINDOW);
+    //-evt.pWindow = GetSnippetsWindow();
+    //-Manager::Get()->ProcessEvent(evt);
+
+    Disconnect(wxEVT_IDLE,
+            wxIdleEventHandler(CodeSnippets::OnIdle), NULL, this);
+
+    //  On Linux, the following causes CB to crash when the snippet window is floating
+    ////    if (GetSnippetsWindow())
+    ////    {   //GetSnippetsWindow()->Close(); <- causes crash when user disables plugin
+    ////        GetSnippetsWindow()->Destroy(); <- causes crash when CB closes
+    ////        SetSnippetsWindow(0);
+    ////    }
+
+    if (GetSnippetsWindow())
+            if ( GetSnippetsWindow()->GetFileChanged() )
+                GetSnippetsWindow()->GetSnippetsTreeCtrl()->SaveItemsToFile(GetConfig()->SettingsSnippetsXmlPath);
+
+    wxCloseEvent closeevt;
+    closeevt.SetEventObject(GetConfig()->GetSnippetsWindow());
+    GetConfig()->GetSnippetsWindow()->OnClose(closeevt);
 
     // Make sure user cannot re-enable CodeSnippets until a CB restart
     GetConfig()->m_appIsShutdown = true;
@@ -353,6 +381,10 @@ void CodeSnippets::OnDisable(bool appShutDown)
 
     GetConfig()->m_appIsDisabled = true;
 
+    // disable all idle processing
+    Disconnect(wxEVT_IDLE,
+        wxIdleEventHandler(CodeSnippets::OnIdle), NULL, this);
+
     // disable our menu item
     wxMenuBar* pbar = GetConfig()->m_pMenuBar;
     pbar->Check(idViewSnippets, false);
@@ -371,6 +403,8 @@ void CodeSnippets::OnAppStartupDone(CodeBlocksEvent& event)
 {
     // if OpenFilesList plugin initializes *after* us, we didn't
     // find it in OnAttach(). So do it now.
+
+    FindDragScroll();
 
     if (not GetConfig()->GetOpenFilesList())
     {
@@ -395,6 +429,14 @@ void CodeSnippets::OnAppStartupDone(CodeBlocksEvent& event)
         }
     }
 
+    // ---------------------------------------
+    // If external CodeSnippets, start it up
+    // ---------------------------------------
+    // If last session had CS open, start it up again
+    if ( GetConfig()->IsExternalWindow() )
+        if ( GetConfig()->IsExternalPersistentOpen() )
+            CreateSnippetWindow();
+
     event.Skip();
 
 }//OnAppStartupDone
@@ -405,46 +447,21 @@ void CodeSnippets::OnAppStartShutdown(CodeBlocksEvent& event)
     //NOTE: This Event is begin called twice from main.cpp
     if (GetConfig()->m_appIsShutdown)
         return;
-    // ----------------------------------
-    if (not GetSnippetsWindow()) return;
-    // ----------------------------------
-
-    // Don't close down if file checking is active
-    while ( m_nOnActivateBusy )
-    {   wxMilliSleep(10) ; wxYield();
-    }
-
-    //-CodeBlocksDockEvent evt(cbEVT_REMOVE_DOCK_WINDOW);
-    //--CodeBlocksDockEvent evt(cbEVT_HIDE_DOCK_WINDOW);
-    //-evt.pWindow = GetSnippetsWindow();
-    //-Manager::Get()->ProcessEvent(evt);
-
-    #if defined(__WXMSW__)
-    wxTreeCtrl* pPrjTree = Manager::Get()->GetProjectManager()->GetUI().GetTree();
-    //-wxTreeCtrl* pPrjTree = Manager::Get()->GetProjectManager()->GetTree();
-    RemoveTreeCtrlHandler( pPrjTree, wxEVT_COMMAND_TREE_BEGIN_DRAG );
-    RemoveTreeCtrlHandler( GetConfig()->GetOpenFilesList(),  wxEVT_COMMAND_TREE_BEGIN_DRAG );
-    #endif
-
-    // Assure all open editor data is saved 2014/12/20
-    GetSnippetsWindow()->GetSnippetsTreeCtrl()->SaveAllOpenEditors();
-
-    if (GetSnippetsWindow())
-            if ( GetSnippetsWindow()->GetFileChanged() )
-                GetSnippetsWindow()->GetSnippetsTreeCtrl()->SaveItemsToFile(GetConfig()->SettingsSnippetsXmlPath);
-
-    wxCloseEvent closeevt;
-    closeevt.SetEventObject(GetConfig()->GetSnippetsWindow());
-    GetConfig()->GetSnippetsWindow()->OnClose(closeevt);
-//--
     GetConfig()->SettingsSave();
     // Call OnRelease() before CodeBlocks actually closes down or we'll crash
-    //OnRelease(true);
+    OnRelease(true);
 }
 // ----------------------------------------------------------------------------
 void CodeSnippets::CreateSnippetWindow()
 // ----------------------------------------------------------------------------
 {
+    // Launch the executable if user specified "External" WindowState
+   	if ( GetConfig()->GetSettingsWindowState().Contains(wxT("External")) )
+    {
+        /*bool result =*/ LaunchExternalSnippets();
+        return;
+    }
+
     // ---------------------------------------
     // setup snippet tree docking window
     // ---------------------------------------
@@ -481,7 +498,38 @@ void CodeSnippets::CreateSnippetWindow()
      //LOGIT( _T("CreateSnippetWindow[%s]"), GetConfig()->GetSettingsWindowState().c_str() );
 	Manager::Get()->ProcessEvent(evt);
 
+    // Add new code snippets scrollable windows to DragScroll plugin
+    DragScrollEvent dsevt(wxEVT_DRAGSCROLL_EVENT,idDragScrollRescan);
+    dsevt.SetEventObject( GetConfig()->GetSnippetsTreeCtrl());
+    dsevt.SetString( GetConfig()->GetSnippetsTreeCtrl()->GetName());
+    GetConfig()->GetDragScrollEvtHandler()->AddPendingEvent(dsevt);
+
 }//CreateSnippetWindow
+// ----------------------------------------------------------------------------
+bool CodeSnippets::TellExternalSnippetsToTerminate()
+// ----------------------------------------------------------------------------
+{
+    bool result = ::wxRemoveFile( m_KeepAliveFileName );
+    #if defined(LOGGING)
+    LOGIT( _T("TellExternalSnippetsToTerminate result[%s]on[%s]"),
+            result?_T("success"):_T("failed"), m_KeepAliveFileName.c_str());
+    #endif
+    return result;
+}
+// ----------------------------------------------------------------------------
+bool CodeSnippets::RemoveKeepAliveFile()
+// ----------------------------------------------------------------------------
+{
+    // delete the keepAlive file used to keep alive the
+    // external snippets process
+    bool result = ::wxRemoveFile( m_KeepAliveFileName );
+    #if defined(LOGGING)
+    LOGIT( _T("RemoveKeepAliveFile result[%s]on[%s]"),
+            result?_T("success"):_T("failed"), m_KeepAliveFileName.c_str());
+    #endif
+
+    return result;
+}
 // ----------------------------------------------------------------------------
 void CodeSnippets::SetSnippetsWindow(CodeSnippetsWindow* p)
 // ----------------------------------------------------------------------------
@@ -507,11 +555,51 @@ void CodeSnippets::OnViewSnippets(wxCommandEvent& event)
     #endif
 
         // ---------------------------------------
+        // Check for snippet independent window
+        // ---------------------------------------
+    if ( GetConfig()->GetSettingsWindowState().Contains(wxT("External")) )
+    {
+         #if defined(LOGGING)
+         LOGIT( _T("OnView External m_ExternalPid[%lu] Checked[%d]"), m_ExternalPid, pViewItem->IsChecked() );
+         #endif
+        if ( (not m_ExternalPid) && pViewItem->IsChecked() )
+        {
+            // if previously open dock window, close it
+            if ( GetSnippetsWindow()) CloseDockWindow();
+            CreateSnippetWindow();
+            #if defined(LOGGING)
+            LOGIT( _T("m_ExternalPid[%lu]"), m_ExternalPid );
+            #endif
+            if ( m_ExternalPid )
+                GetConfig()->SetExternalPersistentOpen(true);
+            return;
+        }
+        if ( m_ExternalPid && (not pViewItem->IsChecked()) )
+        {   // user closing external snippets with View/Snippets menu item
+            // Signal, via keepAlive file, external snippets to terminate
+            // LOGIT( _T("m_ExternalPid[%lu]"), m_ExternalPid );
+            TellExternalSnippetsToTerminate();
+            RemoveKeepAliveFile();
+            m_ExternalPid = 0;
+
+            GetConfig()->SetExternalPersistentOpen(false);
+            return;
+        }
+    }
+    else if ( m_ExternalPid )
+    {   // user changed from Independent window to some other type(docked or floating) ;
+
+        TellExternalSnippetsToTerminate();
+        RemoveKeepAliveFile();
+        m_ExternalPid = 0;
+        GetConfig()->SetExternalPersistentOpen(false);
+    }
+        // ---------------------------------------
         // setup snippet tree docking window
         // ---------------------------------------
+
      if (not GetSnippetsWindow())
-    {
-        // Snippets Window is closed, initialize and open it.
+    {   // Snippets Window is closed, initialize and open it.
         CreateSnippetWindow();
     }
 
@@ -541,6 +629,14 @@ void CodeSnippets::OnViewSnippets(wxCommandEvent& event)
 	CodeBlocksDockEvent evt(pViewItem->IsChecked() ? cbEVT_SHOW_DOCK_WINDOW : cbEVT_HIDE_DOCK_WINDOW);
 	evt.pWindow = GetSnippetsWindow();
 	Manager::Get()->ProcessEvent(evt);
+	// if we close the window, it won't remember its layout position when reopened.
+    //if (evt.GetEventType() == cbEVT_HIDE_DOCK_WINDOW) CloseDockWindow();
+
+    // connect to the wxAUI wxEVT_CLOSE event
+    if ( pViewItem->IsChecked() && GetConfig()->IsFloatingWindow()  )
+    {
+        ;//code removed
+    }//if
 
 }//OnViewSnippets
 // ----------------------------------------------------------------------------
@@ -553,13 +649,24 @@ void CodeSnippets::OnUpdateUI(wxUpdateUIEvent& /*event*/)
     LOGIT( _T("OnUpdateUI Window[%p],Pid[%d]"), GetSnippetsWindow(), m_ExternalPid );
     #endif
 
-    // check for CodeSnippets window and update View/Code snippets menu item
-    if (not GetSnippetsWindow())
+    // check for externally started CodeSnippets
+    if (not GetSnippetsWindow() && (not m_ExternalPid) )
     {   pbar->Check(idViewSnippets, false);
         #if defined(LOGGING)
         LOGIT( _T("OnUpdateUI Check[%s]"), wxT("to OFF") );
         #endif
          return;
+    }
+    // check if external CodeSnippets terminated without us
+    if ( (not GetSnippetsWindow()) && m_ExternalPid )
+    {
+        if (not ::wxProcess::Exists(m_ExternalPid))
+        {
+            RemoveKeepAliveFile();
+            m_ExternalPid = 0;
+        }
+        pbar->Check(idViewSnippets, m_ExternalPid);
+        return;
     }
 
     // -----------------------------------
@@ -570,6 +677,14 @@ void CodeSnippets::OnUpdateUI(wxUpdateUIEvent& /*event*/)
     {    pbar->Check(idViewSnippets, IsWindowReallyShown(GetSnippetsWindow()));
         return;
     }
+
+    // check for independent window running
+    if (m_ExternalPid)
+    {
+        pbar->Check(idViewSnippets, m_ExternalPid!=0);
+
+    }
+
 }
 // ----------------------------------------------------------------------------
 void CodeSnippets::OnIdle(wxIdleEvent& event)
@@ -589,6 +704,39 @@ void CodeSnippets::OnIdle(wxIdleEvent& event)
     // ---------------------------------------------------------------------------
     // if user requested different window type close docked/floating window
     // m_bWindowStateChanged is set true by the Settings dialog
+    // This does not apply when the external Snippets pgm changes window type
+    // because there's no way for the external app to signal m_bWindowStatChanged, yet
+    // In that case, the external app closes itself and the user must open Snippets
+    // from the View menu item.
+
+    // if external snippets pgm terminated, clean up our environment
+    if ( m_ExternalPid && (not wxProcess::Exists( m_ExternalPid)) ) do
+    {
+        GetConfig()->SetExternalPersistentOpen(false);
+        // Get the new window state docked or floating
+        wxString windowState = GetConfig()->GetSettingsWindowState();
+        #if defined(LOGGING)
+        //LOGIT( _T("OnIdle windowState[%s]"), GetConfig()->GetSettingsWindowState().c_str());
+        #endif
+
+        // If window stat is still "External" User must have closed the window
+        if ( windowState.Matches(_T("External")) ) break;
+
+        wxMenuBar* pbar = Manager::Get()->GetAppFrame()->GetMenuBar();
+        wxMenu* pViewMenu = 0;
+        wxMenuItem* pViewItem = pbar->FindItem(idViewSnippets, &pViewMenu);
+        if ( pViewItem )
+            pViewItem->Check(true);
+        #if defined(LOGGING)
+        LOGIT( _T("OnIdle [%s] Checked[%d] IsShown[%d]"),
+                GetConfig()->IsFloatingWindow()?wxT("float"):wxT("dock"),
+                pViewMenu->IsChecked(idViewSnippets),
+                IsWindowReallyShown(GetSnippetsWindow())
+                );
+        #endif
+        wxCommandEvent menuViewEvent(wxEVT_COMMAND_MENU_SELECTED, idViewSnippets);
+        AddPendingEvent( menuViewEvent);
+    }while(0);
 
     if ( GetConfig()->m_bWindowStateChanged )
     {
@@ -596,8 +744,26 @@ void CodeSnippets::OnIdle(wxIdleEvent& event)
         if ( GetSnippetsWindow() && GetConfig()->m_bWindowStateChanged )
             CloseDockWindow();
 
+        // close external snippets pgm if it's running
+        if ( m_ExternalPid && GetConfig()->m_bWindowStateChanged )
+        {
+            TellExternalSnippetsToTerminate();
+            RemoveKeepAliveFile();
+            m_ExternalPid = 0;
+            GetConfig()->SetExternalPersistentOpen(false);
+        }
+
+        // if external snippets pgm terminated, clean up our environment
+        if ( m_ExternalPid && (not wxProcess::Exists( m_ExternalPid)) )
+        {
+            TellExternalSnippetsToTerminate();
+            RemoveKeepAliveFile();
+            m_ExternalPid = 0;
+            GetConfig()->SetExternalPersistentOpen(false);
+        }
+
         // if no snippet window is open, open one
-        if ( not GetSnippetsWindow())
+        if ( (not GetSnippetsWindow()) && (not m_ExternalPid) )
         {
             if (GetConfig()->m_bWindowStateChanged)
             {
@@ -622,8 +788,8 @@ void CodeSnippets::OnIdle(wxIdleEvent& event)
 
 
 
-////    CodeSnippetsTreeCtrl* pTree = GetConfig()->GetSnippetsTreeCtrl();
-////    if ( pTree ) pTree->OnIdle();
+    CodeSnippetsTreeCtrl* pTree = GetConfig()->GetSnippetsTreeCtrl();
+    if ( pTree ) pTree->OnIdle();
 
     event.Skip();
 }
@@ -746,31 +912,27 @@ bool CodeSnippets::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString& files)
     return bRC;
 }
 // ----------------------------------------------------------------------------
-bool CodeSnippets::GetTreeSelectionData(const wxTreeCtrl* pTree, const wxTreeItemId itemID, wxString& selString)
+bool CodeSnippets::GetTreeSelectionData(wxTreeCtrl* pTree, wxTreeItemId itemID, wxString& selString)
 // ----------------------------------------------------------------------------
 {
     selString = wxEmptyString;
 
     if (not pTree) { return false; }
 
-    if ( (pTree == m_pProjectMgr->GetUI().GetTree())
-    //-if ( (pTree == m_pProjectMgr->GetTree())
+    if ( (pTree == m_pProjectMgr->GetTree())
         or (pTree == GetConfig()->GetOpenFilesList()) )
         {/*ok*/;}
     else{ return false; }
 
     #ifdef LOGGING
-     //LOGIT( _T("Focused Tree:%p item[%p]"),pTree, itemID.IsOk()?itemID.m_pItem:0 );
+     LOGIT( _T("Focused Tree:%p item[%p]"),pTree, itemID.IsOk()?itemID.m_pItem:0 );
     #endif //LOGGING
 
     // check for a file selection in the treeCtrl
     // note: the following gets the wrong item when we're called from a tree event
-    //-wxTreeItemId sel = pTree->GetSelection(); This is wrong for Project Tree(use previous hit data)
-    wxTreeItemId sel = itemID;
+    wxTreeItemId sel = pTree->GetSelection();
     if ( itemID.IsOk()) sel = itemID;
-    else return false;
-    if (not sel)
-        return false;
+    if (not sel) {return false;}
     #ifdef LOGGING
      LOGIT( _T("Selection:%p"), sel.m_pItem);
     #endif //LOGGING
@@ -781,14 +943,13 @@ bool CodeSnippets::GetTreeSelectionData(const wxTreeCtrl* pTree, const wxTreeIte
     {   //-selString = pTree->GetTreeItemFilename( sel );
         //-EditorBase* ed = static_cast<EditorBase*>(static_cast<OpenFilesListData*>(pTree->GetItemData(event.GetItem()))->GetEditor());
         EditorBase* ed = static_cast<EditorBase*>(static_cast<OpenFilesListData*>(pTree->GetItemData(sel))->GetEditor());
-        selString = (ed ? ed->GetFilename() : wxT(""));
+        selString = ed->GetFilename();
     }
 
     // -------------------------
     // Project Tree
     // -------------------------
-    if ( pTree == m_pProjectMgr->GetUI().GetTree() ) {
-    //-if ( pTree == m_pProjectMgr->GetTree() ) {
+    if ( pTree == m_pProjectMgr->GetTree() ) {
         // create a string from highlighted Project treeCtrl item
 
         // Workspace/root
@@ -946,9 +1107,9 @@ bool DropTargets::OnDataText (wxCoord x, wxCoord y, const wxString& data)
     #ifdef LOGGING
      LOGIT( wxT("DropTargets::OnDataText") );
     #endif //LOGGING
-    //bool ok;
+    bool ok;
     wxArrayString* pFilenames = m_pcbDndExtn->TextToFilenames(data);
-    if (pFilenames->GetCount()) /*ok =*/ m_pcbDndExtn->OnDropFiles(1, 1, *pFilenames);
+    if (pFilenames->GetCount()) ok = m_pcbDndExtn->OnDropFiles(1, 1, *pFilenames);
     delete pFilenames;
     //return ok;
     // ---------------------------------------------------
@@ -1003,318 +1164,221 @@ void DropTargets::OnLeave()
 // ----------------------------------------------------------------------------
 //   Events and Event support routines
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-void CodeSnippets::OnPrjTreeMouseMotionEvent(wxMouseEvent& event)
+void CodeSnippets::OnTreeDragEvent(wxTreeEvent& event)
 // ----------------------------------------------------------------------------
 {
-    // Drag event from the Project Tree Window
+    // Drag event.
     // When user drags left mouse key out of the Projects/Files tree,
     // create a dropSource from the focused treeCtrl item
 
-    // EVT_MOTION
-    // allow all other user to see event
+    if (not m_IsAttached) {event.Skip(); return;}
+
+    // Events enabled from OnInit() by:
+    // SetTreeCtrlHandler(m_pProjectMgr->GetTree(), wxEVT_TREE_DRAG_BEGIN );
+
+    // allow all others to process first
     event.Skip();
 
-    if (not m_IsAttached) return;
-
-    // memorize position of the mouse ctrl key as copy/delete flag
-    m_bMouseCtrlKeyDown = event.ControlDown();
-    m_bMouseLeftKeyDown = event.LeftIsDown();
-    m_bMouseIsDragging  = event.Dragging();
-
-    // If dragging an item, show drag cursor
     wxTreeCtrl* pTree = (wxTreeCtrl*)event.GetEventObject();
-    if (m_bMouseIsDragging and m_bMouseLeftKeyDown
-        and (not m_bDragCursorOn) and m_prjTreeItemAtKeyDown)
-    {
-        m_oldCursor = pTree->GetCursor();
-        pTree->SetCursor(*m_pDragCursor);
-        m_bDragCursorOn = true;
-    }
-    else    //restore regular cursor
-    if (m_bDragCursorOn)
-    {
-        pTree->SetCursor(m_oldCursor);
-        m_bDragCursorOn = false;
-    }
-}
-
-// ----------------------------------------------------------------------------
-void CodeSnippets::OnPrjTreeMouseLeftDownEvent(wxMouseEvent& event)
-// ----------------------------------------------------------------------------
-{
-   // wxTreeCtrl* pTree = (wxTreeCtrl*)event.GetEventObject();
+    wxTreeItemId treeItemID = event.GetItem();
 
     #ifdef LOGGING
-     //LOGIT(wxT("OnMouseLeftDown") );
-    #endif
-
-    event.Skip();
-    if (not m_IsAttached) return;
-
-    // memorize position of the mouse
-    m_bMouseLeftKeyDown = true;
-    m_MouseDownX = event.GetX();
-    m_MouseDownY = event.GetY();
-
-    #if !wxCHECK_VERSION(2, 8, 12)
-    m_prjTreeItemAtKeyDown = 0;
-    m_prjTreeItemAtKeyUp = 0;
-    #endif
-    int hitFlags = 0;
-
-    wxTreeCtrl* pTree = (wxTreeCtrl*)event.GetEventObject();
-    wxTreeItemId id = pTree->HitTest(wxPoint(m_MouseDownX, m_MouseDownY), hitFlags);
-    if (id.IsOk() and (hitFlags & (wxTREE_HITTEST_ONITEMICON | wxTREE_HITTEST_ONITEMLABEL )))
-        m_prjTreeItemAtKeyDown = id;
-
-    #ifdef LOGGING
-     //LOGIT(wxT("MouseCtrlKeyDown[%s]"), m_bMouseCtrlKeyDown?wxT("Down"):wxT("UP") );
-    #endif
-}//OnPrjTreeMouseUpEvent
-// ----------------------------------------------------------------------------
-void CodeSnippets::OnPrjTreeMouseLeftUpEvent(wxMouseEvent& event)
-// ----------------------------------------------------------------------------
-{
-    // EVT_LEFT_UP
-
-    event.Skip();
-    if (not m_IsAttached) return;
-
-    #ifdef LOGGING
-     //LOGIT(wxT("OnMouseLeftUp") );
-    #endif
-    // memorize position of the mouse
-    m_bMouseLeftKeyDown = false;
-    m_MouseUpX = event.GetX();
-    m_MouseUpY = event.GetY();
-
-    #if !wxCHECK_VERSION(2, 8, 12)
-    m_prjTreeItemAtKeyUp = 0;
-    #endif
-    int hitFlags = 0;
-
-    wxTreeCtrl* pTree = (wxTreeCtrl*)event.GetEventObject();
-    wxTreeItemId id = pTree->HitTest(wxPoint(m_MouseUpX, m_MouseUpY), hitFlags);
-    if (id.IsOk() and (hitFlags & (wxTREE_HITTEST_ONITEMICON | wxTREE_HITTEST_ONITEMLABEL )))
-        m_prjTreeItemAtKeyUp = id;
-
-    if (m_bMouseExitedWindow and m_bMouseIsDragging and m_prjTreeItemAtKeyDown)
-    {   //Doesnt work for leaf items; never receive Evt_Left_Up; moved to OnLeaveWindow
-        //DoPrjTreeExternalDrag(pTree);
-    }
-    // We don't do internalitem-to-item dragging for the project Tree
-    //else
-    //if ( (not m_bMouseExitedWindow) and m_bMouseIsDragging
-    //     and m_prjTreeItemAtKeyDown and m_prjTreeItemAtKeyUp
-    //     and (m_itemAtKeyDown not_eq m_itemAtKeyUp ))
-    //{
-    //    DoPrjTreeItemDrag(pTree);
-    //}
-
-    // Do not release the mouse until after the drag has finished
-    // else the drag will not complete.
-    if (m_bMouseExitedWindow)
-    {
-        if (pTree->HasCapture())
-        {
-            pTree->ReleaseMouse();
-            #if defined(LOGGING)
-            LOGIT( _T("Mouse Released"));
-            #endif
-        }
-        else
-        {
-            #if defined(LOGGING)
-            LOGIT( _T("Lost Mouse capture"));
-            #endif
-        }
-    }
-
-    m_bMouseExitedWindow = false;
-    m_bMouseIsDragging = false;
-
-    if (m_bDragCursorOn)
-    {
-        pTree->SetCursor(m_oldCursor);
-        m_bDragCursorOn = false;
-    }
-
-}//OnPrjTreeMouseLeftUpEvent
-// ----------------------------------------------------------------------------
-void CodeSnippets::OnPrjTreeMouseLeaveWindowEvent(wxMouseEvent& event)
-// ----------------------------------------------------------------------------
-{
-    // -----------------------
-    // EVT_LEAVE_WINDOW
-    // -----------------------
-    event.Skip();
-
-    // User has dragged mouse out of project window.
-    // if us is dragging mouse, save the source item for later use
-    // in DoTreeExternalDrag()
-
-    m_bBeginInternalDrag = false; //This is not an internal drag
-
-    // Left mouse key must be down (dragging)
-    if (not m_bMouseLeftKeyDown ) return;
-    if (not m_bMouseIsDragging ) return;
-    // check if data is available
-    if (not m_prjTreeItemAtKeyDown) return;
-
-    wxTreeCtrl* pTree = (wxTreeCtrl*)event.GetEventObject();
-
-    #ifdef LOGGING
-     //LOGIT( _T("EVT_LEAVE_WINDOW %p"), pTree );
+    	 //LOGIT( wxT("CodeSnippets::OnTreeDragEvent %p"), pTree );
     #endif //LOGGING
 
-    // when user drags an item out of the window, this routine is called
-    // OnMouseKeyUpEvent will clear this flag
-    m_bMouseExitedWindow = true;
-    //pTree->CaptureMouse(); //this does no good. DoDragDrop will cancel it.
-    #if defined(LOGGING)
-      //LOGIT( _T("Mouse Captured"));
-    #endif
-
-    if (m_bMouseExitedWindow and m_bMouseIsDragging and m_prjTreeItemAtKeyDown)
+    // -----------------------
+    // TREE_BEGIN_DRAG
+    // -----------------------
+    if (event.GetEventType() == wxEVT_COMMAND_TREE_BEGIN_DRAG)
     {
-        DoPrjTreeExternalDrag(pTree);
+        #ifdef LOGGING
+         LOGIT( _T("Plugin_TREE_BEGIN_DRAG [%p][%s] itemID[%p]"),
+            pTree, pTree->GetName().c_str(),
+            treeItemID.m_pItem  );
+        #endif //LOGGING
+
+        if (pTree == (wxTreeCtrl*)m_pProjectMgr->GetTree())
+        {
+            m_pMgtTreeBeginDrag = pTree;
+            m_TreeMousePosn = ::wxGetMousePosition();
+            m_TreeItemId    =   event.GetItem();
+            pTree->SelectItem(m_TreeItemId);
+        }
+        else m_pMgtTreeBeginDrag = 0;
+
+        m_TreeText = wxEmptyString;
+        if (not GetTreeSelectionData(pTree, treeItemID, m_TreeText))
+        {
+            m_TreeText = wxEmptyString;
+            m_pMgtTreeBeginDrag = 0;
+        }
+        return;
+    }//fi
+    // -----------------------
+    // TREE_END_DRAG
+    // -----------------------
+    if (event.GetEventType() == wxEVT_COMMAND_TREE_END_DRAG)
+    {
+        #ifdef LOGGING
+         LOGIT( _T("Plugin_TREE_END_DRAG [%p][%s]"), pTree, pTree->GetName().c_str() );
+        #endif //LOGGING
+
+        m_TreeText = wxEmptyString;
+        if (pTree == (wxTreeCtrl*)m_pProjectMgr->GetTree())
+           m_pMgtTreeBeginDrag = 0;
+        return;
     }
+    // -----------------------
+    // LEAVE_WINDOW
+    // -----------------------
+    if (event.GetEventType() == wxEVT_LEAVE_WINDOW)
+    {
+        //user has dragged mouse out of Management/File window
+        #ifdef LOGGING
+         //LOGIT( _T("MOUSE EVT_LEAVE_WINDOW") );
+        #endif //LOGGING
+
+        // Left mouse key must be down (dragging)
+        if (not ((wxMouseEvent&)event).LeftIsDown() ) return;
+        // check if data is available
+        if ( m_TreeText.IsEmpty()) return;
+
+        #ifdef LOGGING
+         LOGIT( _T("TREE_LEAVE_WINDOW [%p][%s]"), pTree, pTree->GetName().c_str() );
+        #endif //LOGGING
+
+        //-#if defined(BUILDING_PLUGIN)
+            // substitute any $(macro) text
+            static const wxString delim(_T("$%["));
+            if( m_TreeText.find_first_of(delim) != wxString::npos )
+                Manager::Get()->GetMacrosManager()->ReplaceMacros(m_TreeText);
+            #if defined(LOGGING)
+            LOGIT( _T("$macros substitute[%s]"),m_TreeText.c_str() );
+            #endif
+        //-#endif
+
+        // we now have data, create both a simple text and filename drop source
+        wxTextDataObject* textData = new wxTextDataObject();
+        wxFileDataObject* fileData = new wxFileDataObject();
+            // fill text and file sources with snippet
+        wxDropSource textSource( *textData, (wxWindow*)event.GetEventObject() );
+        textData->SetText( m_TreeText );
+        wxDropSource fileSource( *fileData, (wxWindow*)event.GetEventObject() );
+        fileData->AddFile( m_TreeText );
+            // set composite data object to contain both text and file data
+        wxDataObjectComposite *data = new wxDataObjectComposite();
+        data->Add( (wxDataObjectSimple*)textData );
+        data->Add( (wxDataObjectSimple*)fileData, true ); // set file data as preferred
+            // create the drop source containing both data types
+        wxDropSource source( *data, (wxWindow*)event.GetEventObject()  );
+        #ifdef LOGGING
+         LOGIT( _T("DropSource Text[%s],File[%s]"),
+                    textData->GetText().GetData(),
+                    fileData->GetFilenames().Item(0).GetData() );
+        #endif //LOGGING
+
+        // allow both copy and move
+        int flags = 0;
+        flags |= wxDrag_AllowMove;
+
+        wxDragResult result = source.DoDragDrop(flags);
+
+        #if LOGGING
+            wxString pc;
+            switch ( result )
+            {
+                case wxDragError:   pc = _T("Error!");    break;
+                case wxDragNone:    pc = _T("Nothing");   break;
+                case wxDragCopy:    pc = _T("Copied");    break;
+                case wxDragMove:    pc = _T("Moved");     break;
+                case wxDragCancel:  pc = _T("Cancelled"); break;
+                default:            pc = _T("Huh?");      break;
+            }
+            #if defined(LOGGING)
+            LOGIT( wxT("CodeSnippets::OnLeftDown DoDragDrop returned[%s]"),pc.GetData() );
+            #endif
+        #else
+            wxUnusedVar(result);
+        #endif
+
+        // ---MSW WORKAROUNG --------------------------------------------------
+        // Since we dragged outside the tree control with an EVT_TREE_DRAG_BEGIN
+        // pending, Wx will *not* send the EVT_TREE_DRAG_END from a
+        // mouse key up event until the user re-clicks inside the tree control.
+        // The mouse is still captured and the tree exibits very bad behavior.
+
+        // Send an mouse_key_up to the tree control so it releases the
+        // mouse and and receives a EVT_TREE_DRAG_END event.
+        if ( m_pMgtTreeBeginDrag )
+        {
+            //send Mouse LeftKeyUp to Tree Control window
+            #ifdef LOGGING
+             LOGIT( _T("Sending Mouse LeftKeyUp[%p][%s]"), m_pMgtTreeBeginDrag, m_pMgtTreeBeginDrag->GetName().c_str() );
+            #endif //LOGGING
+
+            // move mouse into the Tree control
+            wxPoint CurrentMousePosn = ::wxGetMousePosition();
+            #if defined(__WXMSW__)
+                MSW_MouseMove( m_TreeMousePosn.x, m_TreeMousePosn.y );
+
+                // send mouse LeftKeyUp
+                INPUT Input         = {0};
+                Input.type          = INPUT_MOUSE;
+                Input.mi.dwFlags    = MOUSEEVENTF_LEFTUP;
+                ::SendInput(1,&Input,sizeof(INPUT));
+
+                // put mouse back in drag-end position
+                MSW_MouseMove( CurrentMousePosn.x, CurrentMousePosn.y );
+            #endif //(__WXMSW__)
+            #if defined(__WXGTK__)
+                // move cursor to source window and send a left button up event
+                XWarpPointer (GDK_WINDOW_XDISPLAY(GDK_ROOT_PARENT()),
+                        None,              /* not source window -> move from anywhere */
+                        GDK_WINDOW_XID(GDK_ROOT_PARENT()),  /* dest window */
+                        0, 0, 0, 0,        /* not source window -> move from anywhere */
+                        m_TreeMousePosn.x, m_TreeMousePosn.y );
+                // send LeftMouseRelease key
+                m_pMgtTreeBeginDrag->SetFocus();
+                GdkDisplay* display = gdk_display_get_default ();
+                int xx=0,yy=0;
+                GdkWindow* pGdkWindow = gdk_display_get_window_at_pointer( display, &xx, &yy);
+                // LOGIT(wxT("Tree[%p][%d %d]"), m_pEvtTreeCtrlBeginDrag,m_TreeMousePosn.x, m_TreeMousePosn.y);
+                // LOGIT(wxT("gdk [%p][%d %d]"), pWindow, xx, yy);
+                GdkEventButton evb;
+                memset(&evb, 0, sizeof(evb));
+                evb.type = GDK_BUTTON_RELEASE;
+                evb.window = pGdkWindow;
+                evb.x = xx;
+                evb.y = yy;
+                evb.state = GDK_BUTTON1_MASK;
+                evb.button = 1;
+                // gdk display put event, namely mouse release
+                gdk_display_put_event( display, (GdkEvent*)&evb);
+                // put mouse back in pre-moved "dropped" position
+                XWarpPointer (GDK_WINDOW_XDISPLAY(GDK_ROOT_PARENT()),
+                        None,              /* not source window -> move from anywhere */
+                        GDK_WINDOW_XID(GDK_ROOT_PARENT()),  /* dest window */
+                        0, 0, 0, 0,        /* not source window -> move from anywhere */
+                        CurrentMousePosn.x, CurrentMousePosn.y );
+            #endif//(__WXGTK__)
+
+        }
+
+        delete textData ;
+        delete fileData ;
+
+        m_pMgtTreeBeginDrag = 0;
+        m_TreeText = wxEmptyString;
+    }//fi event.GetEventType()
 
     return;
-}//OnLeaveWindow
+
+}//OnTreeDragEvent
 // ----------------------------------------------------------------------------
-void CodeSnippets::DoPrjTreeExternalDrag(wxTreeCtrl* pTree)
-// ----------------------------------------------------------------------------
-{
-    if ( not m_prjTreeItemAtKeyDown)
-        return;
-
-    // we now have data; create both a simple text and filename drop source
-    wxTextDataObject* textData = new wxTextDataObject();
-    wxFileDataObject* fileData = new wxFileDataObject();
-    // fill text and file sources with data
-    wxString m_prjTreeText;
-    if (not GetTreeSelectionData(pTree, m_prjTreeItemAtKeyDown, m_prjTreeText))
-    {
-        m_prjTreeText = wxEmptyString;
-        return;
-    }
-
-    static const wxString delim(_T("$%["));
-    if( m_prjTreeText.find_first_of(delim) != wxString::npos )
-        Manager::Get()->GetMacrosManager()->ReplaceMacros(m_prjTreeText);
-
-    wxDropSource textSource( *textData, pTree );
-    textData->SetText( m_prjTreeText );
-
-    wxDropSource fileSource( *fileData, pTree );
-    wxString fileName = m_prjTreeText;
-
-    if (not ::wxFileExists(fileName) ) fileName = wxEmptyString;
-    // If no filename, but text is URL/URI, pass it as a file (esp. for browsers)
-    if ( fileName.IsEmpty())
-    {   if (m_prjTreeText.StartsWith(_T("http://")))
-            fileName = m_prjTreeText;
-        if (m_prjTreeText.StartsWith(_T("file://")))
-            fileName = m_prjTreeText;
-        // Remove anything pass the first \n or \r {v1.3.92}
-        fileName = fileName.BeforeFirst('\n');
-        fileName = fileName.BeforeFirst('\r');
-        if (not fileName.IsEmpty())
-            textData->SetText( fileName );
-    }
-    fileData->AddFile( (fileName.Len() > 128) ? wxString(wxEmptyString) : fileName );
-
-    // set composite data object to contain both text and file data
-    wxDataObjectComposite* data = new wxDataObjectComposite();
-    data->Add( (wxDataObjectSimple*)textData );
-    data->Add( (wxDataObjectSimple*)fileData, true ); // set file data as preferred
-
-    // create the drop source containing both data types
-    wxDropSource source( *data, pTree  );
-
-    #ifdef LOGGING
-     LOGIT( _T("PrjTree DropSource Text[%s], File[%s]"),
-                textData->GetText().c_str(),
-                fileData->GetFilenames().Item(0).c_str() );
-    #endif //LOGGING
-
-    // allow both copy and move
-    int flags = 0;
-    flags |= wxDrag_AllowMove;
-    // do the dragNdrop
-    wxDragResult result = source.DoDragDrop(flags);
-
-    // report the results
-    #if LOGGING
-        wxString pc;
-        switch ( result )
-        {
-            case wxDragError:   pc = _T("Error!");    break;
-            case wxDragNone:    pc = _T("Nothing");   break;
-            case wxDragCopy:    pc = _T("Copied");    break;
-            case wxDragMove:    pc = _T("Moved");     break;
-            case wxDragLink:    pc = _T("Linked");    break;
-            case wxDragCancel:  pc = _T("Cancelled"); break;
-            default:            pc = _T("Huh?");      break;
-        }
-        LOGIT( wxT("DoDragDrop returned[%s]"),pc.GetData() );
-    #else
-        wxUnusedVar(result);
-    #endif
-
-    delete textData; //wxTextDataObject
-    delete fileData; //wxFileDataObject
-    m_TreeText = wxEmptyString;
-    #if !wxCHECK_VERSION(2, 8, 12)
-    m_prjTreeItemAtKeyDown = 0;
-    m_prjTreeItemAtKeyUp = 0;
-    #endif
-
-    // correct for treeCtrl bug
-    SendMouseLeftUp(pTree, m_MouseDownX, m_MouseDownY);
-
-}//DoPrjTreeExternalDrag
-// ----------------------------------------------------------------------------
-void CodeSnippets::SendMouseLeftUp(const wxWindow* pWin, const int mouseX, const int mouseY)
-// ----------------------------------------------------------------------------
-{
-    // ---MSW WORKAROUNG --------------------------------------------------
-    // Since we dragged outside the tree control with a mouse_left_down,
-    // Wx will *not* send us a mouse_key_up event until the user explcitly
-    // re-clicks inside the tree control. The tree exibits very bad behavior.
-
-    // Send an mouse_key_up to the tree control so it releases the
-    // mouse and behaves correctly.
-  #if defined(__WXMSW__)
-    if ( pWin )
-    {
-        //send Mouse LeftKeyUp to Tree Control window
-        #ifdef LOGGING
-         LOGIT( _T("Sending Mouse LeftKeyUp"));
-        #endif //LOGGING
-        // Remember current mouse position
-        wxPoint CurrentMousePosn = ::wxGetMousePosition();
-        // Get absolute location of mouse x and y
-        wxPoint fullScreen = pWin->ClientToScreen(wxPoint(mouseX,mouseY));
-        // move mouse into the window
-        MSW_MouseMove( fullScreen.x, fullScreen.y );
-        // send mouse LeftKeyUp
-        INPUT Input         = {0};
-        Input.type          = INPUT_MOUSE;
-        Input.mi.dwFlags    = MOUSEEVENTF_LEFTUP;
-        ::SendInput(1,&Input,sizeof(INPUT));
-        // put mouse back in drag-end position
-        MSW_MouseMove( CurrentMousePosn.x, CurrentMousePosn.y );
-    }
-  #endif //(__WXMSW__)
-}
-// ----------------------------------------------------------------------------
+#if defined(__WXMSW__)
 void CodeSnippets::MSW_MouseMove(int x, int y )
 // ----------------------------------------------------------------------------
 {
-   #if defined(__WXMSW__)
     // Move the MSW mouse to absolute screen coords x,y
       double fScreenWidth   = ::GetSystemMetrics( SM_CXSCREEN )-1;
       double fScreenHeight  = ::GetSystemMetrics( SM_CYSCREEN )-1;
@@ -1326,8 +1390,8 @@ void CodeSnippets::MSW_MouseMove(int x, int y )
       Input.mi.dx = (LONG)fx;
       Input.mi.dy = (LONG)fy;
       ::SendInput(1,&Input,sizeof(INPUT));
-   #endif
 }
+#endif
 // ----------------------------------------------------------------------------
 void CodeSnippets::SetTreeCtrlHandler(wxWindow *p, WXTYPE eventType)
 // ----------------------------------------------------------------------------
@@ -1338,27 +1402,14 @@ void CodeSnippets::SetTreeCtrlHandler(wxWindow *p, WXTYPE eventType)
 	 LOGIT(wxT("CodeSnippets::SetTreeCtrlHandler[%s] %p"), p->GetName().c_str(),p);
     #endif //LOGGING
 
-////    p->Connect(wxEVT_COMMAND_TREE_BEGIN_DRAG,
-////                     wxTreeEventHandler(CodeSnippets::OnTreeDragEvent),
-////                     NULL, this);
-////    p->Connect(wxEVT_COMMAND_TREE_END_DRAG,
-////                     wxTreeEventHandler(CodeSnippets::OnTreeDragEvent),
-////                     NULL, this);
-////    p->Connect(wxEVT_LEAVE_WINDOW,
-////                     wxTreeEventHandler(CodeSnippets::OnTreeDragEvent),
-////                     NULL, this);
-
-    p->Connect(wxEVT_LEFT_UP,
-                     wxMouseEventHandler(CodeSnippets::OnPrjTreeMouseLeftUpEvent),
+    p->Connect(wxEVT_COMMAND_TREE_BEGIN_DRAG,
+                     wxTreeEventHandler(CodeSnippets::OnTreeDragEvent),
                      NULL, this);
-    p->Connect(wxEVT_LEFT_DOWN,
-                     wxMouseEventHandler(CodeSnippets::OnPrjTreeMouseLeftDownEvent),
-                     NULL, this);
-    p->Connect(wxEVT_MOTION,
-                     wxMouseEventHandler(CodeSnippets::OnPrjTreeMouseMotionEvent),
+    p->Connect(wxEVT_COMMAND_TREE_END_DRAG,
+                     wxTreeEventHandler(CodeSnippets::OnTreeDragEvent),
                      NULL, this);
     p->Connect(wxEVT_LEAVE_WINDOW,
-                     wxMouseEventHandler(CodeSnippets::OnPrjTreeMouseLeaveWindowEvent),
+                     wxTreeEventHandler(CodeSnippets::OnTreeDragEvent),
                      NULL, this);
 }
 // ----------------------------------------------------------------------------
@@ -1371,26 +1422,14 @@ void CodeSnippets::RemoveTreeCtrlHandler(wxWindow *p, WXTYPE eventType)
 	 LOGIT(wxT("CodeSnippets::Detach - detaching to [%s] %p"), p->GetName().c_str(),p);
     #endif //LOGGING
 
-////    p->Disconnect(wxEVT_COMMAND_TREE_BEGIN_DRAG,       //eg.,wxEVT_LEAVE_WINDOW,
-////                     wxTreeEventHandler(CodeSnippets::OnTreeDragEvent),
-////                     NULL, this);
-////    p->Disconnect(wxEVT_COMMAND_TREE_END_DRAG,       //eg.,wxEVT_LEAVE_WINDOW,
-////                     wxTreeEventHandler(CodeSnippets::OnTreeDragEvent),
-////                     NULL, this);
-////    p->Disconnect(wxEVT_LEAVE_WINDOW,       //eg.,wxEVT_LEAVE_WINDOW,
-////                     wxTreeEventHandler(CodeSnippets::OnTreeDragEvent),
-////                     NULL, this);
-    p->Disconnect(wxEVT_LEFT_UP,
-                     wxMouseEventHandler(CodeSnippets::OnPrjTreeMouseLeftUpEvent),
+    p->Disconnect(wxEVT_COMMAND_TREE_BEGIN_DRAG,       //eg.,wxEVT_LEAVE_WINDOW,
+                     wxTreeEventHandler(CodeSnippets::OnTreeDragEvent),
                      NULL, this);
-    p->Disconnect(wxEVT_LEFT_DOWN,
-                     wxMouseEventHandler(CodeSnippets::OnPrjTreeMouseLeftDownEvent),
+    p->Disconnect(wxEVT_COMMAND_TREE_END_DRAG,       //eg.,wxEVT_LEAVE_WINDOW,
+                     wxTreeEventHandler(CodeSnippets::OnTreeDragEvent),
                      NULL, this);
-    p->Disconnect(wxEVT_MOTION,
-                     wxMouseEventHandler(CodeSnippets::OnPrjTreeMouseMotionEvent),
-                     NULL, this);
-    p->Disconnect(wxEVT_LEAVE_WINDOW,
-                     wxMouseEventHandler(CodeSnippets::OnPrjTreeMouseLeaveWindowEvent),
+    p->Disconnect(wxEVT_LEAVE_WINDOW,       //eg.,wxEVT_LEAVE_WINDOW,
+                     wxTreeEventHandler(CodeSnippets::OnTreeDragEvent),
                      NULL, this);
 }
 // ----------------------------------------------------------------------------
@@ -1475,6 +1514,165 @@ wxString CodeSnippets::FindAppPath(const wxString& argv0, const wxString& cwd, c
     //return cwd;
 }
 // ----------------------------------------------------------------------------
+int CodeSnippets::LaunchProcess(const wxString& cmd, const wxString& cwd)
+// ----------------------------------------------------------------------------
+{
+
+    #if defined(__WXMSW__)
+        // Append DLL folder to MSW path
+        wxString mswPath;
+        wxGetEnv(wxT("PATH"),&mswPath);
+        mswPath = mswPath + wxT(";") + GetConfig()->m_ExecuteFolder;
+        wxSetEnv(_T("PATH"), mswPath);
+        wxGetEnv(wxT("PATH"),&mswPath);
+         #if defined(LOGGING)
+         LOGIT( _T("Launch Path set to[%s]"), mswPath.c_str() );
+         #endif
+    #endif
+
+    #ifndef __WXMSW__
+        // setup dynamic linker path
+        #if defined(__APPLE__) && defined(__MACH__)
+            wxSetEnv(_T("DYLD_LIBRARY_PATH"), _T(".:$DYLD_LIBRARY_PATH"));
+        #else   // it's linux
+            //wxString ldLibraryPath = wxT(".:");
+            wxString ldLibraryPath = ::wxPathOnly( cmd ) + wxT("/");
+            if ( wxDirExists( ldLibraryPath + wxT("./lib")) ) ldLibraryPath << wxT("./lib");
+            if ( wxDirExists( ldLibraryPath + wxT("../lib")) ) ldLibraryPath << wxT("../lib");
+            ldLibraryPath << wxT(":$LD_LIBRARY_PATH");
+            wxSetEnv( _T("LD_LIBRARY_PATH"), ldLibraryPath );
+            wxGetEnv( _T("LD_LIBRARY_PATH"), &ldLibraryPath );
+            Manager::Get()->GetLogManager()->DebugLog(wxString::Format( _("CodeSnippets CWD: %s"), cwd.c_str()) );
+            Manager::Get()->GetLogManager()->DebugLog(wxString::Format( _("CodeSnippets LD_LIBRARY_PATH is: %s"), ldLibraryPath.c_str()) );
+        #endif // __APPLE__ && __MACH__
+    #endif  //ndef __WXMSW__
+
+    // start codesnippets
+    wxString exeCmd = cmd;
+    ////wxString exeCmd = _T("cmd /c gdb --args ") + cmd;
+    Manager::Get()->GetLogManager()->DebugLog( _("Starting program:")+ exeCmd);
+    m_ExternalPid = wxExecute( exeCmd, wxEXEC_ASYNC);
+    #if defined(LOGGING)
+     LOGIT( _T("Launch [%s] from [%s] Pid[%lu]"), exeCmd.c_str(), cwd.c_str(), m_ExternalPid );
+    #endif
+
+    #if defined(__WXMAC__)
+        if (m_ExternalPid == -1)
+        {
+            // Great! We got a fake PID. Time to Go Fish with our "ps" rod:
+
+            m_ExternalPid = 0;
+            pid_t mypid = getpid();
+            wxString mypidStr;
+            mypidStr << mypid;
+
+            long pspid = 0;
+            wxString psCmd;
+            wxArrayString psOutput;
+            wxArrayString psErrors;
+
+            psCmd << wxT("/bin/ps -o ppid,pid,command");
+            //-Manager::Get()->GetMessageManager()->DebugLog(wxString::Format( _("Executing: %s"), psCmd.c_str()) );
+            Manager::Get()->GetLogManager()->DebugLog(wxString::Format( _("Executing: %s"), psCmd.c_str()) );
+            int result = wxExecute(psCmd, psOutput, psErrors, wxEXEC_SYNC);
+
+            mypidStr << wxT(" ");
+
+            for (int i = 0; i < psOutput.GetCount(); ++i)
+            { //  PPID   PID COMMAND
+               wxString psLine = psOutput.Item(i);
+               if (psLine.StartsWith(mypidStr) && psLine.Contains(wxT("codesnippets")))
+               {
+                   wxString pidStr = psLine.Mid(mypidStr.Length());
+                   pidStr = pidStr.BeforeFirst(' ');
+                   if (pidStr.ToLong(&pspid))
+                   {
+                       m_ExternalPid = pspid;
+                       break;
+                   }
+               }
+             }
+
+            for (int i = 0; i < psErrors.GetCount(); ++i)
+                //-Manager::Get()->GetMessageManager()->DebugLog(wxString::Format( _("PS Error:%s"), psErrors.Item(i).c_str()) );
+                Manager::Get()->GetLogManager()->DebugLog(wxString::Format( _("PS Error:%s"), psErrors.Item(i).c_str()) );
+
+        }//if(m_ExternalPid == -1)
+    #endif
+
+    if (!m_ExternalPid)
+    {
+        //Manager::Get()->GetMessageManager()->Log(m_PageIndex, _("failed"));
+        Manager::Get()->GetLogManager()->DebugLog( _("failed"));
+        return -1;
+    }
+    //Manager::Get()->GetMessageManager()->Log(m_PageIndex, _("done"));
+    Manager::Get()->GetLogManager()->DebugLog( _("done"));
+    return 0;
+}
+// ----------------------------------------------------------------------------
+long CodeSnippets::LaunchExternalSnippets()
+// ----------------------------------------------------------------------------
+{
+   // Launch the executable if user specified "External" WindowState
+
+    // First, create a temporary keepAlive file with our Pid in the name.
+    // The launched process will check for the file to disappear
+    // and terminate, saving its data and conf settings
+
+    // deallocate any previously mapped file
+    RemoveKeepAliveFile();
+
+    // make a unique keepAlive file name with this process's pid
+    wxString myPid(wxString::Format(wxT("%lu"),::wxGetProcessId()));
+    wxString tempDir = GetConfig()->GetTempDir();
+    m_KeepAliveFileName = tempDir + wxT("/cbsnippetspid") +myPid+ wxT(".plg");
+
+    // Create a temporary keepalive file that indicates that the external
+    // CodeSnippets pgm should keep running until the file disappears
+    m_PidTmpFile.Create( m_KeepAliveFileName, true);
+    m_PidTmpFile.Close();
+
+    // Launch the external process
+    wxString execFolder = GetConfig()->m_ExecuteFolder;
+    wxString PgmFullPath ;
+    do {
+        PgmFullPath = execFolder + wxT("/codesnippets");
+        #if defined(__WXMSW__)
+            PgmFullPath << wxT(".exe");
+        #endif
+        if ( ::wxFileExists(PgmFullPath) ) break;
+        #if defined(LOGGING)
+        LOGIT(wxT("codesnippets not found at[%s]"),PgmFullPath.GetData());
+        #endif
+
+        PgmFullPath = execFolder
+                    + wxT("/share/codeblocks/plugins/codesnippets");
+        #if defined(__WXMSW__)
+            PgmFullPath << wxT(".exe") ;
+        #endif
+    }while(0);
+
+    wxString appName = wxTheApp->GetAppName();
+    wxString pgmArgs( wxString::Format( wxT("--KeepAlivePid=%lu --AppParent=%s"), ::wxGetProcessId(), appName.c_str() ) );
+    wxString command = PgmFullPath + wxT(" ") + pgmArgs;
+
+    #if defined(LOGGING)
+     LOGIT( _T("Launching[%s]"), command.GetData());
+    #endif
+
+    bool result = LaunchProcess(command, wxGetCwd());
+    #if defined(LOGGING)
+     LOGIT( _T("Launch Result[%d] m_ExternalPid[%lu]"),result, m_ExternalPid );
+    #endif
+    if ( 0 != result )
+    {  wxString msg(wxString::Format(wxT("Error [%d] Launching\n %s\n"),result, PgmFullPath.c_str()));
+       GenericMessageBox( msg );
+    }
+
+    return result;
+}
+// ----------------------------------------------------------------------------
 wxWindow* CodeSnippets::FindOpenFilesListWindow()
 // ----------------------------------------------------------------------------
 {
@@ -1507,3 +1705,153 @@ wxWindow* CodeSnippets::FindOpenFilesListWindow()
     }
     return 0;
 }//FindOpenFilesListWindow
+// ----------------------------------------------------------------------------
+cbDragScroll* CodeSnippets::FindDragScroll()
+// ----------------------------------------------------------------------------
+{
+    // Initialize local DragScrolling pointer. We'll use it to
+    // post event requests.
+    //-if ( GetConfig()->GetDragScrollPlugin() )
+    if ( GetConfig()->m_pDragScrollPlugin )
+        return GetConfig()->GetDragScrollPlugin();
+
+    // If DragScroll isn't loaded, absorb the DragScrollEvents
+    // (fake out the plugin address) so
+    // ProcessEvent() and AddPendingEvent() don't crash
+    GetConfig()->SetDragScrollPlugin( (cbDragScroll*)this );
+
+    // Check to see if Dragscroll is loaded
+    cbPlugin* pPlgn = Manager::Get()->GetPluginManager()->FindPluginByName(_T("cbDragScroll"));
+    if ( pPlgn )
+    {
+        GetConfig()->SetDragScrollPlugin( (cbDragScroll*)pPlgn );
+        // Hack to get actual DragScrollEvent value
+        PluginInfo* pInfo = (PluginInfo*)(Manager::Get()->GetPluginManager()->GetPluginInfo(pPlgn));
+        pInfo->authorWebsite.ToLong(&m_nDragScrollEventId);
+        if ( m_nDragScrollEventId )
+        {
+            // Reset our copy of the DragScroll event to the actual from DragScroll plugin
+            wxEventType* p = (wxEventType*)&wxEVT_DRAGSCROLL_EVENT;
+                        *p = m_nDragScrollEventId ;
+        }
+        #if defined(LOGGING)
+        LOGIT( _T("CodeSnippets found DragScroll @[%p]EvemtId[%ld]"), GetConfig()->GetDragScrollPlugin(), m_nDragScrollEventId);
+        LOGIT( _T("DragScroll events are[%d]"), wxEVT_DRAGSCROLL_EVENT );
+        #endif
+    }
+
+    return GetConfig()->GetDragScrollPlugin();
+}
+// ----------------------------------------------------------------------------
+wxString CodeSnippets::GetCBConfigFile()
+// ----------------------------------------------------------------------------
+{
+    PersonalityManager* PersMan = Manager::Get()->GetPersonalityManager();
+    wxString personality = PersMan->GetPersonality();
+    ConfigManager* CfgMan = Manager::Get()->GetConfigManager(_T("app"));
+    wxString current_conf_file = CfgMan->LocateDataFile(personality+_T(".conf"), sdAllKnown);
+
+    // Config manager will return an empty string on the first run of CodeBlocks
+    if (current_conf_file.IsEmpty())
+    {
+        wxString appdata;
+        if ( personality == _T("default") )
+            personality = _T("");
+        // Get APPDATA env var and append ".codeblocks" to it
+        wxGetEnv(_T("APPDATA"), &appdata);
+        current_conf_file = appdata +
+                    //-wxFILE_SEP_PATH + _T("codeblocks") + wxFILE_SEP_PATH
+                    wxFILE_SEP_PATH + wxTheApp->GetAppName() + wxFILE_SEP_PATH
+                    + personality + _T(".codesnippets.ini");
+    }
+    return current_conf_file;
+}
+// ----------------------------------------------------------------------------
+wxString CodeSnippets::GetCBConfigDir()
+// ----------------------------------------------------------------------------
+{
+    return GetCBConfigFile().BeforeLast(wxFILE_SEP_PATH);
+}
+//// ----------------------------------------------------------------------------
+//void CodeSnippets::OnWindowDestroy(wxEvent& event)
+//// ----------------------------------------------------------------------------
+//{
+//    wxWindow* pWindow = (wxWindow*)(event.GetEventObject());
+//     LOGIT( _T("OnWindowClose[%p]"), pWindow );
+//     event.Skip();
+//}
+
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// The following are attempts to avoid the OnIdle polling. But they didn't work.
+// ----------------------------------------------------------------------------
+//void CodeSnippets::OnActivate(wxActivateEvent& event)
+//// ----------------------------------------------------------------------------
+//{
+//    // An application has been activated by the OS
+//    // Notes: At routine entry,
+//    //      wxFindWindowAtPointer = window to be activated
+//    //      wxWindow::FindFocus() = window being deactivated
+//    //      each can be null when not a window for this app
+//    //      When moving mouse from non-app window to docked window to app
+//    //          no EVT_ACTIVATE occurs.
+//    //      ::wxGetActiveWindow always returns a ptr to CodeBlocks
+//    //      wxTheApp->GetTopWindow always return a ptr to Codeblocks
+//
+//     LOGIT( _T("-----OnActivate----------[%s]"),event.GetActive()?wxT("Active"):wxT("Deactive") );
+//
+//    // Wait until codeblocks is fully initialized
+//    if (not GetConfig()->pSnippetsWindow) return;
+//
+//     //if (not event.GetActive()) { event.Skip();return; }
+//
+//     wxPoint pt;
+//     wxWindow* pwMouse = ::wxFindWindowAtPointer( pt );
+//     wxWindow* pwSnippet = GetConfig()->pSnippetsWindow;
+//     wxWindow* pwFocused = wxWindow::FindFocus();
+//     wxWindow* pwTreeCtrl = GetConfig()->pSnippetsWindow->GetSnippetsTreeCtrl();
+//      LOGIT( _T("MouseWin   [%p]Name[%s]"),pwMouse, pwMouse?pwMouse->GetName().c_str():wxT(""));
+//      LOGIT( _T("FocusedWin [%p]Name[%s]"),pwFocused, pwFocused?pwFocused->GetName().c_str():wxT(""));
+//      LOGIT( _T("SnippetWin [%p]Name[%s]"),pwSnippet, pwSnippet->GetName().c_str());
+//      LOGIT( _T("TreeCtrWin [%p]Name[%s]"),pwTreeCtrl, pwFocused?pwTreeCtrl->GetName().c_str():wxT(""));
+//      wxWindow* pwTreeParent = pwTreeCtrl->GetParent();
+//      wxWindow* pwSnipParent = pwSnippet->GetParent();
+//      LOGIT( _T("SnippetParent [%p]Name[%s]"),pwSnipParent, pwSnipParent->GetName().c_str());
+//      LOGIT( _T("TreeParent [%p]Name[%s]"),pwTreeParent, pwFocused?pwTreeParent->GetName().c_str():wxT(""));
+//      if (pwSnipParent)
+//      {     wxWindow* pwSnipGrndParent = pwSnipParent->GetParent();
+//            if (pwSnipGrndParent)
+//             LOGIT( _T("SnippetGrndParent [%p]Name[%s]"),pwSnipGrndParent, pwSnipGrndParent->GetName().c_str());
+//      }
+//      m_pLog->Flush();
+//
+//     if (wxWindow::FindFocus() != pwTreeCtrl )
+//        {event.Skip(); return;}
+//    // Deactivated window was our CodeSnippets TreeCtrl
+//    LOGIT( _T(" Activated Plugin") );
+//    event.Skip();
+//    return;
+//    //========================================================
+//    // An application has been activated by the OS
+//
+//    // Wait until codeblocks is fully initialized
+//    if (not GetConfig()->pSnippetsWindow) return;
+//
+//    //LOGIT( _T(" OnActivate Plugin") );
+//
+//     if (not event.GetActive()) { event.Skip();return; }
+//     //Err: wxGetActiveWindow and wxTheApp->GetTopWindow is always the same.
+//     //  namely code::blocks
+//     if (::wxGetActiveWindow() != wxTheApp->GetTopWindow() )
+//        {event.Skip(); return;}
+//
+//    do
+//    {
+//        CodeSnippetsWindow* p = GetConfig()->pSnippetsWindow;
+//        p->CheckForExternallyModifiedFiles();
+//
+//    }while(0);
+//
+//    event.Skip();
+//    return;
+//}

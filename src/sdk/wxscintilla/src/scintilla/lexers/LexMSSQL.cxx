@@ -16,6 +16,7 @@
 #include "Scintilla.h"
 #include "SciLexer.h"
 
+#include "PropSetSimple.h"
 #include "WordList.h"
 #include "LexAccessor.h"
 #include "Accessor.h"
@@ -34,6 +35,19 @@ using namespace Scintilla;
 #define KW_MSSQL_FUNCTIONS          4
 #define KW_MSSQL_STORED_PROCEDURES  5
 #define KW_MSSQL_OPERATORS          6
+
+static bool isMSSQLOperator(char ch) {
+	if (isascii(ch) && isalnum(ch))
+		return false;
+	// '.' left out as it is used to make up numbers
+	if (ch == '%' || ch == '^' || ch == '&' || ch == '*' ||
+        ch == '-' || ch == '+' || ch == '=' || ch == '|' ||
+        ch == '<' || ch == '>' || ch == '/' ||
+        ch == '!' || ch == '~' || ch == '(' || ch == ')' ||
+		ch == ',')
+		return true;
+	return false;
+}
 
 static char classifyWordSQL(unsigned int start,
                             unsigned int end,
@@ -207,7 +221,7 @@ static void ColouriseMSSQLDoc(unsigned int startPos, int length,
 				styler.ColourTo(i - 1, SCE_MSSQL_DEFAULT);
 				prevState = state;
 				state = SCE_MSSQL_COLUMN_NAME_2;
-			} else if (isoperator(ch)) {
+			} else if (isMSSQLOperator(ch)) {
 				styler.ColourTo(i - 1, SCE_MSSQL_DEFAULT);
 				styler.ColourTo(i, SCE_MSSQL_OPERATOR);
                 //~ style = SCE_MSSQL_DEFAULT;
@@ -287,7 +301,7 @@ static void FoldMSSQLDoc(unsigned int startPos, int length, int, WordList *[], A
 	int levelCurrent = levelPrev;
 	char chNext = styler[startPos];
 	bool inComment = (styler.StyleAt(startPos-1) == SCE_MSSQL_COMMENT);
-    char s[10] = "";
+    char s[10];
 	for (unsigned int i = startPos; i < endPos; i++) {
 		char ch = chNext;
 		chNext = styler.SafeGetCharAt(i + 1);

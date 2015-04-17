@@ -73,6 +73,7 @@ protected:
     wxStaticBox* SizerListControlOptions_staticbox;
     wxStaticBox* SizerThreadSearchLayoutGlobal_staticbox;
     wxStaticBox* SizerThreadSearchOptions_staticbox;
+    wxStaticBox* SizerOptions_staticbox;
     wxStaticBox* SizerSearchIn_staticbox;
     SearchInPanel* m_pPnlSearchIn;
     DirectoryParamsPanel* m_pPnlDirParams;

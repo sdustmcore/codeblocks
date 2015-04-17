@@ -26,7 +26,7 @@ public:
     virtual NassiBrick *Clone() const = 0;// {return ( new NassiBrick(*this) ); }
 
     NassiBrick *GetPrevious() const { return previous; }
-    NassiBrick *GetNext() const { return mNext; }
+    NassiBrick *GetNext() const { return next; }
     NassiBrick *GetParent() const { return parent; }
     NassiBrick *SetNext(NassiBrick *nex);
     NassiBrick *SetPrevious(NassiBrick *prev);
@@ -57,7 +57,7 @@ protected:
     //void SaveFile(wxTextOutputStream &text_stream, wxUint32 n);
     //void SaveString(wxTextOutputStream &text_stream, wxUint32 n, wxUint32 k, bool FillFirst);
 private:
-    NassiBrick *previous, *mNext, *parent;
+    NassiBrick *previous, *next, *parent;
 public:
     static wxOutputStream &SerializeString(wxOutputStream &stream, wxString str);
     static wxInputStream &DeserializeString(wxInputStream &stream, wxString &str);

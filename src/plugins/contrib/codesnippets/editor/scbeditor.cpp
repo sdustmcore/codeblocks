@@ -2,9 +2,9 @@
  * This file is part of the Code::Blocks IDE and licensed under the GNU Lesser General Public License, version 3
  * http://www.gnu.org/licenses/lgpl-3.0.html
  *
- * $Revision$
- * $Id$
- * $HeadURL$
+ * $Revision: 5033 $
+ * $Id: cbeditor.cpp 5033 2008-05-07 11:41:24Z mandrav $
+ * $HeadURL: https://svn.berlios.de/svnroot/repos/codeblocks/trunk/src/sdk/cbeditor.cpp $
  */
 
 // Stop following warning:
@@ -17,12 +17,8 @@
 
 #ifndef CB_PRECOMP
     #include <wx/filename.h>
-    #include <wx/filedlg.h>
-    #include <wx/textdlg.h> // wxGetTextFromUser
-    #include <wx/menu.h>
     #include <wx/notebook.h>
     #include <wx/wfstream.h>
-    #include <wx/sizer.h>
 
     #include "scbeditor.h" // class's header file
     #include "globals.h"
@@ -49,13 +45,11 @@
 #include <wx/fontutil.h>
 #include <wx/splitter.h>
 
-#include <cbeditorprintout.h>
-#include <cbdebugger_interfaces.h>
-#include <debuggermanager.h>
-#include <editor_hooks.h>
-#include <encodingdetector.h>
-#include <filefilters.h>
-#include <projectfileoptionsdlg.h>
+#include "cbeditorprintout.h"
+#include "editor_hooks.h"
+#include "filefilters.h"
+#include "encodingdetector.h"
+#include "projectfileoptionsdlg.h"
 
 const wxString g_EditorModified = _T("*");
 
@@ -962,7 +956,7 @@ void ScbEditor::InternalSetEditorStyleBeforeFileOpen(cbStyledTextCtrl* control)
     ConfigManager* mgr = Manager::Get()->GetConfigManager(_T("editor"));
 
     // 8 point is not readable on Mac OS X, increase font size
-    wxFont font(platform::macosx ? 10 : 8, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+    wxFont font(platform::macosx ? 10 : 8, wxMODERN, wxNORMAL, wxNORMAL);
 
     wxString fontstring = mgr->Read(_T("/font"), wxEmptyString);
 
@@ -1580,6 +1574,7 @@ void ScbEditor::DoFoldBlockFromLine(int line, int fold)
     cbStyledTextCtrl* ctrl = GetControl();
     ctrl->Colourise(0, -1); // the *most* important part!
     int i, parent, maxLine, level, UnfoldUpto = line;
+    bool FoldedInside = false;
 
     parent = ctrl->GetFoldParent(line);
     level = ctrl->GetFoldLevel(parent);
@@ -1591,8 +1586,10 @@ void ScbEditor::DoFoldBlockFromLine(int line, int fold)
         do
         {
             if (!ctrl->GetFoldExpanded(parent))
+            {
+                FoldedInside = true;
                 UnfoldUpto = parent;
-
+            }
             if (wxSCI_FOLDLEVELBASE == (level & wxSCI_FOLDLEVELNUMBERMASK))
                 break;
             parent = ctrl->GetFoldParent(parent);
@@ -1795,8 +1792,6 @@ bool ScbEditor::AddBreakpoint(int line, bool notifyDebugger)
 
 bool ScbEditor::RemoveBreakpoint(int line, bool notifyDebugger)
 {
-    return true;    //(pecan 2011/12/14)
-    /*              //(pecan 2011/12/14)
     if (!HasBreakpoint(line))
         return false;
     if (line == -1)
@@ -1808,19 +1803,30 @@ bool ScbEditor::RemoveBreakpoint(int line, bool notifyDebugger)
         return false;
     }
 
-    if (Manager::Get()->GetDebuggerManager()->GetBreakpointDialog()->RemoveBreakpoint(m_Filename, line + 1))
+    PluginsArray arr = Manager::Get()->GetPluginManager()->GetOffersFor(ptDebugger);
+    if (!arr.GetCount())
+        return false;
+    bool accepted=false;
+    for(size_t i=0;i<arr.GetCount();i++)
+    {
+        cbDebuggerPlugin* debugger = (cbDebuggerPlugin*)arr[i];
+        if (!debugger)
+            continue; //kinda scary if this isn't a debugger? perhaps this should be a logged error??
+        if (debugger->RemoveBreakpoint(m_Filename, line))
+        {
+            accepted=true;
+        }
+    }
+    if(accepted)
     {
         MarkerToggle(BREAKPOINT_MARKER, line);
         return true;
     }
     return false;
-    */
 }
 
 void ScbEditor::ToggleBreakpoint(int line, bool notifyDebugger)
 {
-    return;             //(pecan 2011/12/14)
-    /*                  //(pecan 2011/12/14)
     if (line == -1)
         line = GetControl()->GetCurrentLine();
     if (!notifyDebugger)
@@ -1829,25 +1835,26 @@ void ScbEditor::ToggleBreakpoint(int line, bool notifyDebugger)
         return;
     }
 
-    cbBreakpointsDlg *dialog = Manager::Get()->GetDebuggerManager()->GetBreakpointDialog();
-    bool toggle = false;
-    if (HasBreakpoint(line))
+    PluginsArray arr = Manager::Get()->GetPluginManager()->GetOffersFor(ptDebugger);
+    if (!arr.GetCount())
+        return;
+    bool toggle=false;
+    for(size_t i=0;i<arr.GetCount();i++)
     {
-        if (dialog->RemoveBreakpoint(m_Filename, line + 1))
-            toggle = true;
+        cbDebuggerPlugin* debugger = (cbDebuggerPlugin*)arr[i];
+        if (HasBreakpoint(line))
+        {
+            if (debugger->RemoveBreakpoint(m_Filename, line))
+                toggle=true;
+        }
+        else
+        {
+            if (debugger->AddBreakpoint(m_Filename, line))
+                toggle=true;
+        }
     }
-    else
-    {
-        if (dialog->AddBreakpoint(m_Filename, line + 1))
-            toggle = true;
-    }
-
     if(toggle)
-    {
         MarkerToggle(BREAKPOINT_MARKER, line);
-        dialog->Reload();
-    }
-    */
 }
 
 bool ScbEditor::HasBreakpoint(int line) const
@@ -2450,15 +2457,12 @@ void ScbEditor::OnContextMenuEntry(wxCommandEvent& event)
             dlg.ShowModal();
         }
     }
-    /*      //(pecan 2011/12/14)
     else if (id == idBreakpointAdd)
         AddBreakpoint(m_pData->m_LastMarginMenuLine);
-// TODO (obfuscated#): reimplement this, breakpoints
-//    else if (id == idBreakpointEdit)
-//        NotifyPlugins(cbEVT_EDITOR_BREAKPOINT_EDIT, m_pData->m_LastMarginMenuLine + 1, m_Filename);
+    else if (id == idBreakpointEdit)
+        NotifyPlugins(cbEVT_EDITOR_BREAKPOINT_EDIT, m_pData->m_LastMarginMenuLine, m_Filename);
     else if (id == idBreakpointRemove)
         RemoveBreakpoint(m_pData->m_LastMarginMenuLine);
-    */      //(pecan 2011/12/14)
     else
         event.Skip();
     //Manager::Get()->GetLogManager()->DebugLog(_T("Leaving OnContextMenuEntry"));

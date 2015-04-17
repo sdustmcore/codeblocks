@@ -53,8 +53,7 @@ wxsSplitterWindow::wxsSplitterWindow(wxsItemResData* Data):
     wxsContainer(Data,&Reg.Info,wxsSplitterWindowEvents,wxsSplitterWindowStyles),
     SashPos(0),
     MinSize(10),
-    Orientation(wxHORIZONTAL),
-    SashGravity(0.5f)
+    Orientation(wxHORIZONTAL)
 {
 }
 
@@ -90,7 +89,6 @@ wxObject* wxsSplitterWindow::OnBuildPreview(wxWindow* Parent,long Flags)
                 wxDynamicCast(GetChild(1)->GetLastPreview(),wxWindow),
                 SashPos);
         }
-        Splitter->SetSashGravity(SashGravity);
 
         // Some trick to faster relayout splitter window
         Splitter->OnInternalIdle();
@@ -110,7 +108,6 @@ void wxsSplitterWindow::OnBuildCreatingCode()
             Codef(_T("%C(%W, %I, %P, %S, %T, %N);\n"));
             BuildSetupWindowCode();
             if ( MinSize != -1 ) Codef(_T("%ASetMinimumPaneSize(%d);\n"),MinSize);
-            Codef(_T("%ASetSashGravity(%f);\n"),SashGravity);
             AddChildrenCode();
             if ( GetChildCount() == 0 )
             {
@@ -127,7 +124,6 @@ void wxsSplitterWindow::OnBuildCreatingCode()
             break;
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsSplitterWindow::OnBuildCreatingCode"),GetLanguage());
@@ -141,7 +137,6 @@ void wxsSplitterWindow::OnEnumContainerProperties(long Flags)
     static const wxChar* OrientNames[]  = { _T("horizontal"), _T("vertical"), 0 };
 
     WXS_LONG(wxsSplitterWindow,SashPos,_("Sash position"),_T("sashpos"),0);
-    WXS_FLOAT(wxsSplitterWindow,SashGravity,_("Sash gravity"), _T("sashgravity"), 0.5);
     WXS_LONG(wxsSplitterWindow,MinSize,_("Min. pane size"),_T("minsize"),-1);
     WXS_ENUM(wxsSplitterWindow,Orientation,_("Orientation"),_T("orientation"),OrientValues,OrientNames,wxHORIZONTAL);
 }
@@ -149,32 +144,32 @@ void wxsSplitterWindow::OnEnumContainerProperties(long Flags)
 bool wxsSplitterWindow::OnCanAddChild(wxsItem* Item,bool ShowMessage)
 {
     // TODO: Allow more tools
-    if ( GetChildCount() == 2 )
-    {
-        if ( ShowMessage )
-        {
+	if ( GetChildCount() == 2 )
+	{
+	    if ( ShowMessage )
+	    {
             wxMessageBox(_("Splitter can have at most 2 children"));
-        }
-        return false;
-    }
+	    }
+		return false;
+	}
 
-    if ( Item->GetType() == wxsTSizer )
-    {
-        if ( ShowMessage )
-        {
+	if ( Item->GetType() == wxsTSizer )
+	{
+	    if ( ShowMessage )
+	    {
             wxMessageBox(_("Can not add sizer into Splitter.\nAdd panels first"));
-        }
-        return false;
-    }
+	    }
+		return false;
+	}
 
-    if ( Item->GetType() == wxsTSpacer )
-    {
-        if ( ShowMessage )
-        {
+	if ( Item->GetType() == wxsTSpacer )
+	{
+	    if ( ShowMessage )
+	    {
             wxMessageBox(_("Spacer can be added to sizers only"));
-        }
-        return false;
-    }
+	    }
+		return false;
+	}
 
     return true;
 }

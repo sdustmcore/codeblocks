@@ -6,11 +6,9 @@
 #ifndef EDITORMANAGER_H
 #define EDITORMANAGER_H
 
-#include "prep.h"
 #include <wx/list.h>
 #include <wx/treectrl.h>
 #include <wx/hashmap.h>
-#include <wx/filename.h>
 
 #include "settings.h"
 #include "manager.h"
@@ -18,7 +16,9 @@
 
 #include "printing_types.h"
 
-#include "globals.h" // cbC2U, FileType
+#ifndef CB_PRECOMP
+    #include "globals.h" // cbC2U
+#endif
 
 DLLIMPORT extern int ID_NBEditorManager;
 DLLIMPORT extern int ID_EditorManager;
@@ -29,6 +29,7 @@ DLLIMPORT extern int ID_EditorManagerCloseButton;
 class EditorBase;
 class cbAuiNotebook;
 class wxAuiNotebookEvent;
+class wxMenuBar;
 class EditorColourSet;
 class cbProject;
 class ProjectFile;
@@ -37,16 +38,20 @@ class cbStyledTextCtrl;
 class ListCtrlLogger;
 class LoaderBase;
 struct EditorManagerInternalData;
-class SearchResultsLog;
+
+WX_DECLARE_STRING_HASH_MAP(wxString, AutoCompleteMap);
+
+// forward decl
+struct cbFindReplaceData;
 
 /*
  * Struct for store tabs stack info
  */
 struct cbNotebookStack
 {
-    cbNotebookStack(wxWindow* a_pWindow = nullptr)
+    cbNotebookStack(wxWindow* a_pWindow = 0)
         : window (a_pWindow),
-          next (nullptr)
+          next (0)
    {}
 
     wxWindow*           window;
@@ -61,11 +66,11 @@ class DLLIMPORT EditorManager : public Mgr<EditorManager>, public wxEvtHandler
         friend class Mgr<EditorManager>;
         static bool s_CanShutdown;
     public:
-        EditorManager& operator=(cb_unused const EditorManager& rhs) // prevent assignment operator
+        EditorManager& operator=(const EditorManager& /*rhs*/) // prevent assignment operator
         {
-            cbThrow(_T("Can't assign an EditorManager* !!!"));
-            return *this;
-        }
+        	cbThrow(_T("Can't assign an EditorManager* !!!"));
+        	return *this;
+		}
 
         friend class Manager; // give Manager access to our private members
         static bool CanShutdown(){ return s_CanShutdown; }
@@ -75,12 +80,15 @@ class DLLIMPORT EditorManager : public Mgr<EditorManager>, public wxEvtHandler
         void DeleteNotebookStack();
         void RebuildNotebookStack();
 
-        void RecreateOpenEditorStyles();
+        void CreateMenu(wxMenuBar* menuBar);
+        void ReleaseMenu(wxMenuBar* menuBar);
+        void Configure();
         int GetEditorsCount();
+        AutoCompleteMap& GetAutoCompleteMap(){ return m_AutoCompleteMap; }
 
         EditorBase* IsOpen(const wxString& filename);
-        cbEditor* Open(const wxString& filename, int pos = 0, ProjectFile* data = nullptr);
-        cbEditor* Open(LoaderBase* fileLdr, const wxString& filename, int pos = 0, ProjectFile* data = nullptr);
+        cbEditor* Open(const wxString& filename, int pos = 0,ProjectFile* data = 0);
+        cbEditor* Open(LoaderBase* fileLdr, const wxString& filename, int pos = 0,ProjectFile* data = 0);
         EditorBase* GetEditor(int index);
         EditorBase* GetEditor(const wxString& filename){ return IsOpen(filename); } // synonym of IsOpen()
         EditorBase* GetActiveEditor();
@@ -107,7 +115,6 @@ class DLLIMPORT EditorManager : public Mgr<EditorManager>, public wxEvtHandler
 
         bool UpdateProjectFiles(cbProject* project);
         bool SwapActiveHeaderSource();
-        bool OpenContainingFolder();
         bool CloseActive(bool dontsave = false);
         bool Close(const wxString& filename, bool dontsave = false);
         bool Close(EditorBase* editor, bool dontsave = false);
@@ -117,14 +124,16 @@ class DLLIMPORT EditorManager : public Mgr<EditorManager>, public wxEvtHandler
         // Returns false on "cancel".
         bool QueryClose(EditorBase* editor);
         bool QueryCloseAll();
-        bool CloseAll(bool dontsave = false);
-        bool CloseAllExcept(EditorBase* editor, bool dontsave = false);
+        bool CloseAll(bool dontsave=false);
+        bool CloseAllExcept(EditorBase* editor, bool dontsave=false);
         bool Save(const wxString& filename);
         bool Save(int index);
         bool SaveActive();
         bool SaveAs(int index);
         bool SaveActiveAs();
         bool SaveAll();
+        int ShowFindDialog(bool replace,  bool explicitly_find_in_files = false);
+        int FindNext(bool goingDown, cbStyledTextCtrl* control = 0, cbFindReplaceData* data = 0);
 
         void Print(PrintScope ps, PrintColourMode pcm, bool line_numbers);
 
@@ -146,27 +155,18 @@ class DLLIMPORT EditorManager : public Mgr<EditorManager>, public wxEvtHandler
         void OnSave(wxCommandEvent& event);
         void OnSaveAll(wxCommandEvent& event);
         void OnSwapHeaderSource(wxCommandEvent& event);
-        void OnOpenContainingFolder(wxCommandEvent& event);
         void OnTabPosition(wxCommandEvent& event);
         void OnProperties(wxCommandEvent& event);
         void OnAddFileToProject(wxCommandEvent& event);
         void OnRemoveFileFromProject(wxCommandEvent& event);
-        void OnShowFileInTree(wxCommandEvent& event);
         void OnAppDoneStartup(wxCommandEvent& event);
         void OnAppStartShutdown(wxCommandEvent& event);
         void OnUpdateUI(wxUpdateUIEvent& event);
         void OnTreeItemSelected(wxTreeEvent &event);
         void OnTreeItemActivated(wxTreeEvent &event);
         void OnTreeItemRightClick(wxTreeEvent &event);
-        void CollectDefines(CodeBlocksEvent& event);
         void SetZoom(int zoom);
         int GetZoom()const;
-
-        void MarkReadOnly(int page, bool readOnly = true);
-
-        void OnAppActivated(CodeBlocksEvent& event);
-        wxString GetSelectionClipboard();
-        void SetSelectionClipboard(const wxString& data);
 
     protected:
         // m_EditorsList access
@@ -175,20 +175,35 @@ class DLLIMPORT EditorManager : public Mgr<EditorManager>, public wxEvtHandler
         cbEditor* InternalGetBuiltinEditor(int page);
         EditorBase* InternalGetEditorBase(int page);
 
+        void CreateSearchLog();
+        void LogSearch(const wxString& file, int line, const wxString& lineText);
+
+        void LoadAutoComplete();
+        void SaveAutoComplete();
+
+        AutoCompleteMap m_AutoCompleteMap;
     private:
-        EditorManager(cb_unused const EditorManager& rhs); // prevent copy construction
+        EditorManager(const EditorManager& /*rhs*/); // prevent copy construction
 
         EditorManager();
         ~EditorManager();
+        void CalculateFindReplaceStartEnd(cbStyledTextCtrl* control, cbFindReplaceData* data, bool replace = false);
         void OnCheckForModifiedFiles(wxCommandEvent& event);
-        bool IsHeaderSource(const wxFileName& candidateFile, const wxFileName& activeFile, FileType ftActive, bool& isCandidate);
+        int Find(cbStyledTextCtrl* control, cbFindReplaceData* data);
+        int FindInFiles(cbFindReplaceData* data);
+        int Replace(cbStyledTextCtrl* control, cbFindReplaceData* data);
+        int ReplaceInFiles(cbFindReplaceData* data);
+        bool IsHeaderSource(const wxFileName& candidateFile, const wxFileName& activeFile, FileType ftActive);
         wxFileName FindHeaderSource(const wxArrayString& candidateFilesArray, const wxFileName& activeFile, bool& isCandidate);
 
         cbAuiNotebook*             m_pNotebook;
         cbNotebookStack*           m_pNotebookStackHead;
         cbNotebookStack*           m_pNotebookStackTail;
         size_t                     m_nNotebookStackSize;
+        cbFindReplaceData*         m_LastFindReplaceData;
         EditorColourSet*           m_Theme;
+        ListCtrlLogger*            m_pSearchLog;
+        int                        m_SearchLogIndex;
         int                        m_Zoom;
         bool                       m_isCheckingForExternallyModifiedFiles;
         friend struct              EditorManagerInternalData;

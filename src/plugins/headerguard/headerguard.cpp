@@ -1,20 +1,10 @@
-/*
- * This file is part of the Code::Blocks IDE and licensed under the GNU General Public License, version 3
- * http://www.gnu.org/licenses/gpl-3.0.html
- *
- * $Revision$
- * $Id$
- * $HeadURL$
- */
-
 #include "sdk.h"
 #ifndef CB_PRECOMP
-    #include <wx/intl.h>
-    #include <wx/string.h>
-    #include "cbeditor.h"
-    #include "manager.h"
+#include <wx/intl.h>
+#include <wx/string.h>
+#include "cbeditor.h"
+#include "manager.h"
 #endif
-
 #include "headerguard.h"
 #include "cbstyledtextctrl.h"
 
@@ -57,9 +47,6 @@ void HeaderGuard::OnSave(CodeBlocksEvent& event)
 	b ^= (b >> 17); c ^= (c << 11); b ^= (b << 9);
 
 	n.Printf(_T("#ifndef HEADER_%X%X\n#define HEADER_%X%X\n\n"), b, c, b, c);
-
-	ed->GetControl()->BeginUndoAction();
 	ed->GetControl()->InsertText (0, n);
-	ed->GetControl()->InsertText (ed->GetControl()->GetLength() - 1, _T("\n#endif // header guard \n"));
-	ed->GetControl()->EndUndoAction();
+	ed->GetControl()->InsertText (ed->GetControl()->GetLength(), _T("\n#endif // header guard \n"));
 }

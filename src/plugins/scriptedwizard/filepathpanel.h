@@ -6,15 +6,20 @@
 #ifndef FILEPATHPANEL_H
 #define FILEPATHPANEL_H
 
+#include <wx/wxprec.h>
 
-//(*HeadersPCH(FilePathPanel)
+#ifdef __BORLANDC__
+    #pragma hdrstop
+#endif
+
+//(*Headers(FilePathPanel)
+#include <wx/button.h>
+#include <wx/checkbox.h>
+#include <wx/checklst.h>
+#include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
-#include <wx/checklst.h>
-#include <wx/checkbox.h>
-#include <wx/panel.h>
-#include <wx/button.h>
 //*)
 
 #include <wx/string.h>
@@ -63,18 +68,18 @@ class FilePathPanel: public wxPanel
 		//*)
 
 		//(*Declarations(FilePathPanel)
-		wxBoxSizer* BoxSizer6;
-		wxButton* btnBrowse;
 		wxBoxSizer* BoxSizer2;
-		wxStaticText* lblGuard;
-		wxButton* btnNone;
-		wxCheckListBox* clbTargets;
-		wxTextCtrl* txtGuard;
-		wxFlexGridSizer* FlexGridSizer1;
-		wxBoxSizer* BoxSizer3;
 		wxTextCtrl* txtFilename;
-		wxButton* btnAll;
+		wxButton* btnBrowse;
+		wxStaticText* lblGuard;
+		wxTextCtrl* txtGuard;
 		wxCheckBox* chkAddToProject;
+		wxFlexGridSizer* FlexGridSizer1;
+		wxCheckListBox* clbTargets;
+		wxBoxSizer* BoxSizer6;
+		wxButton* btnAll;
+		wxButton* btnNone;
+		wxBoxSizer* BoxSizer3;
 		//*)
 
 		wxString m_ExtFilter;

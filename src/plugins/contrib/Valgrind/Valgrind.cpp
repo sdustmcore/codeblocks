@@ -10,39 +10,32 @@
 #ifndef CB_PRECOMP
 #include <wx/arrstr.h>
 #include <wx/dir.h>
-#include <wx/filedlg.h>
-#include <wx/frame.h>
 #include <wx/fs_zip.h>
 #include <wx/intl.h>
 #include <wx/menu.h>
 #include <wx/string.h>
 #include <wx/xrc/xmlres.h>
 #include "cbproject.h"
-#include "configmanager.h"
 #include "manager.h"
 #include "logmanager.h"
 #include "projectmanager.h"
-#include "macrosmanager.h"
 #endif
 #include <wx/filefn.h>
 #include "tinyxml/tinyxml.h"
 #include "loggers.h"
 #include "Valgrind.h"
 #include "ValgrindListLog.h"
-#include "valgrind_config.h"
 
 // Register the plugin
 namespace
 {
     PluginRegistrant<Valgrind> reg(_T("Valgrind"));
-	int IdMemCheckRun = wxNewId();
-	int IdMemCheckOpenLog = wxNewId();
+	int IdMemCheck = wxNewId();
 	int IdCacheGrind = wxNewId();
 };
 
 BEGIN_EVENT_TABLE(Valgrind, cbPlugin)
-	EVT_MENU(IdMemCheckRun, Valgrind::OnMemCheckRun)
-	EVT_MENU(IdMemCheckOpenLog, Valgrind::OnMemCheckOpenLog)
+	EVT_MENU(IdMemCheck, Valgrind::OnMemCheck)
 	EVT_MENU(IdCacheGrind, Valgrind::OnCachegrind)
 END_EVENT_TABLE()
 
@@ -112,7 +105,6 @@ void Valgrind::OnRelease(bool /*appShutDown*/)
 		if(m_ListLog)
 		{
 			CodeBlocksLogEvent evt(cbEVT_REMOVE_LOG_WINDOW, m_ListLog);
-			m_ListLog->DestroyControls();
 			Manager::Get()->ProcessEvent(evt);
 		}
 	}
@@ -135,19 +127,10 @@ void Valgrind::BuildMenu(wxMenuBar* MenuBar)
 	wxMenu* Menu = new wxMenu;
 	if(MenuBar->Insert(MenusCount - 1, Menu, _("Valgrind")))
 	{ // let's add all the menu entries
-		Menu->Append(IdMemCheckRun, _("Run MemCheck"), _("Run MemCheck"));
-		Menu->Append(IdMemCheckOpenLog, _("Open MemCheck Xml log file"), _("Open MemCheck Xml log file"));
-		Menu->AppendSeparator();
-		Menu->Append(IdCacheGrind, _("Run Cachegrind"), _("Run Cachegrind"));
+		Menu->Append(IdMemCheck, _("Run Valgrind::MemCheck"), _("Run Valgrind::MemCheck"));
+		Menu->Append(IdCacheGrind, _("Run Valrind::Cachegrind"), _("Run Valrind::Cachegrind"));
 	}
 } // end of BuildMenu
-
-cbConfigurationPanel* Valgrind::GetConfigurationPanel(wxWindow* parent)
-{
-    ValgrindConfigurationPanel* dlg = new ValgrindConfigurationPanel(parent);
-    return dlg;
-}
-
 
 void Valgrind::WriteToLog(const wxString& Text)
 {
@@ -175,55 +158,37 @@ Manager::Get()->ProcessEvent(evtShow);
     }
 } // end of AppendToLog
 
-void Valgrind::ProcessStack(const TiXmlElement& Stack, bool AddHeader)
+void Valgrind::ProcessStack(const TiXmlElement& Stack, const wxString& What)
 {
-    wxArrayString Arr;
-    if (AddHeader)
-    {
-        Arr.Add(wxEmptyString);
-        Arr.Add(wxEmptyString);
-        Arr.Add(_("Call stack:"));
-        m_ListLog->Append(Arr);
-    }
-
-    // start by doing the first frame (that contains dir/file/line)
-    for(const TiXmlElement* Frame = Stack.FirstChildElement("frame"); Frame;
-        Frame = Frame->NextSiblingElement("frame"))
-    {
-        const TiXmlElement* Dir = Frame->FirstChildElement("dir");
-        const TiXmlElement* File = Frame->FirstChildElement("file");
-        const TiXmlElement* Line = Frame->FirstChildElement("line");
-        const TiXmlElement* Function = Frame->FirstChildElement("fn");
-        const TiXmlElement* IP = Frame->FirstChildElement("ip");
-
-        if (!Function)
-            continue;
-
-        wxString FullName;
-        if (Dir && File)
-            FullName = wxString::FromAscii(Dir->GetText()) + _("/") + wxString::FromAscii(File->GetText());
-        else if (const TiXmlElement* Obj = Frame->FirstChildElement("obj"))
-            FullName = wxString::FromAscii(Obj->GetText());
-
-        Arr.Clear();
-        Arr.Add(FullName);
-        if (Line)
-            Arr.Add(wxString::FromAscii(Line->GetText()));
-        else
-            Arr.Add(wxEmptyString);
-        wxString StrFunction;
-        if (IP)
-            StrFunction = wxString::FromAscii(IP->GetText()) + wxT(": ");
-        StrFunction += wxString::FromAscii(Function->GetText());
-        Arr.Add(StrFunction);
-        m_ListLog->Append(Arr);
-    } // end while
+	// start by doing the first frame (that contains dir/file/line)
+	for(const TiXmlElement* Frame = Stack.FirstChildElement("frame"); Frame;
+		Frame = Frame->NextSiblingElement("frame"))
+	{
+		const TiXmlElement* Dir = Frame->FirstChildElement("dir");
+		const TiXmlElement* File = Frame->FirstChildElement("file");
+		const TiXmlElement* Line = Frame->FirstChildElement("line");
+		const TiXmlElement* Function = Frame->FirstChildElement("fn");
+		if(Dir && File && Line)
+		{
+			const wxString FullName = wxString::FromAscii(Dir->GetText()) + _("/") + wxString::FromAscii(File->GetText());
+			wxArrayString Arr;
+			if(Function)
+			{
+				Arr.Add(FullName);
+				Arr.Add(_(""));
+				Arr.Add(_("In function '") + wxString::FromAscii(Function->GetText()) + _("' :"));
+				m_ListLog->Append(Arr);
+			}
+			Arr.Clear();
+			Arr.Add(FullName);
+			Arr.Add(wxString::FromAscii(Line->GetText()));
+			Arr.Add(What);
+			m_ListLog->Append(Arr);
+		}
+	} // end while
 } // end of ProcessStack
 
-namespace
-{
-bool CheckRequirements(wxString& ExeTarget, wxString &WorkDir, wxString& CommandLineArguments,
-                       wxString &DynamicLinkerPath)
+bool CheckRequirements(wxString& ExeTarget, wxString& CommandLineArguments)
 {
     cbProject* Project = Manager::Get()->GetProjectManager()->GetActiveProject();
    // if no project open, exit
@@ -244,21 +209,7 @@ bool CheckRequirements(wxString& ExeTarget, wxString &WorkDir, wxString& Command
 		return false;
 	}
 	// let's get the target
-    ProjectBuildTarget* Target =  nullptr; //Project->GetBuildTarget(strTarget); // NOT const because of GetNativeFilename() :-(
-    if (!Project->BuildTargetValid(strTarget, false))
-    {
-        const int tgtIdx = Project->SelectTarget();
-        if (tgtIdx == -1)
-        {
-            return false;
-        }
-        Target = Project->GetBuildTarget(tgtIdx);
-        strTarget = Target->GetTitle();
-    }
-    else
-    {
-        Target = Project->GetBuildTarget(strTarget);
-    }
+	ProjectBuildTarget* Target = Project->GetBuildTarget(strTarget); // NOT const because of GetNativeFilename() :-(
 	if(!Target)
 	{
 		wxString msg = _("You need to have an (executable) target in your open project\nbefore using the plugin!");
@@ -268,54 +219,35 @@ bool CheckRequirements(wxString& ExeTarget, wxString &WorkDir, wxString& Command
 	}
 	// check the type of the target
 	const TargetType TType = Target->GetTargetType();
-
-    MacrosManager* MacrosMgr = Manager::Get()->GetMacrosManager();
-	if (TType == ttDynamicLib || TType == ttStaticLib)
+	if(!(TType == ttExecutable || TType == ttConsoleOnly))
 	{
-	    if (Target->GetHostApplication().IsEmpty())
-        {
-            wxString msg = _("You must select a host application to \"run\" a library wuth Valgrind");
-            cbMessageBox(msg, _("Error"), wxICON_ERROR | wxOK, Manager::Get()->GetAppWindow());
-            Manager::Get()->GetLogManager()->DebugLog(msg);
-            return false;
-        }
-
-        ExeTarget = Project->GetBasePath() + Target->GetHostApplication();
-        MacrosMgr->ReplaceMacros(ExeTarget, Target);
-        WorkDir = Target->GetWorkingDir();
-	}
-	else if (TType == ttExecutable || TType == ttConsoleOnly)
-	{
-        ExeTarget = Project->GetBasePath() + Target->GetOutputFilename();
-        MacrosMgr->ReplaceMacros(ExeTarget, Target);
-        WorkDir = Target->GetWorkingDir();
-	}
-    else
-    {
 		wxString msg = _("You need to have an ***executable*** target in your open project\nbefore using the plugin!");
 		cbMessageBox(msg, _("Error"), wxICON_ERROR | wxOK, Manager::Get()->GetAppWindow());
 		Manager::Get()->GetLogManager()->DebugLog(msg);
 		return false;
-    }
-
-// Disable this check, because it is not a real requirement.
-// And also it breaks if the -g option is set for the project, not for the target!
-//	if(Target->GetCompilerOptions().Index(_T("-g")) == wxNOT_FOUND)
-//	{
-//		wxString msg = _("Your target needs to have been compiled with the -g option\nbefore using the plugin!");
-//		cbMessageBox(msg, _("Error"), wxICON_ERROR | wxOK, Manager::Get()->GetAppWindow());
-//		Manager::Get()->GetLogManager()->DebugLog(msg);
-//		return false;
-//	}
+	}
+	else
+	{
+		if(TType == ttExecutable || ttConsoleOnly)
+		{
+//			ExeTarget = Target->GetExecutableFilename(); /// hmmm : this doesn't return correct stuff !!!
+			ExeTarget = Target->GetOutputFilename();
+		}
+	}
+	if(Target->GetCompilerOptions().Index(_T("-g")) == wxNOT_FOUND)
+	{
+		wxString msg = _("Your target needs to have been compiled with the -g option\nbefore using the plugin!");
+		cbMessageBox(msg, _("Error"), wxICON_ERROR | wxOK, Manager::Get()->GetAppWindow());
+		Manager::Get()->GetLogManager()->DebugLog(msg);
+		return false;
+	}
 	CommandLineArguments = Target->GetExecutionParameters();
-	DynamicLinkerPath = cbGetDynamicLinkerPathForTarget(Project, Target);
 	return true;
 }  // end of CheckRequirements
-}
 
 long Valgrind::DoValgrindVersion()
 {
-	wxString CommandLine = GetValgrindExecutablePath() + wxT(" --version");
+	wxString CommandLine = _("valgrind --version");
 	WriteToLog(CommandLine);
 	wxArrayString Output, Errors;
 	wxExecute(CommandLine, Output, Errors);
@@ -343,161 +275,28 @@ long Valgrind::DoValgrindVersion()
 	return VersionValue;
 } // end of DoValgrindVersion
 
-void Valgrind::ParseMemCheckXML(TiXmlDocument &Doc)
-{
-    if (Doc.Error())
-        return;
-    m_ListLog->Clear();
-
-    wxArrayString Arr;
-    int Errors = 0;
-    TiXmlHandle Handle(&Doc);
-    Handle = Handle.FirstChildElement("valgrindoutput");
-    for (const TiXmlElement* Error = Handle.FirstChildElement("error").ToElement(); Error;
-            Error = Error->NextSiblingElement("error"), Errors++)
-    {
-        wxString WhatValue, KindValue;
-        if (const TiXmlElement* XWhat = Error->FirstChildElement("xwhat"))
-        {	// style use since Valgrind 3.5.0
-            if (const TiXmlElement* Text = XWhat->FirstChildElement("text"))
-            {
-                WhatValue = wxString::FromAscii(Text->GetText());
-            }
-        }
-        else if (const TiXmlElement* What = Error->FirstChildElement("what"))
-        {
-            WhatValue = wxString::FromAscii(What->GetText());
-        }
-        if (const TiXmlElement *Kind = Error->FirstChildElement("kind"))
-            KindValue = wxString::FromAscii(Kind->GetText());
-
-        Arr.Clear();
-        Arr.Add(KindValue);
-        Arr.Add(wxT("===="));
-        Arr.Add(WhatValue);
-        m_ListLog->Append(Arr, Logger::error);
-
-        // process the first stack
-        const TiXmlElement* Stack = Error->FirstChildElement("stack");
-        if (Stack)
-        {
-            ProcessStack(*Stack, true);
-            if (const TiXmlElement *AuxWhat = Error->FirstChildElement("auxwhat"))
-            {
-                Arr.Clear();
-                Arr.Add(wxEmptyString);
-                Arr.Add(wxEmptyString);
-                Arr.Add(wxString::FromAscii(AuxWhat->GetText()));
-                m_ListLog->Append(Arr, Logger::warning);
-            }
-            Stack = Stack->NextSiblingElement("stack");
-            if (Stack)
-                ProcessStack(*Stack, false);
-        }
-
-    } // end for
-    if (Errors > 0)
-    {
-        Arr.Clear();
-        Arr.Add(wxEmptyString);
-        Arr.Add(wxEmptyString);
-        Arr.Add(wxString::Format(_("Valgrind found %d errors!"), Errors));
-        m_ListLog->Append(Arr, Logger::error);
-
-        if (Manager::Get()->GetLogManager())
-        {
-            CodeBlocksLogEvent evtSwitch(cbEVT_SWITCH_TO_LOG_WINDOW, m_ListLog);
-            Manager::Get()->ProcessEvent(evtSwitch);
-        }
-        m_ListLog->Fit();
-    }
-}
-
-wxString Valgrind::GetValgrindExecutablePath()
-{
-    ConfigManager* cfg = Manager::Get()->GetConfigManager(_T("valgrind"));
-    return cfg->Read(wxT("/exec_path"), wxT("valgrind"));
-}
-
-wxString Valgrind::BuildMemCheckCmd()
-{
-    ConfigManager* cfg = Manager::Get()->GetConfigManager(_T("valgrind"));
-
-    wxString Cmd = GetValgrindExecutablePath();
-    Cmd += wxT(" ") + cfg->Read(wxT("/memcheck_args"), wxEmptyString);
-    if (cfg->ReadBool(wxT("/memcheck_full"), true))
-    {
-        Cmd += wxT(" --leak-check=full");
-    }
-    else
-    {
-        Cmd += wxT(" --leak-check=yes");
-    }
-    if (cfg->ReadBool(wxT("/memcheck_track_origins"), true))
-    {
-        Cmd += wxT(" --track-origins=yes");
-    }
-    if (cfg->ReadBool(wxT("/memcheck_reachable"), false))
-    {
-        Cmd += wxT(" --show-reachable=yes");
-    }
-
-    return Cmd;
-}
-
-wxString Valgrind::BuildCacheGrindCmd()
-{
-    ConfigManager* cfg = Manager::Get()->GetConfigManager(_T("valgrind"));
-
-    wxString Cmd = GetValgrindExecutablePath();
-    Cmd += wxT(" ") + cfg->Read(wxT("/cachegrind_args"), wxEmptyString);
-    Cmd += wxT(" --tool=cachegrind");
-    return Cmd;
-}
-
-
-void Valgrind::OnMemCheckRun(wxCommandEvent& /*event*/)
+void Valgrind::OnMemCheck(wxCommandEvent& )
 {
 	wxString ExeTarget;
 	wxString CommandLineArguments;
-	wxString WorkDir;
-	wxString DynamicLinkerPath;
-
-	if(!CheckRequirements(ExeTarget, WorkDir, CommandLineArguments, DynamicLinkerPath))
+	if(!CheckRequirements(ExeTarget, CommandLineArguments))
 	{
 		return;
 	}
 	long Version = DoValgrindVersion();
-
-	cbProject* Project = Manager::Get()->GetProjectManager()->GetActiveProject();
-
-	const wxString XmlOutputFile = Project->GetBasePath() + _T("ValgrindOut.xml");
+	const wxString XmlOutputFile = _T("ValgrindOut.xml");
 	wxString XmlOutputCommand;
 	if(Version >= 350)
 	{
 		XmlOutputCommand = _T(" --xml-file=") + XmlOutputFile;
 	}
 	const bool UseXml = true;
-    wxString CommandLine = BuildMemCheckCmd() + wxT(" --xml=yes") + XmlOutputCommand + _T(" \"");
-    CommandLine += ExeTarget + _T("\" ") + CommandLineArguments;
-
-	wxString OldWorkDir = wxGetCwd();
-	wxSetWorkingDirectory(WorkDir);
-
-    wxString OldLinkerPath;
-    wxGetEnv(CB_LIBRARY_ENVVAR, &OldLinkerPath);
-    DynamicLinkerPath = cbMergeLibPaths(OldLinkerPath, DynamicLinkerPath);
-    wxSetEnv(CB_LIBRARY_ENVVAR, DynamicLinkerPath);
-    AppendToLog(_("Setting dynamic linker path to: ") + DynamicLinkerPath);
-
-	AppendToLog(_("Executing command: ") + CommandLine);
-	AppendToLog(wxString(wxT("\n-------------- ")) + _("Application output") + wxT(" --------------"));
+	wxString CommandLine = _T("valgrind --leak-check=yes --xml=yes") + XmlOutputCommand + _T(" \"")
+		+ ExeTarget + _T("\" ") + CommandLineArguments;
+//	CommandLine = _("valgrind --leak-check=yes \"") + ExeTarget + _("\" ") + CommandLineArguments;
+	AppendToLog(CommandLine);
 	wxArrayString Output, Errors;
 	wxExecute(CommandLine, Output, Errors);
-
-	wxSetWorkingDirectory(OldWorkDir);
-    wxSetEnv(CB_LIBRARY_ENVVAR, OldLinkerPath);
-
 	size_t Count = Output.GetCount();
 	for(size_t idxCount = 0; idxCount < Count; ++idxCount)
 	{
@@ -518,46 +317,66 @@ void Valgrind::OnMemCheckRun(wxCommandEvent& /*event*/)
 	} // end for : idx: idxCount
 	if(UseXml)
 	{
-        TiXmlDocument Doc;
-        if(Version >= 350)
-        {
-            Doc.LoadFile(XmlOutputFile.ToAscii());
-        }
-        else
-        {
-            Doc.Parse(Xml.ToAscii());
-        }
-        ParseMemCheckXML(Doc);
+		TiXmlDocument Doc;
+		if(Version >= 350)
+		{
+			Doc.LoadFile(XmlOutputFile.ToAscii());
+		}
+		else
+		{
+			Doc.Parse(Xml.ToAscii());
+		}
+		if(!Doc.Error())
+		{
+			bool ErrorsPresent = false;
+			TiXmlHandle Handle(&Doc);
+			Handle = Handle.FirstChildElement("valgrindoutput");
+			for(const TiXmlElement* Error = Handle.FirstChildElement("error").ToElement(); Error;
+					Error = Error->NextSiblingElement("error"))
+			{
+				ErrorsPresent = true;
+				wxString WhatValue;
+				if(const TiXmlElement* What = Error->FirstChildElement("xwhat"))
+				{	// style use since Valgrind 3.5.0
+					if(const TiXmlElement* Text = What->FirstChildElement("text"))
+					{
+						WhatValue = wxString::FromAscii(Text->GetText());
+					}
+				}
+				else if(const TiXmlElement* What = Error->FirstChildElement("what"))
+				{
+					WhatValue = wxString::FromAscii(What->GetText());
+				}
+				// process the first stack
+				if(const TiXmlElement* Stack = Error->FirstChildElement("stack"))
+				{
+					ProcessStack(*Stack, WhatValue);
+				}
+			} // end for
+			if(ErrorsPresent)
+			{
+				if(Manager::Get()->GetLogManager())
+				{
+					CodeBlocksLogEvent evtSwitch(cbEVT_SWITCH_TO_LOG_WINDOW, m_ListLog);
+					Manager::Get()->ProcessEvent(evtSwitch);
+				}
+			}
+		}
+		// loop over the errors
 	}
 } // end of OnMemCheck
-
-void Valgrind::OnMemCheckOpenLog(wxCommandEvent& /*event*/)
-{
-    wxFileDialog Dialog(Manager::Get()->GetAppFrame(), _("Choose XML log file"),
-                        wxEmptyString, wxEmptyString,
-                        wxT("*.xml"), wxFD_OPEN);
-    if (Dialog.ShowModal() == wxID_OK)
-    {
-        TiXmlDocument Doc;
-        wxString FileName = Dialog.GetPath();
-        Doc.LoadFile(FileName.ToAscii());
-        ParseMemCheckXML(Doc);
-    }
-}
 
 void Valgrind::OnCachegrind(wxCommandEvent& )
 {
 	wxString ExeTarget;
 	wxString CommandLineArguments;
-	wxString WorkDir;
-	wxString Unused;
-	if(!CheckRequirements(ExeTarget, WorkDir, CommandLineArguments, Unused))
+	if(!CheckRequirements(ExeTarget, CommandLineArguments))
 	{
 		return;
 	}
 	DoValgrindVersion();
 //	wxString CommandLine = _("valgrind --tool=cachegrind --cachegrind-out-file=\"./") + ExeTarget + _(".cachegrind.out\" \"") + ExeTarget + _("\" ") + CommandLineArguments;
-	wxString CommandLine = BuildCacheGrindCmd() + wxT(" \"") + ExeTarget + _T("\" ") + CommandLineArguments;
+	wxString CommandLine = _T("valgrind --tool=cachegrind \"") + ExeTarget + _T("\" ") + CommandLineArguments;
 	AppendToLog(CommandLine);
 	wxArrayString Output, Errors;
 	wxString CurrentDirName = ::wxGetCwd();

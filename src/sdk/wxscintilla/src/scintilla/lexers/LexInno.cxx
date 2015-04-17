@@ -16,6 +16,7 @@
 #include "Scintilla.h"
 #include "SciLexer.h"
 
+#include "PropSetSimple.h"
 #include "WordList.h"
 #include "LexAccessor.h"
 #include "Accessor.h"
@@ -36,6 +37,7 @@ static void ColouriseInnoDoc(unsigned int startPos, int length, int, WordList *k
 	char *buffer = new char[length];
 	int bufferCount = 0;
 	bool isBOL, isEOL, isWS, isBOLWS = 0;
+	bool isCode = false;
 	bool isCStyleComment = false;
 
 	WordList &sectionKeywords = *keywordLists[0];
@@ -44,10 +46,6 @@ static void ColouriseInnoDoc(unsigned int startPos, int length, int, WordList *k
 	WordList &preprocessorKeywords = *keywordLists[3];
 	WordList &pascalKeywords = *keywordLists[4];
 	WordList &userKeywords = *keywordLists[5];
-
-	int curLine = styler.GetLine(startPos);
-	int curLineState = curLine > 0 ? styler.GetLineState(curLine - 1) : 0;
-	bool isCode = (curLineState == 1);
 
 	// Go through all provided text segment
 	// using the hand-written state machine shown below
@@ -68,12 +66,6 @@ static void ColouriseInnoDoc(unsigned int startPos, int length, int, WordList *k
 		isBOLWS = (isBOL) ? 1 : (isBOLWS && (chPrev == ' ' || chPrev == '\t'));
 		isEOL = (ch == '\n' || ch == '\r');
 		isWS = (ch == ' ' || ch == '\t');
-
-		if ((ch == '\r' && chNext != '\n') || (ch == '\n')) {
-			// Remember the line state for future incremental lexing
-			curLine = styler.GetLine(i);
-			styler.SetLineState(curLine, (isCode ? 1 : 0));
-		}
 
 		switch(state) {
 			case SCE_INNO_DEFAULT:
@@ -104,7 +96,7 @@ static void ColouriseInnoDoc(unsigned int startPos, int length, int, WordList *k
 				} else if (ch == '\'') {
 					// Start of a single-quote string
 					state = SCE_INNO_STRING_SINGLE;
-				} else if (IsASCII(ch) && (isalpha(ch) || (ch == '_'))) {
+				} else if (isascii(ch) && (isalpha(ch) || (ch == '_'))) {
 					// Start of an identifier
 					bufferCount = 0;
 					buffer[bufferCount++] = static_cast<char>(tolower(ch));
@@ -123,7 +115,7 @@ static void ColouriseInnoDoc(unsigned int startPos, int length, int, WordList *k
 				break;
 
 			case SCE_INNO_IDENTIFIER:
-				if (IsASCII(ch) && (isalnum(ch) || (ch == '_'))) {
+				if (isascii(ch) && (isalnum(ch) || (ch == '_'))) {
 					buffer[bufferCount++] = static_cast<char>(tolower(ch));
 				} else {
 					state = SCE_INNO_DEFAULT;
@@ -160,7 +152,7 @@ static void ColouriseInnoDoc(unsigned int startPos, int length, int, WordList *k
 					} else {
 						styler.ColourTo(i,SCE_INNO_DEFAULT);
 					}
-				} else if (IsASCII(ch) && (isalnum(ch) || (ch == '_'))) {
+				} else if (isascii(ch) && (isalnum(ch) || (ch == '_'))) {
 					buffer[bufferCount++] = static_cast<char>(tolower(ch));
 				} else {
 					state = SCE_INNO_DEFAULT;
@@ -170,7 +162,7 @@ static void ColouriseInnoDoc(unsigned int startPos, int length, int, WordList *k
 
 			case SCE_INNO_PREPROC:
 				if (isWS || isEOL) {
-					if (IsASCII(chPrev) && isalpha(chPrev)) {
+					if (isascii(chPrev) && isalpha(chPrev)) {
 						state = SCE_INNO_DEFAULT;
 						buffer[bufferCount] = '\0';
 
@@ -185,7 +177,7 @@ static void ColouriseInnoDoc(unsigned int startPos, int length, int, WordList *k
 						chNext = styler[i--];
 						ch = chPrev;
 					}
-				} else if (IsASCII(ch) && isalpha(ch)) {
+				} else if (isascii(ch) && isalpha(ch)) {
 					if (chPrev == '#' || chPrev == ' ' || chPrev == '\t')
 						bufferCount = 0;
 					buffer[bufferCount++] = static_cast<char>(tolower(ch));

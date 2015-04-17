@@ -101,13 +101,9 @@ class JumpTracker : public cbPlugin
         // CodeBlocks events
         void OnEditorUpdateEvent(CodeBlocksEvent& event);
         void OnEditorActivated(CodeBlocksEvent& event);
-        void OnEditorDeactivated(CodeBlocksEvent& event);
-        void OnEditorClosed(CodeBlocksEvent& event);
-
         void OnStartShutdown(CodeBlocksEvent& event);
         void OnProjectClosing(CodeBlocksEvent& event);
         void OnProjectActivatedEvent(CodeBlocksEvent& event);
-        void OnUpdateUI(wxUpdateUIEvent& event);
 
         // Menu events
         void OnMenuJumpBack(wxCommandEvent &event);
@@ -118,29 +114,19 @@ class JumpTracker : public cbPlugin
         //-bool IsAttached() {return m_IsAttached;}
         //bool m_IsAttached;
 
-        void SetWrapJumpEntries(const bool tf);
-
     private:
         void JumpDataAdd(const wxString& filename, const long posn, const long edlineNum);
-        bool JumpDataContains(const int indx, const wxString& filename, const long posn);
-        int  FindJumpDataContaining(const wxString& filename, const long posn);
+        int  JumpDataContains(const wxString& filename, const long posn);
 
-        wxToolBar*      m_pToolBar;
         wxLogWindow*    m_pPlgnLog;
         wxString m_FilenameLast;
         long     m_PosnLast;
-        int      m_cursor;
-        int      m_insertNext;
+        int      m_Cursor;
         bool     m_bShuttingDown;
         bool     m_bProjectClosing;      // project close in progress
         bool     m_bJumpInProgress;
-        bool     m_bWrapJumpEntries;
-        int      GetPreviousIndex(const int idx);
-        int      GetNextIndex(const int idx);
 
         enum{ maxJumpEntries = 20};
-        //#warning maxJumpEntries is incorrect
-        // FIXME (ph#): allow user to set entry count
         ArrayOfJumpData m_ArrayOfJumpData;
 
     private:

@@ -49,7 +49,7 @@ wxsPropertyGridManager::wxsPropertyGridManager(
 wxsPropertyGridManager::~wxsPropertyGridManager()
 {
     PGIDs.Clear();
-    PGEntries.Clear();
+    PGEnteries.Clear();
     PGIndexes.Clear();
     PGContainers.Clear();
     PGContainersSet.clear();
@@ -74,13 +74,13 @@ void wxsPropertyGridManager::OnChange(wxPropertyGridEvent& event)
         if ( PGIDs[i] == ID )
         {
             wxsPropertyContainer* Container = PGContainers[i];
-            if ( !PGEntries[i]->PGRead(Container,this,ID,PGIndexes[i]) )
+            if ( !PGEnteries[i]->PGRead(Container,this,ID,PGIndexes[i]) )
             {
                 wxString ErrorMsg;
                 ErrorMsg << _T("wxSmith: Couldn't read value from wxsPropertyGridManager")
-                         << _T(", propgrid name=") << PGEntries[i]->GetPGName()
-                         << _T(", date name=")     << PGEntries[i]->GetDataName()
-                         << _T(", type name=")     << PGEntries[i]->GetTypeName();
+                         << _T(", propgrid name=") << PGEnteries[i]->GetPGName()
+                         << _T(", date name=")     << PGEnteries[i]->GetDataName()
+                         << _T(", type name=")     << PGEnteries[i]->GetTypeName();
                 Manager::Get()->GetLogManager()->DebugLogError(ErrorMsg);
             }
 
@@ -101,24 +101,6 @@ void wxsPropertyGridManager::OnChange(wxPropertyGridEvent& event)
     MainContainer->OnExtraPropertyChanged(this,ID);
 }
 
-void wxsPropertyGridManager::OnDoubleClick(wxPropertyGridEvent& event)
-{
-    // We are only interested in the double click event from the wxPropertyGridPage of "Events" (page index 1)
-    // So, we are going to filter out the events come from the wxPropertyGridPage of "Properties" (page index 0)
-    // loop the PGIDs member is another kind of filtering (see wxsPropertyGridManager::OnChange()), since
-    // normally the properties were stored in the page 0.
-
-    int pageIndex = GetSelectedPage();
-    if ( pageIndex != 1) //wxPropertyGridPage of "Events"
-        return;
-
-    // No need to call any notification of change function here, since double click of the event name
-    // just jump to the function handler body of the event. We call the OnExtraPropertyChanged()
-    // function to emulate an event handler change, it in-fact does not add a new event handler.
-    wxPGId ID = event.GetProperty();
-    MainContainer->OnExtraPropertyChanged(this,ID);
-}
-
 void wxsPropertyGridManager::Update(wxsPropertyContainer* PC)
 {
     if ( PC && PGContainersSet.find(PC) == PGContainersSet.end() )
@@ -129,7 +111,7 @@ void wxsPropertyGridManager::Update(wxsPropertyContainer* PC)
 
     for ( size_t i = PGIDs.Count(); i-- > 0; )
     {
-        PGEntries[i]->PGWrite(PGContainers[i],this,PGIDs[i],PGIndexes[i]);
+        PGEnteries[i]->PGWrite(PGContainers[i],this,PGIDs[i],PGIndexes[i]);
     }
 }
 
@@ -137,7 +119,7 @@ void wxsPropertyGridManager::UnbindAll()
 {
     // TODO: Remove all extra pages, leave only first one
     PGIDs.Clear();
-    PGEntries.Clear();
+    PGEnteries.Clear();
     PGIndexes.Clear();
     PGContainers.Clear();
     PGContainersSet.clear();
@@ -150,7 +132,7 @@ void wxsPropertyGridManager::UnbindAll()
     SetNewMainContainer(0);
 }
 
-void wxsPropertyGridManager::UnbindPropertyContainer(wxsPropertyContainer* PC, bool doFreeze)
+void wxsPropertyGridManager::UnbindPropertyContainer(wxsPropertyContainer* PC)
 {
     if ( PGContainersSet.find(PC) == PGContainersSet.end() )
     {
@@ -165,8 +147,7 @@ void wxsPropertyGridManager::UnbindPropertyContainer(wxsPropertyContainer* PC, b
         return;
     }
 
-    if(doFreeze)
-        Freeze();
+    Freeze();
     for ( size_t i = PGIDs.Count(); i-- > 0; )
     {
         if ( PGContainers[i] == PC )
@@ -177,15 +158,12 @@ void wxsPropertyGridManager::UnbindPropertyContainer(wxsPropertyContainer* PC, b
             Delete(PGIDs[i]);
             #endif
             PGIDs.RemoveAt(i);
-            PGEntries.RemoveAt(i);
+            PGEnteries.RemoveAt(i);
             PGIndexes.RemoveAt(i);
             PGContainers.RemoveAt(i);
         }
     }
-    // in some cases the Thaw leads to a crash, so we have to disable Freeze-Thaw until we find
-    // another workaround or are sure, that we do not need it.
-    if(doFreeze)
-        Thaw();
+    Thaw();
 
     // If there are no properties, we have unbinded main property container
     if ( !PGIDs.Count() )
@@ -212,7 +190,7 @@ long wxsPropertyGridManager::Register(wxsPropertyContainer* Container,wxsPropert
         Index = ++PreviousIndex;
     }
 
-    PGEntries.Add(Property);
+    PGEnteries.Add(Property);
     PGIDs.Add(Id);
     PGIndexes.Add(Index);
     PGContainers.Add(Container);
@@ -291,10 +269,11 @@ void wxsPropertyGridManager::StoreSelected(SelectionData* Data)
 
     #if wxCHECK_VERSION(2, 9, 0)
     wxPGId Selected = GetSelection();
+    if ( Selected != NULL )
     #else
     wxPGId Selected = GetSelectedProperty();
+    if ( wxPGIdIsOk(Selected) )
     #endif
-    if ( Selected != NULL )
     {
         Data->m_PropertyName = GetPropertyName(Selected);
     }
@@ -316,9 +295,7 @@ void wxsPropertyGridManager::RestoreSelected(const SelectionData* Data)
     if ( Data->m_PropertyName.IsEmpty() ) return;
 
     SelectPage(Data->m_PageIndex);
-    // avoid assert message with wx2.9
-    if (GetPropertyByName(Data->m_PropertyName))
-        SelectProperty(Data->m_PropertyName);
+    SelectProperty(Data->m_PropertyName);
 }
 
 
@@ -326,5 +303,4 @@ wxsPropertyGridManager* wxsPropertyGridManager::Singleton = 0;
 
 BEGIN_EVENT_TABLE(wxsPropertyGridManager,wxPropertyGridManager)
     EVT_PG_CHANGED(-1,wxsPropertyGridManager::OnChange)
-    EVT_PG_DOUBLE_CLICK(-1,wxsPropertyGridManager::OnDoubleClick)
 END_EVENT_TABLE()

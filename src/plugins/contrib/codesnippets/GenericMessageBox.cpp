@@ -6,7 +6,7 @@
 // Author:      Julian Smart, Robert Roebling
 // Modified by: Pecan 2009/06/5
 // Created:     04/01/98
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: msgdlgg.cpp 41838 2006-10-09 21:08:45Z VZ $
 // Copyright:   (c) Julian Smart and Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -49,21 +49,13 @@
 // icons
 // ----------------------------------------------------------------------------
 
-#if !wxCHECK_VERSION(2,9,0)
 BEGIN_EVENT_TABLE(GenericMessageDialog, wxScrollingDialog)
-#else
-BEGIN_EVENT_TABLE(GenericMessageDialog, wxMessageDialogBase)
-#endif
         EVT_BUTTON(wxID_YES, GenericMessageDialog::OnYes)
         EVT_BUTTON(wxID_NO, GenericMessageDialog::OnNo)
         EVT_BUTTON(wxID_CANCEL, GenericMessageDialog::OnCancel)
 END_EVENT_TABLE()
 
-#if !wxCHECK_VERSION(2,9,0)
-IMPLEMENT_CLASS(GenericMessageDialog, wxScrollingDialog )
-#else
-IMPLEMENT_CLASS(GenericMessageDialog, wxMessageDialogBase )
-#endif
+IMPLEMENT_CLASS(GenericMessageDialog, wxScrollingDialog)
 
 // ----------------------------------------------------------------------------
 GenericMessageDialog::GenericMessageDialog( wxWindow *parent,
@@ -72,13 +64,9 @@ GenericMessageDialog::GenericMessageDialog( wxWindow *parent,
                                                 long style,
                                                 const wxPoint& pos)
 // ----------------------------------------------------------------------------
-#if !wxCHECK_VERSION(2,9,0)
     : wxScrollingDialog( parent, wxID_ANY, caption, pos, wxDefaultSize, wxDEFAULT_DIALOG_STYLE )
 {
-#else
-{
-    SetLayoutAdaptationMode(wxDIALOG_ADAPTATION_MODE_ENABLED);
-#endif
+
     SetMessageDialogStyle(style);
 
     bool is_pda = (wxSystemSettings::GetScreenType() <= wxSYS_SCREEN_PDA);

@@ -20,9 +20,7 @@ public:
 	ValgrindListLog(const wxArrayString& Titles, wxArrayInt& Widths);
 	~ValgrindListLog();
 	wxWindow* CreateControl(wxWindow* Parent);
-	void DestroyControls();
 
-    void Fit();
 private:
 	void OnDoubleClick(wxCommandEvent& Event);
 	void SyncEditor(int selIndex);

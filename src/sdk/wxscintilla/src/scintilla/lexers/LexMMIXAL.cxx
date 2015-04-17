@@ -18,6 +18,7 @@
 #include "Scintilla.h"
 #include "SciLexer.h"
 
+#include "PropSetSimple.h"
 #include "WordList.h"
 #include "LexAccessor.h"
 #include "Accessor.h"
@@ -35,10 +36,10 @@ static inline bool IsAWordChar(const int ch) {
 }
 
 inline bool isMMIXALOperator(char ch) {
-	if (IsASCII(ch) && isalnum(ch))
+	if (isascii(ch) && isalnum(ch))
 		return false;
 	if (ch == '+' || ch == '-' || ch == '|' || ch == '^' ||
-		ch == '*' || ch == '/' ||
+		ch == '*' || ch == '/' || ch == '/' ||
 		ch == '%' || ch == '<' || ch == '>' || ch == '&' ||
 		ch == '~' || ch == '$' ||
 		ch == ',' || ch == '(' || ch == ')' ||

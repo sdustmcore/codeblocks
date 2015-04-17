@@ -34,7 +34,7 @@ class Configuration: public cbConfigurationPanel
 {
 public:
 
-  Configuration(wxWindow* parent);
+  Configuration(wxWindow* parent,wxWindowID id = -1);
   virtual ~Configuration();
 
   //(*Identifiers(Configuration)
@@ -43,10 +43,12 @@ public:
   static const long ID_BTN_DELETE_GROUP;
   static const long ID_BTN_RENAME_GROUP;
   static const long ID_BTN_DEFAULTS;
+  static const long ID_LBL_IDENTIFIERS;
   static const long ID_LST_IDENTIFIERS;
   static const long ID_BTN_ADD_IDENTIFIER;
   static const long ID_BTN_DELETE_IDENTIFIERS;
   static const long ID_BTN_CHANGE_IDENTIFIER;
+  static const long ID_LBL_HEADERS;
   static const long ID_TXT_HEADERS;
   //*)
 
@@ -67,8 +69,11 @@ protected:
 
   //(*Declarations(Configuration)
   wxButton* m_DeleteIdentifier;
+  wxBoxSizer* sizMain;
   wxListBox* m_Groups;
   wxListBox* m_Identifiers;
+  wxBoxSizer* sizHeaders;
+  wxBoxSizer* sizAddDeleteChange;
   wxTextCtrl* m_Headers;
   wxButton* m_ChangeIdentifier;
   wxButton* m_DeleteGroup;
@@ -76,11 +81,18 @@ protected:
   wxButton* m_AddIdentifier;
   wxButton* m_AddGroup;
   wxButton* m_Defaults;
+  wxStaticBoxSizer* sizGroups;
+  wxStaticText* lblHeaders;
+  wxBoxSizer* sizIdentifiers;
+  wxBoxSizer* sizAddDeleteRename;
+  wxBoxSizer* sizIdentifiersVert;
+  wxStaticBoxSizer* sizBindings;
+  wxBoxSizer* sizIdentifiersHor;
+  wxStaticText* lblIdentifiers;
   //*)
 
 private:
 
-  bool IdentifierOK(const wxString& Identifier);
   void ShowGroups();
   void SelectGroup(int Number);
   void SelectIdentifier(int Number);
@@ -90,11 +102,10 @@ private:
   { return _T("generic-plugin"); }
   virtual void OnApply();
   virtual void OnCancel()
-  { ; }
+  { }
 
   Bindings m_Bindings;
   bool     m_BlockHeadersText;
-  bool     m_Dirty;
 
   DECLARE_EVENT_TABLE()
 };

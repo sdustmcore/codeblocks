@@ -16,9 +16,9 @@
 * You should have received a copy of the GNU General Public License
 * along with wxSmith. If not, see <http://www.gnu.org/licenses/>.
 *
-* $Revision$
-* $Id$
-* $HeadURL$
+* $Revision: 4504 $
+* $Id: wxsDirDialog.cpp 4504 2007-10-02 21:52:30Z byo $
+* $HeadURL: svn+ssh://byo@svn.berlios.de/svnroot/repos/codeblocks/trunk/src/plugins/contrib/wxSmith/wxwidgets/defitems/wxsDirDialog.cpp $
 */
 
 #include "wxsdirdialog.h"
@@ -51,7 +51,11 @@ void wxsDirDialog::OnBuildCreatingCode()
         case wxsCPP:
         {
             AddHeader(_T("<wx/dirdlg.h>"),GetInfo().ClassName,hfInPCH);
+            #if wxCHECK_VERSION(2, 9, 0)
             Codef(_T("%C(%W, %t, %t, %T, %P, %S, %N);\n"),m_Message.wx_str(),m_DefaultPath.wx_str());
+            #else
+            Codef(_T("%C(%W, %t, %t, %T, %P, %S, %N);\n"),m_Message.c_str(),m_DefaultPath.c_str());
+            #endif
             BuildSetupWindowCode();
             return;
         }

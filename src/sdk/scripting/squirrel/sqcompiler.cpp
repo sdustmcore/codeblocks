@@ -594,7 +594,6 @@ public:
 	}
 	SQInteger Factor()
 	{
-		_exst._deref = DEREF_NO_DEREF;
 		switch(_token)
 		{
 		case TK_STRING_LITERAL: {

@@ -3,18 +3,18 @@ dnl copied and adapted from Ogre3D (www.ogre3d.org)
 
 AC_DEFUN([CODEBLOCKS_GET_PLATFORM],
 [CODEBLOCKS_PLATFORM=gtk
- AC_ARG_WITH(platform,
+ AC_ARG_WITH(platform, 
              AC_HELP_STRING([--with-platform=PLATFORM],
                             [the platform to build, win32, macosx or gtk(default)]),
              CODEBLOCKS_PLATFORM=$withval,
              CODEBLOCKS_PLATFORM=gtk)
 
-
+ 
   PLATFORM_CFLAGS=""
   PLATFORM_LIBS=""
 
   dnl Do the extra checks per type here
-  case $CODEBLOCKS_PLATFORM in
+  case $CODEBLOCKS_PLATFORM in 
     gtk)
       PLATFORM_CFLAGS="-I/usr/X11R6/include"
       PLATFORM_LIBS="-L/usr/X11R6/lib -lX11"
@@ -48,8 +48,8 @@ AC_DEFUN([CODEBLOCKS_SETUP_FOR_TARGET],
     darwin=true
 ;;
  *) dnl default to standard linux
-    AC_SUBST(SHARED_FLAGS, "-shared")
-    AC_SUBST(PLUGIN_FLAGS, "-shared -avoid-version")
+	AC_SUBST(SHARED_FLAGS, "-shared")
+	AC_SUBST(PLUGIN_FLAGS, "-shared -avoid-version")
     linux=true
 ;;
 esac
@@ -59,52 +59,23 @@ AM_CONDITIONAL(CODEBLOCKS_LINUX, test x$linux = xtrue)
 AM_CONDITIONAL(CODEBLOCKS_DARWIN, test x$darwin = xtrue )
 ])
 
-dnl check whether to enable debugging
-AC_DEFUN([CODEBLOCKS_CHECK_DEBUG],
+dnl check what settings to enable
+AC_DEFUN([CODEBLOCKS_ENABLE_SETTINGS],
 [
 AC_MSG_CHECKING(whether to enable debugging)
 debug_default="no"
 AC_ARG_ENABLE(debug, [AC_HELP_STRING([--enable-debug], [turn on debugging (default is OFF)])],,
                        enable_debug=$debug_default)
-    if test "x$enable_debug" = "xyes"; then
-        CFLAGS="-g -DDEBUG -DCB_AUTOCONF $CFLAGS"
-        CXXFLAGS="-g -DDEBUG -DCB_AUTOCONF $CXXFLAGS"
-        LDFLAGS="-Wl,--no-undefined"
-        AC_MSG_RESULT(yes)
-    else
-        CFLAGS="-O2 -ffast-math -DCB_AUTOCONF $CFLAGS"
-        CXXFLAGS="-O2 -ffast-math -DCB_AUTOCONF $CXXFLAGS"
-        LDFLAGS="-Wl,--no-undefined"
-        AC_MSG_RESULT(no)
-    fi
-])
+if test "x$enable_debug" = "xyes"; then
+         CFLAGS="-g -DDEBUG -DCB_AUTOCONF $CFLAGS"
+         CXXFLAGS="-g -DDEBUG -DCB_AUTOCONF $CXXFLAGS"
+	AC_MSG_RESULT(yes)
+else
+	CFLAGS="-O2 -ffast-math -DCB_AUTOCONF $CFLAGS"
+	CXXFLAGS="-O2 -ffast-math -DCB_AUTOCONF $CXXFLAGS"
+	AC_MSG_RESULT(no)
+fi
 
-AC_DEFUN([CB_GCC_VERSION], [
-    GCC_FULL_VERSION=""
-    GCC_MAJOR_VERSION=""
-    GCC_MINOR_VERSION=""
-    GCC_PATCH_VERSION=""
-    if test "x$GCC" = "xyes" ; then
-        AC_CACHE_CHECK([gcc version],[cb_cv_gcc_version],[
-            cb_cv_gcc_version="`$CC -dumpversion`"
-            if test "x$cb_cv_gcc_version" = "x"; then
-                cb_cv_gcc_version=""
-            fi
-        ])
-        GCC_FULL_VERSION=$cb_cv_gcc_version
-        GCC_MAJOR_VERSION=$(echo $GCC_FULL_VERSION | cut -d'.' -f1)
-        GCC_MINOR_VERSION=$(echo $GCC_FULL_VERSION | cut -d'.' -f2)
-        GCC_PATCH_VERSION=$(echo $GCC_FULL_VERSION | cut -d'.' -f3)
-    fi
-    AC_SUBST([GCC_VERSION])
-    AC_SUBST([GCC_MAJOR_VERSION])
-    AC_SUBST([GCC_MINOR_VERSION])
-    AC_SUBST([GCC_PATCH_VERSION])
-])
-
-dnl check what settings to enable
-AC_DEFUN([CODEBLOCKS_ENABLE_SETTINGS],
-[
 AC_MSG_CHECKING(whether to build the source formatter plugin)
 astyle_default="yes"
 AC_ARG_ENABLE(source-formatter, [AC_HELP_STRING([--enable-source-formatter], [build the source formatter plugin (default YES)])],,
@@ -193,17 +164,6 @@ else
 	AC_MSG_RESULT(no)
 fi
 
-AC_MSG_CHECKING(whether to build the occurrences highlighting plugin)
-occurrenceshighlighting_default="yes"
-AC_ARG_ENABLE(occurrences-highlighting, [AC_HELP_STRING([--enable-occurrences-highlighting], [build the occurrences highlighting plugin (default YES)])],,
-                       enable_occurrenceshighlighting=$occurrenceshighlighting_default)
-AM_CONDITIONAL([BUILD_OCCURRENCESHIGHLIGHTING], [test "x$enable_occurrenceshighlighting" = "xyes"])
-if test "x$enable_occurrenceshighlighting" = "xyes"; then
-	AC_MSG_RESULT(yes)
-else
-	AC_MSG_RESULT(no)
-fi
-
 AC_MSG_CHECKING(whether to build the foreign projects importer plugin)
 pimport_default="yes"
 AC_ARG_ENABLE(projects-importer, [AC_HELP_STRING([--enable-projects-importer], [build the foreign projects importer plugin (default YES)])],,
@@ -237,17 +197,6 @@ else
 	AC_MSG_RESULT(no)
 fi
 
-AC_MSG_CHECKING(whether to build the abbreviations plugin)
-abbreviations_default="yes"
-AC_ARG_ENABLE(abbreviations, [AC_HELP_STRING([--enable-abbreviations], [build the abbreviations plugin (default YES)])],,
-                       enable_abbreviations=$abbreviations_default)
-AM_CONDITIONAL([BUILD_ABBREVIATIONS], [test "x$enable_abbreviations" = "xyes"])
-if test "x$enable_abbreviations" = "xyes"; then
-	AC_MSG_RESULT(yes)
-else
-	AC_MSG_RESULT(no)
-fi
-
 AC_MSG_CHECKING(whether to keep prebuild windows dll's in dist-tarball)
 keep_dlls_default="yes"
 AC_ARG_ENABLE(keep-dlls, [AC_HELP_STRING([--enable-keep-dlls], [keep prebuild windows dll's in dist-tarball (default YES)])],,
@@ -259,34 +208,12 @@ else
 	AC_MSG_RESULT(no)
 fi
 
-AC_MSG_CHECKING(whether to integrate fortran-plugin in dist-tarball)
-enable_fortran_default="yes"
-AC_ARG_ENABLE(fortran, [AC_HELP_STRING([--enable-fortran], [integrate (external) fortran plugin in dist-tarball (default YES), NOTE: it will not be build automatically])],,
-                       enable_fortran=$enable_fortran_default)
-AM_CONDITIONAL([ENABLE_FORTRAN], [test "x$enable_fortran" = "xyes"])
-if test "x$enable_fortran" = "xyes"; then
-	AC_MSG_RESULT(yes)
-else
-	AC_MSG_RESULT(no)
-fi
-
-AC_MSG_CHECKING(whether to use gtk-notebook as default notebook)
-gtk_notebook_default="yes"
-AC_ARG_ENABLE(gtk-notebook, [AC_HELP_STRING([--enable-gtk-notebook], [use gtk-notebook as default notebook (default YES)])],,
-                       enable_gtk_notebook=$gtk_notebook_default)
-AM_CONDITIONAL([GTK_NOTEBOOK], [test "x$enable_gtk_notebook" = "xyes"])
-if test "x$enable_gtk_notebook" = "xyes"; then
-	AC_MSG_RESULT(yes)
-else
-	AC_MSG_RESULT(no)
-fi
-
 
 case $host in
 	*-*-cygwin* | *-*-mingw*)
 		AC_MSG_CHECKING(whether to build the xp-manifest plugin)
 		xpmanifest_default="yes"
-		AC_ARG_ENABLE(xpmanifest, [AC_HELP_STRING([--enable-xpmanifest], [build the xp-manifest plugin (default YES)])],,
+		AC_ARG_ENABLE(todo, [AC_HELP_STRING([--enable-xpmanifest], [build the xp-manifest plugin (default YES)])],,
                        enable_xpmanifest=$xpmanifest_default)
 		AM_CONDITIONAL([BUILD_MANIFEST], [test "x$enable_xpmanifest" = "xyes"])
 		if test "x$enable_xpmanifest" = "xyes"; then
@@ -311,27 +238,19 @@ AC_DEFUN([BUILD_CONTRIB_NONE], [
 	AM_CONDITIONAL([BUILD_CSCOPE], [false])
 	AM_CONDITIONAL([BUILD_DOXYBLOCKS], [false])
 	AM_CONDITIONAL([BUILD_DRAGSCROLL], [false])
-	AM_CONDITIONAL([BUILD_EDITORCONFIG], [false])
 	AM_CONDITIONAL([BUILD_EDITORTWEAKS], [false])
 	AM_CONDITIONAL([BUILD_ENVVARS], [false])
-	AM_CONDITIONAL([BUILD_FILEMANAGER], [false])
 	AM_CONDITIONAL([BUILD_HEADERFIXUP], [false])
 	AM_CONDITIONAL([BUILD_HELP], [false])
 	AM_CONDITIONAL([BUILD_KEYBINDER], [false])
 	AM_CONDITIONAL([BUILD_LIBFINDER], [false])
 	AM_CONDITIONAL([BUILD_NASSISHNEIDERMAN], [false])
 	AM_CONDITIONAL([BUILD_PROFILER], [false])
-	AM_CONDITIONAL([BUILD_PROJECTOPTIONSMANIPULATOR], [false])
 	AM_CONDITIONAL([BUILD_REGEX], [false])
-	AM_CONDITIONAL([BUILD_REOPENEDITOR], [false])
 	AM_CONDITIONAL([BUILD_EXPORTER], [false])
-	AM_CONDITIONAL([BUILD_SMARTINDENT], [false])
-	AM_CONDITIONAL([BUILD_SPELLCHECKER], [false])
 	AM_CONDITIONAL([BUILD_SYMTAB], [false])
 	AM_CONDITIONAL([BUILD_THREADSEARCH], [false])
-	AM_CONDITIONAL([BUILD_TOOLSPLUS], [false])
 	AM_CONDITIONAL([BUILD_VALGRIND], [false])
-	AM_CONDITIONAL([BUILD_WXCONTRIB], [false])
 	AM_CONDITIONAL([BUILD_WXSMITH], [false])
 	AM_CONDITIONAL([BUILD_WXSMITHCONTRIB], [false])
 	AM_CONDITIONAL([BUILD_WXSMITHAUI], [false])
@@ -353,27 +272,19 @@ AC_DEFUN([BUILD_CONTRIB_ALL], [
 	AM_CONDITIONAL([BUILD_CSCOPE], [true])
 	AM_CONDITIONAL([BUILD_DOXYBLOCKS], [true])
 	AM_CONDITIONAL([BUILD_DRAGSCROLL], [true])
-	AM_CONDITIONAL([BUILD_EDITORCONFIG], [true])
 	AM_CONDITIONAL([BUILD_EDITORTWEAKS], [true])
 	AM_CONDITIONAL([BUILD_ENVVARS], [true])
-	AM_CONDITIONAL([BUILD_FILEMANAGER], [true])
 	AM_CONDITIONAL([BUILD_HEADERFIXUP], [true])
 	AM_CONDITIONAL([BUILD_HELP], [true])
 	AM_CONDITIONAL([BUILD_KEYBINDER], [true])
 	AM_CONDITIONAL([BUILD_LIBFINDER], [true])
 	AM_CONDITIONAL([BUILD_NASSISHNEIDERMAN], [true])
-	AM_CONDITIONAL([BUILD_PROJECTOPTIONSMANIPULATOR], [true])
 	AM_CONDITIONAL([BUILD_PROFILER], [true])
 	AM_CONDITIONAL([BUILD_REGEX], [true])
-	AM_CONDITIONAL([BUILD_REOPENEDITOR], [true])
 	AM_CONDITIONAL([BUILD_EXPORTER], [true])
-	AM_CONDITIONAL([BUILD_SMARTINDENT], [true])
-	AM_CONDITIONAL([BUILD_SPELLCHECKER], [true])
 	AM_CONDITIONAL([BUILD_SYMTAB], [true])
 	AM_CONDITIONAL([BUILD_THREADSEARCH], [true])
-	AM_CONDITIONAL([BUILD_TOOLSPLUS], [true])
 	AM_CONDITIONAL([BUILD_VALGRIND], [true])
-	AM_CONDITIONAL([BUILD_WXCONTRIB], [true])
 	AM_CONDITIONAL([BUILD_WXSMITH], [true])
 	AM_CONDITIONAL([BUILD_WXSMITHCONTRIB], [true])
 	AM_CONDITIONAL([BUILD_WXSMITHAUI], [true])
@@ -391,22 +302,21 @@ AC_MSG_CHECKING(which (if any) contrib plugins to build)
 AC_ARG_WITH(contrib-plugins,
   [  --with-contrib-plugins=<list>     compile contrib plugins in <list>. ]
   [                        plugins may be separated with commas. ]
-  [                        "all", "yes" or just "--with-contrib-plugins" compiles all contrib plugins ]
-  [                        "all,-help" or "yes,-help" compiles all contrib plugins except the help plugin ]
-  [                        "none", "no", "--without-contrib-plugins" or skipping the parameter at all, ]
-  [                        compiles none of the contrib-plugins ]
-  [                        Plugin names are: AutoVersioning, BrowseTracker, byogames, Cccc, CppCheck, cbkoders, codesnippets, ]
-  [                        		     codestat, copystrings, Cscope, DoxyBlocks, dragscroll, EditorConfig, EditorTweaks, envvars, ]
-  [                        		     FileManager, headerfixup, help, hexeditor, incsearch, keybinder, libfinder, MouseSap, ]
-  [                        		     NassiShneiderman, ProjectOptionsManipulator, profiler, regex, ReopenEditor, exporter, smartindent, spellchecker, ]
-  [                        		     symtab, ThreadSearch, ToolsPlus, Valgrind, wxcontrib, wxsmith, wxsmithcontrib, wxsmithaui ],
+  [                        "all" compiles all contrib plugins ]
+  [                        "all,-help" compiles all contrib plugins except the help plugin ]
+  [                        By default, no contrib plugins are compiled ]
+  [                        Plugin names are: AutoVersioning, BrowseTracker,byogames,Cccc,CppCheck,cbkoders,codesnippets,]
+  [                        		     codestat, copystrings, Cscope, DoxyBlocks, dragscroll, EditorTweaks, envvars,headerfixup, ]
+  [                        		     help,hexeditor,incsearch,keybinder,libfinder,MouseSap, ]
+  [                        		     NassiShneiderman, profiler,regex,exporter,symtab,ThreadSearch,Valgrind,wxsmith, ]
+  [                        		     wxsmithcontrib,wxsmithaui ],
   plugins="$withval", plugins="none")
 
 plugins=`echo $plugins | sed 's/,/ /g'`
 for plugin in $plugins
 do
     case "$plugin" in
-	all|yes)
+	all)
 		BUILD_CONTRIB_ALL
 		;;
 	AutoVersioning)
@@ -439,17 +349,11 @@ do
 	dragscroll)
 		AM_CONDITIONAL([BUILD_DRAGSCROLL], [true])
 		;;
-	EditorConfig)
-		AM_CONDITIONAL([BUILD_EDITORCONFIG], [true])
-		;;
 	EditorTweaks)
 		AM_CONDITIONAL([BUILD_EDITORTWEAKS], [true])
 		;;
 	envvars)
 		AM_CONDITIONAL([BUILD_ENVVARS], [true])
-		;;
-	FileManager)
-		AM_CONDITIONAL([BUILD_FILEMANAGER], [true])
 		;;
 	headerfixup)
 		AM_CONDITIONAL([BUILD_HEADERFIXUP], [true])
@@ -466,26 +370,14 @@ do
 	NassiShneiderman)
 		AM_CONDITIONAL([BUILD_NASSISHNEIDERMAN], [true])
 		;;
-	ProjectOptionsManipulator)
-		AM_CONDITIONAL([BUILD_PROJECTOPTIONSMANIPULATOR], [true])
-		;;
 	profiler)
 		AM_CONDITIONAL([BUILD_PROFILER], [true])
 		;;
 	regex)
 		AM_CONDITIONAL([BUILD_REGEX], [true])
 		;;
-	ReopenEditor)
-		AM_CONDITIONAL([BUILD_REOPENEDITOR], [true])
-		;;
 	exporter)
 		AM_CONDITIONAL([BUILD_EXPORTER], [true])
-		;;
-	smartindent)
-		AM_CONDITIONAL([BUILD_SMARTINDENT], [true])
-		;;
-	spellchecker)
-		AM_CONDITIONAL([BUILD_SPELLCHECKER], [true])
 		;;
 	symtab)
 		AM_CONDITIONAL([BUILD_SYMTAB], [true])
@@ -493,14 +385,8 @@ do
 	ThreadSearch)
 		AM_CONDITIONAL([BUILD_THREADSEARCH], [true])
 		;;
-	ToolsPlus)
-		AM_CONDITIONAL([BUILD_TOOLSPLUS], [true])
-		;;
 	Valgrind)
 		AM_CONDITIONAL([BUILD_VALGRIND], [true])
-		;;
-	wxcontrib)
-		AM_CONDITIONAL([BUILD_WXCONTRIB], [true])
 		;;
 	wxsmith)
 		AM_CONDITIONAL([BUILD_WXSMITH], [true])
@@ -556,17 +442,11 @@ do
 	-dragscroll)
 		AM_CONDITIONAL([BUILD_DRAGSCROLL], [false])
 		;;
-	-EditorConfig)
-		AM_CONDITIONAL([BUILD_EDITORCONFIG], [false])
-		;;
 	-EditorTweaks)
 		AM_CONDITIONAL([BUILD_EDITORTWEAKS], [false])
 		;;
 	-envvars)
 		AM_CONDITIONAL([BUILD_ENVVARS], [false])
-		;;
-	-FileManager)
-		AM_CONDITIONAL([BUILD_FILEMANAGER], [false])
 		;;
 	-headerfixup)
 		AM_CONDITIONAL([BUILD_HEADERFIXUP], [false])
@@ -589,17 +469,8 @@ do
 	-regex)
 		AM_CONDITIONAL([BUILD_REGEX], [false])
 		;;
-	-ReopenEditor)
-		AM_CONDITIONAL([BUILD_REOPENEDITOR], [false])
-		;;
 	-exporter)
 		AM_CONDITIONAL([BUILD_EXPORTER], [false])
-		;;
-	-smartindent)
-		AM_CONDITIONAL([BUILD_SMARTINDENT], [false])
-		;;
-	-spellchecker)
-		AM_CONDITIONAL([BUILD_SPELLCHECKER], [false])
 		;;
 	-symtab)
 		AM_CONDITIONAL([BUILD_SYMTAB], [false])
@@ -607,14 +478,8 @@ do
 	-ThreadSearch)
 		AM_CONDITIONAL([BUILD_THREADSEARCH], [false])
 		;;
-	-ToolsPlus)
-		AM_CONDITIONAL([BUILD_TOOLSPLUS], [false])
-		;;
 	-Valgrind)
 		AM_CONDITIONAL([BUILD_VALGRIND], [false])
-		;;
-	-wxcontrib)
-		AM_CONDITIONAL([BUILD_WXCONTRIB], [false])
 		;;
 	-wxsmith)
 		AM_CONDITIONAL([BUILD_WXSMITH], [false])
@@ -640,14 +505,8 @@ do
 	-CppCheck)
 		AM_CONDITIONAL([BUILD_CPPCHECK], [false])
 		;;
-	none|no)
-		;;
 	*)
-		echo
-		echo "Error: Unknown contrib plugin $plugin." >&2
-		echo "       Note: the names are case-sensitive!" >&2
-		echo "       Try $[0] --help for exact spelling." >&2
-		exit 1
+		echo "Unknown contrib plugin $plugin, ignoring"
 		;;
     esac
 done
@@ -658,40 +517,33 @@ AC_SUBST(BUILD_AUTOVERSIONING)
 AC_SUBST(BUILD_BROWSETRACKER)
 AC_SUBST(BUILD_BYOGAMES)
 AC_SUBST(BUILD_CBKODERS)
-AC_SUBST(BUILD_CCCC)
 AC_SUBST(BUILD_CODESNIPPETS)
 AC_SUBST(BUILD_CODESTAT)
 AC_SUBST(BUILD_COPYSTRINGS)
-AC_SUBST(BUILD_CPPCHECK)
 AC_SUBST(BUILD_CSCOPE)
 AC_SUBST(BUILD_DOXYBLOCKS)
 AC_SUBST(BUILD_DRAGSCROLL)
-AC_SUBST(BUILD_EDITORCONFIG)
 AC_SUBST(BUILD_EDITORTWEAKS)
 AC_SUBST(BUILD_ENVVARS)
-AC_SUBST(BUILD_FILEMANAGER)
 AC_SUBST(BUILD_HEADERFIXUP)
 AC_SUBST(BUILD_HELP)
-AC_SUBST(BUILD_HEXEDITOR)
-AC_SUBST(BUILD_INCSEARCH)
 AC_SUBST(BUILD_KEYBINDER)
 AC_SUBST(BUILD_LIBFINDER)
-AC_SUBST(BUILD_MOUSESAP)
 AC_SUBST(BUILD_NASSISHNEIDERMAN)
 AC_SUBST(BUILD_PROFILER)
 AC_SUBST(BUILD_REGEX)
-AC_SUBST(BUILD_REOPENEDITOR)
 AC_SUBST(BUILD_EXPORTER)
 AC_SUBST(BUILD_SYMTAB)
-AC_SUBST(BUILD_SMARTINDENT)
-AC_SUBST(BUILD_SPELLCHECKER)
 AC_SUBST(BUILD_THREADSEARCH)
-AC_SUBST(BUILD_TOOLSPLUS)
 AC_SUBST(BUILD_VALGRIND)
-AC_SUBST(BUILD_WXCONTRIB)
 AC_SUBST(BUILD_WXSMITH)
 AC_SUBST(BUILD_WXSMITHCONTRIB)
 AC_SUBST(BUILD_WXSMITHAUI)
+AC_SUBST(BUILD_HEXEDITOR)
+AC_SUBST(BUILD_INCSEARCH)
+AC_SUBST(BUILD_MOUSESAP)
+AC_SUBST(BUILD_CCCC)
+AC_SUBST(BUILD_CPPCHECK)
 
 GCC_PCH=0
 PCH_FLAGS=

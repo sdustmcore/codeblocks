@@ -6,6 +6,19 @@
 #ifndef WIZ_H
 #define WIZ_H
 
+#if defined(__GNUG__) && !defined(__APPLE__)
+	#pragma interface "wiz.h"
+#endif
+// For compilers that support precompilation, includes <wx/wx.h>
+#include <wx/wxprec.h>
+
+#ifdef __BORLANDC__
+	#pragma hdrstop
+#endif
+
+#ifndef WX_PRECOMP
+	#include <wx/wx.h>
+#endif
 
 #include <cbplugin.h> // the base class we 're inheriting
 #include <settings.h> // needed to use the Code::Blocks SDK
@@ -41,12 +54,13 @@ class Wiz : public cbWizardPlugin
 		Wiz();
 		~Wiz();
 
-        Wiz& operator=(cb_unused const Wiz& rhs)  // prevent assignment operator
+        Wiz& operator=(const Wiz& /*rhs*/)  // prevent assignment operator
         {
         	cbThrow(_T("Can't assign an Wiz* !!!"));
         	return *this;
 		}
 
+		int Configure(){ return 0; }
 		int GetCount() const;
         TemplateOutputType GetOutputType(int index) const;
 		wxString GetTitle(int index) const;
@@ -79,15 +93,10 @@ class Wiz : public cbWizardPlugin
 
         void FillComboboxWithCompilers(const wxString& name);
         wxString GetCompilerFromCombobox(const wxString& name);
-        void FillContainerWithCompilers(const wxString& name, const wxString& compilerID,
-                                        const wxString& validCompilerIDs);
 
         wxString GetComboboxStringSelection(const wxString& name);
         int GetComboboxSelection(const wxString& name);
         void SetComboboxSelection(const wxString& name, int sel);
-
-        void SetComboboxValue(const wxString& name, const wxString& value);
-        wxString GetComboboxValue(const wxString& name);
 
         int GetRadioboxSelection(const wxString& name);
         void SetRadioboxSelection(const wxString& name, int sel);
@@ -97,16 +106,8 @@ class Wiz : public cbWizardPlugin
         wxString GetListboxStringSelections(const wxString& name);
         void SetListboxSelection(const wxString& name, int sel);
 
-        wxString GetCheckListboxChecked(const wxString& name);
-        wxString GetCheckListboxStringChecked(const wxString& name);
-        bool IsCheckListboxItemChecked(const wxString& name, unsigned int item);
-        void CheckCheckListboxItem(const wxString& name, unsigned int item, bool check);
-
         void SetTextControlValue(const wxString& name, const wxString& value);
         wxString GetTextControlValue(const wxString& name);
-
-        void SetSpinControlValue(const wxString& name, int value);
-        int GetSpinControlValue(const wxString& name);
 
         // project path page
         wxString GetProjectPath();
@@ -191,7 +192,7 @@ class Wiz : public cbWizardPlugin
         wxString m_ReleaseOutputDir;
         wxString m_ReleaseObjOutputDir;
 	private:
-        Wiz(cb_unused const Wiz& rhs); // prevent copy construction
+        Wiz(const Wiz& /*rhs*/); // prevent copy construction
 };
 
 #endif // WIZ_H

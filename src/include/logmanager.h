@@ -10,42 +10,39 @@
 #include "logger.h"
 #include <map>
 
-//namespace cb
-//{
+namespace
+{
+    static const unsigned int max_logs = 32;
+
     inline wxString F(const wxChar* msg, ...)
     {
         va_list arg_list;
         va_start(arg_list, msg);
-#if wxCHECK_VERSION(2,9,0) && wxUSE_UNICODE
-// in wx >=  2.9 unicode-build (default) we need the %ls here, or the strings get
-// cut after the first character
-        ::temp_string = msg;
-        ::temp_string.Replace(_T("%s"), _T("%ls"));
-        msg = ::temp_string.wx_str();
-#endif
         ::temp_string = wxString::FormatV(msg, arg_list);
         va_end(arg_list);
 
         return ::temp_string;
-    }
-//} // namespace cb
+    };
+
+    static NullLogger g_null_log;
+}
 
 
 struct LogSlot
 {
+    Logger* log;
+    size_t index;
     friend class LogManager;
 
-    Logger*   log;
-    size_t    index;
-    wxBitmap* icon;
-    wxString  title;
+    wxBitmap *icon;
+    wxString title;
 
     LogSlot();
     ~LogSlot();
 
     size_t Index() const;
 
-    void    SetLogger(Logger* in);
+    void SetLogger(Logger* in);
     Logger* GetLogger() const;
 };
 
@@ -53,19 +50,9 @@ struct LogSlot
 class DLLIMPORT LogManager : public Mgr<LogManager>
 {
 public:
-        struct InstantiatorBase
-        {
-            virtual Logger* New()                 { return nullptr; };
-            virtual bool RequiresFilename() const { return false; };
-            virtual ~InstantiatorBase()           { ; };
-        };
-        template<typename type, bool requires_filename = false> struct Instantiator : public InstantiatorBase
-        {
-            virtual Logger* New()                 { return new type; };
-            virtual bool RequiresFilename() const { return requires_filename; };
-        };
+        struct InstantiatorBase{ virtual Logger* New() { return 0; }; virtual bool RequiresFilename() const { return false; }; virtual ~InstantiatorBase() {}; };
+        template<typename type, bool requires_filename = false> struct Instantiator : public InstantiatorBase{ virtual Logger* New() { return new type; }; virtual bool RequiresFilename() const { return requires_filename; }; };
 
-        enum { max_logs = 32 };
 private:
         typedef std::map<wxString, InstantiatorBase*> inst_map_t;
         inst_map_t instMap;
@@ -79,8 +66,8 @@ private:
         friend class Mgr<LogManager>;
         friend class Manager;
 
-        void ClearLogInternal(int i);
-        void LogInternal(const wxString& msg, int i, Logger::level lv);
+        void ClearLogInternal(int i) { if ((i>=0) && (i<=(int)max_logs) && (slot[i].log!=&g_null_log)) slot[i].log->Clear(); };
+        void LogInternal(const wxString& msg, int i, Logger::level lv) { if ((i>=0) && (i<=(int)max_logs) && (slot[i].log!=&g_null_log)) slot[i].log->Append(msg, lv); };
 
 public:
         enum { no_index = -1, invalid_log, stdout_log, app_log, debug_log};
@@ -96,6 +83,8 @@ public:
         void DeleteLog(int i);
         LogSlot& Slot(int i);
         size_t FindIndex(Logger* l);
+
+
 
         /* ------------------------------------------------------------------------------------------------------
          * Logging functions
@@ -127,13 +116,16 @@ public:
 
         void ClearLog(int i) { ClearLogInternal(i); };
 
+
+
+
         /* ------------------------------------------------------------------------------------------------------
          * Logger registry and RTTI
          * ------------------------------------------------------------------------------------------------------
          * These functions allow to obtain a list of names for all generic Loggers that are presently available
          * and to create a new Logger by name without knowing the type at compile time.
          *
-         *   logptr = LogManager::Get()->New(_T("stdout"));  // does exactly the same as
+         *   logptr = LogManager::Get()->New(_T("stdout"));     // does exactly the same as
          *   logptr = new StdoutLogger();
          *
          * You normally do not need to worry about creating Loggers. Only ever consider using these functions if you
@@ -148,6 +140,8 @@ public:
          */
         void Register(const wxString& name, InstantiatorBase* ins);
 
+
+
         /* ------------------------------------------------------------------------------------------------------
          *  Unless your name is "main.cpp" by any chance, you don't ever need to call this.
          *  If you use it, and your name is not "main.cpp", then you better come up with a good excuse, if someone asks.
@@ -155,6 +149,7 @@ public:
          */
         void NotifyUpdate();
 };
+
 
 #endif
 

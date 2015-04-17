@@ -5,8 +5,6 @@
 #include <wx/wx.h>
 #include <wx/event.h>
 
-#include <prep.h>
-
 class wxSmithAuiManager : public wxAuiManager
 {
     public:
@@ -18,7 +16,7 @@ class wxSmithAuiManager : public wxAuiManager
 
         virtual ~wxSmithAuiManager() {}
 
-        void OnDestroy(cb_unused wxWindowDestroyEvent& event)
+        void OnDestroy(wxWindowDestroyEvent& event)
         {
             UnInit();
         }

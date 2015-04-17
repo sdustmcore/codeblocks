@@ -177,7 +177,7 @@ bool SQVM::NEG_OP(SQObjectPtr &trg,const SQObjectPtr &o)
 bool SQVM::ObjCmp(const SQObjectPtr &o1,const SQObjectPtr &o2,SQInteger &result)
 {
 	if(type(o1)==type(o2)){
-		if(_rawval(o1)==_rawval(o2))_RET_SUCCEED(0);
+		if(_userpointer(o1)==_userpointer(o2))_RET_SUCCEED(0);
 		SQObjectPtr res;
 		switch(type(o1)){
 		case OT_STRING:
@@ -593,10 +593,9 @@ bool SQVM::CLOSURE_OP(SQObjectPtr &target, SQFunctionProto *func)
 
 }
 
-// C::B patch: Fix shadowed variable warning
-bool SQVM::GETVARGV_OP(SQObjectPtr &target,SQObjectPtr &index,CallInfo *callinfo)
+bool SQVM::GETVARGV_OP(SQObjectPtr &target,SQObjectPtr &index,CallInfo *ci)
 {
-	if(callinfo->_vargs.size == 0) {
+	if(ci->_vargs.size == 0) {
 		Raise_Error(_SC("the function doesn't have var args"));
 		return false;
 	}
@@ -605,8 +604,8 @@ bool SQVM::GETVARGV_OP(SQObjectPtr &target,SQObjectPtr &index,CallInfo *callinfo
 		return false;
 	}
 	SQInteger idx = tointeger(index);
-	if(idx < 0 || idx >= callinfo->_vargs.size){ Raise_Error(_SC("vargv index out of range")); return false; }
-	target = _vargsstack[callinfo->_vargs.base+idx];
+	if(idx < 0 || idx >= ci->_vargs.size){ Raise_Error(_SC("vargv index out of range")); return false; }
+	target = _vargsstack[ci->_vargs.base+idx];
 	return true;
 }
 
@@ -638,7 +637,7 @@ bool SQVM::CLASS_OP(SQObjectPtr &target,SQInteger baseclass,SQInteger attributes
 bool SQVM::IsEqual(SQObjectPtr &o1,SQObjectPtr &o2,bool &res)
 {
 	if(type(o1) == type(o2)) {
-		res = ((_rawval(o1) == _rawval(o2)?true:false));
+		res = ((_userpointer(o1) == _userpointer(o2)?true:false));
 	}
 	else {
 		if(sq_isnumeric(o1) && sq_isnumeric(o2)) {
@@ -992,8 +991,7 @@ common_call:
 					if(type(_class(STK(arg1))->_metamethods[MT_NEWMEMBER]) != OT_NULL ) {
 						Push(STK(arg1)); Push(STK(arg2)); Push(STK(arg3));
 						Push((arg0&NEW_SLOT_ATTRIBUTES_FLAG) ? STK(arg2-1) : _null_);
-						Push(bstatic);
-						int nparams = 5;
+						int nparams = 4;
 						if(Call(_class(STK(arg1))->_metamethods[MT_NEWMEMBER], nparams, _top - nparams, temp_reg,SQFalse)) {
 							Pop(nparams);
 							continue;
@@ -1021,12 +1019,11 @@ exception_trap:
 			if(traps) {
 				do {
 					if(ci->_etraps > 0) {
-                        // C::B patch: Avoid compiler warnings about shadowing params
-						SQExceptionTrap &etrap = _etraps.top();
-						ci->_ip = etrap._ip;
-						_top = etrap._stacksize;
-						_stackbase = etrap._stackbase;
-						_stack._vals[_stackbase+etrap._extarget] = currerror;
+						SQExceptionTrap &et = _etraps.top();
+						ci->_ip = et._ip;
+						_top = et._stacksize;
+						_stackbase = et._stackbase;
+						_stack._vals[_stackbase+et._extarget] = currerror;
 						_etraps.pop_back(); traps--; ci->_etraps--;
 						CLEARSTACK(last_top);
 						goto exception_restore;
@@ -1062,8 +1059,6 @@ exception_trap:
 		return false;
 	}
 	assert(0);
-    // C::B patch: Avoid compiler warnings
-	return false;
 }
 
 bool SQVM::CreateClassInstance(SQClass *theclass, SQObjectPtr &inst, SQObjectPtr &constructor)
@@ -1087,12 +1082,11 @@ void SQVM::CallErrorHandler(SQObjectPtr &error)
 
 void SQVM::CallDebugHook(SQInteger type,SQInteger forcedline)
 {
-    // C::B patch: Avoid compiler warnings about shadowing params
-	SQObjectPtr tmp_reg;
+	SQObjectPtr temp_reg;
 	SQInteger nparams=5;
 	SQFunctionProto *func=_funcproto(_closure(ci->_closure)->_function);
 	Push(_roottable); Push(type); Push(func->_sourcename); Push(forcedline?forcedline:func->GetLine(ci->_ip)); Push(func->_name);
-	Call(_debughook,nparams,_top-nparams,tmp_reg,SQFalse);
+	Call(_debughook,nparams,_top-nparams,temp_reg,SQFalse);
 	Pop(nparams);
 }
 
@@ -1301,8 +1295,7 @@ bool SQVM::Set(const SQObjectPtr &self,const SQObjectPtr &key,const SQObjectPtr 
 
 bool SQVM::Clone(const SQObjectPtr &self,SQObjectPtr &target)
 {
-    // C::B patch: Avoid compiler warnings about shadowing params
-	SQObjectPtr tmp_reg;
+	SQObjectPtr temp_reg;
 	SQObjectPtr newobj;
 	switch(type(self)){
 	case OT_TABLE:
@@ -1314,7 +1307,7 @@ cloned_mt:
 		if(_delegable(newobj)->_delegate){
 			Push(newobj);
 			Push(self);
-			CallMetaMethod(_delegable(newobj),MT_CLONED,2,tmp_reg);
+			CallMetaMethod(_delegable(newobj),MT_CLONED,2,temp_reg);
 		}
 		target = newobj;
 		return true;

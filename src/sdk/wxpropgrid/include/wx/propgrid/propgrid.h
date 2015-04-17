@@ -54,7 +54,7 @@
     #define wxUSE_TOOLTIPS          1
     #define wxUSE_SPINBTN           1
     #define wxUSE_DATEPICKCTRL      1
-    #define wxPG_COMPATIBILITY_1_2_0    0
+    #define wxPG_COMPATIBILITY_1_2_0    1
 #endif
 
 
@@ -84,7 +84,7 @@
 // for "configure" scripts under unix, use them.
 #define wxPROPGRID_MAJOR          1
 #define wxPROPGRID_MINOR          4
-#define wxPROPGRID_RELEASE        16
+#define wxPROPGRID_RELEASE        14
 
 // For non-Unix systems (i.e. when building without a configure script),
 // users of this component can use the following macro to check if the
@@ -273,7 +273,7 @@
 // -----------------------------------------------------------------------
 
 #ifndef wxPG_COMPATIBILITY_1_2_0
-    #define wxPG_COMPATIBILITY_1_2_0    0
+    #define wxPG_COMPATIBILITY_1_2_0    1
 #endif
 
 
@@ -373,7 +373,7 @@
 
 //
 // wxPGVariantAndBool
-//
+//	
 // Helper class that wraps wxVariant and bool. Need to use this class
 // instead of writeback arguments in some virtual methods of custom
 // property classes.
@@ -440,25 +440,7 @@ public:
 #endif
 
 // -----------------------------------------------------------------------
-// C::B patch: define DLLIMPORT to be used to define WXDLLIMPEXP_PG later.
-#if defined(__WXMSW__)
-    #ifndef DLLIMPORT
-        #if EXPORT_LIB
-            #define DLLIMPORT __declspec (dllexport)
-        #else
-            #define DLLIMPORT __declspec (dllimport)
-        #endif // EXPORT_LIB
-    #endif // DLLIMPORT
-#else
-    #define DLLIMPORT
-#endif
 
-#define WXDLLIMPEXP_PG DLLIMPORT
-// C::B patch: Add define of WXDLLIMPEXP_PG_FWD to reduce warnings
-#define WXDLLIMPEXP_PG_FWD
-
-// C::B patch: Disable the orignal way to define WXDLLIMPEXP_PG
-/*
 #ifdef WXMAKINGLIB_PROPGRID
     #define WXDLLIMPEXP_PG
 #elif defined(WXMAKINGDLL_PROPGRID)
@@ -468,7 +450,6 @@ public:
 #else // not making nor using DLL
     #define WXDLLIMPEXP_PG wxEMPTY_PARAMETER_VALUE
 #endif
-*/
 
 // -----------------------------------------------------------------------
 
@@ -519,7 +500,7 @@ struct wxPGPaintData
     int                     m_drawnWidth;
 
     /** In a measure item call, set this to the height of item at m_choiceItem index. */
-    int                     m_drawnHeight;
+    int                     m_drawnHeight;   
 };
 
 
@@ -606,7 +587,7 @@ public:
         m_refCount++;
     }
 
-    void DecRef()
+    void DecRef() 
     {
         m_refCount--;
         if ( !m_refCount )
@@ -3195,7 +3176,7 @@ public:
 
     /** Returns height of children, recursively, and
         by taking expanded/collapsed status into account.
-
+        
         iMax is used when finding property y-positions.
     */
     int GetChildrenHeight( int lh, int iMax = -1 ) const;
@@ -3290,13 +3271,6 @@ protected:
 
     /** Deletes all sub-properties. */
     void DoEmpty();
-
-    /**
-        Returns true if child property is selected.
-        If recursive == true, test sub-childs too (returns true if at least
-        one sub-child is selected).
-    */
-    bool IsChildSelected( const bool recursive = false ) const;
 
     // Call for after sub-properties added with AddChild
     void PrepareSubProperties();
@@ -3871,7 +3845,7 @@ public:
     }
 
 #if wxPG_COMPATIBILITY_1_2_0
-    /**
+    /** 
         Used to return true if choices in general were likely to have values.
         Now always returns true since if value was not specified for choice,
         index is used.
@@ -3881,7 +3855,7 @@ public:
     */
     wxDEPRECATED( bool HasValues() const );
 
-    /**
+    /** 
         Used to return true if given choice has valid value. Now always returns
         since if value was not specified for choice, index is used.
 
@@ -4346,7 +4320,7 @@ wxPG_VFB_BEEP                       = 0x02,
 */
 wxPG_VFB_MARK_CELL                  = 0x04,
 
-/** Display a customizable text message explaining the situation.
+/** Display a customizable text message explaining the situation. 
 
     To customize the way the message is displayed, you need to
     reimplement wxPropertyGrid::DoShowPropertyError() in a
@@ -4441,7 +4415,6 @@ enum wxPG_KEYBOARD_ACTIONS
     wxPG_ACTION_COPY,
     wxPG_ACTION_PASTE,
     wxPG_ACTION_SELECT_ALL,
-    wxPG_ACTION_EDIT,
     wxPG_ACTION_MAX
 };
 
@@ -4618,9 +4591,7 @@ public:
         Used by SetSplitterLeft() and DoFitColumns().
     */
     int GetColumnFitWidth(wxClientDC& dc, wxPGProperty* pwc, unsigned int col, bool subProps) const;
-/* C::B begin */
-    int GetColumnFullWidth( wxClientDC &dc, wxPGProperty *p, unsigned int col );
-/* C::B end */
+
     /**
         Returns currently selected property.
     */
@@ -6069,7 +6040,7 @@ public:
 #endif
 
     /** Sets value (wxVariant&) of a property.
-
+    
         @remarks
         Use wxPropertyGrid::ChangePropertyValue() instead if you need to run through
         validation process and send property change event.
@@ -6695,7 +6666,7 @@ public:
 
     /**
         Centers the splitter.
-
+        
         @param enableAutoResizing
             If @true, automatic column resizing is enabled (only applicapple
             if window style wxPG_SPLITTER_AUTO_CENTER is used).
@@ -7081,11 +7052,6 @@ public:
 
     /** Returns height of a single grid row (in pixels). */
     int GetRowHeight() const { return m_lineHeight; }
-
-/* C::B begin */
-    /** Returns the width of the margin. */
-    int GetMarginWidth() const { return m_marginWidth; }
-/* C::B end */
 
     wxPGProperty* GetSelectedProperty () const { return GetSelection(); }
 
@@ -7703,8 +7669,6 @@ public:
     */
     void OnCustomEditorEvent( wxCommandEvent &event );
 
-    bool HandleCustomEditorEvent( wxCommandEvent &event );
-
     void IncFrozen() { m_frozen++; }
     void DecFrozen() { m_frozen--; }
 
@@ -8235,9 +8199,9 @@ protected:
     void DestroyEditorWnd( wxWindow* wnd );
     void FreeEditors();
 
-    virtual bool DoExpand( wxPGProperty* p, bool sendEvent /* C::B patch: = false*/);
+    virtual bool DoExpand( wxPGProperty* p, bool sendEvent = false );
 
-    virtual bool DoCollapse( wxPGProperty* p, bool sendEvent /* C::B patch:  = false*/);
+    virtual bool DoCollapse( wxPGProperty* p, bool sendEvent = false );
 
     // Returns nearest paint visible property (such that will be painted unless
     // window is scrolled or resized). If given property is paint visible, then

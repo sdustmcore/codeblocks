@@ -8,7 +8,6 @@
 
 #include <vector>
 #include <map>
-#include <set>
 
 #include <wx/dynarray.h>
 #include "globals.h" // PluginType
@@ -91,6 +90,7 @@ class DLLIMPORT PluginManager : public Mgr<PluginManager>, public wxEvtHandler
         void UnloadAllPlugins();
         void UnloadPlugin(cbPlugin* plugin);
         int ExecutePlugin(const wxString& pluginName);
+        int ConfigurePlugin(const wxString& pluginName);
 
         bool AttachPlugin(cbPlugin* plugin, bool ignoreSafeMode = false);
         bool DetachPlugin(cbPlugin* plugin);
@@ -113,9 +113,8 @@ class DLLIMPORT PluginManager : public Mgr<PluginManager>, public wxEvtHandler
         PluginsArray GetCompilerOffers();
         PluginsArray GetDebuggerOffers();
         PluginsArray GetCodeCompletionOffers();
-        PluginsArray GetSmartIndentOffers();
         PluginsArray GetOffersFor(PluginType type);
-        void AskPluginsForModuleMenu(const ModuleType type, wxMenu* menu, const FileTreeData* data = nullptr);
+        void AskPluginsForModuleMenu(const ModuleType type, wxMenu* menu, const FileTreeData* data = 0);
         cbMimePlugin* GetMIMEHandlerForFile(const wxString& filename);
         void GetConfigurationPanels(int group, wxWindow* parent, ConfigurationPanelsArray& arrayToFill);
         void GetProjectConfigurationPanels(wxWindow* parent, cbProject* project, ConfigurationPanelsArray& arrayToFill);
@@ -138,7 +137,7 @@ class DLLIMPORT PluginManager : public Mgr<PluginManager>, public wxEvtHandler
         /// @return True if the plugin should be loaded, false if not.
         bool ReadManifestFile(const wxString& pluginFilename,
                                 const wxString& pluginName = wxEmptyString,
-                                PluginInfo* infoOut = nullptr);
+                                PluginInfo* infoOut = 0);
         void ReadExtraFilesFromManifestFile(const wxString& pluginFilename,
                                             wxArrayString& extraFiles);
         bool ExtractFile(const wxString& bundlename,
@@ -161,7 +160,7 @@ class DLLIMPORT PluginManager : public Mgr<PluginManager>, public wxEvtHandler
         // inside the plugins (yes, it happened to me ;)).
         struct PluginRegistration
         {
-            PluginRegistration() : createProc(nullptr), freeProc(nullptr), versionProc(nullptr) {}
+            PluginRegistration() : createProc(0), freeProc(0), versionProc(0) {}
             PluginRegistration(const PluginRegistration& rhs)
                 : name(rhs.name),
                 createProc(rhs.createProc),

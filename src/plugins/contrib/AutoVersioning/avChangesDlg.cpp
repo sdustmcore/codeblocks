@@ -84,10 +84,7 @@ avChangesDlg::avChangesDlg(wxWindow* parent,wxWindowID /*id*/)
     grdChanges->CreateGrid(0,2);
     grdChanges->SetColLabelValue(0,_T("Type"));
     grdChanges->SetColLabelValue(1,_T("Description"));
-
     grdChanges->AutoSize();
-	grdChanges->SetColSize(0, 60);
-	grdChanges->SetColSize(1, 645);
 }
 
 avChangesDlg::~avChangesDlg()
@@ -114,15 +111,10 @@ void avChangesDlg::OnBtnDeleteClick(wxCommandEvent& /*event*/)
 {
     if (grdChanges->GetNumberRows() > 0)
     {
-#if wxCHECK_VERSION(2, 9, 0)
-        int row = grdChanges->GetGridCursorRow();
-#else
-        int row = grdChanges->GetCursorRow();
-#endif
-        grdChanges->SelectRow(row);
+        grdChanges->SelectRow(grdChanges->GetCursorRow());
         if (wxMessageBox(_("You are about to delete the selected row"), _("Warning"), wxICON_EXCLAMATION|wxOK|wxCANCEL, this) == wxOK)
         {
-            grdChanges->DeleteRows(row, 1, true);
+            grdChanges->DeleteRows(grdChanges->GetCursorRow(), 1, true);
         }
     }
 }

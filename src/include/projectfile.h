@@ -10,11 +10,12 @@
 
 #include "settings.h"
 #include "globals.h"
-#include "prep.h"
 #include <wx/dynarray.h>
 #include <wx/filename.h>
+#include <wx/list.h>
 #include <wx/treectrl.h>
-#include <wx/hashset.h>
+
+#include "blockallocated.h"
 
 class cbProject;
 class ProjectBuildTarget;
@@ -24,19 +25,17 @@ WX_DECLARE_HASH_MAP(ProjectBuildTarget*, pfDetails*, wxPointerHash, wxPointerEqu
 
 struct pfCustomBuild
 {
-    pfCustomBuild() : useCustomBuildCommand(false) { }
+    pfCustomBuild() : useCustomBuildCommand(false) {}
     wxString buildCommand;
-    bool     useCustomBuildCommand;
+    bool useCustomBuildCommand;
 };
 WX_DECLARE_HASH_MAP(wxString, pfCustomBuild, wxStringHash, wxStringEqual, pfCustomBuildMap);
 
 class ProjectFile;
 typedef std::vector<ProjectFile*> ProjectFilesVector;
 
-WX_DEFINE_ARRAY_INT(int, editorFoldLinesArray);
-
 /** Represents a file in a Code::Blocks project. */
-class ProjectFile
+class ProjectFile  : public BlockAllocated<ProjectFile, 1000>
 {
     public:
         /// Constructor
@@ -67,11 +66,6 @@ class ProjectFile
           * @param targetName The build target's name to remove this file from. */
         void RemoveBuildTarget(const wxString& targetName);
 
-        /**
-         * @return An array of strings, containing the names of all the build
-         * targets this file belongs to. */
-        const wxArrayString& GetBuildTargets() const;
-
         /** Show the file properties dialog.
           * @param parent The parent window for the dialog (can be NULL).
           * @return True if the user closed the dialog with "OK", false if closed it with "Cancel".
@@ -94,7 +88,7 @@ class ProjectFile
 
         /** This is called automatically when adding/removing build targets.
           * @param target A pointer to the build target whose file details should be updated. */
-        void UpdateFileDetails(ProjectBuildTarget* target = nullptr);
+        void UpdateFileDetails(ProjectBuildTarget* target = 0);
 
         /** Access the file details for this project file for the specified target.
           * @param target A pointer to the build target whose file details should be updated.
@@ -147,38 +141,14 @@ class ProjectFile
         /** If true, the file is open inside an editor. */
         bool editorOpen; // layout info
 
-        /** Split type of the editor as int. */
-        int editorSplit; // layout info
-
-        /** Last active splitview (1 or 2). */
-        int editorSplitActive; // layout info
-
-        /** Last splitter position. */
-        int editorSplitPos; // layout info
-
-        /** The last known caret position in an editor for this file (left/top control if split). */
+        /** The last known caret position in an editor for this file. */
         int editorPos; // layout info
 
-        /** The last known caret line in an editor for this file (left/top control if split). */
+        /** The last known caret line in an editor for this file. */
         int editorTopLine; // layout info
-
-        /** The zoom-factor of the editor for this file (left/top control if split). */
-        int editorZoom; // layout info
-
-        /** The last known caret position in an editor for this file (right/bottom control if split). */
-        int editorPos_2; // layout info
-
-        /** The last known caret line in an editor for this file(right/bottom control if split). */
-        int editorTopLine_2; // layout info
-
-        /** The zoom-factor of the editor for this file(right/bottom control if split). */
-        int editorZoom_2; // layout info
 
         /** The position of the editor-tab for this file. */
         int editorTabPos; // layout info
-
-        /** Fold lines */
-        wxArrayInt editorFoldLinesArray; // layout info
 
         /** A map for custom builds. Key is compiler ID, value is pfCustomBuild struct. */
         pfCustomBuildMap customBuild;
@@ -205,21 +175,6 @@ class ProjectFile
 
         /** Auto-generated files when compiling this file */
         ProjectFilesVector generatedFiles;
-
-        /** Returns the wxTreeItemId for the file */
-        const wxTreeItemId& GetTreeItemId() const { return m_TreeItemId; }
-
-        /** Sets the tree item id for the file. Should not be called by users! */
-        void SetTreeItemId(wxTreeItemId id) { m_TreeItemId = id; }
-
-        /** Compare relative names of projectfiles.
-          * Static helper function to sort array of projectfiles.
-          * Needed because the order of files in a hashset is not guaranteed.
-          * @param item1 first projectfile.
-          * @param item2 second projectfile.
-          * @return A negative value, 0, or positive value if the relative
-          * filename of item1 is less than, equal to or greater than the one of item2. */
-        static int CompareProjectFiles(ProjectFile* item1, ProjectFile* item2);
     protected:
         friend class cbProject;
 
@@ -230,15 +185,14 @@ class ProjectFile
         wxString m_ObjName;
         PFDMap m_PFDMap;
 };
-WX_DECLARE_HASH_SET   ( ProjectFile*, wxPointerHash, wxPointerEqual, FilesList );
-WX_DEFINE_SORTED_ARRAY( ProjectFile*, ProjectFileArray                         );
+WX_DECLARE_LIST(ProjectFile, FilesList);
 
 /** This is a helper class that caches various filenames for one ProjectFile.
   * These include the source filename, the generated object filename,
   * relative and absolute versions of the above, etc.
   * Mainly used by the compiler...
   */
-class pfDetails
+class pfDetails : public BlockAllocated<pfDetails, 1000>
 {
     public:
         pfDetails(ProjectBuildTarget* target, ProjectFile* pf);
@@ -248,7 +202,6 @@ class pfDetails
         wxString object_file;
         wxString dep_file;
         wxString object_dir;
-        wxString object_dir_flat;
         wxString dep_dir;
         wxString object_file_flat;
         // those below, have no UnixFilename() applied, nor QuoteStringIfNeeded()
@@ -256,7 +209,6 @@ class pfDetails
         wxString object_file_native;
         wxString dep_file_native;
         wxString object_dir_native;
-        wxString object_dir_flat_native;
         wxString dep_dir_native;
         wxString source_file_absolute_native;
         wxString object_file_absolute_native;

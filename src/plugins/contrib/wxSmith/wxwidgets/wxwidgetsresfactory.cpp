@@ -195,11 +195,10 @@ wxsResource* wxWidgetsResFactory::OnCreate(int Number,wxsProject* Project)
 {
     switch ( Number )
     {
-        case wxDialogId:          return new wxsDialogRes(Project);
+        case wxDialogId: return new wxsDialogRes(Project);
         case wxScrollingDialogId: return new wxsScrollingDialogRes(Project);
-        case wxFrameId:           return new wxsFrameRes(Project);
-        case wxPanelId:           return new wxsPanelRes(Project);
-        default:                  break;
+        case wxFrameId:  return new wxsFrameRes(Project);
+        case wxPanelId:  return new wxsPanelRes(Project);
     }
     return 0;
 }
@@ -260,11 +259,10 @@ wxsResource* wxWidgetsResFactory::OnBuildExternal(const wxString& FileName)
     wxString Class = cbC2U(Object->Attribute("class"));
     switch ( Names.Index(Class) )
     {
-        case wxDialogId:          return new wxsDialogRes(FileName,Object);
+        case wxDialogId: return new wxsDialogRes(FileName,Object);
         case wxScrollingDialogId: return new wxsScrollingDialogRes(FileName,Object);
-        case wxFrameId:           return new wxsFrameRes(FileName,Object);
-        case wxPanelId:           return new wxsPanelRes(FileName,Object);
-        default:                  break;
+        case wxFrameId:  return new wxsFrameRes(FileName,Object);
+        case wxPanelId:  return new wxsPanelRes(FileName,Object);
     }
     return 0;
 }

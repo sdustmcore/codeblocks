@@ -105,11 +105,11 @@ void Bindings::InitialiseBindingsFromConfig()
   {
     MappingsT& Map = m_Groups[Groups[i]];
 
-    const wxArrayString TheBindings = CfgMgr->EnumerateSubPaths(_T("/groups/") + Groups[i]);
-    for ( size_t j = 0; j < TheBindings.GetCount(); ++j )
+    wxArrayString Bindings = CfgMgr->EnumerateSubPaths(_T("/groups/") + Groups[i]);
+    for ( size_t j=0; j<Bindings.GetCount(); j++ )
     {
-      const wxString Identifier = CfgMgr->Read(_T("/groups/") + Groups[i] + _T("/") + TheBindings[j] + _T("/identifier"));
-      const wxString Header     = CfgMgr->Read(_T("/groups/") + Groups[i] + _T("/") + TheBindings[j] + _T("/header"));
+      wxString Identifier = CfgMgr->Read(_T("/groups/")+Groups[i]+_T("/")+Bindings[j]+_T("/identifier"));
+      wxString Header     = CfgMgr->Read(_T("/groups/")+Groups[i]+_T("/")+Bindings[j]+_T("/header"));
       if ( Identifier.IsEmpty() || Header.IsEmpty() ) continue;
       wxArrayString& Headers = Map[Identifier];
       if ( Headers.Index(Header) == wxNOT_FOUND )

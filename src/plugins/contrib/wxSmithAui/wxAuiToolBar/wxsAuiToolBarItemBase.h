@@ -21,8 +21,6 @@
 
 #include <wxwidgets/wxsitem.h>
 
-#include <prep.h>
-
 /** \brief Base class for wxsAuiToolBarItem widgets */
 class wxsAuiToolBarItemBase: public wxsItem
 {
@@ -41,7 +39,7 @@ class wxsAuiToolBarItemBase: public wxsItem
         virtual void OnBuildDeclarationsCode() {};
         virtual void OnBuildCreatingCode() {};
         virtual wxObject* OnBuildPreview(wxWindow* Parent,long Flags);
-        virtual void OnEnumItemProperties(cb_unused long Flags) {};
+        virtual void OnEnumItemProperties(long Flags) {};
         virtual bool OnCanAddToParent(wxsParent* Parent,bool ShowMessage);
 };
 

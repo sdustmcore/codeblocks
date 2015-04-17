@@ -10,7 +10,6 @@
 #include "sdk.h" // Code::Blocks SDK
 #ifndef CB_PRECOMP
   #include <wx/intl.h>
-  #include <wx/menu.h>
   #include <wx/string.h>
   #include <wx/utils.h> // wxLaunchDefaultBrowser
   #include "globals.h"
@@ -74,23 +73,16 @@ int CB_Koders::Execute()
     const wxString search = TheDialog->GetSearch();
     if (search.IsEmpty())
     {
-      cbMessageBox(_("Cannot search for an empty expression."), _("Error"), wxICON_ERROR);
+      cbMessageBox(_("Cannot search for an empty expession."), _("Error"), wxICON_ERROR);
     }
     else
     {
       const wxString language = TheDialog->GetLanguage();
+      const wxString license  = TheDialog->GetLicense();
 
       wxString query;
-      if ( language.IsEmpty() )
-      {
-        query.Printf(_("http://code.ohloh.net/search?s=%s"), search.c_str());
-      }
-      else
-      {
-        query.Printf(_("http://code.ohloh.net/search?s=%s&fl=%s"),
-                     search.c_str(), language.c_str());
-      }
-
+      query.Printf(_("http://www.koders.com/?S=%s&btnSearch=Search&la=%s&li=%s"),
+                   search.c_str(), language.c_str(), license.c_str());
       if (!wxLaunchDefaultBrowser(query))
         cbMessageBox(_("Could not launch the default browser of your system."), _("Error"), wxICON_ERROR);
     }
@@ -107,7 +99,7 @@ void CB_Koders::BuildModuleMenu(const ModuleType type, wxMenu* menu, const FileT
 	if (type == mtEditorManager)
 	{
 		menu->AppendSeparator();
-		menu->Append(idSearchKoders, _("Search at OLOHO..."), _("Search keyword at OLOHO webpage..."));
+		menu->Append(idSearchKoders, _("Search at Koders..."), _("Search keyword at Koders webpage..."));
 	}
 }
 

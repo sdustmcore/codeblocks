@@ -10,7 +10,6 @@
 #include <sdk.h>
 #include <prep.h>
 #ifndef CB_PRECOMP
-    #include <algorithm>
     #include <wx/arrstr.h>
     #include <wx/button.h>
     #include <wx/checkbox.h>
@@ -19,14 +18,12 @@
     #include <wx/event.h>
     #include <wx/filename.h>
     #include <wx/listbox.h>
-    #include <wx/menu.h>
     #include <wx/notebook.h>
     #include <wx/stattext.h>
     #include <wx/sizer.h>
     #include <wx/spinctrl.h>
     #include <wx/treectrl.h>
     #include <wx/xrc/xmlres.h>
-
     #include "compiler.h"
     #include "compilerfactory.h"
     #include "configmanager.h"
@@ -38,24 +35,19 @@
 #endif
 #include <wx/choicdlg.h>    // wxGetSingleChoiceIndex
 #include <wx/filedlg.h>
-#include <wx/propgrid/propgrid.h>
 #include <wx/textdlg.h>     // wxGetTextFromUser
-#include <wx/xml/xml.h>
-
-#include "advancedcompileroptionsdlg.h"
-#include "annoyingdialog.h"
 #include "cbexception.h"
-#include "compilergcc.h"
+#include "annoyingdialog.h"
 #include "compileroptionsdlg.h"
-#include "debuggermanager.h"
+#include "compilergcc.h"
+#include "advancedcompileroptionsdlg.h"
 #include "editpathdlg.h"
 #include "editpairdlg.h"
-#include "compilerflagdlg.h"
 
 // TO DO :  - add/edit/delete compiler : applies directly , so no cancel out (change this behaviour)
 //          - compiler change of project/target -> check if the policy is still sound (both should have the same compiler)
 //          - compiler change of project/target -> all options should be removed : different compiler is different options
-//          - directory add/edit and library add/edit : check if it already existed
+//          - directory add/edit and libray add/edit : check if it already existed
 
 BEGIN_EVENT_TABLE(CompilerOptionsDlg, wxPanel)
     EVT_UPDATE_UI(            XRCID("btnEditDir"),                      CompilerOptionsDlg::OnUpdateUI)
@@ -96,7 +88,8 @@ BEGIN_EVENT_TABLE(CompilerOptionsDlg, wxPanel)
     EVT_UPDATE_UI(            XRCID("btnLinker"),                       CompilerOptionsDlg::OnUpdateUI)
     EVT_UPDATE_UI(            XRCID("txtLibLinker"),                    CompilerOptionsDlg::OnUpdateUI)
     EVT_UPDATE_UI(            XRCID("btnLibLinker"),                    CompilerOptionsDlg::OnUpdateUI)
-    EVT_UPDATE_UI(            XRCID("cmbDebugger"),                     CompilerOptionsDlg::OnUpdateUI)
+    EVT_UPDATE_UI(            XRCID("txtDebugger"),                     CompilerOptionsDlg::OnUpdateUI)
+    EVT_UPDATE_UI(            XRCID("btnDebugger"),                     CompilerOptionsDlg::OnUpdateUI)
     EVT_UPDATE_UI(            XRCID("txtResComp"),                      CompilerOptionsDlg::OnUpdateUI)
     EVT_UPDATE_UI(            XRCID("btnResComp"),                      CompilerOptionsDlg::OnUpdateUI)
     EVT_UPDATE_UI(            XRCID("txtMake"),                         CompilerOptionsDlg::OnUpdateUI)
@@ -148,6 +141,7 @@ BEGIN_EVENT_TABLE(CompilerOptionsDlg, wxPanel)
     EVT_BUTTON(                XRCID("btnCPPcompiler"),                 CompilerOptionsDlg::OnSelectProgramClick)
     EVT_BUTTON(                XRCID("btnLinker"),                      CompilerOptionsDlg::OnSelectProgramClick)
     EVT_BUTTON(                XRCID("btnLibLinker"),                   CompilerOptionsDlg::OnSelectProgramClick)
+    EVT_BUTTON(                XRCID("btnDebugger"),                    CompilerOptionsDlg::OnSelectProgramClick)
     EVT_BUTTON(                XRCID("btnResComp"),                     CompilerOptionsDlg::OnSelectProgramClick)
     EVT_BUTTON(                XRCID("btnMake"),                        CompilerOptionsDlg::OnSelectProgramClick)
     EVT_BUTTON(                XRCID("btnAdvanced"),                    CompilerOptionsDlg::OnAdvancedClick)
@@ -160,9 +154,7 @@ BEGIN_EVENT_TABLE(CompilerOptionsDlg, wxPanel)
     EVT_CHOICE(                XRCID("cmbResDirsPolicy"),               CompilerOptionsDlg::OnDirty)
     EVT_CHOICE(                XRCID("cmbLogging"),                     CompilerOptionsDlg::OnDirty)
     EVT_CHECKBOX(              XRCID("chkAlwaysRunPost"),               CompilerOptionsDlg::OnDirty)
-    EVT_CHECKBOX(              XRCID("chkNonPlatComp"),                 CompilerOptionsDlg::OnDirty)
     EVT_TEXT(                  XRCID("txtCompilerOptions"),             CompilerOptionsDlg::OnDirty)
-    EVT_TEXT(                  XRCID("txtResourceCompilerOptions"),     CompilerOptionsDlg::OnDirty)
     EVT_TEXT(                  XRCID("txtCompilerDefines"),             CompilerOptionsDlg::OnDirty)
     EVT_TEXT(                  XRCID("txtLinkerOptions"),               CompilerOptionsDlg::OnDirty)
     EVT_TEXT(                  XRCID("txtCmdBefore"),                   CompilerOptionsDlg::OnDirty)
@@ -179,13 +171,10 @@ BEGIN_EVENT_TABLE(CompilerOptionsDlg, wxPanel)
     EVT_TEXT(                  XRCID("txtMakeCmd_Clean"),               CompilerOptionsDlg::OnDirty)
 //    EVT_TEXT(                  XRCID("txtMakeCmd_DistClean"),           CompilerOptionsDlg::OnDirty)
     EVT_TEXT(                  XRCID("txtMakeCmd_AskRebuildNeeded"),    CompilerOptionsDlg::OnDirty)
-//    EVT_TEXT(                  XRCID("txtMakeCmd_SilentBuild"),         CompilerOptionsDlg::OnDirty)
+    EVT_TEXT(                  XRCID("txtMakeCmd_SilentBuild"),         CompilerOptionsDlg::OnDirty)
     EVT_CHAR_HOOK(CompilerOptionsDlg::OnMyCharHook)
-
-    EVT_PG_CHANGED(            XRCID("pgCompilerFlags"),                CompilerOptionsDlg::OnOptionChanged)
-    EVT_PG_RIGHT_CLICK(        XRCID("pgCompilerFlags"),                CompilerOptionsDlg::OnFlagsPopup)
-    EVT_PG_DOUBLE_CLICK(       XRCID("pgCompilerFlags"),                CompilerOptionsDlg::OnOptionDoubleClick)
 END_EVENT_TABLE()
+
 
 class ScopeTreeData : public wxTreeItemData
 {
@@ -198,12 +187,6 @@ class ScopeTreeData : public wxTreeItemData
         ProjectBuildTarget* m_Target;
 };
 
-struct DebuggerClientData : wxClientData
-{
-    DebuggerClientData(const wxString &s) : string(s) {}
-    wxString string;
-};
-
 /*
     CompilerOptions can exist on 3 different levels :
     Level 1 : compiler level
@@ -214,9 +197,8 @@ struct DebuggerClientData : wxClientData
         - the options exist on the level of the target
 */
 
-CompilerOptionsDlg::CompilerOptionsDlg(wxWindow* parent, CompilerGCC* compiler, cbProject* project, ProjectBuildTarget* target) :
-    m_FlagsPG(nullptr),
-    m_Compiler(compiler),
+CompilerOptionsDlg::CompilerOptionsDlg(wxWindow* parent, CompilerGCC* compiler, cbProject* project, ProjectBuildTarget* target)
+    : m_Compiler(compiler),
     m_CurrentCompilerIdx(0),
     m_pProject(project),
     m_pTarget(target),
@@ -224,15 +206,6 @@ CompilerOptionsDlg::CompilerOptionsDlg(wxWindow* parent, CompilerGCC* compiler, 
     m_BuildingTree(false)
 {
     wxXmlResource::Get()->LoadPanel(this, parent, _T("dlgCompilerOptions"));
-
-    m_FlagsPG = new wxPropertyGrid(this, XRCID("pgCompilerFlags"), wxDefaultPosition, wxDefaultSize,
-                                   wxTAB_TRAVERSAL|wxPG_SPLITTER_AUTO_CENTER);
-    m_FlagsPG->SetExtraStyle(wxPG_EX_HELP_AS_TOOLTIPS);
-    m_FlagsPG->SetColumnProportion(0, 70);
-    m_FlagsPG->SetColumnProportion(1, 30);
-
-    m_FlagsPG->SetMinSize(wxSize(400, 400));
-    wxXmlResource::Get()->AttachUnknownControl(wxT("pgCompilerFlags"), m_FlagsPG);
 
     if (m_pProject)
     {
@@ -242,14 +215,22 @@ CompilerOptionsDlg::CompilerOptionsDlg(wxWindow* parent, CompilerGCC* compiler, 
             // look in targets
             for (int x = 0; x < m_pProject->GetBuildTargetsCount(); ++x)
             {
-                ProjectBuildTarget* curr_target = m_pProject->GetBuildTarget(x);
-                hasBuildScripts = curr_target->GetBuildScripts().GetCount() != 0;
+                ProjectBuildTarget* target = m_pProject->GetBuildTarget(x);
+                hasBuildScripts = target->GetBuildScripts().GetCount() != 0;
                 if (hasBuildScripts)
                     break;
             }
         }
 
         XRCCTRL(*this, "lblBuildScriptsNote", wxStaticText)->Show(hasBuildScripts);
+    }
+
+    wxChoice* cmb = XRCCTRL(*this, "cmbBuildMethod", wxChoice);
+    if (cmb)
+    {
+        // build method is always "direct" now
+        cmb->SetSelection(1);
+        cmb->Enable(false);
     }
 
     wxTreeCtrl* tree = XRCCTRL(*this, "tcScope", wxTreeCtrl);
@@ -267,9 +248,9 @@ CompilerOptionsDlg::CompilerOptionsDlg(wxWindow* parent, CompilerGCC* compiler, 
     else
     {
         // project settings
-        nb->DeletePage(8); // remove "Other settings" page
-        nb->DeletePage(7); // remove "Build options" page
-        nb->DeletePage(4); // remove "Toolchain executables" page
+
+        nb->DeletePage(7); // remove "Other" page
+        nb->DeletePage(4); // remove "Programs" page
 
         // remove "Compiler" buttons
         wxWindow* win = XRCCTRL(*this, "btnAddCompiler", wxButton);
@@ -299,8 +280,8 @@ CompilerOptionsDlg::CompilerOptionsDlg(wxWindow* parent, CompilerGCC* compiler, 
         compilerIdx = CompilerFactory::GetCompilerIndex(m_pTarget->GetCompilerID());
     else if (m_pProject)
         compilerIdx = CompilerFactory::GetCompilerIndex(m_pProject->GetCompilerID());
-    if ((m_pTarget || m_pProject) && compilerIdx == -1)
-    {   // unknown user compiler
+    if((m_pTarget || m_pProject) && compilerIdx == -1)
+    { // unknown user compiler
         // similar code can be found @ OnTreeSelectionChange()
         // see there for more info : duplicate code now, since here we still need
         // to fill in the compiler list for the choice control, where in
@@ -311,28 +292,34 @@ CompilerOptionsDlg::CompilerOptionsDlg(wxWindow* parent, CompilerGCC* compiler, 
         wxString CompilerId = m_pTarget?m_pTarget->GetCompilerID():m_pProject->GetCompilerID();
         wxString msg;
         msg.Printf(_("The defined compiler cannot be located (ID: %s).\n"
-                     "Please choose the compiler you want to use instead and click \"OK\".\n"
-                     "If you click \"Cancel\", the project/target will remain configured for\n"
-                     "that compiler and consequently can not be configured and will not be built."),
+                    "Please choose the compiler you want to use instead and click \"OK\".\n"
+                    "If you click \"Cancel\", the project/target will remain configured for that compiler and consequently can not be configured and will not be built."),
+                    #if wxCHECK_VERSION(2, 9, 0)
                     CompilerId.wx_str());
-        Compiler* comp = 0;
+                    #else
+                    CompilerId.c_str());
+                    #endif
+        Compiler* compiler = 0;
         if ((m_pTarget && m_pTarget->SupportsCurrentPlatform()) || (!m_pTarget && m_pProject))
-            comp = CompilerFactory::SelectCompilerUI(msg);
-
-        if (comp)
-        {   // a new compiler was chosen, proceed as if the user manually selected another compiler
-            // that means set the compiler selection list accordingly
+        {
+            compiler = CompilerFactory::SelectCompilerUI(msg);
+        }
+        if (compiler)
+        {    // a new compiler was choosen, proceed as if the user manually selected another compiler
+            // that means set the compilerselection list accordingly
             // and go directly to (On)CompilerChanged
-            int NewCompilerIdx = CompilerFactory::GetCompilerIndex(comp);
+            int NewCompilerIdx = CompilerFactory::GetCompilerIndex(compiler);
             DoFillCompilerSets(NewCompilerIdx);
             wxCommandEvent Dummy;
             OnCompilerChanged(Dummy);
         }
         else
-        {   // the user cancelled and wants to keep the compiler
+        { // the user cancelled and wants to keep the compiler
             DoFillCompilerSets(compilerIdx);
-            if (nb)
+            if(nb)
+            {
                 nb->Disable();
+            }
         }
     }
     else
@@ -345,17 +332,7 @@ CompilerOptionsDlg::CompilerOptionsDlg(wxWindow* parent, CompilerGCC* compiler, 
         // compiler dependent settings
         DoFillCompilerDependentSettings();
     }
-    if (m_pTarget && m_pTarget->GetTargetType() == ttCommandsOnly)
-    {
-        // disable pages for commands only target
-        nb->GetPage(0)->Disable(); // Compiler settings
-        nb->GetPage(1)->Disable(); // Linker settings
-        nb->GetPage(2)->Disable(); // Search directories
-        nb->GetPage(5)->Disable(); // "Make" commands
-        nb->SetSelection(3);       // Pre/post build steps
-    }
-    else
-        nb->SetSelection(0);
+    nb->SetSelection(0);
     sizer->Layout();
     Layout();
     GetSizer()->Layout();
@@ -369,7 +346,7 @@ CompilerOptionsDlg::CompilerOptionsDlg(wxWindow* parent, CompilerGCC* compiler, 
     this->SetSize(-1, -1, 0, 0);
     // disable some elements, if project is using custom makefile
     // we do this after the layout is done, so the resulting dialog has always the same size
-    if (project && project->IsMakefileCustom())
+    if(project && project->IsMakefileCustom())
     {
         nb->RemovePage(2); // remove "Search directories" page
         nb->RemovePage(1); // remove "Linker settings" page
@@ -378,8 +355,6 @@ CompilerOptionsDlg::CompilerOptionsDlg(wxWindow* parent, CompilerGCC* compiler, 
         XRCCTRL(*this, "tabLinker", wxPanel)->Show(false);
         XRCCTRL(*this, "tabDirs", wxPanel)->Show(false);
     }
-
-    Fit();
 } // constructor
 
 CompilerOptionsDlg::~CompilerOptionsDlg()
@@ -405,36 +380,34 @@ void CompilerOptionsDlg::DoFillCompilerSets(int compilerIdx)
 //    if (!CompilerFactory::GetCompiler(compilerIdx))
 //        compilerIdx = 0;
 //    m_Options = CompilerFactory::GetCompiler(compilerIdx)->GetOptions();
-    if (compilerIdx != -1)
+    if(compilerIdx != -1)
+    {
         cmb->SetSelection(compilerIdx);
-
+    }
 //    m_CurrentCompilerIdx = compilerIdx;
 } // DoFillCompilerSets
 
 void CompilerOptionsDlg::DoFillCompilerDependentSettings()
 {
     DoFillCompilerPrograms();    // the programs executable's ...
+    DoFillCategories();            // the categories of compiler settings
     DoLoadOptions();
     DoFillVars();
     // by the way we listen to changes in the textctrl, we also end up in the callbacks as
-    // a result of wxTextCtrl::SetValue, the preceding called methods did some of those -> reset dirty flag
+    // a result of wxTextCtrl::SetValue, the preceeding called methods did some of those -> reset dirty flag
     m_bDirty = false;
-    m_bFlagsDirty = false;
-} // DoFillCompilerDependentSettings
+} // DoFillCompilerDependentSettingss
 
 void CompilerOptionsDlg::DoSaveCompilerDependentSettings()
 {
     DoSaveCompilerPrograms();
     DoSaveOptions();
     DoSaveVars();
-    if (m_bFlagsDirty)
-        DoSaveCompilerDefinition();
     ProjectTargetCompilerAdjust();
     m_bDirty = false;
-    m_bFlagsDirty = false;
 } // DoSaveCompilerDependentSettings
 
-inline void ArrayString2ListBox(const wxArrayString& array, wxListBox* control)
+void ArrayString2ListBox(const wxArrayString& array, wxListBox* control)
 {
     control->Clear();
     int count = array.GetCount();
@@ -445,7 +418,7 @@ inline void ArrayString2ListBox(const wxArrayString& array, wxListBox* control)
     }
 } // ArrayString2ListBox
 
-inline void ListBox2ArrayString(wxArrayString& array, const wxListBox* control)
+void ListBox2ArrayString(wxArrayString& array, const wxListBox* control)
 {
     array.Clear();
     int count = control->GetCount();
@@ -472,31 +445,7 @@ void CompilerOptionsDlg::DoFillCompilerPrograms()
     XRCCTRL(*this, "txtCPPcompiler", wxTextCtrl)->SetValue(progs.CPP);
     XRCCTRL(*this, "txtLinker", wxTextCtrl)->SetValue(progs.LD);
     XRCCTRL(*this, "txtLibLinker", wxTextCtrl)->SetValue(progs.LIB);
-    wxChoice *cmbDebugger = XRCCTRL(*this, "cmbDebugger", wxChoice);
-    if (cmbDebugger)
-    {
-        cmbDebugger->Clear();
-        // Add an invalid debugger entry and store the old value in the client data, so no user settings are changed.
-        cmbDebugger->Append(_("--- Invalid debugger ---"), new DebuggerClientData(progs.DBGconfig));
-        cmbDebugger->SetSelection(0);
-
-        const DebuggerManager::RegisteredPlugins &plugins = Manager::Get()->GetDebuggerManager()->GetAllDebuggers();
-        for (DebuggerManager::RegisteredPlugins::const_iterator it = plugins.begin(); it != plugins.end(); ++it)
-        {
-            const DebuggerManager::PluginData &data = it->second;
-            for (DebuggerManager::ConfigurationVector::const_iterator itConf = data.GetConfigurations().begin();
-                 itConf != data.GetConfigurations().end();
-                 ++itConf)
-            {
-                const wxString &def = it->first->GetSettingsName() + wxT(":") + (*itConf)->GetName();
-                int index = cmbDebugger->Append(it->first->GetGUIName() + wxT(" : ") + (*itConf)->GetName(),
-                                                new DebuggerClientData(def));
-                if (def == progs.DBGconfig)
-                    cmbDebugger->SetSelection(index);
-            }
-        }
-    }
-
+    XRCCTRL(*this, "txtDebugger", wxTextCtrl)->SetValue(progs.DBG);
     XRCCTRL(*this, "txtResComp", wxTextCtrl)->SetValue(progs.WINDRES);
     XRCCTRL(*this, "txtMake", wxTextCtrl)->SetValue(progs.MAKE);
 
@@ -538,10 +487,6 @@ void CompilerOptionsDlg::DoFillOthers()
     if (chk)
         chk->SetValue(Manager::Get()->GetConfigManager(_T("compiler"))->ReadBool(_T("/include_prj_cwd"), false));
 
-    chk = XRCCTRL(*this, "chkSkipIncludeDeps", wxCheckBox);
-    if (chk)
-        chk->SetValue(Manager::Get()->GetConfigManager(_T("compiler"))->ReadBool(_T("/skip_include_deps"), false));
-
     chk = XRCCTRL(*this, "chkSaveHtmlLog", wxCheckBox);
     if (chk)
         chk->SetValue(Manager::Get()->GetConfigManager(_T("compiler"))->ReadBool(_T("/save_html_build_log"), false));
@@ -561,9 +506,8 @@ void CompilerOptionsDlg::DoFillOthers()
     wxSpinCtrl* spn = XRCCTRL(*this, "spnParallelProcesses", wxSpinCtrl);
     if (spn)
     {
-        const int count = wxThread::GetCPUCount();
-        spn->SetRange(1, std::max(16, (count != -1) ? count : 1));
-        spn->SetValue(Manager::Get()->GetConfigManager(_T("compiler"))->ReadInt(_T("/parallel_processes"), 1));
+        spn->SetRange(1, 16);
+        spn->SetValue(Manager::Get()->GetConfigManager(_T("compiler"))->ReadInt(_T("/parallel_processes"), 2));
     }
 
     spn = XRCCTRL(*this, "spnMaxErrors", wxSpinCtrl);
@@ -584,10 +528,6 @@ void CompilerOptionsDlg::DoFillOthers()
         IgnoreOutput = Manager::Get()->GetConfigManager(_T("compiler"))->ReadArrayString(_T("/ignore_output"));
         ArrayString2ListBox(IgnoreOutput, lst);
     }
-
-    chk = XRCCTRL(*this, "chkNonPlatComp", wxCheckBox);
-    if (chk)
-        chk->SetValue(Manager::Get()->GetConfigManager(_T("compiler"))->ReadBool(_T("/non_plat_comp"), false));
 } // DoFillOthers
 
 void CompilerOptionsDlg::DoFillTree()
@@ -597,6 +537,7 @@ void CompilerOptionsDlg::DoFillTree()
     tc->DeleteAllItems();
 
     wxTreeItemId root;
+    ScopeTreeData* selected = 0L;
     wxTreeItemId selectedItem;
 
     if (!m_pProject)
@@ -612,83 +553,78 @@ void CompilerOptionsDlg::DoFillTree()
         ScopeTreeData* data = new ScopeTreeData(m_pProject, 0L);
         root = tc->AddRoot(m_pProject->GetTitle(), -1, -1, data);
         selectedItem = root;
+        selected = data;
         for (int x = 0; x < m_pProject->GetBuildTargetsCount(); ++x)
         {
             ProjectBuildTarget* target = m_pProject->GetBuildTarget(x);
             data = new ScopeTreeData(m_pProject, target);
             wxTreeItemId targetItem = tc->AppendItem(root, target->GetTitle(), -1, -1, data);
             if (target == m_pTarget)
+            {
+                selected = data;
                 selectedItem = targetItem;
+            }
         }
     }
     // normally the target should be found in the targets of the project
     // in case it is not, we will reset m_pTarget to 0 (in sync with tree selection)
-    if (selectedItem == root)
+    if(selectedItem == root)
+    {
         m_pTarget = 0;
-
+    }
     tc->Expand(root);
     tc->SelectItem(selectedItem);
     m_BuildingTree = false;
 } // DoFillTree
 
+void CompilerOptionsDlg::DoFillCategories()
+{
+    wxChoice* cmb = XRCCTRL(*this, "cmbCategory", wxChoice);
+    cmb->Clear();
+    cmb->Append(_("<All categories>"));
+
+    for (unsigned int i = 0; i < m_Options.GetCount(); ++i)
+    {
+        CompOption* copt = m_Options.GetOption(i);
+        if (cmb->FindString(copt->category) == -1)
+            cmb->Append(copt->category);
+    }
+    cmb->SetSelection(0);
+} // DoFillCategories
+
 void CompilerOptionsDlg::DoFillOptions()
 {
-    m_FlagsPG->Freeze();
-    m_FlagsPG->Clear();
-    typedef std::map<wxString, wxPropertyCategory*> MapCategories;
-    MapCategories categories;
+    Disconnect(XRCID("lstCompilerOptions"), -1,
+            wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,
+            (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction)
+            &CompilerOptionsDlg::OnOptionToggled);
 
-    // If there is a "General" category make sure it is added first.
-    for (size_t i = 0; i < m_Options.GetCount(); ++i)
+    wxChoice* cmb = XRCCTRL(*this, "cmbCategory", wxChoice);
+    wxString cat = cmb->GetStringSelection();
+    bool isAll = cmb->GetSelection() == 0;
+    wxCheckListBox* list = XRCCTRL(*this, "lstCompilerOptions", wxCheckListBox);
+    list->Clear();
+
+    for (unsigned int i = 0; i < m_Options.GetCount(); ++i)
     {
-        const CompOption* option = m_Options.GetOption(i);
-        if (option->category == wxT("General"))
+        const CompOption* copt = m_Options.GetOption(i);
+        if (isAll || copt->category.Matches(cat))
         {
-            wxPropertyCategory *categoryProp = new wxPropertyCategory(option->category);
-            m_FlagsPG->Append(categoryProp);
-            categories[option->category] = categoryProp;
-            break;
+            list->Append(copt->name);
+            list->Check(list->GetCount() - 1, copt->enabled);
+//            Manager::Get()->GetLogManager()->DebugLog("(FILL) option %s (0x%8.8x) %s", copt->option.c_str(), copt, copt->enabled ? "enabled" : "disabled");
         }
     }
-
-    // Add all flags and categories to the property grid
-    for (size_t i = 0; i < m_Options.GetCount(); ++i)
-    {
-        const CompOption* option = m_Options.GetOption(i);
-        wxPropertyCategory *categoryProp = nullptr;
-        MapCategories::iterator itCat = categories.find(option->category);
-        if (itCat != categories.end())
-            categoryProp = itCat->second;
-        else
-        {
-            categoryProp = new wxPropertyCategory(option->category);
-            m_FlagsPG->Append(categoryProp);
-            categories[option->category] = categoryProp;
-        }
-
-        wxPGProperty *prop = new wxBoolProperty(option->name, wxPG_LABEL, option->enabled);
-        m_FlagsPG->AppendIn(categoryProp, prop);
-        m_FlagsPG->SetPropertyAttribute(prop, wxPG_BOOL_USE_CHECKBOX, true, wxPG_RECURSE);
-    }
-
-    wxPGProperty *root = m_FlagsPG->GetRoot();
-    if (root)
-    {
-        unsigned count = root->GetChildCount();
-        for (unsigned ii = 0; ii < count; ++ii)
-#if wxCHECK_VERSION(2, 9, 0)
-            m_FlagsPG->SortChildren(root->Item(ii), wxPG_RECURSE);
-#else
-            m_FlagsPG->Sort(root->Item(ii));
-#endif
-    }
-    m_FlagsPG->Thaw();
+    Connect(XRCID("lstCompilerOptions"), -1,
+            wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,
+            (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction)
+            &CompilerOptionsDlg::OnOptionToggled);
 } // DoFillOptions
 
 void CompilerOptionsDlg::TextToOptions()
 {
     // disable all options
-    for (size_t n = 0; n < m_Options.GetCount(); ++n)
+    for (unsigned int n = 0; n < m_Options.GetCount(); ++n)
     {
         if (CompOption* copt = m_Options.GetOption(n))
             copt->enabled = false;
@@ -738,13 +674,14 @@ void CompilerOptionsDlg::TextToOptions()
     }
 
     XRCCTRL(*this, "lstLibs", wxListBox)->Clear();
-    for (unsigned int j = 0; j < m_LinkLibs.GetCount(); ++j)
-        XRCCTRL(*this, "lstLibs", wxListBox)->Append(m_LinkLibs[j]);
-
+    for (unsigned int i = 0; i < m_LinkLibs.GetCount(); ++i)
+    {
+        XRCCTRL(*this, "lstLibs", wxListBox)->Append(m_LinkLibs[i]);
+    }
     m_LinkLibs.Clear();
 } // TextToOptions
 
-inline void ArrayString2TextCtrl(const wxArrayString& array, wxTextCtrl* control)
+void ArrayString2TextCtrl(const wxArrayString& array, wxTextCtrl* control)
 {
     control->Clear();
     int count = array.GetCount();
@@ -758,12 +695,11 @@ inline void ArrayString2TextCtrl(const wxArrayString& array, wxTextCtrl* control
     }
 } // ArrayString2TextCtrl
 
-inline void DoGetCompileOptions(wxArrayString& array, const wxTextCtrl* control)
+void DoGetCompileOptions(wxArrayString& array, const wxTextCtrl* control)
 {
 /* NOTE (mandrav#1#): Under Gnome2, wxTextCtrl::GetLineLength() returns always 0,
                       so wxTextCtrl::GetLineText() is always empty...
-                      Now, we 're breaking up by newlines. */
-    array.Clear();
+                      Now, we 're breaking up by newlines. */    array.Clear();
 #if 1
     wxString tmp = control->GetValue();
     int nl = tmp.Find(_T('\n'));
@@ -828,7 +764,6 @@ void CompilerOptionsDlg::DoLoadOptions()
             ResDirs = compiler->GetResourceIncludeDirs();
             LibDirs = compiler->GetLibDirs();
             m_CompilerOptions = compiler->GetCompilerOptions();
-            m_ResourceCompilerOptions = compiler->GetResourceCompilerOptions();
             m_LinkerOptions = compiler->GetLinkerOptions();
             m_LinkLibs = compiler->GetLinkLibs();
 
@@ -847,19 +782,18 @@ void CompilerOptionsDlg::DoLoadOptions()
             ResDirs = m_pProject->GetResourceIncludeDirs();
             LibDirs = m_pProject->GetLibDirs();
             m_CompilerOptions = m_pProject->GetCompilerOptions();
-            m_ResourceCompilerOptions = m_pProject->GetResourceCompilerOptions();
             m_LinkerOptions = m_pProject->GetLinkerOptions();
             m_LinkLibs = m_pProject->GetLinkLibs();
             CommandsAfterBuild = m_pProject->GetCommandsAfterBuild();
             CommandsBeforeBuild = m_pProject->GetCommandsBeforeBuild();
             AlwaysUsePost = m_pProject->GetAlwaysRunPostBuildSteps();
 
-            XRCCTRL(*this, "txtMakeCmd_Build",            wxTextCtrl)->SetValue(m_pProject->GetMakeCommandFor(mcBuild));
-            XRCCTRL(*this, "txtMakeCmd_Compile",          wxTextCtrl)->SetValue(m_pProject->GetMakeCommandFor(mcCompileFile));
-            XRCCTRL(*this, "txtMakeCmd_Clean",            wxTextCtrl)->SetValue(m_pProject->GetMakeCommandFor(mcClean));
-            XRCCTRL(*this, "txtMakeCmd_DistClean",        wxTextCtrl)->SetValue(m_pProject->GetMakeCommandFor(mcDistClean));
+            XRCCTRL(*this, "txtMakeCmd_Build", wxTextCtrl)->SetValue(m_pProject->GetMakeCommandFor(mcBuild));
+            XRCCTRL(*this, "txtMakeCmd_Compile", wxTextCtrl)->SetValue(m_pProject->GetMakeCommandFor(mcCompileFile));
+            XRCCTRL(*this, "txtMakeCmd_Clean", wxTextCtrl)->SetValue(m_pProject->GetMakeCommandFor(mcClean));
+            XRCCTRL(*this, "txtMakeCmd_DistClean", wxTextCtrl)->SetValue(m_pProject->GetMakeCommandFor(mcDistClean));
             XRCCTRL(*this, "txtMakeCmd_AskRebuildNeeded", wxTextCtrl)->SetValue(m_pProject->GetMakeCommandFor(mcAskRebuildNeeded));
-            XRCCTRL(*this, "txtMakeCmd_SilentBuild",      wxTextCtrl)->SetValue(m_pProject->GetMakeCommandFor(mcSilentBuild));
+            XRCCTRL(*this, "txtMakeCmd_SilentBuild", wxTextCtrl)->SetValue(m_pProject->GetMakeCommandFor(mcSilentBuild));
         }
         else
         {
@@ -869,35 +803,33 @@ void CompilerOptionsDlg::DoLoadOptions()
             ResDirs = m_pTarget->GetResourceIncludeDirs();
             LibDirs = m_pTarget->GetLibDirs();
             m_CompilerOptions = m_pTarget->GetCompilerOptions();
-            m_ResourceCompilerOptions = m_pTarget->GetResourceCompilerOptions();
             m_LinkerOptions = m_pTarget->GetLinkerOptions();
             m_LinkLibs = m_pTarget->GetLinkLibs();
             CommandsAfterBuild = m_pTarget->GetCommandsAfterBuild();
             CommandsBeforeBuild = m_pTarget->GetCommandsBeforeBuild();
             AlwaysUsePost = m_pTarget->GetAlwaysRunPostBuildSteps();
             XRCCTRL(*this, "cmbCompilerPolicy", wxChoice)->SetSelection(m_pTarget->GetOptionRelation(ortCompilerOptions));
-            XRCCTRL(*this, "cmbLinkerPolicy",   wxChoice)->SetSelection(m_pTarget->GetOptionRelation(ortLinkerOptions));
+            XRCCTRL(*this, "cmbLinkerPolicy", wxChoice)->SetSelection(m_pTarget->GetOptionRelation(ortLinkerOptions));
             XRCCTRL(*this, "cmbIncludesPolicy", wxChoice)->SetSelection(m_pTarget->GetOptionRelation(ortIncludeDirs));
-            XRCCTRL(*this, "cmbLibDirsPolicy",  wxChoice)->SetSelection(m_pTarget->GetOptionRelation(ortLibDirs));
-            XRCCTRL(*this, "cmbResDirsPolicy",  wxChoice)->SetSelection(m_pTarget->GetOptionRelation(ortResDirs));
+            XRCCTRL(*this, "cmbLibDirsPolicy", wxChoice)->SetSelection(m_pTarget->GetOptionRelation(ortLibDirs));
+            XRCCTRL(*this, "cmbResDirsPolicy", wxChoice)->SetSelection(m_pTarget->GetOptionRelation(ortResDirs));
 
-            XRCCTRL(*this, "txtMakeCmd_Build",            wxTextCtrl)->SetValue(m_pTarget->GetMakeCommandFor(mcBuild));
-            XRCCTRL(*this, "txtMakeCmd_Compile",          wxTextCtrl)->SetValue(m_pTarget->GetMakeCommandFor(mcCompileFile));
-            XRCCTRL(*this, "txtMakeCmd_Clean",            wxTextCtrl)->SetValue(m_pTarget->GetMakeCommandFor(mcClean));
-            XRCCTRL(*this, "txtMakeCmd_DistClean",        wxTextCtrl)->SetValue(m_pTarget->GetMakeCommandFor(mcDistClean));
+            XRCCTRL(*this, "txtMakeCmd_Build", wxTextCtrl)->SetValue(m_pTarget->GetMakeCommandFor(mcBuild));
+            XRCCTRL(*this, "txtMakeCmd_Compile", wxTextCtrl)->SetValue(m_pTarget->GetMakeCommandFor(mcCompileFile));
+            XRCCTRL(*this, "txtMakeCmd_Clean", wxTextCtrl)->SetValue(m_pTarget->GetMakeCommandFor(mcClean));
+            XRCCTRL(*this, "txtMakeCmd_DistClean", wxTextCtrl)->SetValue(m_pTarget->GetMakeCommandFor(mcDistClean));
             XRCCTRL(*this, "txtMakeCmd_AskRebuildNeeded", wxTextCtrl)->SetValue(m_pTarget->GetMakeCommandFor(mcAskRebuildNeeded));
-            XRCCTRL(*this, "txtMakeCmd_SilentBuild",      wxTextCtrl)->SetValue(m_pTarget->GetMakeCommandFor(mcSilentBuild));
+            XRCCTRL(*this, "txtMakeCmd_SilentBuild", wxTextCtrl)->SetValue(m_pTarget->GetMakeCommandFor(mcSilentBuild));
         }
     }
     TextToOptions();
 
     DoFillOptions();
-    ArrayString2ListBox(IncludeDirs,                XRCCTRL(*this, "lstIncludeDirs",             wxListBox));
-    ArrayString2ListBox(LibDirs,                    XRCCTRL(*this, "lstLibDirs",                 wxListBox));
-    ArrayString2ListBox(ResDirs,                    XRCCTRL(*this, "lstResDirs",                 wxListBox));
-    ArrayString2TextCtrl(m_CompilerOptions,         XRCCTRL(*this, "txtCompilerOptions",         wxTextCtrl));
-    ArrayString2TextCtrl(m_ResourceCompilerOptions, XRCCTRL(*this, "txtResourceCompilerOptions", wxTextCtrl));
-    ArrayString2TextCtrl(m_LinkerOptions,           XRCCTRL(*this, "txtLinkerOptions",           wxTextCtrl));
+    ArrayString2ListBox(IncludeDirs, XRCCTRL(*this, "lstIncludeDirs", wxListBox));
+    ArrayString2ListBox(LibDirs, XRCCTRL(*this, "lstLibDirs", wxListBox));
+    ArrayString2ListBox(ResDirs, XRCCTRL(*this, "lstResDirs", wxListBox));
+    ArrayString2TextCtrl(m_CompilerOptions, XRCCTRL(*this, "txtCompilerOptions", wxTextCtrl));
+    ArrayString2TextCtrl(m_LinkerOptions, XRCCTRL(*this, "txtLinkerOptions", wxTextCtrl));
 
     // only if "Commands" page exists
     if (m_pProject)
@@ -920,7 +852,7 @@ void CompilerOptionsDlg::OptionsToText()
     {
         if (!array[i].IsEmpty())
         {
-            if (array[i].StartsWith(compiler ? compiler->GetSwitches().genericSwitch : _T("-")))
+            if (array[i].StartsWith(_T("-")))
             {
                 if (m_CompilerOptions.Index(array[i]) == wxNOT_FOUND)
                     m_CompilerOptions.Add(array[i]);
@@ -933,9 +865,7 @@ void CompilerOptionsDlg::OptionsToText()
         }
     }
 
-    wxArrayString compilerOpConflicts;
-    wxArrayString linkerOpConflicts;
-    for (size_t i = 0; i < m_Options.GetCount(); ++i)
+    for (unsigned int i = 0; i < m_Options.GetCount(); ++i)
     {
         CompOption* copt = m_Options.GetOption(i);
         if (copt->enabled)
@@ -949,38 +879,20 @@ void CompilerOptionsDlg::OptionsToText()
         }
         else
         {
-            // mark items for removal
-            if (m_CompilerOptions.Index(copt->option) != wxNOT_FOUND)
-                compilerOpConflicts.Add(copt->option);
-            if (m_LinkerOptions.Index(copt->additionalLibs) != wxNOT_FOUND)
-                linkerOpConflicts.Add(copt->additionalLibs);
-        }
-    }
-
-    if (!compilerOpConflicts.IsEmpty() || !linkerOpConflicts.IsEmpty())
-    {
-        wxString msg = _("The compiler flags\n  ")
-                       + GetStringFromArray(compilerOpConflicts, wxT("\n  "))
-                       + GetStringFromArray(linkerOpConflicts,   wxT("\n  "));
-        msg.RemoveLast(2); // remove two trailing spaces
-        msg += _("were stated in 'Other Options' but unchecked in 'Compiler Flags'.\n"
-                 "Do you want to enable these flags?");
-        AnnoyingDialog dlg(_("Enable compiler flags?"), msg, wxART_QUESTION,
-                           AnnoyingDialog::YES_NO, AnnoyingDialog::rtNO);
-        if (dlg.ShowModal() == AnnoyingDialog::rtNO)
-        {
             // for disabled options, remove relative text option *and*
             // relative linker option
-            for (size_t i = 0; i < compilerOpConflicts.GetCount(); ++i)
-                m_CompilerOptions.Remove(compilerOpConflicts[i]);
-            for (size_t i = 0; i < linkerOpConflicts.GetCount(); ++i)
-                m_LinkerOptions.Remove(linkerOpConflicts[i]);
+            int idx = m_CompilerOptions.Index(copt->option);
+            if (idx != wxNOT_FOUND)
+                m_CompilerOptions.RemoveAt(idx, 1);
+            idx = m_LinkerOptions.Index(copt->additionalLibs);
+            if (idx != wxNOT_FOUND)
+                m_LinkerOptions.RemoveAt(idx, 1);
         }
     }
 
     // linker options and libs
     wxListBox* lstLibs = XRCCTRL(*this, "lstLibs", wxListBox);
-    for (size_t i = 0; i < lstLibs->GetCount(); ++i)
+    for (int i = 0; i < (int)lstLibs->GetCount(); ++i)
         m_LinkLibs.Add(lstLibs->GetString(i));
 } // OptionsToText
 
@@ -989,12 +901,11 @@ void CompilerOptionsDlg::DoSaveOptions()
     wxArrayString IncludeDirs;
     wxArrayString LibDirs;
     wxArrayString ResDirs;
-    ListBox2ArrayString(IncludeDirs,               XRCCTRL(*this, "lstIncludeDirs",             wxListBox));
-    ListBox2ArrayString(LibDirs,                   XRCCTRL(*this, "lstLibDirs",                 wxListBox));
-    ListBox2ArrayString(ResDirs,                   XRCCTRL(*this, "lstResDirs",                 wxListBox));
-    DoGetCompileOptions(m_CompilerOptions,         XRCCTRL(*this, "txtCompilerOptions",         wxTextCtrl));
-    DoGetCompileOptions(m_ResourceCompilerOptions, XRCCTRL(*this, "txtResourceCompilerOptions", wxTextCtrl));
-    DoGetCompileOptions(m_LinkerOptions,           XRCCTRL(*this, "txtLinkerOptions",           wxTextCtrl));
+    ListBox2ArrayString(IncludeDirs, XRCCTRL(*this, "lstIncludeDirs", wxListBox));
+    ListBox2ArrayString(LibDirs, XRCCTRL(*this, "lstLibDirs", wxListBox));
+    ListBox2ArrayString(ResDirs, XRCCTRL(*this, "lstResDirs", wxListBox));
+    DoGetCompileOptions(m_CompilerOptions, XRCCTRL(*this, "txtCompilerOptions", wxTextCtrl));
+    DoGetCompileOptions(m_LinkerOptions, XRCCTRL(*this, "txtLinkerOptions", wxTextCtrl));
     OptionsToText();
 
     if (!m_pProject && !m_pTarget)
@@ -1007,7 +918,6 @@ void CompilerOptionsDlg::DoSaveOptions()
             compiler->SetLibDirs(LibDirs);
             compiler->SetResourceIncludeDirs(ResDirs);
             compiler->SetCompilerOptions(m_CompilerOptions);
-            compiler->SetResourceCompilerOptions(m_ResourceCompilerOptions);
             compiler->SetLinkerOptions(m_LinkerOptions);
             compiler->SetLinkLibs(m_LinkLibs);
 
@@ -1039,7 +949,6 @@ void CompilerOptionsDlg::DoSaveOptions()
             m_pProject->SetResourceIncludeDirs(ResDirs);
             m_pProject->SetLibDirs(LibDirs);
             m_pProject->SetCompilerOptions(m_CompilerOptions);
-            m_pProject->SetResourceCompilerOptions(m_ResourceCompilerOptions);
             m_pProject->SetLinkerOptions(m_LinkerOptions);
             m_pProject->SetLinkLibs(m_LinkLibs);
             m_pProject->SetCommandsBeforeBuild(CommandsBeforeBuild);
@@ -1051,8 +960,7 @@ void CompilerOptionsDlg::DoSaveOptions()
             m_pProject->SetMakeCommandFor(mcClean, XRCCTRL(*this, "txtMakeCmd_Clean", wxTextCtrl)->GetValue());
             m_pProject->SetMakeCommandFor(mcDistClean, XRCCTRL(*this, "txtMakeCmd_DistClean", wxTextCtrl)->GetValue());
             m_pProject->SetMakeCommandFor(mcAskRebuildNeeded, XRCCTRL(*this, "txtMakeCmd_AskRebuildNeeded", wxTextCtrl)->GetValue());
-//            m_pProject->SetMakeCommandFor(mcSilentBuild, XRCCTRL(*this, "txtMakeCmd_SilentBuild", wxTextCtrl)->GetValue());
-            m_pProject->SetMakeCommandFor(mcSilentBuild, XRCCTRL(*this, "txtMakeCmd_Build", wxTextCtrl)->GetValue() + _T(" > $(CMD_NULL)"));
+            m_pProject->SetMakeCommandFor(mcSilentBuild, XRCCTRL(*this, "txtMakeCmd_SilentBuild", wxTextCtrl)->GetValue());
         }
         else
         {
@@ -1061,7 +969,6 @@ void CompilerOptionsDlg::DoSaveOptions()
             m_pTarget->SetResourceIncludeDirs(ResDirs);
             m_pTarget->SetLibDirs(LibDirs);
             m_pTarget->SetCompilerOptions(m_CompilerOptions);
-            m_pTarget->SetResourceCompilerOptions(m_ResourceCompilerOptions);
             m_pTarget->SetLinkerOptions(m_LinkerOptions);
             m_pTarget->SetLinkLibs(m_LinkLibs);
             m_pTarget->SetOptionRelation(ortCompilerOptions, OptionsRelation(XRCCTRL(*this, "cmbCompilerPolicy", wxChoice)->GetSelection()));
@@ -1078,8 +985,7 @@ void CompilerOptionsDlg::DoSaveOptions()
             m_pTarget->SetMakeCommandFor(mcClean, XRCCTRL(*this, "txtMakeCmd_Clean", wxTextCtrl)->GetValue());
             m_pTarget->SetMakeCommandFor(mcDistClean, XRCCTRL(*this, "txtMakeCmd_DistClean", wxTextCtrl)->GetValue());
             m_pTarget->SetMakeCommandFor(mcAskRebuildNeeded, XRCCTRL(*this, "txtMakeCmd_AskRebuildNeeded", wxTextCtrl)->GetValue());
-//            m_pTarget->SetMakeCommandFor(mcSilentBuild, XRCCTRL(*this, "txtMakeCmd_SilentBuild", wxTextCtrl)->GetValue());
-            m_pTarget->SetMakeCommandFor(mcSilentBuild, XRCCTRL(*this, "txtMakeCmd_Build", wxTextCtrl)->GetValue() + _T(" > $(CMD_NULL)"));
+            m_pTarget->SetMakeCommandFor(mcSilentBuild, XRCCTRL(*this, "txtMakeCmd_SilentBuild", wxTextCtrl)->GetValue());
         }
     }
 } // DoSaveOptions
@@ -1092,21 +998,16 @@ void CompilerOptionsDlg::DoSaveCompilerPrograms()
 
     CompilerPrograms progs;
     wxString masterPath = XRCCTRL(*this, "txtMasterPath", wxTextCtrl)->GetValue();
-    progs.C       = (XRCCTRL(*this, "txtCcompiler",   wxTextCtrl)->GetValue()).Trim();
-    progs.CPP     = (XRCCTRL(*this, "txtCPPcompiler", wxTextCtrl)->GetValue()).Trim();
-    progs.LD      = (XRCCTRL(*this, "txtLinker",      wxTextCtrl)->GetValue()).Trim();
-    progs.LIB     = (XRCCTRL(*this, "txtLibLinker",   wxTextCtrl)->GetValue()).Trim();
-    progs.WINDRES = (XRCCTRL(*this, "txtResComp",     wxTextCtrl)->GetValue()).Trim();
-    progs.MAKE    = (XRCCTRL(*this, "txtMake",        wxTextCtrl)->GetValue()).Trim();
-    wxChoice *cmbDebugger = XRCCTRL(*this, "cmbDebugger", wxChoice);
-    if (cmbDebugger)
-    {
-        int index = cmbDebugger->GetSelection();
-        const DebuggerClientData* data = static_cast<const DebuggerClientData*>(cmbDebugger->GetClientObject(index));
-        progs.DBGconfig = data->string;
-    }
+    progs.C = (XRCCTRL(*this, "txtCcompiler", wxTextCtrl)->GetValue()).Trim();
+    progs.CPP = (XRCCTRL(*this, "txtCPPcompiler", wxTextCtrl)->GetValue()).Trim();
+    progs.LD = (XRCCTRL(*this, "txtLinker", wxTextCtrl)->GetValue()).Trim();
+    progs.LIB = (XRCCTRL(*this, "txtLibLinker", wxTextCtrl)->GetValue()).Trim();
+    progs.WINDRES = (XRCCTRL(*this, "txtResComp", wxTextCtrl)->GetValue()).Trim();
+    progs.MAKE = (XRCCTRL(*this, "txtMake", wxTextCtrl)->GetValue()).Trim();
+    progs.DBG = (XRCCTRL(*this, "txtDebugger", wxTextCtrl)->GetValue()).Trim();
     compiler->SetPrograms(progs);
     compiler->SetMasterPath(masterPath);
+    compiler->SetOptions(m_Options); //LDC : DOES NOT BELONG HERE !!!
     // and the extra paths
     wxListBox* control = XRCCTRL(*this, "lstExtraPaths", wxListBox);
     if (control)
@@ -1121,10 +1022,10 @@ void CompilerOptionsDlg::DoSaveCompilerPrograms()
 void CompilerOptionsDlg::DoSaveVars()
 {
     CompileOptionsBase* pBase = GetVarsOwner();
-    if (pBase)
+    if(pBase)
     {
         // let's process all the stored CustomVarActions
-        for (unsigned int idxAction = 0; idxAction < m_CustomVarActions.size(); ++idxAction)
+        for(unsigned int idxAction = 0; idxAction < m_CustomVarActions.size(); ++idxAction)
         {
             CustomVarAction Action = m_CustomVarActions[idxAction];
             switch(Action.m_Action)
@@ -1137,7 +1038,7 @@ void CompilerOptionsDlg::DoSaveVars()
                     // first split up the KeyValue
                     wxString NewKey = Action.m_KeyValue.BeforeFirst(_T('=')).Trim(true).Trim(false);
                     wxString NewValue = Action.m_KeyValue.AfterFirst(_T('=')).Trim(true).Trim(false);
-                    if (Action.m_Key != NewKey)
+                    if(Action.m_Key != NewKey)
                     {   // the key name changed
                         pBase->UnsetVar(Action.m_Key);
                     }
@@ -1155,266 +1056,9 @@ void CompilerOptionsDlg::DoSaveVars()
     }
 } // DoSaveVars
 
-void CompilerOptionsDlg::DoSaveCompilerDefinition()
-{
-    wxXmlNode* root = new wxXmlNode(wxXML_ELEMENT_NODE, wxT("CodeBlocks_compiler_options"));
-    Compiler* compiler = CompilerFactory::GetCompiler(m_CurrentCompilerIdx);
-    const wxString name = wxT("name");
-    const wxString value = wxT("value");
-    wxXmlNode* node = new wxXmlNode(root, wxXML_ELEMENT_NODE, wxT("Program"));
-    node->AddAttribute(name, wxT("C"));
-    node->AddAttribute(value, compiler->GetPrograms().C);
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Program")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("CPP"));
-    node->AddAttribute(value, compiler->GetPrograms().CPP);
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Program")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("LD"));
-    node->AddAttribute(value, compiler->GetPrograms().LD);
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Program")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("DBGconfig"));
-    node->AddAttribute(value, compiler->GetPrograms().DBGconfig);
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Program")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("LIB"));
-    node->AddAttribute(value, compiler->GetPrograms().LIB);
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Program")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("WINDRES"));
-    node->AddAttribute(value, compiler->GetPrograms().WINDRES);
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Program")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("MAKE"));
-    node->AddAttribute(value, compiler->GetPrograms().MAKE);
-
-
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Switch")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("includeDirs"));
-    node->AddAttribute(value, compiler->GetSwitches().includeDirs);
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Switch")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("libDirs"));
-    node->AddAttribute(value, compiler->GetSwitches().libDirs);
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Switch")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("linkLibs"));
-    node->AddAttribute(value, compiler->GetSwitches().linkLibs);
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Switch")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("defines"));
-    node->AddAttribute(value, compiler->GetSwitches().defines);
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Switch")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("genericSwitch"));
-    node->AddAttribute(value, compiler->GetSwitches().genericSwitch);
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Switch")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("objectExtension"));
-    node->AddAttribute(value, compiler->GetSwitches().objectExtension);
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Switch")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("forceFwdSlashes"));
-    node->AddAttribute(value, (compiler->GetSwitches().forceFwdSlashes ? wxT("true") : wxT("false")));
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Switch")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("forceLinkerUseQuotes"));
-    node->AddAttribute(value, (compiler->GetSwitches().forceLinkerUseQuotes ? wxT("true") : wxT("false")));
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Switch")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("forceCompilerUseQuotes"));
-    node->AddAttribute(value, (compiler->GetSwitches().forceCompilerUseQuotes ? wxT("true") : wxT("false")));
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Switch")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("needDependencies"));
-    node->AddAttribute(value, (compiler->GetSwitches().needDependencies ? wxT("true") : wxT("false")));
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Switch")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("logging"));
-    if (compiler->GetSwitches().logging == CompilerSwitches::defaultLogging)
-        node->AddAttribute(value, wxT("default"));
-    else if (compiler->GetSwitches().logging == clogFull)
-        node->AddAttribute(value, wxT("full"));
-    else if (compiler->GetSwitches().logging == clogSimple)
-        node->AddAttribute(value, wxT("simple"));
-    else if (compiler->GetSwitches().logging == clogNone)
-        node->AddAttribute(value, wxT("none"));
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Switch")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("libPrefix"));
-    node->AddAttribute(value, compiler->GetSwitches().libPrefix);
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Switch")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("libExtension"));
-    node->AddAttribute(value, compiler->GetSwitches().libExtension);
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Switch")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("linkerNeedsLibPrefix"));
-    node->AddAttribute(value, (compiler->GetSwitches().linkerNeedsLibPrefix ? wxT("true") : wxT("false")));
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Switch")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("linkerNeedsLibExtension"));
-    node->AddAttribute(value, (compiler->GetSwitches().linkerNeedsLibExtension ? wxT("true") : wxT("false")));
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Switch")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("linkerNeedsPathResolved"));
-    node->AddAttribute(value, (compiler->GetSwitches().linkerNeedsPathResolved ? wxT("true") : wxT("false")));
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Switch")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("supportsPCH"));
-    node->AddAttribute(value, (compiler->GetSwitches().supportsPCH ? wxT("true") : wxT("false")));
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Switch")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("PCHExtension"));
-    node->AddAttribute(value, compiler->GetSwitches().PCHExtension);
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Switch")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("UseFlatObjects"));
-    node->AddAttribute(value, (compiler->GetSwitches().UseFlatObjects ? wxT("true") : wxT("false")));
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Switch")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("UseFullSourcePaths"));
-    node->AddAttribute(value, (compiler->GetSwitches().UseFullSourcePaths ? wxT("true") : wxT("false")));
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Switch")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("includeDirSeparator"));
-    node->AddAttribute(value, compiler->GetSwitches().includeDirSeparator);
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Switch")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("libDirSeparator"));
-    node->AddAttribute(value, compiler->GetSwitches().libDirSeparator);
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Switch")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("objectSeparator"));
-    node->AddAttribute(value, compiler->GetSwitches().objectSeparator);
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Switch")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("statusSuccess"));
-    node->AddAttribute(value, wxString::Format(wxT("%d"), compiler->GetSwitches().statusSuccess));
-    node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Switch")));
-    node = node->GetNext();
-    node->AddAttribute(name, wxT("Use83Paths"));
-    node->AddAttribute(value, (compiler->GetSwitches().Use83Paths ? wxT("true") : wxT("false")));
-
-    for (size_t i = 0; i < m_Options.GetCount(); ++i)
-    {
-        CompOption* opt = m_Options.GetOption(i);
-        node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Option")));
-        node = node->GetNext();
-        wxString oName;
-        opt->name.EndsWith(wxT("[") + opt->option + wxT("]"), &oName);
-        if (oName == wxEmptyString)
-            opt->name.EndsWith(wxT("[") + opt->additionalLibs + wxT("]"), &oName);
-        if (oName == wxEmptyString)
-            oName = opt->name;
-        node->AddAttribute(name, oName.Trim());
-        if (opt->option != wxEmptyString)
-            node->AddAttribute(wxT("option"), opt->option);
-        if (opt->category != wxT("General"))
-            node->AddAttribute(wxT("category"), opt->category);
-        if (opt->additionalLibs != wxEmptyString)
-            node->AddAttribute(wxT("additionalLibs"), opt->additionalLibs);
-        if (opt->checkAgainst != wxEmptyString)
-        {
-            node->AddAttribute(wxT("checkAgainst"), opt->checkAgainst);
-            node->AddAttribute(wxT("checkMessage"), opt->checkMessage);
-        }
-        if (opt->supersedes != wxEmptyString)
-            node->AddAttribute(wxT("supersedes"), opt->supersedes);
-        if (opt->exclusive)
-            node->AddAttribute(wxT("exclusive"), wxT("true"));
-    }
-
-    for (int i = 0; i < ctCount; ++i)
-    {
-        const CompilerToolsVector& vec = compiler->GetCommandToolsVector((CommandType)i);
-        wxString op;
-        if (i == ctCompileObjectCmd)
-            op = wxT("CompileObject");
-        else if (i == ctGenDependenciesCmd)
-            op = wxT("GenDependencies");
-        else if (i == ctCompileResourceCmd)
-            op = wxT("CompileResource");
-        else if (i == ctLinkExeCmd)
-            op = wxT("LinkExe");
-        else if (i == ctLinkConsoleExeCmd)
-            op = wxT("LinkConsoleExe");
-        else if (i == ctLinkDynamicCmd)
-            op = wxT("LinkDynamic");
-        else if (i == ctLinkStaticCmd)
-            op = wxT("LinkStatic");
-        else if (i == ctLinkNativeCmd)
-            op = wxT("LinkNative");
-        for (size_t j = 0; j < vec.size(); ++j)
-        {
-            node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Command")));
-            node = node->GetNext();
-            node->AddAttribute(name, op);
-            node->AddAttribute(value, vec[j].command);
-            if (!vec[j].extensions.IsEmpty())
-                node->AddAttribute(wxT("ext"), GetStringFromArray(vec[j].extensions, DEFAULT_ARRAY_SEP, false));
-            if (!vec[j].generatedFiles.IsEmpty())
-                node->AddAttribute(wxT("gen"), GetStringFromArray(vec[j].generatedFiles, DEFAULT_ARRAY_SEP, false));
-        }
-    }
-
-    const RegExArray& regexes = compiler->GetRegExArray();
-    for (size_t i = 0; i < regexes.GetCount(); ++i)
-    {
-        node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("RegEx")));
-        node = node->GetNext();
-        node->AddAttribute(name, regexes[i].desc);
-        wxString tp;
-        if (regexes[i].lt == cltNormal)
-            tp = wxT("normal");
-        else if (regexes[i].lt == cltWarning)
-            tp = wxT("warning");
-        else if (regexes[i].lt == cltError)
-            tp = wxT("error");
-        else if (regexes[i].lt == cltInfo)
-            tp = wxT("info");
-        node->AddAttribute(wxT("type"), tp);
-        tp = wxString::Format(wxT("%d;%d;%d"), regexes[i].msg[0], regexes[i].msg[1], regexes[i].msg[2]);
-        tp.Replace(wxT(";0"), wxEmptyString);
-        node->AddAttribute(wxT("msg"), tp);
-        if (regexes[i].filename != 0)
-            node->AddAttribute(wxT("file"), wxString::Format(wxT("%d"), regexes[i].filename));
-        if (regexes[i].line != 0)
-            node->AddAttribute(wxT("line"), wxString::Format(wxT("%d"), regexes[i].line));
-        tp = regexes[i].regex;
-        tp.Replace(wxT("\t"), wxT("\\t"));
-        node->AddChild(new wxXmlNode(wxXML_CDATA_SECTION_NODE, wxEmptyString, tp));
-    }
-
-    if (!compiler->GetCOnlyFlags().IsEmpty())
-    {
-        node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Sort")));
-        node = node->GetNext();
-        node->AddAttribute(wxT("CFlags"), compiler->GetCOnlyFlags());
-    }
-    if (!compiler->GetCPPOnlyFlags().IsEmpty())
-    {
-        node->SetNext(new wxXmlNode(wxXML_ELEMENT_NODE, wxT("Sort")));
-        node = node->GetNext();
-        node->AddAttribute(wxT("CPPFlags"), compiler->GetCPPOnlyFlags());
-    }
-
-    wxXmlDocument doc;
-    doc.SetVersion(wxT("1.0"));
-    doc.SetRoot(root);
-    if (!wxDirExists(ConfigManager::GetFolder(sdDataUser) + wxT("/compilers")))
-        wxMkdir(ConfigManager::GetFolder(sdDataUser) + wxT("/compilers"));
-    doc.Save(ConfigManager::GetFolder(sdDataUser) + wxT("/compilers/options_") + compiler->GetID() + wxT(".xml"));
-
-    // update the in-memory cache
-    compiler->SetOptions(m_Options);
-} // DoSaveCompilerDefinition
-
 // events
 
-void CompilerOptionsDlg::OnDirty(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnDirty(wxCommandEvent& /*event*/)
 {
     m_bDirty = true;
 } // OnDirty
@@ -1423,9 +1067,9 @@ void CompilerOptionsDlg::ProjectTargetCompilerAdjust()
 {   // note this can also be called when on global compiler level, won't do anything (well reset a member which has
     // no use in this case)
     // check if the compilerID needs to be updated
-    if (m_pTarget)
+    if(m_pTarget)
     { // target was the (tree) selection
-        if (!m_NewProjectOrTargetCompilerId.IsEmpty() && m_pTarget->GetCompilerID() != m_NewProjectOrTargetCompilerId)
+        if(!m_NewProjectOrTargetCompilerId.IsEmpty() && m_pTarget->GetCompilerID() != m_NewProjectOrTargetCompilerId)
         {
             m_pTarget->SetCompilerID(m_NewProjectOrTargetCompilerId);
             cbMessageBox(_("You changed the compiler used for this target.\n"
@@ -1435,9 +1079,9 @@ void CompilerOptionsDlg::ProjectTargetCompilerAdjust()
                             wxICON_EXCLAMATION);
         }
     }
-    else if (m_pProject)
+    else if(m_pProject)
     {   // the project was the (tree) selection
-        if (!m_NewProjectOrTargetCompilerId.IsEmpty() && m_pProject->GetCompilerID() != m_NewProjectOrTargetCompilerId)
+        if(!m_NewProjectOrTargetCompilerId.IsEmpty() && m_pProject->GetCompilerID() != m_NewProjectOrTargetCompilerId)
         { // should be project then
             m_pProject->SetCompilerID(m_NewProjectOrTargetCompilerId);
             UpdateCompilerForTargets(m_CurrentCompilerIdx);
@@ -1478,28 +1122,17 @@ void CompilerOptionsDlg::OnTreeSelectionChange(wxTreeEvent& event)
         if (m_pTarget && !m_pTarget->SupportsCurrentPlatform())
         {
             if (nb)
+            {
                 nb->Disable();
+            }
         }
         else
         {
             if (nb)
             {
-                // enable/disable invalid pages for commands only target
-                const bool cmd = (m_pTarget && m_pTarget->GetTargetType() == ttCommandsOnly);
-                nb->GetPage(0)->Enable(!cmd); // Compiler settings
-                nb->GetPage(1)->Enable(!cmd); // Linker settings
-                nb->GetPage(2)->Enable(!cmd); // Search directories
-                nb->GetPage(5)->Enable(!cmd); // "Make" commands
-                if (   cmd
-                    && nb->GetSelection() != 3   // Pre/post build steps
-                    && nb->GetSelection() != 4 ) // Custom variables
-                {
-                    nb->SetSelection(3);
-                }
-
                 nb->Enable();
             }
-            // the new selection might have a different compiler settings and/or even a different compiler
+            // the new selection might have a differerent compiler settings and/or even a different compiler
             // load all those new settings
             m_CurrentCompilerIdx = compilerIdx;
             Compiler* compiler = CompilerFactory::GetCompiler(m_CurrentCompilerIdx);
@@ -1516,14 +1149,19 @@ void CompilerOptionsDlg::OnTreeSelectionChange(wxTreeEvent& event)
         msg.Printf(_("The defined compiler cannot be located (ID: %s).\n"
                     "Please choose the compiler you want to use instead and click \"OK\".\n"
                     "If you click \"Cancel\", the project/target will remain configured for that compiler and consequently can not be configured and will not be built."),
+                    #if wxCHECK_VERSION(2, 9, 0)
                     CompilerId.wx_str());
+                    #else
+                    CompilerId.c_str());
+                    #endif
         Compiler* compiler = 0;
         if (m_pTarget && m_pTarget->SupportsCurrentPlatform())
+        {
             compiler = CompilerFactory::SelectCompilerUI(msg);
-
+        }
         if (compiler)
-        {   // a new compiler was chosen, proceed as if the user manually selected another compiler
-            // that means set the compiler selection list accordingly
+        {    // a new compiler was choosen, proceed as if the user manually selected another compiler
+            // that means set the compilerselection list accordingly
             // and go directly to (On)CompilerChanged
             int NewCompilerIdx = CompilerFactory::GetCompilerIndex(compiler);
             XRCCTRL(*this, "cmbCompiler", wxChoice)->SetSelection(NewCompilerIdx);
@@ -1532,8 +1170,10 @@ void CompilerOptionsDlg::OnTreeSelectionChange(wxTreeEvent& event)
         }
         else
         { // the user cancelled and wants to keep the compiler
-            if (wxNotebook* nb = XRCCTRL(*this, "nbMain", wxNotebook))
+            if(wxNotebook* nb = XRCCTRL(*this, "nbMain", wxNotebook))
+            {
                 nb->Disable();
+            }
         }
     }
 } // OnTreeSelectionChange
@@ -1544,7 +1184,7 @@ void CompilerOptionsDlg::OnTreeSelectionChanging(wxTreeEvent& event)
         return;
     wxTreeCtrl* tc = XRCCTRL(*this, "tcScope", wxTreeCtrl);
     ScopeTreeData* data = (ScopeTreeData*)tc->GetItemData(event.GetOldItem());
-    if (data && (m_bDirty || m_bFlagsDirty))
+    if(data && m_bDirty)
     {   // data : should always be the case, since on global compiler level, there's no tree
         // when changes are made prompt the user if these changes should be applied
         // YES -> do the changes
@@ -1557,35 +1197,33 @@ void CompilerOptionsDlg::OnTreeSelectionChanging(wxTreeEvent& event)
                     "No     : will undo the changes\n"
                     "Cancel : will revert your selection in the project/target tree"),
                     wxART_QUESTION,
-                    AnnoyingDialog::YES_NO_CANCEL);
+                    AnnoyingDialog::YES_NO_CANCEL,
+                    wxID_YES);
 
         switch(dlg.ShowModal())
         {
-            case AnnoyingDialog::rtYES :
+            case wxID_YES :
                 DoSaveCompilerDependentSettings();
                 break;
-            case AnnoyingDialog::rtCANCEL :
+            case wxID_CANCEL :
                 event.Veto();
                 break;
-            case AnnoyingDialog::rtNO :
+            case wxID_NO :
             default:
-                {
-                    m_bDirty = false;
-                    m_bFlagsDirty = false;
-                }
+                m_bDirty = false;
                 break;
         } // end switch
     }
 } // OnTreeSelectionChanging
 
-void CompilerOptionsDlg::OnCompilerChanged(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnCompilerChanged(wxCommandEvent& /*event*/)
 {
     // when changes are made prompt the user if these changes should be applied
     // YES -> do the changes
     // NO -> no changes, just switch
     // CANCEL : don't switch
     bool bChanged = true;
-    if (m_bDirty || m_bFlagsDirty)
+    if(m_bDirty)
     {
         switch(cbMessageBox(_("You have changed some settings. Do you want these settings saved ?\n\n"
                         "Yes    : will apply the changes\n"
@@ -1604,14 +1242,13 @@ void CompilerOptionsDlg::OnCompilerChanged(cb_unused wxCommandEvent& event)
             case wxID_NO :
             default:
                 m_bDirty = false;
-                m_bFlagsDirty = false;
                 break;
         } // end switch
     }
-    if (bChanged)
+    if(bChanged)
     {
         CompilerChanged();
-        if (m_pProject)
+        if(m_pProject)
         {   // in case of project/target --> dirty
             m_bDirty = true;
         }
@@ -1625,7 +1262,7 @@ void CompilerOptionsDlg::CompilerChanged()
     // so that on "SAVE" time we can adjust the project/target with it's new compiler
     // SAVE time for this particular setting means (Apply or TreeSelection change
     // not compiler change since we could (re)change the compiler of that project/target
-    if (m_pProject)
+    if(m_pProject)
     {
         m_NewProjectOrTargetCompilerId = CompilerFactory::GetCompiler(m_CurrentCompilerIdx)->GetID();
     }
@@ -1671,7 +1308,11 @@ void CompilerOptionsDlg::AutoDetectCompiler()
         case adrDetected:
         {
             wxString msg;
+            #if wxCHECK_VERSION(2, 9, 0)
             msg.Printf(_("Auto-detected installation path of \"%s\"\nin \"%s\""), compiler->GetName().wx_str(), compiler->GetMasterPath().wx_str());
+            #else
+            msg.Printf(_("Auto-detected installation path of \"%s\"\nin \"%s\""), compiler->GetName().c_str(), compiler->GetMasterPath().c_str());
+            #endif
             cbMessageBox(msg);
         }
         break;
@@ -1681,7 +1322,11 @@ void CompilerOptionsDlg::AutoDetectCompiler()
             wxString msg;
             msg.Printf(_("Could not auto-detect installation path of \"%s\"...\n"
                         "Do you want to use this compiler's default installation directory?"),
+                        #if wxCHECK_VERSION(2, 9, 0)
                         compiler->GetName().wx_str());
+                        #else
+                        compiler->GetName().c_str());
+                        #endif
             if (cbMessageBox(msg, _("Confirmation"), wxICON_QUESTION | wxYES_NO) == wxID_NO)
             {
                 compiler->SetMasterPath(backup);
@@ -1689,9 +1334,6 @@ void CompilerOptionsDlg::AutoDetectCompiler()
             }
         }
         break;
-
-        default:
-            break;
     }
     XRCCTRL(*this, "txtMasterPath", wxTextCtrl)->SetValue(compiler->GetMasterPath());
     XRCCTRL(*this, "lstExtraPaths", wxListBox)->Clear();
@@ -1725,99 +1367,25 @@ CompileOptionsBase* CompilerOptionsDlg::GetVarsOwner()
                                    : (CompileOptionsBase*)(CompilerFactory::GetCompiler(m_CurrentCompilerIdx)));
 } // GetVarsOwner
 
-void CompilerOptionsDlg::OnCategoryChanged(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnCategoryChanged(wxCommandEvent& /*event*/)
 {    // reshow the compiler options, but with different filter (category) applied
     DoFillOptions();
 } // OnCategoryChanged
 
-void CompilerOptionsDlg::OnOptionChanged(wxPropertyGridEvent& event)
+void CompilerOptionsDlg::OnOptionToggled(wxCommandEvent& event)
 {
-    wxPGProperty* property = event.GetProperty();
-    if (!property)
-        return;
-    // Make sure the property is bool. Other properties are ignored for now.
-    if (!property->IsKindOf(CLASSINFO(wxBoolProperty)))
-        return;
-    CompOption* option = m_Options.GetOptionByName(property->GetLabel());
-    wxVariant value = property->GetValue();
-    if (value.IsNull() || !option)
-        return;
-    option->enabled = value.GetBool();
-    if (option->enabled)
+    wxCheckListBox* list = XRCCTRL(*this, "lstCompilerOptions", wxCheckListBox);
+    int sel = event.GetInt();
+    CompOption* copt = m_Options.GetOptionByName(list->GetString(sel));
+    if (copt)
     {
-        if (!option->checkAgainst.IsEmpty())
-        {
-            wxArrayString check = GetArrayFromString(option->checkAgainst, wxT(" "));
-            for (size_t i = 0; i < check.Count(); ++i)
-            {
-                CompOption* against = m_Options.GetOptionByOption(check[i]);
-                if (!against)
-                    against = m_Options.GetOptionByAdditionalLibs(check[i]);
-                if (against && against->enabled)
-                {
-                    wxString message = (option->checkMessage.IsEmpty() ?
-                              wxT("\"") + option->name + _("\" conflicts with \"") + against->name + wxT("\".") :
-                              option->checkMessage );
-                    AnnoyingDialog dlg(_("Compiler options conflict"),
-                                       message,
-                                       wxART_INFORMATION,
-                                       AnnoyingDialog::OK);
-                    dlg.ShowModal();
-                    break;
-                }
-            }
-        }
-        if (option->supersedes != wxEmptyString)
-        {
-            wxArrayString supersede = GetArrayFromString(option->supersedes, wxT(" "));
-            for (size_t i = 0; i < supersede.Count(); ++i)
-            {
-                for (size_t j = 0; j < m_Options.GetCount(); ++j)
-                {
-                    if (option != m_Options.GetOption(j) &&
-                        (supersede[i] == m_Options.GetOption(j)->option ||
-                         supersede[i] == m_Options.GetOption(j)->additionalLibs))
-                    {
-                        m_Options.GetOption(j)->enabled = false;
-                    }
-                }
-
-                for (wxPropertyGridIterator it = m_FlagsPG->GetIterator(); !it.AtEnd(); ++it)
-                {
-                    wxPGProperty* p = *it;
-                    if (p->IsCategory() || p == property)
-                        continue;
-                    if (p->GetLabel().EndsWith(wxT("[") + supersede[i] + wxT("]")))
-                        m_FlagsPG->SetPropertyValue(p, false);
-                }
-            }
-        }
-        if (option->exclusive)
-        {
-            for (size_t i = 0; i < m_Options.GetCount(); ++i)
-            {
-                if (option != m_Options.GetOption(i) &&
-                    option->category == m_Options.GetOption(i)->category)
-                {
-                    m_Options.GetOption(i)->enabled = false;
-                }
-            }
-            for (wxPropertyGridIterator it = m_FlagsPG->GetIterator(); !it.AtEnd(); ++it)
-            {
-                wxPGProperty* p = *it;
-                if (p->IsCategory() || p == property)
-                    continue;
-                CompOption* opt = m_Options.GetOptionByName(p->GetLabel());
-                if (option != opt && option->category == opt->category)
-                    m_FlagsPG->SetPropertyValue(p, false);
-            }
-        }
+        copt->enabled = list->IsChecked(sel);
     }
     m_bDirty = true;
-}
+} // OnOptionToggled
 
 // some handlers for adding/editing/removing/clearing of include/libraries/resources directories
-void CompilerOptionsDlg::OnAddDirClick(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnAddDirClick(wxCommandEvent& /*event*/)
 {
     EditPathDlg dlg(this,
             m_pProject ? m_pProject->GetBasePath() : _T(""),
@@ -1838,75 +1406,60 @@ void CompilerOptionsDlg::OnAddDirClick(cb_unused wxCommandEvent& event)
     }
 } // OnAddDirClick
 
-void CompilerOptionsDlg::OnEditDirClick(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnEditDirClick(wxCommandEvent& /*event*/)
 {
     wxListBox* control = GetDirsListBox();
-    wxArrayInt selections;
-    if (!control || control->GetSelections(selections) < 1)
+    if (!control || control->GetSelection() < 0)
         return;
-
-    if (selections.GetCount()>1)
-    {
-        cbMessageBox(_("Please select only one directory you would like to edit."),
-                    _("Error"), wxICON_ERROR);
-        return;
-    }
 
     EditPathDlg dlg(this,
-                    control->GetString(selections[0]),
-                    m_pProject ? m_pProject->GetBasePath() : _T(""),
-                    _("Edit directory"));
+            control->GetString(control->GetSelection()),
+            m_pProject ? m_pProject->GetBasePath() : _T(""),
+            _("Edit directory"));
 
     PlaceWindow(&dlg);
     if (dlg.ShowModal() == wxID_OK)
     {
         wxString path = dlg.GetPath();
-        control->SetString(selections[0], path);
+        control->SetString(control->GetSelection(), path);
         m_bDirty = true;
     }
 } // OnEditDirClick
 
-void CompilerOptionsDlg::OnRemoveDirClick(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnRemoveDirClick(wxCommandEvent& /*event*/)
 {
     wxListBox* control = GetDirsListBox();
-    wxArrayInt selections;
-    if (!control || control->GetSelections(selections) < 1)
+    if (!control || control->GetSelection() < 0)
         return;
-
-    if (cbMessageBox(_("Remove selected folders from the list?"),
-                     _("Confirmation"),
-                     wxOK | wxCANCEL | wxICON_QUESTION) == wxID_OK)
+    if (cbMessageBox(_("Remove '")+control->GetStringSelection()+_("' from the list?"),
+                    _("Confirmation"),
+                    wxOK | wxCANCEL | wxICON_QUESTION) == wxID_OK)
     {
-        std::sort(selections.begin(), selections.end());
-        for (unsigned int i=selections.GetCount(); i>0; --i)
-            control->Delete(selections[i-1]);
+        control->Delete(control->GetSelection());
         m_bDirty = true;
     }
 } // OnRemoveDirClick
 
-void CompilerOptionsDlg::OnClearDirClick(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnClearDirClick(wxCommandEvent& /*event*/)
 {
     wxListBox* control = GetDirsListBox();
     if (!control || control->GetCount() == 0)
         return;
-
     if (cbMessageBox(_("Remove all directories from the list?"),
-                     _("Confirmation"),
-                     wxOK | wxCANCEL | wxICON_QUESTION) == wxID_OK)
+                    _("Confirmation"),
+                    wxOK | wxCANCEL | wxICON_QUESTION) == wxID_OK)
     {
         control->Clear();
         m_bDirty = true;
     }
 } // OnClearDirClick
 
-void CompilerOptionsDlg::OnCopyDirsClick(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnCopyDirsClick(wxCommandEvent& /*event*/)
 {
     if (!m_pProject)
         return;
-
     wxListBox* control = GetDirsListBox();
-    wxArrayInt selections;
-    if (!control || control->GetSelections(selections) < 1)
+    if (!control || control->GetCount() == 0)
         return;
 
     wxArrayString choices;
@@ -1918,8 +1471,10 @@ void CompilerOptionsDlg::OnCopyDirsClick(cb_unused wxCommandEvent& event)
     }
 
     int sel = wxGetSingleChoiceIndex(_("Please select which target to copy these directories to:"),
-                                     _("Copy directories"), choices, this);
-    // -1 means no selection (Cancel)
+                                    _("Copy directories"),
+                                    choices,
+                                    this);
+    // -1 means no selection
     if (sel == -1)
         return;
 
@@ -1930,41 +1485,25 @@ void CompilerOptionsDlg::OnCopyDirsClick(cb_unused wxCommandEvent& event)
                                 : reinterpret_cast<CompileOptionsBase*>(m_pProject->GetBuildTarget(sel));
     if (!base)
         return;
-
     wxNotebook* nb = XRCCTRL(*this, "nbDirs", wxNotebook);
-    for (size_t i = 0; i < selections.GetCount(); ++i)
+    for (int i = 0; i < (int)control->GetCount(); ++i)
     {
         switch (nb->GetSelection())
         {
             case 0: // compiler dirs
-                base->AddIncludeDir(control->GetString(selections[i]));
+                base->AddIncludeDir(control->GetString(i));
                 break;
             case 1: // linker dirs
-                base->AddLibDir(control->GetString(selections[i]));
+                base->AddLibDir(control->GetString(i));
                 break;
             case 2: // resource compiler dirs
-                base->AddResourceIncludeDir(control->GetString(selections[i]));
-                break;
-            default:
+                base->AddResourceIncludeDir(control->GetString(i));
                 break;
         }
     }
 } // OnCopyDirsClick
 
-static void QuoteString(wxString &value, const wxString &caption)
-{
-    if (NeedQuotes(value))
-    {
-        AnnoyingDialog dlgQuestion(caption, wxT("Variable quote string"),
-                                   _("The value contains spaces or strange characters. Do you want to quote it?"),
-                                   wxART_QUESTION, AnnoyingDialog::YES_NO, AnnoyingDialog::rtSAVE_CHOICE,
-                                   _("&Quote"), _("&Leave unquoted"));
-        if (dlgQuestion.ShowModal() == AnnoyingDialog::rtYES)
-            ::QuoteStringIfNeeded(value);
-    }
-}
-
-void CompilerOptionsDlg::OnAddVarClick(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnAddVarClick(wxCommandEvent& /*event*/)
 {
     wxString key;
     wxString value;
@@ -1974,7 +1513,7 @@ void CompilerOptionsDlg::OnAddVarClick(cb_unused wxCommandEvent& event)
     {
         key.Trim(true).Trim(false);
         value.Trim(true).Trim(false);
-        QuoteString(value, _("Add variable quote string"));
+        ::QuoteStringIfNeeded(value);
         CustomVarAction Action = {CVA_Add, key, value};
         m_CustomVarActions.push_back(Action);
         XRCCTRL(*this, "lstVars", wxListBox)->Append(key + _T(" = ") + value);
@@ -1982,7 +1521,7 @@ void CompilerOptionsDlg::OnAddVarClick(cb_unused wxCommandEvent& event)
     }
 } // OnAddVarClick
 
-void CompilerOptionsDlg::OnEditVarClick(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnEditVarClick(wxCommandEvent& /*event*/)
 {
     int sel = XRCCTRL(*this, "lstVars", wxListBox)->GetSelection();
     if (sel == -1)
@@ -2001,7 +1540,7 @@ void CompilerOptionsDlg::OnEditVarClick(cb_unused wxCommandEvent& event)
     {
         key.Trim(true).Trim(false);
         value.Trim(true).Trim(false);
-        QuoteString(value, _("Edit variable quote string"));
+        ::QuoteStringIfNeeded(value);
 
         if (value != old_value  ||  key != old_key)
         { // something has changed
@@ -2013,7 +1552,7 @@ void CompilerOptionsDlg::OnEditVarClick(cb_unused wxCommandEvent& event)
     }
 } // OnEditVarClick
 
-void CompilerOptionsDlg::OnRemoveVarClick(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnRemoveVarClick(wxCommandEvent& /*event*/)
 {
     int sel = XRCCTRL(*this, "lstVars", wxListBox)->GetSelection();
     if (sel == -1)
@@ -2034,7 +1573,7 @@ void CompilerOptionsDlg::OnRemoveVarClick(cb_unused wxCommandEvent& event)
     }
 } // OnRemoveVarClick
 
-void CompilerOptionsDlg::OnClearVarClick(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnClearVarClick(wxCommandEvent& /*event*/)
 {
     wxListBox* lstVars = XRCCTRL(*this, "lstVars", wxListBox);
     if (lstVars->IsEmpty())
@@ -2045,7 +1584,7 @@ void CompilerOptionsDlg::OnClearVarClick(cb_unused wxCommandEvent& event)
                         wxYES | wxNO | wxICON_QUESTION) == wxID_YES)
     {
         // Unset all variables of lstVars
-        for (size_t i=0; i < lstVars->GetCount(); ++i)
+        for (int i=0; i < (int)lstVars->GetCount(); i++)
         {
             wxString key = lstVars->GetString(i).BeforeFirst(_T('=')).Trim(true);
             if (!key.IsEmpty())
@@ -2059,7 +1598,7 @@ void CompilerOptionsDlg::OnClearVarClick(cb_unused wxCommandEvent& event)
     }
 } // OnClearVarClick
 
-void CompilerOptionsDlg::OnSetDefaultCompilerClick(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnSetDefaultCompilerClick(wxCommandEvent& /*event*/)
 {
     wxChoice* cmb = XRCCTRL(*this, "cmbCompiler", wxChoice);
     int idx = cmb->GetSelection();
@@ -2067,16 +1606,16 @@ void CompilerOptionsDlg::OnSetDefaultCompilerClick(cb_unused wxCommandEvent& eve
     wxString msg;
     Compiler* compiler = CompilerFactory::GetDefaultCompiler();
     #if wxCHECK_VERSION(2, 9, 0)
-    msg.Printf(_("%s is now selected as the default compiler for new projects"), compiler ? compiler->GetName().wx_str() : _("[invalid]").wx_str());
+    msg.Printf(_("%s is now selected as the default compiler for new projects"), compiler ? compiler->GetName().wx_str() : _T("[invalid]"));
     #else
     msg.Printf(_("%s is now selected as the default compiler for new projects"), compiler ? compiler->GetName().c_str() : _("[invalid]"));
     #endif
     cbMessageBox(msg);
 } // OnSetDefaultCompilerClick
 
-void CompilerOptionsDlg::OnAddCompilerClick(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnAddCompilerClick(wxCommandEvent& /*event*/)
 {
-    if (m_bDirty)
+    if(m_bDirty)
     {   // changes had been made to the current selected compiler
         switch(cbMessageBox(_("You have changed some settings. Do you want these settings saved ?\n\n"
                         "Yes    : will apply the changes\n"
@@ -2135,14 +1674,14 @@ void CompilerOptionsDlg::OnAddCompilerClick(cb_unused wxCommandEvent& event)
             cbMessageBox(_("The new compiler has been added! Don't forget to update the \"Toolchain executables\" page..."));
         }
     }
-    if (m_bDirty)
-    {   // something went wrong -> reload current settings omitting the NO-ed changes
+    if(m_bDirty)
+    {   // something went wrong -> reload current settings ommitting the NO-ed changes
         m_bDirty = false;
         CompilerChanged();
     }
 } // OnAddCompilerClick
 
-void CompilerOptionsDlg::OnEditCompilerClick(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnEditCompilerClick(wxCommandEvent& /*event*/)
 {
     wxChoice* cmb = XRCCTRL(*this, "cmbCompiler", wxChoice);
     wxString value = wxGetTextFromUser(_("Please edit the compiler's name:"), _("Rename compiler"), cmb->GetStringSelection());
@@ -2156,7 +1695,7 @@ void CompilerOptionsDlg::OnEditCompilerClick(cb_unused wxCommandEvent& event)
     }
 } // OnEditCompilerClick
 
-void CompilerOptionsDlg::OnRemoveCompilerClick(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnRemoveCompilerClick(wxCommandEvent& /*event*/)
 {
     if (cbMessageBox(_("Are you sure you want to remove this compiler?"),
                     _("Confirmation"),
@@ -2174,7 +1713,7 @@ void CompilerOptionsDlg::OnRemoveCompilerClick(cb_unused wxCommandEvent& event)
     }
 } // OnRemoveCompilerClick
 
-void CompilerOptionsDlg::OnResetCompilerClick(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnResetCompilerClick(wxCommandEvent& /*event*/)
 {
     if (cbMessageBox(_("Reset this compiler's settings to the defaults?"),
                     _("Confirmation"),
@@ -2186,15 +1725,7 @@ void CompilerOptionsDlg::OnResetCompilerClick(cb_unused wxCommandEvent& event)
     {
         Compiler* compiler = CompilerFactory::GetCompiler(m_CurrentCompilerIdx);
         if (compiler)
-        {
-            const wxString file = wxT("/compilers/options_") + compiler->GetID() + wxT(".xml");
-            if (   wxFileExists(ConfigManager::GetDataFolder(true) + file)
-                && wxFileExists(ConfigManager::GetDataFolder(false) + file) )
-            {
-                wxRemoveFile(ConfigManager::GetDataFolder(false) + file);
-            }
             compiler->Reset();
-        }
         // run auto-detection
         AutoDetectCompiler();
         CompilerFactory::SaveSettings();
@@ -2204,7 +1735,7 @@ void CompilerOptionsDlg::OnResetCompilerClick(cb_unused wxCommandEvent& event)
 } // OnResetCompilerClick
 
 // 4 handlers for the adding/editing/removing/clearing of Linker Libs
-void CompilerOptionsDlg::OnAddLibClick(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnAddLibClick(wxCommandEvent& /*event*/)
 {
     wxListBox* lstLibs = XRCCTRL(*this, "lstLibs", wxListBox);
 
@@ -2221,13 +1752,15 @@ void CompilerOptionsDlg::OnAddLibClick(cb_unused wxCommandEvent& event)
     if (dlg.ShowModal() == wxID_OK)
     {
         wxArrayString paths = GetArrayFromString(dlg.GetPath());
-        for (size_t i = 0; i < paths.GetCount(); ++i)
+        for (unsigned int i = 0; i < paths.GetCount(); ++i)
+        {
             lstLibs->Append(paths[i]);
+        }
         m_bDirty = true;
     }
 } // OnAddLibClick
 
-void CompilerOptionsDlg::OnEditLibClick(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnEditLibClick(wxCommandEvent& /*event*/)
 {
     wxListBox* lstLibs = XRCCTRL(*this, "lstLibs", wxListBox);
     if (!lstLibs)
@@ -2265,7 +1798,7 @@ void CompilerOptionsDlg::OnEditLibClick(cb_unused wxCommandEvent& event)
     }
 } // OnEditLibClick
 
-void CompilerOptionsDlg::OnRemoveLibClick(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnRemoveLibClick(wxCommandEvent& /*event*/)
 {
     wxListBox* lstLibs = XRCCTRL(*this, "lstLibs", wxListBox);
     if (!lstLibs)
@@ -2287,8 +1820,8 @@ void CompilerOptionsDlg::OnRemoveLibClick(cb_unused wxCommandEvent& event)
         wxString msg; msg.Printf(_("Remove all (%d) selected libraries from the list?"), num);
         if (cbMessageBox(msg, _("Confirmation"), wxICON_QUESTION | wxOK | wxCANCEL) == wxID_OK)
         {
-            // remove starting with the last lib. otherwise indices will change
-            for (size_t i = sels.GetCount(); i>0; --i)
+            // remove starting with the last lib. otherwise indizes will change
+            for (size_t i = sels.GetCount(); i>0; i--)
                 lstLibs->Delete(sels[i-1]);
             m_bDirty = true;
         }
@@ -2296,7 +1829,7 @@ void CompilerOptionsDlg::OnRemoveLibClick(cb_unused wxCommandEvent& event)
     // else: No lib selected
 } // OnRemoveLibClick
 
-void CompilerOptionsDlg::OnClearLibClick(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnClearLibClick(wxCommandEvent& /*event*/)
 {
     wxListBox* lstLibs = XRCCTRL(*this, "lstLibs", wxListBox);
     if (!lstLibs || lstLibs->GetCount() == 0)
@@ -2308,7 +1841,7 @@ void CompilerOptionsDlg::OnClearLibClick(cb_unused wxCommandEvent& event)
     }
 } // OnClearLibClick
 
-void CompilerOptionsDlg::OnCopyLibsClick(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnCopyLibsClick(wxCommandEvent& /*event*/)
 {
     if (!m_pProject)
         return;
@@ -2339,14 +1872,14 @@ void CompilerOptionsDlg::OnCopyLibsClick(cb_unused wxCommandEvent& event)
                                 : reinterpret_cast<CompileOptionsBase*>(m_pProject->GetBuildTarget(sel));
     if (!base)
         return;
-    for (size_t i = 0; i < lstLibs->GetCount(); ++i)
+    for (int i = 0; i < (int)lstLibs->GetCount(); ++i)
     {
         if (lstLibs->IsSelected(i))
             base->AddLinkLib(lstLibs->GetString(i));
     }
 } // OnCopyLibsClick
 
-void CompilerOptionsDlg::OnAddExtraPathClick(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnAddExtraPathClick(wxCommandEvent& /*event*/)
 {
     EditPathDlg dlg(this, _T(""), _T(""), _("Add directory"));
 
@@ -2374,7 +1907,7 @@ void CompilerOptionsDlg::OnAddExtraPathClick(cb_unused wxCommandEvent& event)
     }
 } // OnAddExtraPathClick
 
-void CompilerOptionsDlg::OnEditExtraPathClick(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnEditExtraPathClick(wxCommandEvent& /*event*/)
 {
     wxListBox* control = XRCCTRL(*this, "lstExtraPaths", wxListBox);
     if (!control || control->GetSelection() < 0)
@@ -2407,7 +1940,7 @@ void CompilerOptionsDlg::OnEditExtraPathClick(cb_unused wxCommandEvent& event)
     }
 } // OnEditExtraPathClick
 
-void CompilerOptionsDlg::OnRemoveExtraPathClick(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnRemoveExtraPathClick(wxCommandEvent& /*event*/)
 {
     wxListBox* control = XRCCTRL(*this, "lstExtraPaths", wxListBox);
     if (!control || control->GetSelection() < 0)
@@ -2416,7 +1949,7 @@ void CompilerOptionsDlg::OnRemoveExtraPathClick(cb_unused wxCommandEvent& event)
     m_bDirty = true;
 } // OnRemoveExtraPathClick
 
-void CompilerOptionsDlg::OnClearExtraPathClick(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnClearExtraPathClick(wxCommandEvent& /*event*/)
 {
     wxListBox* control = XRCCTRL(*this, "lstExtraPaths", wxListBox);
     if (!control || control->IsEmpty())
@@ -2429,7 +1962,7 @@ void CompilerOptionsDlg::OnClearExtraPathClick(cb_unused wxCommandEvent& event)
     }
 } // OnClearExtraPathClick
 
-void CompilerOptionsDlg::OnIgnoreAddClick(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnIgnoreAddClick(wxCommandEvent& /*event*/)
 {
     wxListBox*  list = XRCCTRL(*this, "lstIgnore", wxListBox);
     wxTextCtrl* text = XRCCTRL(*this, "txtIgnore", wxTextCtrl);
@@ -2443,7 +1976,7 @@ void CompilerOptionsDlg::OnIgnoreAddClick(cb_unused wxCommandEvent& event)
     }
 } // OnIgnoreAddClick
 
-void CompilerOptionsDlg::OnIgnoreRemoveClick(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnIgnoreRemoveClick(wxCommandEvent& /*event*/)
 {
     wxListBox* list = XRCCTRL(*this, "lstIgnore", wxListBox);
     if (!list || list->IsEmpty())
@@ -2457,7 +1990,7 @@ void CompilerOptionsDlg::OnIgnoreRemoveClick(cb_unused wxCommandEvent& event)
     }
 } // OnIgnoreRemoveClick
 
-void CompilerOptionsDlg::OnMoveLibUpClick(cb_unused wxSpinEvent& event)
+void CompilerOptionsDlg::OnMoveLibUpClick(wxSpinEvent& /*event*/)
 {
     wxListBox* lstLibs = XRCCTRL(*this, "lstLibs", wxListBox);
     if (!lstLibs)
@@ -2470,7 +2003,7 @@ void CompilerOptionsDlg::OnMoveLibUpClick(cb_unused wxSpinEvent& event)
 
     // moving upwards: need to start from the first element
     // starting at second element, the first one cannot be moved upwards
-    for (size_t i=1; i<lstLibs->GetCount(); ++i)
+    for (size_t i=1; i<lstLibs->GetCount(); i++)
     {
         // do not move upwards if the lib before is selected, too
         if (lstLibs->IsSelected(i) && !lstLibs->IsSelected(i-1))
@@ -2486,7 +2019,7 @@ void CompilerOptionsDlg::OnMoveLibUpClick(cb_unused wxSpinEvent& event)
     }
 } // OnMoveLibUpClick
 
-void CompilerOptionsDlg::OnMoveLibDownClick(cb_unused wxSpinEvent& event)
+void CompilerOptionsDlg::OnMoveLibDownClick(wxSpinEvent& /*event*/)
 {
     wxListBox* lstLibs = XRCCTRL(*this, "lstLibs", wxListBox);
     if (!lstLibs)
@@ -2499,11 +2032,11 @@ void CompilerOptionsDlg::OnMoveLibDownClick(cb_unused wxSpinEvent& event)
 
     // moving downwards: need to start from the last element
     // starting at pre-last element, the last one cannot be moved downwards
-    for (size_t i=lstLibs->GetCount()-1; i>0; --i)
+    for (size_t i=lstLibs->GetCount()-1; i>0; i--)
     {
         // do not move downwards if the lib after is selected, too
         // notice here: as started with index+1 (due to GetCount)...
-        // ... subtract 1 all the way to achieve the real index operated on
+        // ... substract 1 all the way to achive the real index oprated on
         if (lstLibs->IsSelected(i-1) && !lstLibs->IsSelected(i))
         {
             wxString lib = lstLibs->GetString(i-1);
@@ -2517,59 +2050,33 @@ void CompilerOptionsDlg::OnMoveLibDownClick(cb_unused wxSpinEvent& event)
     }
 } // OnMoveLibDownClick
 
-void CompilerOptionsDlg::OnMoveDirUpClick(cb_unused wxSpinEvent& event)
+void CompilerOptionsDlg::OnMoveDirUpClick(wxSpinEvent& /*event*/)
 {
     wxListBox* lst = GetDirsListBox();
-    wxArrayInt sels;
-    if (!lst || lst->GetSelections(sels) < 1)
+    if (!lst || lst->GetSelection() <= 0)
         return;
-
-    // moving upwards: need to start from the first element
-    // starting at second element, the first one cannot be moved upwards
-    for (size_t i=1; i<lst->GetCount(); ++i)
-    {
-        // do not move upwards if the dir before is selected, too
-        if (lst->IsSelected(i) && !lst->IsSelected(i-1))
-        {
-            wxString dir = lst->GetString(i);
-            lst->Delete(i);
-
-            lst->InsertItems(1, &dir, i - 1);
-            lst->SetSelection(i - 1);
-
-            m_bDirty = true;
-        }
-    }
+    int sel = lst->GetSelection();
+    wxString lib = lst->GetStringSelection();
+    lst->Delete(sel);
+    lst->InsertItems(1, &lib, sel - 1);
+    lst->SetSelection(sel - 1);
+    m_bDirty = true;
 } // OnMoveDirUpClick
 
-void CompilerOptionsDlg::OnMoveDirDownClick(cb_unused wxSpinEvent& event)
+void CompilerOptionsDlg::OnMoveDirDownClick(wxSpinEvent& /*event*/)
 {
     wxListBox* lst = GetDirsListBox();
-    wxArrayInt sels;
-    if (!lst || lst->GetSelections(sels) < 1)
+    if (!lst || lst->GetSelection() == (int)(lst->GetCount()) - 1)
         return;
-
-    // moving downwards: need to start from the last element
-    // starting at pre-last element, the last one cannot be moved downwards
-    for (size_t i=lst->GetCount()-1; i>0; --i)
-    {
-        // do not move downwards if the dir after is selected, too
-        // notice here: as started with index+1 (due to GetCount)...
-        // ... subtract 1 all the way to achieve the real index operated on
-        if (lst->IsSelected(i-1) && !lst->IsSelected(i))
-        {
-            wxString dir = lst->GetString(i-1);
-            lst->Delete(i-1);
-
-            lst->InsertItems(1, &dir, i);
-            lst->SetSelection(i);
-
-            m_bDirty = true;
-        }
-    }
+    int sel = lst->GetSelection();
+    wxString lib = lst->GetStringSelection();
+    lst->Delete(sel);
+    lst->InsertItems(1, &lib, sel + 1);
+    lst->SetSelection(sel + 1);
+    m_bDirty = true;
 } // OnMoveDirDownClick
 
-void CompilerOptionsDlg::OnMasterPathClick(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnMasterPathClick(wxCommandEvent& /*event*/)
 {
     wxString path = ChooseDirectory(this,
                                     _("Select directory"),
@@ -2581,7 +2088,7 @@ void CompilerOptionsDlg::OnMasterPathClick(cb_unused wxCommandEvent& event)
     }
 } // OnMasterPathClick
 
-void CompilerOptionsDlg::OnAutoDetectClick(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnAutoDetectClick(wxCommandEvent& /*event*/)
 {
     AutoDetectCompiler();
 } // OnAutoDetectClick
@@ -2598,6 +2105,8 @@ void CompilerOptionsDlg::OnSelectProgramClick(wxCommandEvent& event)
         obj = XRCCTRL(*this, "txtLinker", wxTextCtrl);
     else if (event.GetId() == XRCID("btnLibLinker"))
         obj = XRCCTRL(*this, "txtLibLinker", wxTextCtrl);
+    else if (event.GetId() == XRCID("btnDebugger"))
+        obj = XRCCTRL(*this, "txtDebugger", wxTextCtrl);
     else if (event.GetId() == XRCID("btnResComp"))
         obj = XRCCTRL(*this, "txtResComp", wxTextCtrl);
     else if (event.GetId() == XRCID("btnMake"))
@@ -2626,7 +2135,7 @@ void CompilerOptionsDlg::OnSelectProgramClick(wxCommandEvent& event)
     m_bDirty = true;
 } // OnSelectProgramClick
 
-void CompilerOptionsDlg::OnAdvancedClick(cb_unused wxCommandEvent& event)
+void CompilerOptionsDlg::OnAdvancedClick(wxCommandEvent& /*event*/)
 {
     AnnoyingDialog dlg(_("Edit advanced compiler settings?"),
                         _("The compiler's advanced settings, need command-line "
@@ -2634,23 +2143,25 @@ void CompilerOptionsDlg::OnAdvancedClick(cb_unused wxCommandEvent& event)
                         "*exactly* what you 're doing, it is suggested to "
                         "NOT tamper with these...\n\n"
                         "Are you sure you want to proceed?"),
-                    wxART_QUESTION);
-    if (dlg.ShowModal() == AnnoyingDialog::rtYES)
+                    wxART_QUESTION,
+                    AnnoyingDialog::YES_NO,
+                    wxID_YES);
+    if (dlg.ShowModal() == wxID_YES)
     {
         wxChoice* cmb = XRCCTRL(*this, "cmbCompiler", wxChoice);
         int compilerIdx = cmb->GetSelection();
-        AdvancedCompilerOptionsDlg dlg2(this, CompilerFactory::GetCompiler(compilerIdx)->GetID());
-        PlaceWindow(&dlg2);
-        dlg2.ShowModal();
+        AdvancedCompilerOptionsDlg dlg(this, CompilerFactory::GetCompiler(compilerIdx)->GetID());
+        PlaceWindow(&dlg);
+        dlg.ShowModal();
         // check if dirty
-        if (dlg2.IsDirty())
+        if(dlg.IsDirty())
         {
 //            m_bDirty = true;  // TO DO : Activate when implemented in the adv dialog
         }
     }
 } // OnAdvancedClick
 
-void CompilerOptionsDlg::OnUpdateUI(cb_unused wxUpdateUIEvent& event)
+void CompilerOptionsDlg::OnUpdateUI(wxUpdateUIEvent& /*event*/)
 {
     bool en = false;
 
@@ -2658,11 +2169,8 @@ void CompilerOptionsDlg::OnUpdateUI(cb_unused wxUpdateUIEvent& event)
     if (control)
     {
         // edit/delete/clear/copy include dirs
-        wxArrayInt sels_dummy;
-        int num = control->GetSelections(sels_dummy);
-        en = (num > 0);
-
-        XRCCTRL(*this, "btnEditDir",  wxButton)->Enable(num == 1);
+        en = control->GetSelection() >= 0;
+        XRCCTRL(*this, "btnEditDir",  wxButton)->Enable(en);
         XRCCTRL(*this, "btnDelDir",   wxButton)->Enable(en);
         XRCCTRL(*this, "btnClearDir", wxButton)->Enable(control->GetCount() != 0);
         XRCCTRL(*this, "btnCopyDirs", wxButton)->Enable(control->GetCount() != 0);
@@ -2744,29 +2252,27 @@ void CompilerOptionsDlg::OnApply()
     //others (projects don't have Other tab)
     if (!m_pProject)
     {
-        ConfigManager* cfg = Manager::Get()->GetConfigManager(_T("compiler"));
         wxCheckBox* chk = XRCCTRL(*this, "chkIncludeFileCwd", wxCheckBox);
         if (chk)
-            cfg->Write(_T("/include_file_cwd"), (bool)chk->IsChecked());
+            Manager::Get()->GetConfigManager(_T("compiler"))->Write(_T("/include_file_cwd"), (bool)chk->IsChecked());
         chk = XRCCTRL(*this, "chkIncludePrjCwd", wxCheckBox);
         if (chk)
-            cfg->Write(_T("/include_prj_cwd"), (bool)chk->IsChecked());
-        chk = XRCCTRL(*this, "chkSkipIncludeDeps", wxCheckBox);
-        if (chk)
-            cfg->Write(_T("/skip_include_deps"), (bool)chk->IsChecked());
+            Manager::Get()->GetConfigManager(_T("compiler"))->Write(_T("/include_prj_cwd"), (bool)chk->IsChecked());
         chk = XRCCTRL(*this, "chkSaveHtmlLog", wxCheckBox);
         if (chk)
-            cfg->Write(_T("/save_html_build_log"), (bool)chk->IsChecked());
+            Manager::Get()->GetConfigManager(_T("compiler"))->Write(_T("/save_html_build_log"), (bool)chk->IsChecked());
         chk = XRCCTRL(*this, "chkFullHtmlLog", wxCheckBox);
         if (chk)
-            cfg->Write(_T("/save_html_build_log/full_command_line"), (bool)chk->IsChecked());
+            Manager::Get()->GetConfigManager(_T("compiler"))->Write(_T("/save_html_build_log/full_command_line"), (bool)chk->IsChecked());
         chk = XRCCTRL(*this, "chkBuildProgressBar", wxCheckBox);
         if (chk)
-            cfg->Write(_T("/build_progress/bar"), (bool)chk->IsChecked());
+        {
+            Manager::Get()->GetConfigManager(_T("compiler"))->Write(_T("/build_progress/bar"), (bool)chk->IsChecked());
+        }
         chk = XRCCTRL(*this, "chkBuildProgressPerc", wxCheckBox);
         if (chk)
         {
-            cfg->Write(_T("/build_progress/percentage"), (bool)chk->IsChecked());
+            Manager::Get()->GetConfigManager(_T("compiler"))->Write(_T("/build_progress/percentage"), (bool)chk->IsChecked());
             m_Compiler->m_LogBuildProgressPercentage = chk->IsChecked();
         }
         wxSpinCtrl* spn = XRCCTRL(*this, "spnParallelProcesses", wxSpinCtrl);
@@ -2776,38 +2282,26 @@ void CompilerOptionsDlg::OnApply()
                 cbMessageBox(_("You can't change the number of parallel processes while building!\nSetting ignored..."), _("Warning"), wxICON_WARNING);
             else
             {
-                cfg->Write(_T("/parallel_processes"), (int)spn->GetValue());
+                Manager::Get()->GetConfigManager(_T("compiler"))->Write(_T("/parallel_processes"), (int)spn->GetValue());
                 m_Compiler->ReAllocProcesses();
             }
         }
         spn = XRCCTRL(*this, "spnMaxErrors", wxSpinCtrl);
         if (spn)
-            cfg->Write(_T("/max_reported_errors"), (int)spn->GetValue());
+            Manager::Get()->GetConfigManager(_T("compiler"))->Write(_T("/max_reported_errors"), (int)spn->GetValue());
 
         chk = XRCCTRL(*this, "chkRebuildSeperately", wxCheckBox);
         if (chk)
-            cfg->Write(_T("/rebuild_seperately"), (bool)chk->IsChecked());
+        {
+            Manager::Get()->GetConfigManager(_T("compiler"))->Write(_T("/rebuild_seperately"), (bool)chk->IsChecked());
+        }
 
         wxListBox* lst = XRCCTRL(*this, "lstIgnore", wxListBox);
         if (lst)
         {
             wxArrayString IgnoreOutput;
             ListBox2ArrayString(IgnoreOutput, lst);
-            cfg->Write(_T("/ignore_output"), IgnoreOutput);
-        }
-
-        chk = XRCCTRL(*this, "chkNonPlatComp", wxCheckBox);
-        if (chk && (chk->IsChecked() != cfg->ReadBool(_T("/non_plat_comp"), false)))
-        {
-            if (m_Compiler->IsRunning())
-                cbMessageBox(_("You can't change the option to enable or disable non-platform compilers while building!\nSetting ignored..."), _("Warning"), wxICON_WARNING);
-            else
-            {
-                cfg->Write(_T("/non_plat_comp"), (bool)chk->IsChecked());
-                CompilerFactory::UnregisterCompilers();
-                m_Compiler->DoRegisterCompilers();
-                m_Compiler->LoadOptions();
-            }
+            Manager::Get()->GetConfigManager(_T("compiler"))->Write(_T("/ignore_output"), IgnoreOutput);
         }
     }
 
@@ -2820,13 +2314,13 @@ void CompilerOptionsDlg::OnApply()
 void CompilerOptionsDlg::OnMyCharHook(wxKeyEvent& event)
 {
     wxWindow* focused = wxWindow::FindFocus();
-    if (!focused)
+    if(!focused)
     {
         event.Skip();
         return;
     }
     int keycode = event.GetKeyCode();
-    int id      = focused->GetId();
+    int id = focused->GetId();
 
     int myid = 0;
     unsigned int myidx = 0;
@@ -2836,31 +2330,31 @@ void CompilerOptionsDlg::OnMyCharHook(wxKeyEvent& event)
     const wxChar* str_vars[4] = { _T("btnEditVar"),  _T("btnAddVar"),  _T("btnDeleteVar"),  _T("btnClearVar")   };
     const wxChar* str_xtra[4] = { _T("btnExtraEdit"),_T("btnExtraAdd"),_T("btnExtraDelete"),_T("btnExtraClear") };
 
-    if (keycode == WXK_RETURN || keycode == WXK_NUMPAD_ENTER)
-    { myidx = 0; } // Edit
-    else if (keycode == WXK_INSERT || keycode == WXK_NUMPAD_INSERT)
-    { myidx = 1; } // Add
-    else if (keycode == WXK_DELETE || keycode == WXK_NUMPAD_DELETE)
-    { myidx = 2; } // Delete
+    if(keycode == WXK_RETURN || keycode == WXK_NUMPAD_ENTER)
+        { myidx = 0; } // Edit
+    else if(keycode == WXK_INSERT || keycode == WXK_NUMPAD_INSERT)
+        { myidx = 1; } // Add
+    else if(keycode == WXK_DELETE || keycode == WXK_NUMPAD_DELETE)
+        { myidx = 2; } // Delete
     else
     {
         event.Skip();
         return;
     }
 
-    if (     id == XRCID("lstLibs")) // Link libraries
+    if(     id == XRCID("lstLibs")) // Link libraries
         { myid =  wxXmlResource::GetXRCID(str_libs[myidx]); }
-    else if (id == XRCID("lstIncludeDirs") || id == XRCID("lstLibDirs") || id == XRCID("lstResDirs")) // Directories
+    else if(id == XRCID("lstIncludeDirs") || id == XRCID("lstLibDirs") || id == XRCID("lstResDirs")) // Directories
         { myid =  wxXmlResource::GetXRCID(str_dirs[myidx]); }
-    else if (id == XRCID("lstVars")) // Custom Vars
+    else if(id == XRCID("lstVars")) // Custom Vars
         { myid =  wxXmlResource::GetXRCID(str_vars[myidx]); }
-    else if (id == XRCID("lstExtraPaths")) // Extra Paths
+    else if(id == XRCID("lstExtraPaths")) // Extra Paths
         { myid =  wxXmlResource::GetXRCID(str_xtra[myidx]); }
     else
         myid = 0;
 
     // Generate the event
-    if (myid == 0)
+    if(myid == 0)
         event.Skip();
     else
     {
@@ -2868,219 +2362,3 @@ void CompilerOptionsDlg::OnMyCharHook(wxKeyEvent& event)
         this->ProcessEvent(newevent);
     }
 } // OnMyCharHook
-
-int CompilerOptionsDlg::m_MenuOption = -1;
-
-void CompilerOptionsDlg::OnFlagsPopup(wxPropertyGridEvent& event)
-{
-    int scroll = m_FlagsPG->GetScrollPos(wxVERTICAL);
-    wxPGProperty *property = event.GetProperty();
-
-    enum FlagsMenuOptions
-    {
-        FMO_None = -1,
-        FMO_New = 0,
-        FMO_Modify,
-        FMO_Delete,
-        FMO_COnly,
-        FMO_CPPOnly,
-        FMO_ExpandAll,
-        FMO_CollapseAll
-    };
-
-    wxMenu* pop = new wxMenu;
-    pop->Append(FMO_New, _("New flag..."));
-    if (property && !property->IsCategory())
-    {
-        pop->Append(FMO_Modify, _("Modify flag..."));
-        pop->Append(FMO_Delete, _("Delete flag"));
-    }
-    pop->AppendSeparator();
-    pop->Append(FMO_COnly, _("C - only flags..."));
-    pop->Append(FMO_CPPOnly, _("C++ - only flags..."));
-    pop->AppendSeparator();
-    pop->Append(FMO_ExpandAll, _("Expand all categories"));
-    pop->Append(FMO_CollapseAll, _("Collapse all categories"));
-    pop->Connect(wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&CompilerOptionsDlg::OnFlagsPopupClick);
-    m_MenuOption = FMO_None;
-    m_FlagsPG->PopupMenu(pop);
-    delete pop;
-    if (m_MenuOption == FMO_None)
-        return;
-    if (m_MenuOption == FMO_COnly)
-    {
-        Compiler* compiler = CompilerFactory::GetCompiler(m_CurrentCompilerIdx);
-        wxTextEntryDialog dlg(this, wxT("List flags that will only be used during C compilation"),
-                              wxT("C - only flags"), compiler->GetCOnlyFlags(), wxTextEntryDialogStyle|wxTE_MULTILINE|wxRESIZE_BORDER);
-        // TODO: Hack for Ubuntu, see here: http://forums.codeblocks.org/index.php/topic,16463.msg115270.html#msg115270 (Remove if no longer needed.)
-        if (dlg.GetSize().GetHeight() < 220)
-        {
-            dlg.SetSize(dlg.GetPosition().x, dlg.GetPosition().y - (220 - dlg.GetSize().GetHeight()) / 2,
-                        dlg.GetSize().GetWidth(), 220);
-        }
-        dlg.ShowModal();
-        wxString flags = dlg.GetValue();
-        flags.Replace(wxT("\n"), wxT(" "));
-        flags.Replace(wxT("\r"), wxT(" "));
-        flags.Replace(wxT("\t"), wxT(" "));
-        flags = MakeUniqueString(flags, wxT(" "));
-        if (flags != compiler->GetCOnlyFlags())
-        {
-            compiler->SetCOnlyFlags(flags);
-            m_bDirty = true;
-        }
-        return;
-    }
-    else if (m_MenuOption == FMO_CPPOnly)
-    {
-        Compiler* compiler = CompilerFactory::GetCompiler(m_CurrentCompilerIdx);
-        wxTextEntryDialog dlg(this, wxT("List flags that will only be used during C++ compilation"),
-                              wxT("C++ - only flags"), compiler->GetCPPOnlyFlags(), wxTextEntryDialogStyle|wxTE_MULTILINE|wxRESIZE_BORDER);
-        // TODO: Hack for Ubuntu, see here: http://forums.codeblocks.org/index.php/topic,16463.msg115270.html#msg115270 (Remove if no longer needed.)
-        if (dlg.GetSize().GetHeight() < 220)
-        {
-            dlg.SetSize(dlg.GetPosition().x, dlg.GetPosition().y - (220 - dlg.GetSize().GetHeight()) / 2,
-                        dlg.GetSize().GetWidth(), 220);
-        }
-        dlg.ShowModal();
-        wxString flags = dlg.GetValue();
-        flags.Replace(wxT("\n"), wxT(" "));
-        flags.Replace(wxT("\r"), wxT(" "));
-        flags.Replace(wxT("\t"), wxT(" "));
-        flags = MakeUniqueString(flags, wxT(" "));
-        if (flags != compiler->GetCPPOnlyFlags())
-        {
-            compiler->SetCPPOnlyFlags(flags);
-            m_bDirty = true;
-        }
-        return;
-    }
-    else if (m_MenuOption == FMO_Delete)
-    {
-        size_t i = 0;
-        for (; i < m_Options.GetCount(); ++i)
-        {
-            if (m_Options.GetOption(i)->name == property->GetLabel())
-                break;
-        }
-        m_Options.RemoveOption(i);
-    }
-    else if (m_MenuOption == FMO_ExpandAll)
-    {
-        m_FlagsPG->ExpandAll();
-        return;
-    }
-    else if (m_MenuOption == FMO_CollapseAll)
-    {
-        m_FlagsPG->CollapseAll();
-        return;
-    }
-    else
-    {
-        wxArrayString categ;
-        for (size_t i = 0; i < m_Options.GetCount(); ++i)
-        {
-            CompOption* opt = m_Options.GetOption(i);
-            bool known = false;
-            for (size_t j = 0; j < categ.GetCount(); ++j)
-            {
-                if (categ[j] == opt->category)
-                {
-                    known = true;
-                    break;
-                }
-            }
-            if (!known)
-                categ.Add(opt->category);
-        }
-        if (categ.IsEmpty())
-            categ.Add(wxT("General"));
-        CompOption copt;
-        if (m_MenuOption == FMO_Modify)
-            copt = *m_Options.GetOptionByName(property->GetLabel());
-
-        wxString categoryName;
-        if (property)
-        {
-            // If we have a selected property try to find the name of the category.
-            if (property->IsCategory())
-                categoryName = property->GetLabel();
-            else
-            {
-                wxPGProperty *category = property->GetParent();
-                if (category)
-                    categoryName = category->GetLabel();
-            }
-        }
-        CompilerFlagDlg dlg(nullptr, &copt, categ, categoryName);
-        PlaceWindow(&dlg);
-        if (dlg.ShowModal() != wxID_OK)
-            return;
-        if (m_MenuOption == FMO_New)
-        {
-            size_t i;
-            if (property)
-            {
-                wxString name;
-                if (property->IsCategory())
-                {
-                    wxPGProperty *child = m_FlagsPG->GetFirstChild(property);
-                    if (child)
-                        name = child->GetLabel();
-                }
-                else
-                    name = property->GetLabel();
-                for (i = 0; i < m_Options.GetCount(); ++i)
-                {
-                    if (m_Options.GetOption(i)->name == name)
-                        break;
-                }
-            }
-            else
-                i = m_Options.GetCount() - 1;
-
-            m_Options.AddOption(copt.name, copt.option,
-                                copt.category, copt.additionalLibs,
-                                copt.checkAgainst, copt.checkMessage,
-                                copt.supersedes, copt.exclusive, i + 1);
-        }
-        else
-        {
-            CompOption* opt = m_Options.GetOptionByName(property->GetLabel());
-            wxString name = copt.name + wxT("  [");
-            if (copt.option.IsEmpty())
-                name += copt.additionalLibs;
-            else
-                name += copt.option;
-            name += wxT("]");
-            opt->name           = name;
-            opt->option         = copt.option;
-            opt->additionalLibs = copt.additionalLibs;
-            opt->category       = copt.category;
-            opt->checkAgainst   = copt.checkAgainst;
-            opt->checkMessage   = copt.checkMessage;
-            opt->supersedes     = copt.supersedes;
-            opt->exclusive      = copt.exclusive;
-        }
-    }
-    DoFillOptions();
-    m_FlagsPG->ScrollLines(scroll);
-    m_bFlagsDirty = true;
-}
-
-void CompilerOptionsDlg::OnFlagsPopupClick(wxCommandEvent& event)
-{
-    m_MenuOption = event.GetId();
-}
-
-void CompilerOptionsDlg::OnOptionDoubleClick(wxPropertyGridEvent& event)
-{
-    wxPGProperty* property = event.GetProperty();
-    // For bool properties automatically toggle the checkbox on double click.
-    if (property && property->IsKindOf(CLASSINFO(wxBoolProperty)))
-    {
-        bool realValue = m_FlagsPG->GetPropertyValue(property);
-        m_FlagsPG->ChangePropertyValue(property, !realValue);
-    }
-    event.Skip();
-}

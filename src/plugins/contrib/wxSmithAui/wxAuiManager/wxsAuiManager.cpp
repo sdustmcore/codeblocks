@@ -57,10 +57,10 @@ namespace
                 Connect(wxID_ANY,wxEVT_PAINT,(wxObjectEventFunction)&wxsAuiManagerPreview::OnPaint);
             }
 
-            void SetAuiManager(wxSmithAuiManager* AuiManagerIn)
+            void SetAuiManager(wxSmithAuiManager* AuiManager)
             {
                 Disconnect(wxID_ANY,wxEVT_PAINT,(wxObjectEventFunction)&wxsAuiManagerPreview::OnPaint);
-                AuiManager = AuiManagerIn;
+                AuiManager = AuiManager;
             }
 
         private:
@@ -215,10 +215,6 @@ void wxsAuiPaneInfoExtra::OnPropertyChanged()
 
             case wxAUI_DOCK_CENTER:
                 m_DockableFlags |= wxsAuiDockableProperty::Dockable;
-                break;
-
-            default:
-                break;
         }
     }
 
@@ -266,10 +262,6 @@ void wxsAuiPaneInfoExtra::OnPropertyChanged()
                 m_CloseButton    = true;
                 m_Gripper        = wxLEFT;
                 if ( m_Layer == 0 ) m_Layer = 10;
-                break;
-
-            default:
-                break;
         }
     }
 
@@ -290,18 +282,16 @@ wxString wxsAuiPaneInfoExtra::AllParamsCode(wxsCoderContext* Ctx,wxsItem* ChildP
             //Standard pane type
             switch ( m_StandardPane )
             {
+                case DefaultPane:
+                    str << _T(".DefaultPane()");
+                    break;
+
                 case CenterPane:
                     str << _T(".CenterPane()");
                     break;
 
                 case ToolbarPane:
                     str << _T(".ToolbarPane()");
-                    break;
-
-                case DefaultPane: // fall-though
-                default:
-                    str << _T(".DefaultPane()");
-                    break;
             }
 
             //Caption and caption bar buttons
@@ -317,9 +307,9 @@ wxString wxsAuiPaneInfoExtra::AllParamsCode(wxsCoderContext* Ctx,wxsItem* ChildP
             else if ( !m_CloseButton && !(m_StandardPane == CenterPane) ) str << _T(".CloseButton(false)");
 
             //Layer, row and position
-            if ( m_Layer > 0    ) str << wxString::Format(_T(".Layer(%ld)"),m_Layer);
-            if ( m_Row > 0      ) str << wxString::Format(_T(".Row(%ld)"),m_Row);
-            if ( m_Position != 0 ) str << wxString::Format(_T(".Position(%ld)"),m_Position);
+            if ( m_Layer > 0    ) str << wxString::Format(_T(".Layer(%d)"),m_Layer);
+            if ( m_Row > 0      ) str << wxString::Format(_T(".Row(%d)"),m_Row);
+            if ( m_Position != 0 ) str << wxString::Format(_T(".Position(%d)"),m_Position);
 
             //Dock or Float
             if ( !m_Docked ) str << _T(".Float()");
@@ -373,7 +363,6 @@ wxString wxsAuiPaneInfoExtra::AllParamsCode(wxsCoderContext* Ctx,wxsItem* ChildP
             //Destroy on close
             if ( m_DestroyOnClose ) str << _T(".DestroyOnClose()");
 
-        case wxsUnknownLanguage: // fall-through
         default:
             wxsCodeMarks::Unknown(_T("wxsAuiManagerExtra::AllParamsCode"),Ctx->m_Language);
     }
@@ -389,18 +378,16 @@ wxAuiPaneInfo wxsAuiPaneInfoExtra::GetPaneInfoFlags(wxWindow* Parent,wxsItem* Ch
     //Standard pane type
     switch ( m_StandardPane )
     {
+        case DefaultPane:
+            PaneInfo.DefaultPane();
+            break;
+
         case CenterPane:
             PaneInfo.CenterPane();
             break;
 
         case ToolbarPane:
             PaneInfo.ToolbarPane();
-            break;
-
-        case DefaultPane: // fall-though
-        default:
-            PaneInfo.DefaultPane();
-            break;
     }
 
     //Caption and caption bar buttons
@@ -481,7 +468,6 @@ void wxsAuiManager::OnBuildAuiManagerCreatingCode()
             return;
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsAuiManager::OnBuildAuiManagerCreatingCode"),GetLanguage());
@@ -498,9 +484,7 @@ void wxsAuiManager::OnBuildCreatingCode()
     for ( int i=0; i<Count; i++ )
     {
         wxsItem* Child = GetChild(i);
-        wxsAuiPaneInfoExtra* ANBExtra = (wxsAuiPaneInfoExtra*)GetChildExtra(i);
-
-        if (!Child || !ANBExtra) continue;
+        wxsAuiPaneInfoExtra* Extra = (wxsAuiPaneInfoExtra*)GetChildExtra(i);
 
         // Using same parent as we got, AuiManager is not a parent window
         Child->BuildCode(GetCoderContext());
@@ -513,11 +497,14 @@ void wxsAuiManager::OnBuildCreatingCode()
                 {
                     case wxsCPP:
                     {
-                        Codef(_T("%AAddPane(%o, wxAuiPaneInfo()%s);\n"),i,ANBExtra->AllParamsCode(GetCoderContext(),Child).wx_str());
+                        #if wxCHECK_VERSION(2, 9, 0)
+                        Codef(_T("%AAddPane(%o, wxAuiPaneInfo()%s);\n"),i,Extra->AllParamsCode(GetCoderContext(),Child).wx_str());
+                        #else
+                        Codef(_T("%AAddPane(%o, wxAuiPaneInfo()%s);\n"),i,Extra->AllParamsCode(GetCoderContext(),Child).c_str());
+                        #endif
                         break;
                     }
 
-                    case wxsUnknownLanguage: // fall-through
                     default:
                     {
                         UnknownLang = true;
@@ -534,7 +521,9 @@ void wxsAuiManager::OnBuildCreatingCode()
         Codef(_T("%AUpdate();\n"));
 
     if ( UnknownLang )
+    {
         wxsCodeMarks::Unknown(_T("wxsAuiManager::OnBuildCreatingCode"),GetLanguage());
+    }
 }
 
 wxObject* wxsAuiManager::OnBuildPreview(wxWindow* Parent,long Flags)
@@ -548,7 +537,9 @@ wxObject* wxsAuiManager::OnBuildPreview(wxWindow* Parent,long Flags)
     {
         NewParent = new wxsAuiManagerPreview(Parent);
         if (Count)
+        {
             AuiManager = new wxSmithAuiManager(NewParent, Style());
+        }
     }
     else
     {
@@ -562,7 +553,7 @@ wxObject* wxsAuiManager::OnBuildPreview(wxWindow* Parent,long Flags)
         for ( int i=0; i<Count; i++ )
         {
             wxsItem* Child = GetChild(i);
-            wxsAuiPaneInfoExtra* APIExtra = (wxsAuiPaneInfoExtra*)GetChildExtra(i);
+            wxsAuiPaneInfoExtra* Extra = (wxsAuiPaneInfoExtra*)GetChildExtra(i);
 
             // We pass either Parent passed to current BuildPreview function
             // or pointer to additional parent currently created
@@ -572,8 +563,7 @@ wxObject* wxsAuiManager::OnBuildPreview(wxWindow* Parent,long Flags)
 
             wxWindow* ChildAsWindow = wxDynamicCast(ChildPreview, wxWindow);
 
-            if (APIExtra)
-                PaneInfo = APIExtra->GetPaneInfoFlags(NewParent, Child, Flags & pfExact);
+            PaneInfo = Extra->GetPaneInfoFlags(NewParent, Child, Flags & pfExact);
 
             #if wxCHECK_VERSION(2,8,9)
             wxAuiToolBar* ChildAsToolBar = wxDynamicCast(ChildAsWindow, wxAuiToolBar);
@@ -589,7 +579,9 @@ wxObject* wxsAuiManager::OnBuildPreview(wxWindow* Parent,long Flags)
     if ( !(Flags & pfExact) )
     {
         if (Count)
+        {
             wxDynamicCast(NewParent, wxsAuiManagerPreview)->SetAuiManager(AuiManager);
+        }
         return NewParent;
     }
 
@@ -606,17 +598,21 @@ bool wxsAuiManager::OnCanAddChild(wxsItem* Item,bool ShowMessage)
     if ( Item->GetType() == wxsTSizer )
     {
         if ( ShowMessage )
+        {
             wxMessageBox(_("Can not add sizer into AuiManager.\nAdd panels first."));
+        }
         return false;
     }
     else if( Item->GetType() == wxsTSpacer )
     {
         if ( ShowMessage )
+        {
             wxMessageBox(_("Spacer can be added into sizer only"));
+        }
         return false;
     }
 
-    return wxsParent::OnCanAddChild(Item,ShowMessage);
+	return wxsParent::OnCanAddChild(Item,ShowMessage);
 }
 
 bool wxsAuiManager::OnCanAddToParent(wxsParent* Parent,bool ShowMessage)
@@ -624,32 +620,40 @@ bool wxsAuiManager::OnCanAddToParent(wxsParent* Parent,bool ShowMessage)
     if ( Parent->GetClassName() == _T("wxAuiManager") )
     {
         if ( ShowMessage )
+        {
             wxMessageBox(_("wxAuiManager can't be added to a wxAuiManager. Add panels first."));
+        }
         return false;
     }
 
     if ( Parent->GetClassName().EndsWith(_T("book")) )
     {
         if ( ShowMessage )
+        {
             wxMessageBox(_("wxAuiManager can't be added to a book type widget. Add panels first."));
+        }
         return false;
     }
 
     if ( Parent->GetType() == wxsTSizer )
     {
         if ( ShowMessage )
+        {
             wxMessageBox(_("wxAuiManager can't be added to a sizer. Add panels first."));
+        }
         return false;
     }
 
     if ( !wxDynamicCast(Parent->BuildPreview(new wxFrame(0,-1,wxEmptyString),0),wxWindow) )
     {
         if ( ShowMessage )
+        {
             wxMessageBox(_("wxAuiManager can only be added to a wxWindow descendant."));
+        }
         return false;
     }
 
-    return wxsParent::OnCanAddToParent(Parent,ShowMessage);
+	return wxsParent::OnCanAddToParent(Parent,ShowMessage);
 }
 
 void wxsAuiManager::OnAddChildQPP(wxsItem* Child,wxsAdvQPP* QPP)
@@ -661,7 +665,9 @@ void wxsAuiManager::OnAddChildQPP(wxsItem* Child,wxsAdvQPP* QPP)
     wxsAuiPaneInfoExtra* ChildExtra = (wxsAuiPaneInfoExtra*)GetChildExtra(Index);
 
     if ( Index >= 0 )
+    {
         QPP->Register(new wxsAuiManagerParentQP(QPP,(wxsAuiPaneInfoExtra*)GetChildExtra(Index)),_("PaneInfo"));
+    }
 
     if ( ChildExtra->m_FirstAdd )
     {

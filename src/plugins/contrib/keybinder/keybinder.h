@@ -97,13 +97,7 @@ public:
 
     wxKeyBind(const wxString &key) {
         m_nFlags = StringToKeyModifier(key);
-        //Handle Ctrl-- and Ctrl-+ keys
-        if (!key.IsEmpty() && key.Last() == '-')
-            m_nKeyCode = '-';
-        else if (!key.IsEmpty() && key.Last() == '+')
-            m_nKeyCode = '+';
-        else
-            m_nKeyCode = StringToKeyCode(key.AfterLast('+').AfterLast('-'));
+        m_nKeyCode = StringToKeyCode(key.AfterLast('+').AfterLast('-'));
     }
 
     virtual void DeepCopy(const wxKeyBind &p) {
@@ -254,8 +248,8 @@ public:        // static
 
     //! Creates a new command of the given type with the given ID.
     //! This function is used mainly in wxCmd::Load.
-    static wxCmd* CreateNew(int type, int id, bool updateMnu = true);
-    static wxCmd* CreateNew(wxString cmdName, int type, int id, bool updateMnu = true); //+v0.3
+    static wxCmd *CreateNew(int type, int id, bool updateMnu = true);
+    static wxCmd *CreateNew(wxString cmdName, int type, int id, bool updateMnu = true); //+v0.3
 
     //! Adds a new command type to our static list.
     static void AddCmdType(int type, wxCmdCreationFnc fnc);
@@ -404,7 +398,9 @@ public:
     //! Returns FALSE if the given key does not contain info about
     //! this command's type.
     bool Load(wxConfigBase *p, const wxString &key = wxEmptyString);
-    bool LoadFromString(const wxString& cfgCmdString);
+
+
+
 
     // Getters
     // ---------------------
@@ -825,7 +821,6 @@ public:        // miscellaneous
 
     //! Loads from the given wxConfig object a set of keybindings.
     bool Load(wxConfigBase *p, const wxString &key = wxEmptyString);
-    bool LoadFromString(const wxString& cfgCmdString);
 
     //+v0.3 get name and description from loaded commands
     bool GetNameandDescription(wxConfigBase* p, const wxString &key, wxString& strName, wxString& strDescription);
@@ -1194,13 +1189,7 @@ public:
     //! Returns TRUE if this window is containing a valid key combination.
     bool IsValidKeyComb() const {
         //-return !GetValue().IsEmpty() && GetValue().Last() != '+';
-        if (GetValue().IsEmpty())
-            return false;
-        //Handle Ctrl-- and Ctrl-+ keys
-        if( (GetValue().Last() == '-') && (GetValue()[GetValue().Length() - 2] != '-') )
-            return false;
-
-        return true;
+        return !GetValue().IsEmpty() && GetValue().Last() != '-';
     }
 
 private:

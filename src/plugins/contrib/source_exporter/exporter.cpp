@@ -75,7 +75,7 @@ void Exporter::OnRelease(bool /*appShutDown*/)
 void Exporter::BuildMenu(wxMenuBar *menuBar)
 {
   // find "File" menu position
-  int fileMenuPos = menuBar->FindMenu(_("&File"));
+  int fileMenuPos = menuBar->FindMenu(_("File"));
 
   if (fileMenuPos == -1)
   {
@@ -128,7 +128,7 @@ void Exporter::RemoveMenu(wxMenuBar *menuBar)
 
 void Exporter::OnUpdateUI(wxUpdateUIEvent &event)
 {
-  if (Manager::IsAppShuttingDown())
+  if (Manager::isappShuttingDown())
   {
     event.Skip();
     return;
@@ -183,24 +183,26 @@ void Exporter::ExportFile(BaseExporter *exp, const wxString &default_extension, 
     return;
   }
 
-  EditorManager* em = Manager::Get()->GetEditorManager();
-  cbEditor*      cb = em->GetBuiltinActiveEditor();
-
+  EditorManager *em = Manager::Get()->GetEditorManager();
+  cbEditor *cb = em->GetBuiltinActiveEditor();
   wxString filename = wxFileSelector(_("Choose the filename"), _T(""), wxFileName(cb->GetFilename()).GetName() + _T(".") + default_extension, default_extension, wildcard, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
   if (filename.IsEmpty())
   {
     return;
   }
 
-  cbStyledTextCtrl* stc = cb->GetControl();
-  if (!stc)
-      return;
+  cbStyledTextCtrl* ed = cb->GetControl();
+  wxMemoryBuffer mb = ed->GetStyledText(0, ed->GetLength() - 1);
 
   int lineCount = -1;
+
   if (wxMessageBox(_("Would you like to have the line numbers printed in the exported file?"), _("Export line numbers"), wxYES_NO | wxYES_DEFAULT | wxICON_QUESTION) == wxYES)
   {
-    lineCount = stc->GetLineCount();
+    lineCount = cb->GetControl()->GetLineCount();
   }
 
-  exp->Export(filename, cb->GetFilename(), stc->GetStyledText(0, stc->GetLength() - 1), cb->GetColourSet(), lineCount, stc->GetTabWidth());
+  EditorColourSet *ecs = cb->GetColourSet();
+
+  exp->Export(filename, cb->GetFilename(), mb, ecs, lineCount);
 }

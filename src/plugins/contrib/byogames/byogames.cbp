@@ -10,7 +10,7 @@
 				<Option object_output="..\..\..\.objs\plugins\contrib\byogames" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --multiple-instance -na -ns -nd -p debug" />
+				<Option parameters="--debug-log -na -ns -nd" />
 				<Option host_application="..\..\..\devel\codeblocks.exe" />
 			</Target>
 			<Environment>
@@ -23,7 +23,7 @@
 		</VirtualTargets>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add option="$(#CB_RELEASE_TYPE)" />
+			<Add option="-g" />
 			<Add option="-pipe" />
 			<Add option="-fmessage-length=0" />
 			<Add option="-fexceptions" />
@@ -37,8 +37,11 @@
 			<Add option="-DWX_PRECOMP" />
 			<Add option="-DwxUSE_UNICODE" />
 			<Add option="-DBUILDING_PLUGIN" />
+			<Add option="-DWXMAKINGDLL_PROPGRID" />
+			<Add option="-DwxPG_USE_WXMODULE=0" />
 			<Add directory="$(#WX.include)" />
 			<Add directory="$(#WX.lib)\gcc_dll$(WX_CFG)\msw$(WX_SUFFIX)" />
+			<Add directory="$(#WX)\contrib\include" />
 			<Add directory="..\..\..\include" />
 			<Add directory="..\..\..\sdk\wxscintilla\include" />
 			<Add directory="..\..\..\include\tinyxml" />

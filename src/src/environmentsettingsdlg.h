@@ -32,29 +32,13 @@ class EnvironmentSettingsDlg : public wxScrollingDialog
         void OnAutoHide(wxCommandEvent& event);
         void OnI18NCheck(wxCommandEvent& event);
         void OnSettingsIconsSize(wxCommandEvent& event);
-        void OnDblClickMaximizes(wxCommandEvent& event);
-        void OnMousewheelModifier(wxKeyEvent& event);
-        void OnUseTabMousewheel(wxCommandEvent& event);
-
-        void OnChooseAppColourCategory(wxCommandEvent &event);
-        void OnChooseAppColourItem(wxCommandEvent &event);
-        void OnClickAppColour(wxCommandEvent &event);
 	private:
         void AddPluginPanels();
         void LoadListbookImages();
         void UpdateListbookImages();
 
-        void FillApplicationColours();
-        void WriteApplicationColours();
-        wxString AnnoyingDlgReturnToString(const wxString& caption);
-        wxString StringToAnnoyingDlgReturn(const wxString& caption);
-    private:
         wxAuiDockArt* m_pArt;
         ConfigurationPanelsArray m_PluginPanels;
-        std::map<wxString, wxColour> m_ChangedAppColours;
-        std::map<wxString, wxString> m_AnnoyingDlgReturnMap;
-        wxImageList* m_pImageList;
-
         DECLARE_EVENT_TABLE()
 };
 

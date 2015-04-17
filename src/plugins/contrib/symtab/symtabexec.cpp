@@ -121,7 +121,7 @@ void SymTabExecDlg::DoInitDialog()
     SymTabExecDlgLoaded =
       wxXmlResource::Get()->LoadObject(this, parent, _T("dlgSymTabExec"),_T("wxScrollingDialog"));
 
-    wxFont font(10, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+    wxFont font(10, wxMODERN, wxNORMAL, wxNORMAL);
 
     m_ListCtrl = XRCCTRL(*this, "lstLib2Symbol",     wxListCtrl);
     // Setting colums names
@@ -239,7 +239,7 @@ void SymTabExecDlg::ClearUserData()
 /* ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- */
 
 // Sorting function of the nm output columns
-inline int wxCALLBACK SortFunction(wxIntPtr item1, wxIntPtr item2, wxIntPtr dlg)
+int wxCALLBACK SortFunction(long item1, long item2, long dlg)
 {
   SymTabExecDlg   *dialog = (SymTabExecDlg*)   dlg;
   customListEntry *data1  = (customListEntry*) item1;
@@ -288,7 +288,7 @@ void SymTabExecDlg::OnColumnClick(wxListEvent& event)
 
   ms_iSortColumn = event.GetColumn();
   wxBusyInfo wait(_("Please wait, sorting..."));
-  m_ListCtrl->SortItems(SortFunction, (intptr_t)this);
+  m_ListCtrl->SortItems(SortFunction, (long)this);
 }// OnColumnClick
 
 /* ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- */
@@ -505,7 +505,7 @@ int SymTabExecDlg::ParseOutputSuccess(wxString lib, wxString filter)
     return 0;
   }
 
-	Manager::Get()->GetLogManager()->DebugLog(F(_T("SymTab: Parsing %lu items..."), static_cast<unsigned long>(count)));
+	Manager::Get()->GetLogManager()->DebugLog(F(_T("SymTab: Parsing %d items..."), count));
 
   wxProgressDialog* progress = 0L;
   if (count>2000) // avoid flickering for small libs
@@ -566,7 +566,7 @@ int SymTabExecDlg::ParseOutputSuccess(wxString lib, wxString filter)
           }
 
           // now associate a user-data with this entry
-          m_ListCtrl->SetItemData(item, (intptr_t)new customListEntry(n, the_value, the_type, the_name));
+          m_ListCtrl->SetItemData(item, (long)new customListEntry(n, the_value, the_type, the_name));
 
           ++entries;
         }

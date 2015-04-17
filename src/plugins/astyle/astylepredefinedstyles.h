@@ -13,15 +13,10 @@ enum AStylePredefinedStyle
   aspsKr,
   aspsStroustrup,
   aspsWhitesmith,
-  aspsVTK,
   aspsBanner,
   aspsGnu,
   aspsLinux,
   aspsHorstmann,
-  asps1TBS,
-  aspsGoogle,
-  aspsPico,
-  aspsLisp,
   aspsCustom
 };
 

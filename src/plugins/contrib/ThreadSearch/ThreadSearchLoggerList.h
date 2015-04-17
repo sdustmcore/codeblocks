@@ -51,8 +51,6 @@ public:
 
     /** Called on search begin to prepare logger. */
     virtual void OnSearchBegin(const ThreadSearchFindData& findData);
-    /** Called on search end */
-    virtual void OnSearchEnd();
 
     /** Returns the logger window. */
     virtual wxWindow* GetWindow();
@@ -66,8 +64,6 @@ public:
     /** Double click event handler */
     void OnLoggerListDoubleClick(wxListEvent& event);
 
-    /** Clicked in the header of the list control */
-    void OnColumnClick(wxListEvent& event);
 protected:
     /** SetListColumns
       * The SimpleListLog constructor does not set the provided columns on Linux.
@@ -114,13 +110,8 @@ protected:
     /** Deletes all items from the List */
     void DeleteListItems();
 
-private:
     wxListCtrl* m_pListLog;
     long        m_IndexOffset;
-    size_t      m_TotalLinesFound; // Count the number of found lines/matches
-    int         m_SortColumn;
-    bool        m_Ascending;
-    bool        m_MadeVisible;
 };
 
 #endif // THREAD_SEARCH_LOGGER_LIST_H

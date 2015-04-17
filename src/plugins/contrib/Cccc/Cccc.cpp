@@ -94,8 +94,6 @@ void Cccc::AppendToLog(const wxString& Text)
     }
 } // end of AppendToLog
 
-namespace
-{
 bool CheckRequirements()
 {
     cbProject* Project = Manager::Get()->GetProjectManager()->GetActiveProject();
@@ -109,7 +107,6 @@ bool CheckRequirements()
     }
     return true;
 }  // end of CheckRequirements
-}
 
 int Cccc::Execute()
 {
@@ -120,10 +117,11 @@ int Cccc::Execute()
 
     cbProject* Project = Manager::Get()->GetProjectManager()->GetActiveProject();
     ::wxSetWorkingDirectory(Project->GetBasePath());
+    const long Files = Project->GetFilesCount();
     wxString ListOfFileNames;
-    for (FilesList::iterator it = Project->GetFilesList().begin(); it != Project->GetFilesList().end(); ++it)
+    for (int File = 0; File < Files; ++File)
     {
-        ProjectFile* pf = *it;
+        ProjectFile* pf = Project->GetFile(File);
         ListOfFileNames += _T("\"") + pf->relativeFilename + _T("\" ");
     }
 

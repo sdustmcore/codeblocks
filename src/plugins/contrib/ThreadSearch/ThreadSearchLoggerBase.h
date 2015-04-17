@@ -64,9 +64,6 @@ public:
     /** Called on search begin to prepare logger. */
     virtual void OnSearchBegin(const ThreadSearchFindData& findData) = 0;
 
-    /** Called on search end */
-    virtual void OnSearchEnd() {};
-
     /** Returns logger window. */
     virtual wxWindow* GetWindow() = 0;
 

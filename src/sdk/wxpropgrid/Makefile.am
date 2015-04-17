@@ -1,7 +1,7 @@
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
-		-I$(top_srcdir)/src/sdk/wxpropgrid/include \
-		-DEXPORT_LIB \
-		-DwxPG_SUPPORT_TOOLTIPS
+INCLUDES = $(WX_CXXFLAGS) \
+		-I$(top_srcdir)/src/sdk/wxpropgrid/include
+
+AM_CPPFLAGS = -DWXMAKINGLIB_PROPGRID -DwxPG_USE_WXMODULE=0
 
 noinst_LTLIBRARIES = libwxpropgrid.la
 

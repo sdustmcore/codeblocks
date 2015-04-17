@@ -19,6 +19,7 @@
 #include "Scintilla.h"
 #include "SciLexer.h"
 
+#include "PropSetSimple.h"
 #include "WordList.h"
 #include "LexAccessor.h"
 #include "Accessor.h"
@@ -30,12 +31,27 @@
 using namespace Scintilla;
 #endif
 
+static inline bool IsAWordChar(const int ch) {
+	return (ch < 0x80 && (isalnum(ch) || (ch == '_')));
+}
+
 static inline bool IsAKeywordChar(const int ch) {
 	return (ch < 0x80 && (isalnum(ch) || (ch == '_') || (ch == ' ')));
 }
 
 static inline bool IsASetChar(const int ch) {
 	return (ch < 0x80 && (isalnum(ch) || (ch == '_') || (ch == '.') || (ch == '-')));
+}
+
+static inline bool IsAnOperator(char ch) {
+	// '.' left out as it is used to make up numbers
+	if (ch == '*' || ch == '/' || ch == '-' || ch == '+' ||
+		ch == '(' || ch == ')' || ch == '=' || ch == '^' ||
+		ch == '[' || ch == ']' || ch == '<' || ch == '&' ||
+		ch == '>' || ch == ',' || ch == '|' || ch == '~' ||
+		ch == '$' || ch == ':' || ch == '%')
+		return true;
+	return false;
 }
 
 static void ColouriseABAQUSDoc(unsigned int startPos, int length, int initStyle, WordList*[] /* *keywordlists[] */,

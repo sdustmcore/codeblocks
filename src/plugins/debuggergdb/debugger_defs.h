@@ -8,12 +8,9 @@
 
 #include <wx/string.h>
 #include <wx/dynarray.h>
-#include <deque>
-#include <vector>
-
-#include "debuggermanager.h"
 
 class DebuggerDriver;
+class DebuggerTree;
 
 extern const int DEBUGGER_CURSOR_CHANGED; ///< wxCommandEvent ID fired when the cursor has changed.
 extern const int DEBUGGER_SHOW_FILE_LINE; ///< wxCommandEvent ID fired to display a file/line (w/out changing the cursor)
@@ -68,12 +65,6 @@ class DebuggerCmd
           */
         virtual void ParseOutput(const wxString& output);
 
-        /** Tells if the command is a continue type command (continue, step, next and run to cursor
-          * commands should be marked as such)
-          * @return true if the command is continue type command
-          */
-        virtual bool IsContinueCommand() const { return false; }
-
         wxString m_Cmd;         ///< the actual command
     protected:
         DebuggerDriver* m_pDriver; ///< the driver
@@ -99,25 +90,15 @@ class DebuggerInfoCmd : public DebuggerCmd
         wxString m_Title;
 };
 
-/** Base class for all Continue type of commands */
-class DebuggerContinueBaseCmd : public DebuggerCmd
-{
-    public:
-        DebuggerContinueBaseCmd(DebuggerDriver* driver, const wxString& cmd = _T(""), bool logToNormalLog = false) :
-            DebuggerCmd(driver, cmd, logToNormalLog)
-        {
-        }
-
-        bool IsContinueCommand() const { return true; }
-};
-
-/** Action-only debugger command to signal the watches tree to update. */
+/** Action-only debugger comand to signal the watches tree to update. */
 class DbgCmd_UpdateWatchesTree : public DebuggerCmd
 {
     public:
-        DbgCmd_UpdateWatchesTree(DebuggerDriver* driver);
+        DbgCmd_UpdateWatchesTree(DebuggerDriver* driver, DebuggerTree* tree);
         virtual ~DbgCmd_UpdateWatchesTree(){}
         virtual void Action();
+    protected:
+        DebuggerTree* m_pTree;
 };
 
 /** Debugger breakpoint interface.
@@ -125,14 +106,14 @@ class DbgCmd_UpdateWatchesTree : public DebuggerCmd
   * This is the struct used for debugger breakpoints.
   */
 ////////////////////////////////////////////////////////////////////////////////
-struct DebuggerBreakpoint : cbBreakpoint
+struct DebuggerBreakpoint
 {
-    enum BreakpointType
-    {
-        bptCode = 0,    ///< Normal file/line breakpoint
-        bptFunction,    ///< Function signature breakpoint
-        bptData            ///< Data breakpoint
-    };
+	enum BreakpointType
+	{
+		bptCode = 0,	///< Normal file/line breakpoint
+		bptFunction,	///< Function signature breakpoint
+		bptData			///< Data breakpoint
+	};
 
     /** Constructor.
       * Sets default values for members.
@@ -154,18 +135,6 @@ struct DebuggerBreakpoint : cbBreakpoint
         breakOnWrite(true),
         userData(0)
     {}
-
-    // from cbBreakpoint
-    virtual void SetEnabled(bool flag);
-    virtual wxString GetLocation() const;
-    virtual int GetLine() const;
-    virtual wxString GetLineString() const;
-    virtual wxString GetType() const;
-    virtual wxString GetInfo() const;
-    virtual bool IsEnabled() const;
-    virtual bool IsVisibleInEditor() const;
-    virtual bool IsTemporary() const;
-
     BreakpointType type; ///< The type of this breakpoint.
     wxString filename; ///< The filename for the breakpoint (kept as relative).
     wxString filenameAsPassed; ///< The filename for the breakpoint as passed to the debugger (i.e. full filename).
@@ -188,7 +157,7 @@ struct DebuggerBreakpoint : cbBreakpoint
     bool breakOnWrite; ///< Valid only for type==bptData: break when memory is written to.
     void* userData; ///< Custom user data.
 };
-typedef std::deque<cb::shared_ptr<DebuggerBreakpoint> > BreakpointsList;
+WX_DEFINE_ARRAY(DebuggerBreakpoint*, BreakpointsList);
 
 /** Watch variable format.
   *
@@ -209,55 +178,54 @@ enum WatchFormat
     Any ///< used for watches searches
 };
 
-class GDBWatch : public cbWatch
+/// How to parse strings passed in DebuggerTree::BuildTree()
+enum WatchStringFormat
 {
-    public:
-        GDBWatch(wxString const &symbol);
-        virtual ~GDBWatch();
-    public:
+    wsfGDB, ///< GDB format
+    wsfCDB ///< CDB/NTSD format
+};
 
-        virtual void GetSymbol(wxString &symbol) const;
-        virtual void GetValue(wxString &value) const;
-        virtual bool SetValue(const wxString &value);
-        virtual void GetFullWatchString(wxString &full_watch) const;
-        virtual void GetType(wxString &type) const;
-        virtual void SetType(const wxString &type);
+/** Watch variable.
+  *
+  * This is used to define debugger watch variables.
+  */
+struct Watch
+{
+    Watch(const wxString& k, WatchFormat f = Undefined) : keyword(k), format(f), is_array(false), array_start(0), array_count(0), hasActiveCommand(false), pendingDelete(false) {}
+    Watch(const Watch& rhs) : keyword(rhs.keyword), format(rhs.format), is_array(rhs.is_array), array_start(rhs.array_start), array_count(rhs.array_count), hasActiveCommand(rhs.hasActiveCommand), pendingDelete(rhs.pendingDelete) {}
+    wxString keyword; ///< The symbol to watch.
+    WatchFormat format; ///< The format to use for display.
+    bool is_array; ///< True if it is an array, false if not.
+    size_t array_start; ///< The array start (valid for array types only).
+    size_t array_count; ///< The array count (valid for array types only).
+    bool hasActiveCommand;
+    bool pendingDelete;
+};
+WX_DECLARE_OBJARRAY(Watch, WatchesArray);
 
-        virtual wxString const & GetDebugString() const;
-    public:
-        void SetDebugValue(wxString const &value);
-        void SetSymbol(const wxString& symbol);
-
-        void SetFormat(WatchFormat format);
-        WatchFormat GetFormat() const;
-
-        void SetArray(bool flag);
-        bool IsArray() const;
-        void SetArrayParams(int start, int count);
-        int GetArrayStart() const;
-        int GetArrayCount() const;
-
-        void SetForTooltip(bool flag = true);
-        bool GetForTooltip() const;
-
-    protected:
-        virtual void DoDestroy();
-
-    private:
-        wxString m_symbol;
-        wxString m_type;
-        wxString m_raw_value;
-        wxString m_debug_value;
-        WatchFormat m_format;
-        int m_array_start;
-        int m_array_count;
-        bool m_is_array;
-        bool m_forTooltip;
-    };
-
-typedef std::vector<cb::shared_ptr<GDBWatch> > WatchesContainer;
-
-bool IsPointerType(wxString type);
-wxString CleanStringValue(wxString value);
+/** Stack frame.
+  *
+  * This keeps info about a specific stack frame.
+  */
+struct StackFrame
+{
+    StackFrame() : valid(false), number(0), address(0) {}
+    /** Clear everything. */
+    void Clear()
+    {
+        valid = false;
+        number = 0;
+        address = 0;
+        function.Clear();
+        file.Clear();
+        line.Clear();
+    }
+    bool valid; ///< Is this stack frame valid?
+    unsigned long int number; ///< Stack frame's number (used in backtraces).
+    unsigned long int address; ///< Stack frame's address.
+    wxString function; ///< Current function name.
+    wxString file; ///< Current file.
+    wxString line; ///< Current line in file.
+};
 
 #endif // DEBUGGER_DEFS_H

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2003-2011 Alberto Demichelis
+Copyright (c) 2003-2009 Alberto Demichelis
 
 This software is provided 'as-is', without any
 express or implied warranty. In no event will the
@@ -40,34 +40,31 @@ extern "C" {
 #endif
 
 #if (defined(_WIN64) || defined(_LP64))
-#ifndef _SQ64
 #define _SQ64
 #endif
-#endif
-
 
 #ifdef _SQ64
-    #ifdef _MSC_VER
-        typedef __int64 SQInteger;
-        typedef unsigned __int64 SQUnsignedInteger;
-        typedef unsigned __int64 SQHash; /*should be the same size of a pointer*/
-    // C::B patch: For Win64 build with GCC
-    #elif defined(__GNUC__) && defined(_WIN64)
-        typedef long long SQInteger;
-        typedef unsigned long long SQUnsignedInteger;
-        typedef unsigned long long SQHash; /* should be the same size of a pointer */
-    // C::B patch: All other 64-bit platforms
-    #else
-        typedef long SQInteger;
-        typedef unsigned long SQUnsignedInteger;
-        typedef unsigned long SQHash; /*should be the same size of a pointer*/
-    #endif
-    typedef int SQInt32;
+#ifdef _MSC_VER
+typedef __int64 SQInteger;
+typedef unsigned __int64 SQUnsignedInteger;
+typedef unsigned __int64 SQHash; /*should be the same size of a pointer*/
+// C::B patch: For Win64 build with GCC
+#elif defined(__GNUC__) && defined(_WIN64)
+typedef long long SQInteger;
+typedef unsigned long long SQUnsignedInteger;
+typedef unsigned long long SQHash; /* should be the same size of a pointer */
+// C::B patch: All other 64-bit platforms
 #else
-    typedef int SQInteger;
-    typedef int SQInt32; /*must be 32 bits(also on 64bits processors)*/
-    typedef unsigned int SQUnsignedInteger;
-    typedef unsigned int SQHash; /*should be the same size of a pointer*/
+typedef long SQInteger;
+typedef unsigned long SQUnsignedInteger;
+typedef unsigned long SQHash; /*should be the same size of a pointer*/
+#endif
+typedef int SQInt32;
+#else
+typedef int SQInteger;
+typedef int SQInt32; /*must be 32 bits(also on 64bits processors)*/
+typedef unsigned int SQUnsignedInteger;
+typedef unsigned int SQHash; /*should be the same size of a pointer*/
 #endif
 
 
@@ -77,11 +74,11 @@ typedef double SQFloat;
 typedef float SQFloat;
 #endif
 
-#if defined(SQUSEDOUBLE) && !defined(_SQ64) || !defined(SQUSEDOUBLE) && defined(_SQ64)
+#if defined(SQUSEDOUBLE) && !defined(_SQ64)
 #ifdef _MSC_VER
 typedef __int64 SQRawObjectVal; //must be 64bits
 #else
-typedef long long SQRawObjectVal; //must be 64bits
+typedef long SQRawObjectVal; //must be 64bits
 #endif
 #define SQ_OBJECT_RAWINIT() { _unVal.raw = 0; }
 #else
@@ -168,10 +165,9 @@ typedef char SQChar;
 #define MAX_CHAR 0xFF
 #endif
 
-#define SQUIRREL_VERSION	_SC("Squirrel 2.2.5 stable")
-#define SQUIRREL_COPYRIGHT	_SC("Copyright (C) 2003-2010 Alberto Demichelis")
+#define SQUIRREL_VERSION	_SC("Squirrel 2.2.4 stable")
+#define SQUIRREL_COPYRIGHT	_SC("Copyright (C) 2003-2009 Alberto Demichelis")
 #define SQUIRREL_AUTHOR		_SC("Alberto Demichelis")
-#define SQUIRREL_VERSION_NUMBER	225
 
 #define SQ_VMSTATE_IDLE			0
 #define SQ_VMSTATE_RUNNING		1

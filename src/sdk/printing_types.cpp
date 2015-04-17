@@ -17,7 +17,7 @@
 
 // NOTE (Tiwag#1#): 061012 global wxPrinter, used in cbeditorprintout
 //                  to get correct settings if changed in printer dialog
-wxPrinter* g_printer = nullptr;
+wxPrinter* g_printer = 0;
 
 // TODO (Tiwag#1#): 061012 Page Setup not implemented
 // wxPageSetupData* g_pageSetupData = 0;
@@ -35,14 +35,7 @@ void InitPrinting()
         #endif
         wxPrintData* ppd = &(g_printer->GetPrintDialogData().GetPrintData());
         ppd->SetPaperId((wxPaperSize)paperid);
-        #if wxCHECK_VERSION(2, 9, 1)
-        if (paperorientation == wxPORTRAIT)
-            ppd->SetOrientation(wxPORTRAIT);
-        else
-            ppd->SetOrientation(wxLANDSCAPE);
-        #else
         ppd->SetOrientation(paperorientation);
-        #endif
     }
 
 //    if (!g_pageSetupData)
@@ -52,7 +45,7 @@ void InitPrinting()
 void DeInitPrinting()
 {
     delete g_printer;
-    g_printer = nullptr;
+    g_printer = 0;
 //    delete g_pageSetupData;
 //    g_pageSetupData = 0;
 }

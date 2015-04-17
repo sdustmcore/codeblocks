@@ -11,11 +11,11 @@
 				<Option object_output="..\..\..\.objs\plugins\contrib\IncrementalSearch" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --multiple-instance -na -ns -nd -p debug" />
+				<Option parameters="--debug-log -na -ns -nd" />
 				<Option host_application="..\..\..\devel\codeblocks.exe" />
 				<Compiler>
 					<Add option="-Wall" />
-					<Add option="$(#CB_RELEASE_TYPE)" />
+					<Add option="-g" />
 					<Add option="-pipe" />
 					<Add option="-mthreads" />
 					<Add option="-fmessage-length=0" />
@@ -29,15 +29,19 @@
 					<Add option="-DCB_PRECOMP" />
 					<Add option="-DWX_PRECOMP" />
 					<Add option="-DwxUSE_UNICODE" />
+					<Add option="-DWXMAKINGDLL_PROPGRID" />
+					<Add option="-DwxPG_USE_WXMODULE=0" />
 					<Add directory="..\..\..\include" />
 					<Add directory="..\..\..\sdk\wxscintilla\include" />
 					<Add directory="$(#WX.include)" />
 					<Add directory="$(#WX.lib)\gcc_dll$(WX_CFG)\msw$(WX_SUFFIX)" />
+					<Add directory="$(#WX)\contrib\include" />
 				</Compiler>
 				<Linker>
 					<Add option="-mthreads" />
 					<Add library="codeblocks" />
 					<Add library="wxmsw28$(WX_SUFFIX)" />
+					<Add library="wxscintilla" />
 					<Add directory="..\..\..\devel" />
 					<Add directory="$(#WX.lib)\gcc_dll$(WX_CFG)" />
 				</Linker>

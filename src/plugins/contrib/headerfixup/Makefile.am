@@ -1,4 +1,4 @@
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+INCLUDES = $(WX_CXXFLAGS) \
            -I$(top_srcdir)/src/include \
            -I$(top_srcdir)/src/sdk/wxscintilla/include
 
@@ -10,7 +10,7 @@ pluginlib_LTLIBRARIES = libheaderfixup.la
 
 libheaderfixup_la_LDFLAGS = -module -version-info 0:1:0 -shared -no-undefined -avoid-version
 
-libheaderfixup_la_LIBADD = ../../../sdk/libcodeblocks.la $(WX_LIBS)
+libheaderfixup_la_LIBADD = $(PLUGIN_WX_LIBS) ../../../sdk/libcodeblocks.la
 
 libheaderfixup_la_SOURCES = bindings.cpp \
                             configuration.cpp \
@@ -33,7 +33,6 @@ EXTRA_DIST = $(srcdir)/*.cbp \
              wxsmith/configuration.wxs \
              wxsmith/execution.wxs \
              wxsmith/protocol.wxs \
-             todo.txt \
              manifest.xml
 
 pkgdata_DATA = headerfixup.zip

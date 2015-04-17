@@ -21,7 +21,7 @@ class EnvVarsConfigDlg : public cbConfigurationPanel
 {
 public:
   /// Ctor
-           EnvVarsConfigDlg(wxWindow* parent);
+           EnvVarsConfigDlg(wxWindow* parent, EnvVars* plugin);
   /// Dtor
   virtual ~EnvVarsConfigDlg()
   { };
@@ -78,6 +78,8 @@ private:
 
   /// Verifies that an envvar set is unique
   bool VerifySetUnique(const wxChoice* choSet, wxString set);
+
+  EnvVars* m_pPlugin; //!< pointer to the EnvVars plugin (the parent)
 
   DECLARE_EVENT_TABLE()
 };

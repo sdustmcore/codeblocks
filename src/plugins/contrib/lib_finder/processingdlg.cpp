@@ -16,9 +16,9 @@
 * along with wxSmith; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 *
-* $Revision$
-* $Id$
-* $HeadURL$
+* $Revision: 4504 $
+* $Id: wxsmithpluginregistrants.cpp 4504 2007-10-02 21:52:30Z byo $
+* $HeadURL: svn+ssh://byo@svn.berlios.de/svnroot/repos/codeblocks/trunk/src/plugins/contrib/wxSmith/plugin/wxsmithpluginregistrants.cpp $
 */
 
 #include "processingdlg.h"
@@ -74,7 +74,7 @@ ProcessingDlg::ProcessingDlg(wxWindow* parent,LibraryDetectionManager& Manager,T
 	SetSizer(FlexGridSizer1);
 	FlexGridSizer1->Fit(this);
 	FlexGridSizer1->SetSizeHints(this);
-
+	
 	Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&ProcessingDlg::OnButton1Click);
 	//*)
 }
@@ -83,7 +83,7 @@ ProcessingDlg::~ProcessingDlg()
 {
 }
 
-void ProcessingDlg::OnButton1Click(wxCommandEvent& /*event*//*event*/)
+void ProcessingDlg::OnButton1Click(wxCommandEvent& event)
 {
     StopBtn->Disable();
     StopFlag = true;
@@ -579,8 +579,6 @@ void ProcessingDlg::CheckFilter(
             CheckFilter(OldBasePath,OldVars,OldCompilers,Config,Set,WhichFilter+1);
             break;
         }
-        default:
-            break;
     }
 }
 

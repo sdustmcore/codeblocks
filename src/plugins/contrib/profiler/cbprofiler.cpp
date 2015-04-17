@@ -101,7 +101,7 @@ int CBProfiler::Execute()
     if (project->GetBuildTargetsCount() > 1)
     {
         // more than one executable target? ask...
-        std::vector<wxString> choices(project->GetBuildTargetsCount());
+        wxString choices[project->GetBuildTargetsCount()];
         wxString active_target = project->GetActiveBuildTarget();
         int selected = 0;
         for (int i=0; i<project->GetBuildTargetsCount(); ++i)
@@ -112,8 +112,7 @@ int CBProfiler::Execute()
         }
         wxSingleChoiceDialog dialog(Manager::Get()->GetAppWindow(),
                                     _("Select the target you want to profile"),
-                                    _("Select Target"),
-                                    project->GetBuildTargetsCount(), &choices[0]);
+                                    _("Select Target"),project->GetBuildTargetsCount(),choices);
         dialog.SetSelection(selected);
         if (dialog.ShowModal() != wxID_OK)
             return -1;

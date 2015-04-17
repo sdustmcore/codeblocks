@@ -19,7 +19,6 @@
     #include "editormanager.h"
     #include "pluginmanager.h"
     #include "cbproject.h" // FileTreeData
-    #include "projectmanager.h" // ProjectsArray
     #include <wx/wfstream.h>
 #endif
 
@@ -28,7 +27,7 @@
 #include "cbstyledtextctrl.h"
 
 // needed for initialization of variables
-inline int editorbase_RegisterId(int id)
+int editorbase_RegisterId(int id)
 {
     wxRegisterId(id);
     return id;
@@ -84,6 +83,7 @@ void EditorBase::InitFilename(const wxString& filename)
     wxFileName fname;
     fname.Assign(m_Filename);
     m_Shortname = fname.GetFullName();
+    //    Manager::Get()->GetLogManager()->DebugLog("ctor: Filename=%s\nShort=%s", m_Filename.c_str(), m_Shortname.c_str());
 }
 
 wxString EditorBase::CreateUniqueFilename()
@@ -147,52 +147,11 @@ void EditorBase::SetTitle(const wxString& newTitle)
     int mypage = Manager::Get()->GetEditorManager()->FindPageFromEditor(this);
     if (mypage != -1)
         Manager::Get()->GetEditorManager()->GetNotebook()->SetPageText(mypage, newTitle);
-
-    // set full filename (including path) as tooltip,
-    // if possible add the appropriate project also
-    wxString toolTip = GetFilename();
-    wxFileName fname(realpath(toolTip));
-    NormalizePath(fname, wxEmptyString);
-    toolTip = UnixFilename(fname.GetFullPath());
-
-    cbProject* prj = Manager::Get()->GetProjectManager()->FindProjectForFile(toolTip, nullptr, false, true);
-    if (prj)
-        toolTip += _("\nProject: ") + prj->GetTitle();
-    cbAuiNotebook* nb = Manager::Get()->GetEditorManager()->GetNotebook();
-    if (nb)
-    {
-        int idx = nb->GetPageIndex(this);
-        nb->SetPageToolTip(idx, toolTip);
-        Manager::Get()->GetEditorManager()->MarkReadOnly(idx, IsReadOnly() || (fname.FileExists() && !wxFile::Access(fname.GetFullPath(), wxFile::write)) );
-    }
 }
 
 void EditorBase::Activate()
 {
     Manager::Get()->GetEditorManager()->SetActiveEditor(this);
-}
-
-bool EditorBase::QueryClose()
-{
-    if ( GetModified() )
-    {
-        wxString msg;
-        msg.Printf(_("File %s is modified...\nDo you want to save the changes?"), GetFilename().c_str());
-        switch (cbMessageBox(msg, _("Save file"), wxICON_QUESTION | wxYES_NO | wxCANCEL))
-        {
-            case wxID_YES:
-                if (!Save())
-                    return false;
-                break;
-            case wxID_NO:
-                break;
-            case wxID_CANCEL:
-            default:
-                return false;
-        }
-        SetModified(false);
-    }
-    return true;
 }
 
 bool EditorBase::Close()
@@ -211,11 +170,11 @@ bool EditorBase::ThereAreOthers() const
     return (Manager::Get()->GetEditorManager()->GetEditorsCount() > 1);
 }
 
-wxMenu* EditorBase::CreateContextSubMenu(long id) // For context menus
+wxMenu* EditorBase::CreateContextSubMenu(int id) // For context menus
 {
-    wxMenu* menu = nullptr;
+    wxMenu* menu = 0;
 
-    if (id == idSwitchTo)
+    if(id == idSwitchTo)
     {
         menu = new wxMenu;
         m_SwitchTo.clear();
@@ -224,14 +183,14 @@ wxMenu* EditorBase::CreateContextSubMenu(long id) // For context menus
             EditorBase* other = Manager::Get()->GetEditorManager()->GetEditor(i);
             if (!other || other == this)
                 continue;
-            id = idSwitchFile1+i;
+            int id = idSwitchFile1+i;
             m_SwitchTo[id] = other;
-            menu->Append(id, (other->GetModified() ? wxT("*") : wxEmptyString) + other->GetShortName());
+            menu->Append(id, other->GetShortName());
         }
-        if (!menu->GetMenuItemCount())
+        if(!menu->GetMenuItemCount())
         {
             delete menu;
-            menu = nullptr;
+            menu = 0;
         }
     }
     return menu;
@@ -258,7 +217,7 @@ void EditorBase::BasicAddToContextMenu(wxMenu* popup, ModuleType type)
     if (type != mtEditorManager) // no editor
     {
         wxMenu* switchto = CreateContextSubMenu(idSwitchTo);
-        if (switchto)
+        if(switchto)
             popup->Append(idSwitchTo, _("Switch to"), switchto);
     }
 }
@@ -286,19 +245,18 @@ void EditorBase::DisplayContextMenu(const wxPoint& position, ModuleType type)
             text = control->GetTextRange(control->WordStartPosition(pos, true), control->WordEndPosition(pos, true));
         }
 
-        if (wxMinimumVersion<2,6,1>::eval && !text.IsEmpty())
+        if(wxMinimumVersion<2,6,1>::eval)
         {
-            popup->Append(idGoogle,     _("Search the Internet for \"") + text + _("\""));
-            popup->Append(idMsdn,       _("Search MSDN for \"")         + text + _("\""));
-            popup->Append(idGoogleCode, _("Search Google Code for \"")  + text + _("\""));
+            popup->Append(idGoogle, _("Search the Internet for \"") + text + _("\""));
+            popup->Append(idMsdn, _("Search MSDN for \"") + text + _("\""));
+            popup->Append(idGoogleCode, _("Search Google Code for \"") + text + _("\""));
         }
         lastWord = text;
 
         wxMenu* switchto = CreateContextSubMenu(idSwitchTo);
-        if (switchto)
+        if(switchto)
         {
-            if (popup->GetMenuItemCount() > 0)
-                popup->AppendSeparator();
+            popup->AppendSeparator();
             popup->Append(idSwitchTo, _("Switch to"), switchto);
         }
     }
@@ -314,7 +272,7 @@ void EditorBase::DisplayContextMenu(const wxPoint& position, ModuleType type)
         AddToContextMenu(popup, type, false);
 
         // ask other editors / plugins if they need to add any entries in this menu...
-        FileTreeData* ftd = new FileTreeData(nullptr, FileTreeData::ftdkUndefined);
+        FileTreeData* ftd = new FileTreeData(0, FileTreeData::ftdkUndefined);
         ftd->SetFolder(m_Filename);
         Manager::Get()->GetPluginManager()->AskPluginsForModuleMenu(type, popup, ftd);
         delete ftd;
@@ -389,7 +347,8 @@ void EditorBase::OnContextMenuEntry(wxCommandEvent& event)
     {
         Manager::Get()->GetEditorManager()->SaveAll();
     }
-    else if (id >= idSwitchFile1 && id <= idSwitchFileMax)
+    else
+    if (id >= idSwitchFile1 && id <= idSwitchFileMax)
     {
         // "Switch to..." item
         EditorBase *const ed = m_SwitchTo[id];

@@ -16,57 +16,57 @@
     #include "macrosmanager.h"
 #endif
 
-namespace { static const bool case_sensitive = platform::windows ? false : true; }
+namespace { static const bool case_sensitive = platform::windows ? false : true; };
 
 CompileOptionsBase::CompileOptionsBase()
-    : m_Platform(spAll),
-    m_Modified(false),
-    m_AlwaysRunPostCmds(false)
+	: m_Platform(spAll),
+	m_Modified(false),
+	m_AlwaysRunPostCmds(false)
 {
-    //ctor
+	//ctor
 }
 
 CompileOptionsBase::~CompileOptionsBase()
 {
-    //dtor
+	//dtor
 }
 
 void CompileOptionsBase::AddPlatform(int platform)
 {
-    if (m_Platform & platform)
-        return;
-    m_Platform |= platform;
-    SetModified(true);
+	if (m_Platform & platform)
+		return;
+	m_Platform |= platform;
+	SetModified(true);
 }
 
 void CompileOptionsBase::RemovePlatform(int platform)
 {
-    if (!(m_Platform & platform))
-        return;
-    m_Platform &= ~platform;
-    SetModified(true);
+	if (!(m_Platform & platform))
+		return;
+	m_Platform &= ~platform;
+	SetModified(true);
 }
 
 void CompileOptionsBase::SetPlatforms(int platforms)
 {
-    if (m_Platform == platforms)
-        return;
-    m_Platform = platforms;
-    SetModified(true);
+	if (m_Platform == platforms)
+		return;
+	m_Platform = platforms;
+	SetModified(true);
 }
 
 int CompileOptionsBase::GetPlatforms() const
 {
-    return m_Platform;
+	return m_Platform;
 }
 
 bool CompileOptionsBase::SupportsCurrentPlatform() const
 {
-    if(platform::windows)
+	if(platform::windows)
         return m_Platform & spWindows;
-    if(platform::unix)
+	if(platform::unix)
         return m_Platform & spUnix;
-    if(platform::macosx)
+	if(platform::macosx)
         return m_Platform & spMac;
 
     return false;
@@ -74,15 +74,15 @@ bool CompileOptionsBase::SupportsCurrentPlatform() const
 
 void CompileOptionsBase::SetLinkerOptions(const wxArrayString& linkerOpts)
 {
-    if (m_LinkerOptions == linkerOpts)
-        return;
-    m_LinkerOptions = linkerOpts;
-    SetModified(true);
+	if (m_LinkerOptions == linkerOpts)
+		return;
+	m_LinkerOptions = linkerOpts;
+	SetModified(true);
 }
 
 const wxArrayString& CompileOptionsBase::GetLinkerOptions() const
 {
-    return m_LinkerOptions;
+	return m_LinkerOptions;
 }
 
 void CompileOptionsBase::SetLinkLibs(const wxArrayString& linkLibs)
@@ -100,34 +100,21 @@ const wxArrayString& CompileOptionsBase::GetLinkLibs() const
 
 void CompileOptionsBase::SetCompilerOptions(const wxArrayString& compilerOpts)
 {
-    if (m_CompilerOptions == compilerOpts)
-        return;
-    m_CompilerOptions = compilerOpts;
-    SetModified(true);
+	if (m_CompilerOptions == compilerOpts)
+		return;
+	m_CompilerOptions = compilerOpts;
+	SetModified(true);
 }
 
 const wxArrayString& CompileOptionsBase::GetCompilerOptions() const
 {
-    return m_CompilerOptions;
-}
-
-void CompileOptionsBase::SetResourceCompilerOptions(const wxArrayString& resourceCompilerOpts)
-{
-    if (m_ResourceCompilerOptions == resourceCompilerOpts)
-        return;
-    m_ResourceCompilerOptions = resourceCompilerOpts;
-    SetModified(true);
-}
-
-const wxArrayString& CompileOptionsBase::GetResourceCompilerOptions() const
-{
-    return m_ResourceCompilerOptions;
+	return m_CompilerOptions;
 }
 
 void CompileOptionsBase::SetIncludeDirs(const wxArrayString& includeDirs)
 {
-    if (m_IncludeDirs == includeDirs)
-        return;
+	if (m_IncludeDirs == includeDirs)
+		return;
 
     // make sure we don't have duplicate entries
     // that's why we don't assign the array but rather copy it entry by entry...
@@ -139,18 +126,18 @@ void CompileOptionsBase::SetIncludeDirs(const wxArrayString& includeDirs)
         if (m_IncludeDirs.Index(entry, case_sensitive) == wxNOT_FOUND)
             m_IncludeDirs.Add(entry);
     }
-    SetModified(true);
+	SetModified(true);
 }
 
 const wxArrayString& CompileOptionsBase::GetIncludeDirs() const
 {
-    return m_IncludeDirs;
+	return m_IncludeDirs;
 }
 
 void CompileOptionsBase::SetResourceIncludeDirs(const wxArrayString& resIncludeDirs)
 {
-    if (m_ResIncludeDirs == resIncludeDirs)
-        return;
+	if (m_ResIncludeDirs == resIncludeDirs)
+		return;
 
     // make sure we don't have duplicate entries
     // that's why we don't assign the array but rather copy it entry by entry...
@@ -162,7 +149,7 @@ void CompileOptionsBase::SetResourceIncludeDirs(const wxArrayString& resIncludeD
         if (m_ResIncludeDirs.Index(entry, case_sensitive) == wxNOT_FOUND)
             m_ResIncludeDirs.Add(entry);
     }
-    SetModified(true);
+	SetModified(true);
 }
 
 const wxArrayString& CompileOptionsBase::GetResourceIncludeDirs() const
@@ -172,8 +159,8 @@ const wxArrayString& CompileOptionsBase::GetResourceIncludeDirs() const
 
 void CompileOptionsBase::SetLibDirs(const wxArrayString& libDirs)
 {
-    if (m_LibDirs == libDirs)
-        return;
+	if (m_LibDirs == libDirs)
+		return;
 
     // make sure we don't have duplicate entries
     // that's why we don't assign the array but rather copy it entry by entry...
@@ -185,18 +172,18 @@ void CompileOptionsBase::SetLibDirs(const wxArrayString& libDirs)
         if (m_LibDirs.Index(entry, case_sensitive) == wxNOT_FOUND)
             m_LibDirs.Add(entry);
     }
-    SetModified(true);
+	SetModified(true);
 }
 
 const wxArrayString& CompileOptionsBase::GetLibDirs() const
 {
-    return m_LibDirs;
+	return m_LibDirs;
 }
 
 void CompileOptionsBase::SetBuildScripts(const wxArrayString& scripts)
 {
-    if (m_Scripts == scripts)
-        return;
+	if (m_Scripts == scripts)
+		return;
 
     // make sure we don't have duplicate entries
     // that's why we don't assign the array but rather copy it entry by entry...
@@ -208,7 +195,7 @@ void CompileOptionsBase::SetBuildScripts(const wxArrayString& scripts)
         if (m_Scripts.Index(entry, case_sensitive) == wxNOT_FOUND)
             m_Scripts.Add(entry);
     }
-    SetModified(true);
+	SetModified(true);
 }
 
 const wxArrayString& CompileOptionsBase::GetBuildScripts() const
@@ -218,28 +205,28 @@ const wxArrayString& CompileOptionsBase::GetBuildScripts() const
 
 void CompileOptionsBase::SetCommandsBeforeBuild(const wxArrayString& commands)
 {
-    if (m_CmdsBefore == commands)
-        return;
-    m_CmdsBefore = commands;
-    SetModified(true);
+	if (m_CmdsBefore == commands)
+		return;
+	m_CmdsBefore = commands;
+	SetModified(true);
 }
 
 const wxArrayString& CompileOptionsBase::GetCommandsBeforeBuild() const
 {
-    return m_CmdsBefore;
+	return m_CmdsBefore;
 }
 
 void CompileOptionsBase::SetCommandsAfterBuild(const wxArrayString& commands)
 {
-    if (m_CmdsAfter == commands)
-        return;
-    m_CmdsAfter = commands;
-    SetModified(true);
+	if (m_CmdsAfter == commands)
+		return;
+	m_CmdsAfter = commands;
+	SetModified(true);
 }
 
 const wxArrayString& CompileOptionsBase::GetCommandsAfterBuild() const
 {
-    return m_CmdsAfter;
+	return m_CmdsAfter;
 }
 
 bool CompileOptionsBase::GetAlwaysRunPostBuildSteps() const
@@ -257,12 +244,12 @@ void CompileOptionsBase::SetAlwaysRunPostBuildSteps(bool always)
 
 bool CompileOptionsBase::GetModified() const
 {
-    return m_Modified;
+	return m_Modified;
 }
 
 void CompileOptionsBase::SetModified(bool modified)
 {
-    m_Modified = modified;
+	m_Modified = modified;
 }
 
 void CompileOptionsBase::AddLinkerOption(const wxString& option)
@@ -291,16 +278,6 @@ void CompileOptionsBase::AddCompilerOption(const wxString& option)
     if (m_CompilerOptions.Index(envopt, case_sensitive) == wxNOT_FOUND)
     {
         m_CompilerOptions.Add(envopt);
-        SetModified(true);
-    }
-}
-
-void CompileOptionsBase::AddResourceCompilerOption(const wxString& option)
-{
-    wxString envopt = option;
-    if (m_ResourceCompilerOptions.Index(envopt, case_sensitive) == wxNOT_FOUND)
-    {
-        m_ResourceCompilerOptions.Add(envopt);
         SetModified(true);
     }
 }
@@ -338,15 +315,15 @@ void CompileOptionsBase::AddLibDir(const wxString& option)
 void CompileOptionsBase::AddCommandsBeforeBuild(const wxString& command)
 {
     wxString envopt = command;
-    m_CmdsBefore.Add(envopt);
-    SetModified(true);
+	m_CmdsBefore.Add(envopt);
+	SetModified(true);
 }
 
 void CompileOptionsBase::AddCommandsAfterBuild(const wxString& command)
 {
     wxString envopt = command;
-    m_CmdsAfter.Add(envopt);
-    SetModified(true);
+	m_CmdsAfter.Add(envopt);
+	SetModified(true);
 }
 
 void CompileOptionsBase::AddBuildScript(const wxString& script)
@@ -392,17 +369,6 @@ void CompileOptionsBase::RemoveCompilerOption(const wxString& option)
     }
 }
 
-void CompileOptionsBase::RemoveResourceCompilerOption(const wxString& option)
-{
-    wxString envopt = option;
-    int idx = m_ResourceCompilerOptions.Index(envopt, case_sensitive);
-    if (idx != wxNOT_FOUND)
-    {
-        m_ResourceCompilerOptions.RemoveAt(idx);
-        SetModified(true);
-    }
-}
-
 void CompileOptionsBase::RemoveIncludeDir(const wxString& option)
 {
     wxString entry = UnixFilename(option);
@@ -439,15 +405,15 @@ void CompileOptionsBase::RemoveLibDir(const wxString& option)
 void CompileOptionsBase::RemoveCommandsBeforeBuild(const wxString& command)
 {
     wxString envopt = command;
-    m_CmdsBefore.Remove(envopt);
-    SetModified(true);
+	m_CmdsBefore.Remove(envopt);
+	SetModified(true);
 }
 
 void CompileOptionsBase::RemoveCommandsAfterBuild(const wxString& command)
 {
     wxString envopt = command;
-    m_CmdsAfter.Remove(envopt);
-    SetModified(true);
+	m_CmdsAfter.Remove(envopt);
+	SetModified(true);
 }
 
 void CompileOptionsBase::RemoveBuildScript(const wxString& script)
@@ -492,15 +458,6 @@ bool CompileOptionsBase::UnsetVar(const wxString& key)
 void CompileOptionsBase::UnsetAllVars()
 {
     m_Vars.clear();
-}
-
-bool CompileOptionsBase::HasVar(const wxString& key) const
-{
-    StringHash::const_iterator it = m_Vars.find(key);
-    if (it != m_Vars.end())
-        return true;
-
-    return false;
 }
 
 const wxString& CompileOptionsBase::GetVar(const wxString& key) const

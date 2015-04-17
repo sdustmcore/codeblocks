@@ -32,7 +32,6 @@ SRC = PlatWX.cpp \
       LexBaan.cxx \
       LexBash.cxx \
       LexBasic.cxx \
-      LexBibTeX.cxx \
       LexBullant.cxx \
       LexCaml.cxx \
       LexCLW.cxx \
@@ -49,7 +48,6 @@ SRC = PlatWX.cpp \
       LexFortran.cxx \
       LexGui4Cli.cxx \
       LexHaskell.cxx \
-      LexHex.cxx \
       LexHTML.cxx \
       LexInno.cxx \
       LexKix.cxx \

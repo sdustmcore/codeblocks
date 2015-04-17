@@ -28,8 +28,6 @@
 #include <wx/textdlg.h>
 #include "../wxsflags.h"
 
-#include <prep.h>
-
 using namespace wxsFlags;
 
 //(*Headers(wxsNotebookParentQP)
@@ -64,7 +62,7 @@ namespace
 
         protected:
 
-            virtual void OnEnumProperties(cb_unused long Flags)
+            virtual void OnEnumProperties(long Flags)
             {
                 WXS_SHORT_STRING(wxsNotebookExtra,m_Label,_("Page name"),_T("label"),_T(""),false);
                 WXS_BOOL(wxsNotebookExtra,m_Selected,_("Page selected"),_T("selected"),false);
@@ -81,21 +79,17 @@ namespace
                 m_Extra(Extra)
             {
                 //(*Initialize(wxsNotebookParentQP)
-                wxStaticBoxSizer* StaticBoxSizer2;
-                wxStaticBoxSizer* StaticBoxSizer1;
-                wxFlexGridSizer* FlexGridSizer1;
-
                 Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
                 FlexGridSizer1 = new wxFlexGridSizer(0, 1, 0, 0);
                 StaticBoxSizer1 = new wxStaticBoxSizer(wxVERTICAL, this, _("Label"));
                 Label = new wxTextCtrl(this, ID_TEXTCTRL1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_TEXTCTRL1"));
-                StaticBoxSizer1->Add(Label, 0, wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-                FlexGridSizer1->Add(StaticBoxSizer1, 1, wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+                StaticBoxSizer1->Add(Label, 0, wxBOTTOM|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+                FlexGridSizer1->Add(StaticBoxSizer1, 1, wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
                 StaticBoxSizer2 = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Selection"));
                 Selected = new wxCheckBox(this, ID_CHECKBOX1, _("Selected"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, _T("ID_CHECKBOX1"));
                 Selected->SetValue(false);
-                StaticBoxSizer2->Add(Selected, 1, wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-                FlexGridSizer1->Add(StaticBoxSizer2, 1, wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+                StaticBoxSizer2->Add(Selected, 1, wxBOTTOM|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+                FlexGridSizer1->Add(StaticBoxSizer2, 1, wxLEFT|wxRIGHT|wxEXPAND|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
                 SetSizer(FlexGridSizer1);
                 FlexGridSizer1->Fit(this);
                 FlexGridSizer1->SetSizeHints(this);
@@ -148,8 +142,11 @@ namespace
             //*)
 
             //(*Declarations(wxsNotebookParentQP)
+            wxStaticBoxSizer* StaticBoxSizer2;
             wxCheckBox* Selected;
             wxTextCtrl* Label;
+            wxStaticBoxSizer* StaticBoxSizer1;
+            wxFlexGridSizer* FlexGridSizer1;
             //*)
 
             wxsNotebookExtra* m_Extra;
@@ -167,9 +164,9 @@ namespace
         //*)
     END_EVENT_TABLE()
 
-    void wxsNotebookParentQP::OnLabelText(cb_unused wxCommandEvent& event)       { SaveData(); }
-    void wxsNotebookParentQP::OnLabelKillFocus(wxFocusEvent& event)              { SaveData(); event.Skip(); }
-    void wxsNotebookParentQP::OnSelectionChange(cb_unused wxCommandEvent& event) { SaveData(); }
+    void wxsNotebookParentQP::OnLabelText(wxCommandEvent& event)       { SaveData(); }
+    void wxsNotebookParentQP::OnLabelKillFocus(wxFocusEvent& event)    { SaveData(); event.Skip(); }
+    void wxsNotebookParentQP::OnSelectionChange(wxCommandEvent& event) { SaveData(); }
 
     WXS_ST_BEGIN(wxsNotebookStyles,_T(""))
         WXS_ST_CATEGORY("wxNotebook")
@@ -207,7 +204,7 @@ wxsNotebook::wxsNotebook(wxsItemResData* Data):
 {
 }
 
-void wxsNotebook::OnEnumContainerProperties(cb_unused long Flags)
+void wxsNotebook::OnEnumContainerProperties(long Flags)
 {
 }
 
@@ -222,7 +219,7 @@ bool wxsNotebook::OnCanAddChild(wxsItem* Item,bool ShowMessage)
         return false;
     }
 
-    return wxsContainer::OnCanAddChild(Item,ShowMessage);
+	return wxsContainer::OnCanAddChild(Item,ShowMessage);
 }
 
 wxsPropertyContainer* wxsNotebook::OnBuildExtra()
@@ -237,43 +234,43 @@ wxString wxsNotebook::OnXmlGetExtraObjectClass()
 
 void wxsNotebook::OnAddChildQPP(wxsItem* Child,wxsAdvQPP* QPP)
 {
-    wxsNotebookExtra* NBExtra = (wxsNotebookExtra*)GetChildExtra(GetChildIndex(Child));
-    if ( NBExtra )
+    wxsNotebookExtra* Extra = (wxsNotebookExtra*)GetChildExtra(GetChildIndex(Child));
+    if ( Extra )
     {
-        QPP->Register(new wxsNotebookParentQP(QPP,NBExtra),_("Notebook"));
+        QPP->Register(new wxsNotebookParentQP(QPP,Extra),_("Notebook"));
     }
 }
 
 wxObject* wxsNotebook::OnBuildPreview(wxWindow* Parent,long PreviewFlags)
 {
     UpdateCurrentSelection();
-    wxNotebook* Notebook = new wxNotebook(Parent,-1,Pos(Parent),Size(Parent),Style());
+	wxNotebook* Notebook = new wxNotebook(Parent,-1,Pos(Parent),Size(Parent),Style());
 
-    if ( !GetChildCount() && !(PreviewFlags&pfExact) )
-    {
-        // Adding additional empty notebook to prevent from having zero-sized notebook
-        Notebook->AddPage(
+	if ( !GetChildCount() && !(PreviewFlags&pfExact) )
+	{
+	    // Adding additional empty notebook to prevent from having zero-sized notebook
+	    Notebook->AddPage(
             new wxPanel(Notebook,-1,wxDefaultPosition,wxSize(50,50)),
             _("No pages"));
-    }
+	}
 
-    AddChildrenPreview(Notebook,PreviewFlags);
+	AddChildrenPreview(Notebook,PreviewFlags);
 
-    for ( int i=0; i<GetChildCount(); i++ )
-    {
-        wxsItem* Child = GetChild(i);
-        wxsNotebookExtra* NBExtra = (wxsNotebookExtra*)GetChildExtra(i);
+	for ( int i=0; i<GetChildCount(); i++ )
+	{
+	    wxsItem* Child = GetChild(i);
+	    wxsNotebookExtra* Extra = (wxsNotebookExtra*)GetChildExtra(i);
 
-        wxWindow* ChildPreview = wxDynamicCast(GetChild(i)->GetLastPreview(),wxWindow);
-        if ( !ChildPreview ) continue;
+	    wxWindow* ChildPreview = wxDynamicCast(GetChild(i)->GetLastPreview(),wxWindow);
+	    if ( !ChildPreview ) continue;
 
-        bool Selected = (Child == m_CurrentSelection);
-        if ( PreviewFlags & pfExact ) Selected = NBExtra->m_Selected;
+	    bool Selected = (Child == m_CurrentSelection);
+	    if ( PreviewFlags & pfExact ) Selected = Extra->m_Selected;
 
-        Notebook->AddPage(ChildPreview,NBExtra->m_Label,Selected);
-    }
+	    Notebook->AddPage(ChildPreview,Extra->m_Label,Selected);
+	}
 
-    return Notebook;
+	return Notebook;
 }
 
 void wxsNotebook::OnBuildCreatingCode()
@@ -290,14 +287,17 @@ void wxsNotebook::OnBuildCreatingCode()
 
             for ( int i=0; i<GetChildCount(); i++ )
             {
-                wxsNotebookExtra* NBExtra = (wxsNotebookExtra*)GetChildExtra(i);
-                Codef(_T("%AAddPage(%o, %t, %b);\n"),i,NBExtra->m_Label.wx_str(),NBExtra->m_Selected);
+                wxsNotebookExtra* Extra = (wxsNotebookExtra*)GetChildExtra(i);
+                #if wxCHECK_VERSION(2, 9, 0)
+                Codef(_T("%AAddPage(%o, %t, %b);\n"),i,Extra->m_Label.wx_str(),Extra->m_Selected);
+                #else
+                Codef(_T("%AAddPage(%o, %t, %b);\n"),i,Extra->m_Label.c_str(),Extra->m_Selected);
+                #endif
             }
 
             break;
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsNotebook::OnBuildCreatingCode"),GetLanguage());
@@ -340,8 +340,8 @@ void wxsNotebook::UpdateCurrentSelection()
     for ( int i=0; i<GetChildCount(); i++ )
     {
         if ( m_CurrentSelection == GetChild(i) ) return;
-        wxsNotebookExtra* NBExtra = (wxsNotebookExtra*)GetChildExtra(i);
-        if ( (i==0) || NBExtra->m_Selected )
+        wxsNotebookExtra* Extra = (wxsNotebookExtra*)GetChildExtra(i);
+        if ( (i==0) || Extra->m_Selected )
         {
             NewCurrentSelection = GetChild(i);
         }
@@ -384,10 +384,10 @@ bool wxsNotebook::OnPopup(long Id)
                 GetResourceData()->BeginChange();
                 if ( AddChild(Panel) )
                 {
-                    wxsNotebookExtra* NBExtra = (wxsNotebookExtra*)GetChildExtra(GetChildCount()-1);
-                    if ( NBExtra )
+                    wxsNotebookExtra* Extra = (wxsNotebookExtra*)GetChildExtra(GetChildCount()-1);
+                    if ( Extra )
                     {
-                        NBExtra->m_Label = Dlg.GetValue();
+                        Extra->m_Label = Dlg.GetValue();
                     }
                     m_CurrentSelection = Panel;
                 }

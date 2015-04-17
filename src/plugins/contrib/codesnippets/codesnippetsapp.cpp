@@ -24,7 +24,7 @@
 	along with this program; if not, write to the Free Software
 	Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
-// RCS-ID: $Id$
+// RCS-ID: $Id: codesnippetsapp.cpp 103 2007-10-30 19:17:39Z Pecan $
 
 #ifdef WX_PRECOMP //
 #include "wx_pch.h"
@@ -49,8 +49,6 @@
 #include <mach-o/dyld.h>
 #endif
 
-#include "prep.h"
-#include "xtra_res.h"
 #include "configmanager.h"
 #include "seditormanager.h"
 
@@ -95,11 +93,7 @@ BEGIN_EVENT_TABLE(CodeSnippetsApp, wxApp)
 END_EVENT_TABLE()
 
 #ifdef __WXMAC__
-    #if wxCHECK_VERSION(2,9,0)
-        #include "wx/osx/core/cfstring.h"
-    #else
-        #include "wx/mac/corefoundation/cfstring.h"
-    #endif
+    #include "wx/mac/corefoundation/cfstring.h"
     #include "wx/intl.h"
 
     #include <CoreFoundation/CFBundle.h>
@@ -116,11 +110,7 @@ END_EVENT_TABLE()
         CFRelease(resourcesURL);
         CFStringRef cfStrPath = CFURLCopyFileSystemPath(absoluteURL,kCFURLPOSIXPathStyle);
         CFRelease(absoluteURL);
-        #if wxCHECK_VERSION(2,9,0)
-          return wxCFStringRef(cfStrPath).AsString(wxLocale::GetSystemEncoding());
-        #else
-          return wxMacCFStringHolder(cfStrPath).AsString(wxLocale::GetSystemEncoding());
-        #endif
+        return wxMacCFStringHolder(cfStrPath).AsString(wxLocale::GetSystemEncoding());
     }
 #endif
 
@@ -276,6 +266,7 @@ void CodeSnippetsAppFrame::InitCodeSnippetsAppFrame(wxFrame *frame, const wxStri
     m_KeepAliveFileName = wxEmptyString;
     m_pFilesHistory = 0;
 
+    wxStandardPaths stdPaths;
 
     // -------------------------------
     // initialize version and logging
@@ -332,7 +323,7 @@ void CodeSnippetsAppFrame::InitCodeSnippetsAppFrame(wxFrame *frame, const wxStri
     // Find Config File
     // -----------------------------------------
     // Create filename like {%HOME%}\codesnippets.ini
-    m_ConfigFolder = Normalize(wxStandardPaths::Get().GetUserDataDir());
+    m_ConfigFolder = Normalize(stdPaths.GetUserDataDir());
     wxString m_ExecuteFolder = Normalize(FindAppPath(wxTheApp->argv[0], ::wxGetCwd(), wxEmptyString));
 
     #if defined(LOGGING)
@@ -425,13 +416,8 @@ void CodeSnippetsAppFrame::InitCodeSnippetsAppFrame(wxFrame *frame, const wxStri
             // Got the first instance handle of the window from the config file
             HWND pFirstInstance;
             // gotten from cfgFile.Read( wxT("WindowHandle"),  &windowHandle ) ;
-            #if defined(_WIN64) | defined(WIN64)
-            size_t val;
-            if ( GetConfig()->m_sWindowHandle.ToULongLong( &val, 16) )
-            #else
-            long unsigned int val;
+            unsigned long val;
             if ( GetConfig()->m_sWindowHandle.ToULong( &val, 16) )
-            #endif
                 pFirstInstance = (HWND)val;
             if (pFirstInstance && ::IsWindow(pFirstInstance) )
             {
@@ -600,7 +586,7 @@ void CodeSnippetsAppFrame::InitCodeSnippetsAppFrame(wxFrame *frame, const wxStri
 	InitializeDragScroll();
 
 	// Add TreeCtrl to DragScroll managed windows
-    sDragScrollEvent dsevt(wxEVT_S_DRAGSCROLL_EVENT , idDragScrollAddWindow);
+    DragScrollEvent dsevt(wxEVT_DRAGSCROLL_EVENT , idDragScrollAddWindow);
     dsevt.SetEventObject(GetConfig()->GetSnippetsTreeCtrl());
     dsevt.SetString( GetConfig()->GetSnippetsTreeCtrl()->GetName() );
     GetConfig()->GetDragScrollEvtHandler()->AddPendingEvent( dsevt );
@@ -846,7 +832,7 @@ void CodeSnippetsAppFrame::OnActivate(wxActivateEvent& event)
     if ( m_bOnActivateBusy ) {event.Skip();return;}
     ++m_bOnActivateBusy;
     #if defined(LOGGING)
-    //LOGIT( _T("CodeSnippetsAppFrame::OnActivate[%d]"), m_bOnActivateBusy);
+    LOGIT( _T("CodeSnippetsAppFrame::OnActivate[%d]"), m_bOnActivateBusy);
     #endif
     do{ //only once
         // Check that it's us that got activated
@@ -952,7 +938,7 @@ void CodeSnippetsAppFrame::OnEventTest(wxCommandEvent &event)
     ////    ToolBox toolbox;
     ////    toolbox.ShowWindowsAndEvtHandlers();
 
-    sDragScrollEvent dsEvt(wxEVT_S_DRAGSCROLL_EVENT, idDragScrollRescan);
+    DragScrollEvent dsEvt(wxEVT_DRAGSCROLL_EVENT, idDragScrollRescan);
     dsEvt.SetEventObject( GetConfig()->GetSnippetsTreeCtrl());
     dsEvt.SetString( GetConfig()->GetSnippetsTreeCtrl()->GetName() );
     GetConfig()->GetDragScrollEvtHandler()->AddPendingEvent(dsEvt);
@@ -1171,7 +1157,6 @@ bool CodeSnippetsAppFrame::InitializeSDK()
     //-wxXmlResource::Get()->InsertHandler(new wxToolBarAddOnXmlHandler);
     wxInitAllImageHandlers();
     wxXmlResource::Get()->InitAllHandlers();
-    wxXmlResource::Get()->InsertHandler(new wxScrollingDialogXmlHandler);
 
     // ---------------------
     // sdk initialization
@@ -1305,8 +1290,6 @@ wxString CodeSnippetsAppFrame::GetAppPath()
 bool CodeSnippetsAppFrame::InitXRCStuff()
 // ----------------------------------------------------------------------------
 {
-    // This seems to be loaded by Manager::Get(this)-> above
-    //-Manager::LoadResource(_T("manager_resources.zip"));
     if (!Manager::LoadResource(_T("resources.zip")))
 	{
 		ComplainBadInstall();
@@ -1399,6 +1382,7 @@ int CodeSnippetsAppFrame::ParseCmdLine(wxFrame* handlerFrame)
 void CodeSnippetsAppFrame::ImportCBResources()
 // ----------------------------------------------------------------------------
 {
+    wxStandardPaths stdPaths;
 
     // Location of app config folder
     wxString appConfigFolder =  Normalize(m_ConfigFolder) ;
@@ -1410,7 +1394,7 @@ void CodeSnippetsAppFrame::ImportCBResources()
     wxString cbExeFolder = Normalize(GetCBExeFolder());
 
     // location of CodeBlocks config folder
-    wxString cbConfigFolder = Normalize(wxStandardPaths::Get().GetUserDataDir());
+    wxString cbConfigFolder = Normalize(stdPaths.GetUserDataDir());
     wxString appParent = GetConfig()->GetAppParent();
     if ( appParent.empty()) appParent =_T("codeblocks");
     wxString prefixPath;
@@ -1431,11 +1415,8 @@ void CodeSnippetsAppFrame::ImportCBResources()
         //.ini must be in .exe folder to receive .conf
         if (appConfigFolder == appExeFolder)
         if (not wxFileExists(appExeFolder + _T("/default.conf")) )
-        {
-            #if defined(LOGGING)
-            bool copied =
-            #endif
-            wxCopyFile( fileToCopy, appExeFolder+_T("/default.conf") );
+        {   bool copied = false;
+            copied = wxCopyFile( fileToCopy, appExeFolder+_T("/default.conf") );
             #if defined(LOGGING)
             LOGIT( _T("Copy [%s][%s][%s]"), fileToCopy.c_str(), cbConfigFolder.c_str(), copied?_T("OK"):_T("FAILED"));
             #endif

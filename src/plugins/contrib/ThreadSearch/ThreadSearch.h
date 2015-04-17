@@ -47,6 +47,9 @@ public:
     /** Destructor. */
     virtual ~ThreadSearch();
 
+    /** Invoke configuration dialog. */
+    virtual int Configure();
+
     /** Return the plugin's configuration priority.
       * This is a number (default is 50) that is used to sort plugins
       * in configuration dialogs. Lower numbers mean the plugin's
@@ -204,27 +207,22 @@ protected:
       * @param sashPosition : position of the splitter window.
       * @param mgrType      : type of view manager (Messages notebook, layout)
       * @param searchPatterns : - undocumented -
-      * @param searchDirs : - undocumented -
-      * @param searchMasks : - undocumented -
       */
     virtual void LoadConfig(bool &showPanel, int &sashPosition,
                             ThreadSearchViewManagerBase::eManagerTypes& mgrType,
-                            wxArrayString& searchPatterns, wxArrayString& searchDirs,
-                            wxArrayString& searchMasks);
+                            wxArrayString& searchPatterns);
 
     /** This method saves the plugin configuration to default.conf using
       * the standard ConfigManager
       * @param showPanel :    boolean telling if ThreadSearch panel is managed
       *                       by the MessageManager.
       * @param sashPosition : position of the splitter window.
+      * @param mgrType :      Type of view manager (Messages notebook, layout)
       * @param searchPatterns : - undocumented -
-      * @param searchDirs : - undocumented -
-      * @param searchMasks : - undocumented -
       */
     virtual void SaveConfig(bool showPanel, int sashPosition,
                             ThreadSearchViewManagerBase::eManagerTypes mgrType,
-                            const wxArrayString& searchPatterns, const wxArrayString& searchDirs,
-                            const wxArrayString& searchMasks);
+                            const wxArrayString& searchPatterns);
 
 private:
     /** Event handler called when user clicks on the 'Thread search'
@@ -236,11 +234,6 @@ private:
       * item of the 'Search' menu.
       */
     void OnMnuSearchThreadSearch(wxCommandEvent& event);
-
-    /** Event handler called when user clicks on the 'Focus Thread Search'
-      * item of the 'View' menu.
-      */
-    void OnMnuViewFocusThreadSearch(wxCommandEvent& event);
 
     /** Event handler called when user clicks on the 'Find occurrences of'
       * item of the contextual menu.
@@ -257,8 +250,6 @@ private:
       * item of the 'Search' menu.
       */
     void OnMnuSearchThreadSearchUpdateUI(wxUpdateUIEvent& event);
-
-    void OnMnuViewFocusThreadSearchUpdateUI(wxUpdateUIEvent& event);
 
     // Toolbar controls events management
     void OnBtnOptionsClick(wxCommandEvent& event);

@@ -43,7 +43,6 @@ public:
 	int LinesInDoc() const;
 	int LinesDisplayed() const;
 	int DisplayFromDoc(int lineDoc) const;
-	int DisplayLastFromDoc(int lineDoc) const;
 	int DocFromDisplay(int lineDisplay) const;
 
 	void InsertLine(int lineDoc);
@@ -52,12 +51,10 @@ public:
 	void DeleteLines(int lineDoc, int lineCount);
 
 	bool GetVisible(int lineDoc) const;
-	bool SetVisible(int lineDocStart, int lineDocEnd, bool isVisible);
-	bool HiddenLines() const;
+	bool SetVisible(int lineDocStart, int lineDocEnd, bool visible);
 
 	bool GetExpanded(int lineDoc) const;
-	bool SetExpanded(int lineDoc, bool isExpanded);
-	int ContractedNext(int lineDocStart) const;
+	bool SetExpanded(int lineDoc, bool expanded);
 
 	int GetHeight(int lineDoc) const;
 	bool SetHeight(int lineDoc, int height);

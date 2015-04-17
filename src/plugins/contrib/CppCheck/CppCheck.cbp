@@ -11,13 +11,13 @@
 				<Option object_output="..\..\..\.objs\plugins\contrib\CppCheck" />
 				<Option type="3" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug-log --multiple-instance -na -ns -nd -p debug" />
+				<Option parameters="--debug-log -na -ns -nd" />
 				<Option host_application="..\..\..\devel\codeblocks.exe" />
 				<Option projectCompilerOptionsRelation="0" />
 			</Target>
 			<Environment>
-				<Variable name="WX_CFG" value="" />
 				<Variable name="WX_SUFFIX" value="u" />
+				<Variable name="WX_CFG" value="" />
 			</Environment>
 		</Build>
 		<VirtualTargets>
@@ -25,7 +25,7 @@
 		</VirtualTargets>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add option="$(#CB_RELEASE_TYPE)" />
+			<Add option="-g" />
 			<Add option="-Winvalid-pch" />
 			<Add option="-mthreads" />
 			<Add option="-fexceptions" />
@@ -37,9 +37,12 @@
 			<Add option="-DWXUSINGDLL" />
 			<Add option="-DcbDEBUG" />
 			<Add option="-DwxUSE_UNICODE" />
+			<Add option="-DWXMAKINGDLL_PROPGRID" />
+			<Add option="-DwxPG_USE_WXMODULE=0" />
 			<Add directory="..\..\..\include" />
 			<Add directory="..\..\..\sdk\wxscintilla\include" />
 			<Add directory="$(#WX.INCLUDE)" />
+			<Add directory="$(#WX)\contrib\include" />
 			<Add directory="$(#WX.lib)\gcc_dll$(WX_CFG)\msw$(WX_SUFFIX)" />
 		</Compiler>
 		<ResourceCompiler>
@@ -50,6 +53,7 @@
 			<Add option="-mthreads" />
 			<Add library="wxmsw28$(WX_SUFFIX)" />
 			<Add library="codeblocks" />
+			<Add library="wxscintilla" />
 			<Add directory="..\..\..\devel" />
 			<Add directory="$(#WX.lib)\gcc_dll$(WX_CFG)" />
 		</Linker>
@@ -57,22 +61,14 @@
 			<Add after="zip -j9 ../../../devel/share/codeblocks/CppCheck.zip resources/manifest.xml" />
 			<Mode after="always" />
 		</ExtraCommands>
-		<Unit filename="ConfigPanel.cpp" />
-		<Unit filename="ConfigPanel.h" />
 		<Unit filename="CppCheck.cpp" />
 		<Unit filename="CppCheck.h" />
 		<Unit filename="CppCheckListLog.cpp" />
 		<Unit filename="CppCheckListLog.h" />
-		<Unit filename="wxsmith/ConfigPanel.wxs" />
 		<Extensions>
 			<code_completion />
 			<envvars />
 			<debugger />
-			<wxsmith version="1">
-				<resources>
-					<wxPanel wxs="wxsmith/ConfigPanel.wxs" src="ConfigPanel.cpp" hdr="ConfigPanel.h" fwddecl="1" i18n="1" name="ConfigPanel" language="CPP" />
-				</resources>
-			</wxsmith>
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

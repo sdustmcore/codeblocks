@@ -16,13 +16,61 @@
     #include <wx/stattext.h>
     #include "manager.h"
     #include <wx/listbox.h>
-
-    #include <algorithm>
 #endif
 
 #include "incrementalselectlistdlg.h"
 
 
+BEGIN_EVENT_TABLE(myHandler, wxEvtHandler)
+END_EVENT_TABLE()
+
+void myHandler::OnKeyDown(wxKeyEvent& event)
+{
+    //Manager::Get()->GetLogManager()->Log(mltDevDebug, "OnKeyDown");
+    size_t sel = 0;
+    switch (event.GetKeyCode())
+    {
+        case WXK_RETURN:
+            m_pParent->EndModal(wxID_OK);
+            break;
+
+        case WXK_ESCAPE:
+            m_pParent->EndModal(wxID_CANCEL);
+            break;
+
+        case WXK_UP:
+            sel = m_pList->GetSelection() - 1;
+            m_pList->SetSelection(sel == (size_t) -1 ? 0 : sel);
+            break;
+
+        case WXK_DOWN:
+            m_pList->SetSelection(m_pList->GetSelection() + 1);
+            break;
+
+        case WXK_PAGEUP:
+            sel = m_pList->GetSelection() - 10;
+            m_pList->SetSelection( sel > m_pList->GetCount() ? 0 : sel );
+            break;
+
+        case WXK_PAGEDOWN:
+            sel = m_pList->GetSelection() + 10;
+            m_pList->SetSelection( sel >= m_pList->GetCount() ? m_pList->GetCount() - 1 : sel );
+            break;
+
+        case WXK_HOME:
+            m_pList->SetSelection(0);
+            break;
+
+        case WXK_END:
+            m_pList->SetSelection( m_pList->GetCount() - 1 );
+            event.Skip();
+            break;
+
+        default:
+            event.Skip();
+            break;
+    }
+}
 
 BEGIN_EVENT_TABLE(IncrementalSelectListDlg, wxScrollingDialog)
     EVT_TEXT(XRCID("txtSearch"), IncrementalSelectListDlg::OnSearch)
@@ -31,8 +79,9 @@ END_EVENT_TABLE()
 
 IncrementalSelectListDlg::IncrementalSelectListDlg(wxWindow* parent, const IncrementalSelectIterator& iterator,
                                                    const wxString& caption, const wxString& message)
-    : m_List(nullptr),
-    m_Text(nullptr),
+    : m_pMyEvtHandler(0L),
+    m_List(0L),
+    m_Text(0L),
     m_Iterator(iterator)
 {
     wxXmlResource::Get()->LoadObject(this, parent, _T("dlgIncrementalSelectList"),_T("wxScrollingDialog"));
@@ -44,30 +93,19 @@ IncrementalSelectListDlg::IncrementalSelectListDlg(wxWindow* parent, const Incre
     m_Text = XRCCTRL(*this, "txtSearch", wxTextCtrl);
     m_List = XRCCTRL(*this, "lstItems", wxListBox);
 
-    SetSize(GetPosition().x - 90, GetPosition().y - 70, 500, 300);
-
-    m_Text->Connect( wxEVT_KEY_DOWN,
-                    (wxObjectEventFunction) (wxEventFunction) (wxCharEventFunction)
-                    &IncrementalSelectListDlg::OnKeyDown,
-                    nullptr, this );
-    m_List->Connect( wxEVT_KEY_DOWN,
-                    (wxObjectEventFunction) (wxEventFunction) (wxCharEventFunction)
-                    &IncrementalSelectListDlg::OnKeyDown,
-                    nullptr, this );
+    myHandler* m_pMyEvtHandler = new myHandler(this, m_Text, m_List);
+    m_Text->SetNextHandler(m_pMyEvtHandler);
+    m_List->SetNextHandler(m_pMyEvtHandler);
 
     FillList();
 }
 
 IncrementalSelectListDlg::~IncrementalSelectListDlg()
 {
-    m_Text->Disconnect( wxEVT_KEY_DOWN,
-                       (wxObjectEventFunction) (wxEventFunction) (wxCharEventFunction)
-                       &IncrementalSelectListDlg::OnKeyDown,
-                       nullptr, this );
-    m_List->Disconnect( wxEVT_KEY_DOWN,
-                       (wxObjectEventFunction) (wxEventFunction) (wxCharEventFunction)
-                       &IncrementalSelectListDlg::OnKeyDown,
-                       nullptr, this );
+    m_Text->SetNextHandler(0L);
+    m_List->SetNextHandler(0L);
+
+    delete m_pMyEvtHandler;
 }
 
 wxString IncrementalSelectListDlg::GetStringSelection()
@@ -75,13 +113,13 @@ wxString IncrementalSelectListDlg::GetStringSelection()
     return m_List->GetStringSelection();
 }
 
-wxIntPtr IncrementalSelectListDlg::GetSelection()
+long IncrementalSelectListDlg::GetSelection()
 {
     int selection = m_List->GetSelection();
     if (selection == wxNOT_FOUND)
         return wxNOT_FOUND;
 
-    return reinterpret_cast<wxIntPtr>(m_List->GetClientData(selection));
+    return reinterpret_cast<long>(m_List->GetClientData(selection));
 }
 
 void IncrementalSelectListDlg::FillList()
@@ -101,66 +139,10 @@ void IncrementalSelectListDlg::FillList()
         // 2 for before and after stars =~ empty string
         if ((search.Length()==2) || item.Lower().Matches(search.c_str()))
         {
-            result.Add(m_Iterator.GetDisplayItem(i));
+            result.Add(item);
             indexes.Add(i);
         }
     }
-
-    // if only alphabetical, pull word boundaries to the top
-    if (search.Length() > 2)
-    {
-        wxString prefix;
-        for (size_t i = 0; i < search.Length(); ++i)
-        {
-            if (wxIsalpha(search[i]))
-                prefix += search[i];
-        }
-        if (prefix.Length() == search.Length() - 2)
-        {
-            std::vector<size_t> promoteIdxs;
-            wxArrayString newRes;
-            wxArrayLong newIndx;
-            for (size_t i = 0; i < result.Count(); ++i)
-            {
-                wxString cur = result[i].Lower();
-                bool promote = false;
-                if (cur.StartsWith(prefix))
-                    promote = true;
-                else
-                {
-                    int maxLn = cur.Length() - prefix.Length();
-                    for (int j = 0; j < maxLn; ++j)
-                    {
-                        if (!wxIsalpha(cur[j]) && cur.Mid(j + 1).StartsWith(prefix))
-                        {
-                            promote = true;
-                            break;
-                        }
-                    }
-                }
-                if (promote)
-                {
-                    promoteIdxs.push_back(i);
-                    newRes.Add(result[i]);
-                    newIndx.Add(indexes[i]);
-                }
-            }
-            if (!promoteIdxs.empty())
-            {
-                for (size_t i = 0; i < result.Count(); ++i)
-                {
-                    if (!std::binary_search(promoteIdxs.begin(), promoteIdxs.end(), i))
-                    {
-                        newRes.Add(result[i]);
-                        newIndx.Add(indexes[i]);
-                    }
-                }
-                result = newRes;
-                indexes = newIndx;
-            }
-        }
-    }
-
     m_List->Set(result, reinterpret_cast<void**>(&indexes[0]));
     if (m_List->GetCount())
         m_List->SetSelection(0);
@@ -170,70 +152,12 @@ void IncrementalSelectListDlg::FillList()
 
 // events
 
-void IncrementalSelectListDlg::OnSearch(cb_unused wxCommandEvent& event)
+void IncrementalSelectListDlg::OnSearch(wxCommandEvent& /*event*/)
 {
     FillList();
 }
 
-void IncrementalSelectListDlg::OnSelect(cb_unused wxCommandEvent& event)
+void IncrementalSelectListDlg::OnSelect(wxCommandEvent& /*event*/)
 {
     EndModal(wxID_OK);
-}
-
-void IncrementalSelectListDlg::OnKeyDown(wxKeyEvent& event)
-{
-    //Manager::Get()->GetLogManager()->Log(mltDevDebug, "OnKeyDown");
-    size_t sel = 0;
-    switch (event.GetKeyCode())
-    {
-        case WXK_RETURN:
-        case WXK_NUMPAD_ENTER:
-            EndModal(wxID_OK);
-            break;
-
-        case WXK_ESCAPE:
-            EndModal(wxID_CANCEL);
-            break;
-
-        case WXK_UP:
-        case WXK_NUMPAD_UP:
-            sel = m_List->GetSelection() - 1;
-            m_List->SetSelection(sel == (size_t) -1 ? 0 : sel);
-            break;
-
-        case WXK_DOWN:
-        case WXK_NUMPAD_DOWN:
-            m_List->SetSelection(m_List->GetSelection() + 1);
-            break;
-
-        case WXK_PAGEUP:
-        case WXK_NUMPAD_PAGEUP:
-            sel = m_List->GetSelection() - 10;
-            m_List->SetSelection(sel > m_List->GetCount() ? 0 : sel);
-            break;
-
-        case WXK_PAGEDOWN:
-        case WXK_NUMPAD_PAGEDOWN:
-            sel = m_List->GetSelection() + 10;
-            m_List->SetSelection(sel >= m_List->GetCount() ? m_List->GetCount() - 1 : sel);
-            break;
-
-        case WXK_HOME:
-            if (wxGetKeyState(WXK_CONTROL))
-                m_List->SetSelection(0);
-            else
-                event.Skip();
-            break;
-
-        case WXK_END:
-            if (wxGetKeyState(WXK_CONTROL))
-                m_List->SetSelection(m_List->GetCount() - 1);
-            else
-                event.Skip();
-            break;
-
-        default:
-            event.Skip();
-            break;
-    }
 }

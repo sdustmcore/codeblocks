@@ -13,7 +13,6 @@
 
 #include <sdk.h>
 #ifndef CB_PRECOMP
-    #include <wx/app.h>
 	#include <wx/intl.h>
 	#include <wx/listctrl.h>
 	#include "configmanager.h"
@@ -66,7 +65,7 @@ BEGIN_EVENT_TABLE(cbDragScroll, cbPlugin)
 	// End Configuration event
     EVT_UPDATE_UI(ID_DLG_DONE, cbDragScroll::OnDoConfigRequests)
     // DragScroll Event types
-    EVT_S_DRAGSCROLL_EVENT(wxID_ANY, cbDragScroll::OnDragScrollEvent_Dispatcher)
+    EVT_DRAGSCROLL_EVENT(wxID_ANY, cbDragScroll::OnDragScrollEvent_Dispatcher)
 END_EVENT_TABLE()
 // ----------------------------------------------------------------------------
 //  Statics
@@ -311,7 +310,28 @@ cbConfigurationPanel* cbDragScroll::GetConfigurationPanel(wxWindow* parent)
     // when the configuration panel is closed with OK, OnDialogDone() will be called
     return pDlg;
 }
+// ----------------------------------------------------------------------------
+int cbDragScroll::Configure(wxWindow* parent)
+// ----------------------------------------------------------------------------
+{
+	if ( !IsAttached() )
+		return -1;
 
+	// Creates and displays the configuration dialog for the plugin
+	cbConfigurationDialog dlg(Manager::Get()->GetAppWindow(), wxID_ANY, wxT("DragScroll"));
+	cbConfigurationPanel* panel = GetConfigurationPanel(&dlg);
+	if (panel)
+	{
+		dlg.AttachConfigurationPanel(panel);
+		if (parent)
+            CenterChildOnParent( parent, &dlg);
+        else
+            PlaceWindow(&dlg,pdlConstrain);
+
+		return dlg.ShowModal() == wxID_OK ? 0 : -1;
+	}
+	return -1;
+}
 // ----------------------------------------------------------------------------
 void cbDragScroll::CenterChildOnParent(wxWindow* parent, wxWindow* child)
 // ----------------------------------------------------------------------------
@@ -1067,7 +1087,7 @@ void cbDragScroll::OnProjectClose(CodeBlocksEvent& /*event*/)
         return;
 
     // Issue a pending event so we rescan after other events have settled down.
-    sDragScrollEvent dsEvt(wxEVT_S_DRAGSCROLL_EVENT, idDragScrollRescan);
+    DragScrollEvent dsEvt(wxEVT_DRAGSCROLL_EVENT, idDragScrollRescan);
     dsEvt.SetEventObject( m_pCB_AppWindow);
     dsEvt.SetString( _T("") );
     this->AddPendingEvent(dsEvt);

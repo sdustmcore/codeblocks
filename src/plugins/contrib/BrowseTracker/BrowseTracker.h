@@ -16,7 +16,7 @@
 	along with this program; if not, write to the Free Software
 	Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
-// RCS-ID: $Id$
+// RCS-ID: $Id: BrowseTracker.h 47 2008-01-12 20:18:59Z Pecan $
 
 
 #ifndef BROWSETRACKER_H_INCLUDED
@@ -125,7 +125,7 @@ class BrowseTracker : public cbPlugin
 		 * @param toolBar the wxToolBar to create items on
 		 * @return The plugin should return true if it needed the toolbar, false if not
 		*/
-		bool BuildToolBar(wxToolBar* /*toolBar*/);/*{ return false; }*/
+		bool BuildToolBar(wxToolBar* /*toolBar*/){ return false; }
 	protected:
 		/** Any descendent plugin should override this virtual method and
 		 * perform any necessary initialization. This method is called by
@@ -173,7 +173,6 @@ class BrowseTracker : public cbPlugin
         void        ImportBrowse_Marks(cbEditor* ed);
         void        RebuildBrowse_Marks(cbEditor* ed, bool addedlines);
         bool        IsBrowseMarksEnabled(){return m_BrowseMarksEnabled;}
-        bool        IsWrapJumpEntriesEnabled(){return m_WrapJumpEntries;}
 
         // Book Marks recording
         void        ToggleBook_Mark(EditorBase* eb);
@@ -191,7 +190,6 @@ class BrowseTracker : public cbPlugin
         bool            m_BrowseMarksEnabled; //user has enabled BrowseTracker
         int             m_OldUserMarksStyle;
         bool            m_OldBrowseMarksEnabled;
-        bool            m_WrapJumpEntries;    //wrap jump entries when top or botton reached
 
 	private:
 
@@ -225,7 +223,6 @@ class BrowseTracker : public cbPlugin
         void OnMenuBrowseMarkNext(wxCommandEvent& event);
         void OnMenuRecordBrowseMark(wxCommandEvent& event);
         void OnMenuClearBrowseMark(wxCommandEvent& event);
-        void OnMenuToggleBrowseMark(wxCommandEvent& event);
         void OnMenuClearAllBrowse_Marks(wxCommandEvent& event);
         void OnMenuSortBrowse_Marks( wxCommandEvent& event);
         void OnMenuSettings( wxCommandEvent& event);
@@ -262,6 +259,8 @@ class BrowseTracker : public cbPlugin
         ProjectData* GetProjectDataByProjectName( wxString filePath);
         ProjectData* GetProjectDataByEditorName( wxString filePath);
         cbProject*   GetProject(EditorBase* eb);
+        wxString     GetCBConfigFile();
+        wxString     GetCBConfigDir();
         bool         IsEditorBaseOpen(EditorBase* eb);
 
         void         DumpHash( wxString hashtype);
@@ -275,8 +274,6 @@ class BrowseTracker : public cbPlugin
         ProjectManager* m_pPrjMgr;
 		wxWindow*       m_pAppWin;
         wxMenuBar*      m_pMenuBar;
-        wxToolBar*      m_pToolBar;
-
         wxString        m_ConfigFolder;
         wxString        m_ExecuteFolder;
         wxString        m_AppName;

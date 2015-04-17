@@ -15,9 +15,9 @@
 * You should have received a copy of the GNU General Public License
 * along with HexEditor plugin. If not, see <http://www.gnu.org/licenses/>.
 *
-* $Revision$
-* $Id$
-* $HeadURL$
+* $Revision: $
+* $Id: $
+* $HeadURL: $
 */
 
 #ifndef TESTCASESHELPER_H
@@ -126,7 +126,7 @@ class TestCasesHelper: public T, public TestCasesBase
             {
                 // Display test's info
                 pass = false;
-                result = wxString::Format( _T("Test %d FAILED: %s"), testNo, err.m_Msg.wx_str() );
+                result = wxString::Format( _T("Test %d FAILED: %s"), testNo, err.m_Msg.c_str() );
             }
 
             if ( m_NoSuchTest )

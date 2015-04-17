@@ -19,7 +19,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id$
+// RCS-ID:      $Id: msgdlgg.h 49765 2007-11-09 18:32:38Z DE $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -38,23 +38,12 @@
 //-extern WXDLLEXPORT_DATA(const wxChar) wxMessageBoxCaptionStr[];
 
 // ----------------------------------------------------------------------------
-class GenericMessageDialog:
-#if !wxCHECK_VERSION(2,9,0)
-    public wxScrollingDialog,
-#endif
-    public wxMessageDialogBase
+class GenericMessageDialog: public wxScrollingDialog, public wxMessageDialogBase
 // ----------------------------------------------------------------------------
 {
 DECLARE_DYNAMIC_CLASS(GenericMessageDialog)
 
 public:
-#if wxCHECK_VERSION(2,9,0)
-    //backported from wxDialogBase in wx2.8
-    enum
-    {
-        ButtonSizerFlags = wxOK|wxCANCEL|wxYES|wxNO|wxHELP|wxNO_DEFAULT
-    };
-#endif
     GenericMessageDialog(wxWindow *parent, const wxString& message,
         const wxString& caption = wxMessageBoxCaptionStr,
         long style = wxOK|wxCENTRE, const wxPoint& pos = wxDefaultPosition);

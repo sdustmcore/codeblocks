@@ -38,7 +38,7 @@ HeadersDetectorDlg::HeadersDetectorDlg(wxWindow* parent,cbProject* project,wxArr
 	wxBoxSizer* BoxSizer1;
 	wxStdDialogButtonSizer* StdDialogButtonSizer1;
 	wxStaticBoxSizer* StaticBoxSizer1;
-
+	
 	Create(parent, wxID_ANY, _("Detecting missing libraries..."), wxDefaultPosition, wxDefaultSize, wxCAPTION, _T("wxID_ANY"));
 	BoxSizer1 = new wxBoxSizer(wxVERTICAL);
 	StaticBoxSizer1 = new wxStaticBoxSizer(wxVERTICAL, this, _("Scanning:"));
@@ -66,7 +66,7 @@ HeadersDetectorDlg::HeadersDetectorDlg(wxWindow* parent,cbProject* project,wxArr
 	BoxSizer1->Fit(this);
 	BoxSizer1->SetSizeHints(this);
 	Center();
-
+	
 	Connect(ID_TIMER1,wxEVT_TIMER,(wxObjectEventFunction)&HeadersDetectorDlg::OnTimer1Trigger);
 	//*)
 
@@ -87,34 +87,38 @@ HeadersDetectorDlg::~HeadersDetectorDlg()
 }
 
 
-void HeadersDetectorDlg::OnTimer1Trigger(wxTimerEvent& /*event*/)
+void HeadersDetectorDlg::OnTimer1Trigger(wxTimerEvent& event)
 {
     wxCriticalSectionLocker lock(m_Section);
     Freeze();
     m_FileNameTxt->SetLabel( m_FileName );
     m_ProgressBar->SetValue( m_Progress );
     if ( m_Finished )
+    {
         EndModal( m_Cancel ? wxID_CANCEL : wxID_OK );
+    }
     Thaw();
 }
 
-void HeadersDetectorDlg::Cancel(wxCommandEvent& /*event*/)
+void HeadersDetectorDlg::Cancel(wxCommandEvent& event)
 {
     m_Cancel = true;
 }
 
 void HeadersDetectorDlg::ThreadProc()
 {
-    m_Progress = 0;
-    for (FilesList::iterator it = m_Project->GetFilesList().begin(); it != m_Project->GetFilesList().end(); ++it)
+    for ( int i=0; i<m_Project->GetFilesCount(); i++ )
     {
         if ( m_Thread.TestDestroy() || m_Cancel )
+        {
             break;
+        }
 
-        ProjectFile* file = *it;
+        ProjectFile* file = m_Project->GetFile(i);
+
         {
             wxCriticalSectionLocker lock(m_Section);
-            m_Progress++;
+            m_Progress = i;
             m_FileName = file ? file->relativeFilename : _T("");
         }
 
@@ -151,15 +155,18 @@ void HeadersDetectorDlg::ProcessFile( ProjectFile* file, wxArrayString& includes
         }
     }
     if ( !validExt )
+    {
         return;
+    }
 
 
     wxFile fl( file->file.GetFullPath() );
     if ( !fl.IsOpened() ) return;
     wxFileOffset contentLength = fl.Length();
     if ( contentLength <= 0 )
+    {
         return;
-
+    }
     char* content = new char[contentLength+1];
     char* line = new char[contentLength+1];
     if ( fl.Read(content,contentLength) != contentLength )
@@ -189,7 +196,9 @@ void HeadersDetectorDlg::ProcessFile( ProjectFile* file, wxArrayString& includes
             {
                 case '\n':
                     if ( content[pos] == '\r' )
+                    {
                         pos++;
+                    }
                     // Continue to \r
                 case '\r':
                     if ( last != '\\' )
@@ -229,9 +238,13 @@ void HeadersDetectorDlg::ProcessFile( ProjectFile* file, wxArrayString& includes
                         if ( !inChar )
                         {
                             if ( !inStr )
+                            {
                                 inStr = true;
+                            }
                             else if ( last != '\\' )
+                            {
                                 inStr = false;
+                            }
                         }
                         thisCharAdded = true;
                         line[lineLength++] = ch;
@@ -244,9 +257,13 @@ void HeadersDetectorDlg::ProcessFile( ProjectFile* file, wxArrayString& includes
                         if ( !inStr )
                         {
                             if ( !inChar )
+                            {
                                 inChar = true;
+                            }
                             else if ( last != '\\' )
+                            {
                                 inChar = false;
+                            }
                         }
                         thisCharAdded = true;
                         line[lineLength++] = ch;
@@ -308,9 +325,13 @@ void HeadersDetectorDlg::ProcessFile( ProjectFile* file, wxArrayString& includes
                 {
                     i++;
                     while ( line[i] && line[i]!=readTill )
+                    {
                         include += (wxChar)line[i++];
+                    }
                     if ( line[i] == readTill )
+                    {
                         includes.Add( include );
+                    }
                 }
             }
         }

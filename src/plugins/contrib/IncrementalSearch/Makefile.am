@@ -1,4 +1,4 @@
-AM_CPPFLAGS = $(WX_CXXFLAGS) \
+INCLUDES = $(WX_CXXFLAGS) \
 		-I$(top_srcdir)/src/include \
 		-I$(top_srcdir)/src/sdk/wxscintilla/include
 
@@ -8,8 +8,8 @@ pluginlib_LTLIBRARIES = libIncrementalSearch.la
 
 libIncrementalSearch_la_LDFLAGS = -module -version-info 0:1:0 -shared -no-undefined -avoid-version
 
-libIncrementalSearch_la_LIBADD = ../../../sdk/libcodeblocks.la \
-							$(WX_LIBS)
+libIncrementalSearch_la_LIBADD = $(PLUGIN_WX_LIBS) \
+							../../../sdk/libcodeblocks.la
 libIncrementalSearch_la_SOURCES = IncrementalSearch.cpp \
 				IncrementalSearchConfDlg.cpp
 
@@ -20,7 +20,8 @@ EXTRA_DIST = 	$(srcdir)/*.cbp \
 		IncrementalSearchToolbar.xrc \
 		IncrementalSearchConfDlg.xrc \
 		manifest.xml \
-		$(srcdir)/update* \
+		update \
+		update.bat \
 		$(srcdir)/images/*.png \
 		$(srcdir)/images/16x16/*.png
 

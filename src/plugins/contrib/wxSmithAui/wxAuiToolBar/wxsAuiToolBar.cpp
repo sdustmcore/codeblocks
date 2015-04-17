@@ -140,7 +140,7 @@ bool wxsAuiToolBar::OnCanAddChild(wxsItem* Item,bool ShowMessage)
         return false;
     }
 
-    return wxsContainer::OnCanAddChild(Item,ShowMessage);
+	return wxsContainer::OnCanAddChild(Item,ShowMessage);
 }
 
 bool wxsAuiToolBar::OnCanAddToParent(wxsParent* Parent,bool ShowMessage)
@@ -154,7 +154,7 @@ bool wxsAuiToolBar::OnCanAddToParent(wxsParent* Parent,bool ShowMessage)
         return false;
     }
 
-    return wxsContainer::OnCanAddToParent(Parent,ShowMessage);
+	return wxsContainer::OnCanAddToParent(Parent,ShowMessage);
 }
 
 wxsPropertyContainer* wxsAuiToolBar::OnBuildExtra()
@@ -171,8 +171,6 @@ wxObject* wxsAuiToolBar::OnBuildPreview(wxWindow* Parent,long PreviewFlags)
 {
     UpdateCurrentSelection();
     wxsAuiManager* AuiManager = (wxsAuiManager*) GetParent();
-    if (!AuiManager)
-        return 0;
     wxsAuiPaneInfoExtra* PaneInfo = (wxsAuiPaneInfoExtra*) AuiManager->GetChildExtra(AuiManager->GetChildIndex(this));
     wxSmithAuiToolBar* AuiToolBar;
 
@@ -183,17 +181,17 @@ wxObject* wxsAuiToolBar::OnBuildPreview(wxWindow* Parent,long PreviewFlags)
     }
     AuiToolBar = new wxSmithAuiToolBar(Parent,-1,Pos(Parent),Size(Parent),Style()|Gripper);
 
-    if ( !GetChildCount() && !(PreviewFlags&pfExact) )
-    {
-        // Adding additional label to prevent from having zero-sized AuiToolBar
-        AuiToolBar->AddControl(new wxStaticText(AuiToolBar,-1,_("No Items")));
-    }
+	if ( !GetChildCount() && !(PreviewFlags&pfExact) )
+	{
+	    // Adding additional label to prevent from having zero-sized AuiToolBar
+	    AuiToolBar->AddControl(new wxStaticText(AuiToolBar,-1,_("No Items")));
+	}
 
-    for ( int i=0; i<GetChildCount(); i++ )
-    {
-        wxsItem* Child = GetChild(i);
-        wxsAuiToolBarExtra* ATBExtra = (wxsAuiToolBarExtra*)GetChildExtra(i);
-        wxString ClassName = Child->GetClassName();
+	for ( int i=0; i<GetChildCount(); i++ )
+	{
+	    wxsItem* Child = GetChild(i);
+	    wxsAuiToolBarExtra* Extra = (wxsAuiToolBarExtra*)GetChildExtra(i);
+	    wxString ClassName = Child->GetClassName();
 
         if ( ClassName == _T("wxAuiToolBarItem") )
         {
@@ -203,14 +201,14 @@ wxObject* wxsAuiToolBar::OnBuildPreview(wxWindow* Parent,long PreviewFlags)
             Item->m_GripperSize = m_GripperSize;
             AuiToolBar->AddTool(
                 Item->m_ItemId,
-                ATBExtra->m_Label,
+                Extra->m_Label,
                 Item->m_Bitmap.GetPreview(wxDefaultSize,wxART_TOOLBAR),
                 Item->m_DisabledBitmap.GetPreview(wxDefaultSize,wxART_TOOLBAR),
                 Item->m_ItemKind,
                 Item->m_ShortHelp,
                 Item->m_LongHelp,
                 NULL);
-            if ( !ATBExtra->m_Enabled ) AuiToolBar->EnableTool(Item->m_ItemId, false);
+            if ( !Extra->m_Enabled ) AuiToolBar->EnableTool(Item->m_ItemId, false);
             if ( Item->m_DropDown && (Item->m_ItemKind == wxITEM_NORMAL) ) AuiToolBar->SetToolDropDown(Item->m_ItemId, true);
             AuiToolBar->Realize();
             Item->BuildPreview(AuiToolBar,PreviewFlags);
@@ -222,7 +220,7 @@ wxObject* wxsAuiToolBar::OnBuildPreview(wxWindow* Parent,long PreviewFlags)
             Separator->m_HasGripper = PaneInfo->m_Gripper;
             Separator->m_GripperSize = m_GripperSize;
             AuiToolBar->AddTool(Separator->m_ItemId,wxEmptyString,wxNullBitmap,wxNullBitmap,wxITEM_SEPARATOR,wxEmptyString,wxEmptyString,NULL);
-            if ( !ATBExtra->m_Enabled ) AuiToolBar->EnableTool(Separator->m_ItemId, false);
+            if ( !Extra->m_Enabled ) AuiToolBar->EnableTool(Separator->m_ItemId, false);
             AuiToolBar->Realize();
             Separator->BuildPreview(AuiToolBar,PreviewFlags);
         }
@@ -232,8 +230,8 @@ wxObject* wxsAuiToolBar::OnBuildPreview(wxWindow* Parent,long PreviewFlags)
             Label->m_ItemId = wxNewId();
             Label->m_HasGripper = PaneInfo->m_Gripper;
             Label->m_GripperSize = m_GripperSize;
-            AuiToolBar->AddLabel(Label->m_ItemId,ATBExtra->m_Label,Label->m_IsDefault ? -1 : Label->m_Width);
-            if ( !ATBExtra->m_Enabled ) AuiToolBar->EnableTool(Label->m_ItemId, false);
+            AuiToolBar->AddLabel(Label->m_ItemId,Extra->m_Label,Label->m_IsDefault ? -1 : Label->m_Width);
+            if ( !Extra->m_Enabled ) AuiToolBar->EnableTool(Label->m_ItemId, false);
             AuiToolBar->Realize();
             Label->BuildPreview(AuiToolBar,PreviewFlags);
         }
@@ -245,20 +243,20 @@ wxObject* wxsAuiToolBar::OnBuildPreview(wxWindow* Parent,long PreviewFlags)
             Spacer->m_GripperSize = m_GripperSize;
             if ( Spacer->m_Stretch ) AuiToolBar->AddStretchSpacer(Spacer->m_Proportion,Spacer->m_ItemId);
             else                     AuiToolBar->AddSpacer(Spacer->m_Pixels,Spacer->m_ItemId);
-            if ( !ATBExtra->m_Enabled ) AuiToolBar->EnableTool(Spacer->m_ItemId, false);
+            if ( !Extra->m_Enabled ) AuiToolBar->EnableTool(Spacer->m_ItemId, false);
             AuiToolBar->Realize();
             Spacer->BuildPreview(AuiToolBar,PreviewFlags);
         }
         else    // If child is not any of wxAuiToolBarItems, it is a wxControl
         {
             wxControl* ChildAsControl = wxDynamicCast(Child->BuildPreview(AuiToolBar,PreviewFlags),wxControl);
-            AuiToolBar->AddControl(ChildAsControl,ATBExtra->m_Label);
-            if ( !ATBExtra->m_Enabled ) ChildAsControl->Enable(false);
+            AuiToolBar->AddControl(ChildAsControl,Extra->m_Label);
+            if ( !Extra->m_Enabled ) ChildAsControl->Enable(false);
         }
-    }
+	}
 
     AuiToolBar->Realize();
-    return AuiToolBar;
+	return AuiToolBar;
 }
 
 void wxsAuiToolBar::OnBuildCreatingCode()
@@ -287,7 +285,7 @@ void wxsAuiToolBar::OnBuildCreatingCode()
             for ( int i=0; i<GetChildCount(); i++ )
             {
                 wxsItem* Child = GetChild(i);
-                wxsAuiToolBarExtra* ATBExtra = (wxsAuiToolBarExtra*)GetChildExtra(i);
+                wxsAuiToolBarExtra* Extra = (wxsAuiToolBarExtra*)GetChildExtra(i);
                 wxString ClassName = Child->GetClassName();
 
                 if ( ClassName == _T("wxAuiToolBarItem") )
@@ -303,22 +301,11 @@ void wxsAuiToolBar::OnBuildCreatingCode()
                             ItemKind = _T("wxITEM_NORMAL");
                             break;
                         }
-                        case wxITEM_RADIO:
-                        {
-                            ItemKind = _T("wxITEM_RADIO");
-                            break;
-                        }
                         case wxITEM_CHECK:
                         {
                             ItemKind = _T("wxITEM_CHECK");
                             break;
                         }
-                        case wxITEM_SEPARATOR:
-                        {
-                            ItemKind = _T("wxITEM_SEPARATOR");
-                            break;
-                        }
-                        case wxITEM_MAX: // fall-through
                         default:
                         {
                             break;
@@ -326,16 +313,30 @@ void wxsAuiToolBar::OnBuildCreatingCode()
                     }
 
                     Codef(_T("%AAddTool(%s, %t, %i, %i, %s, %t, %t, NULL);\n"),
+                        #if wxCHECK_VERSION(2, 9, 0)
                         Child->GetIdName().wx_str(),
-                        ATBExtra->m_Label.wx_str(),
+                        Extra->m_Label.wx_str(),
                         &Bitmap,_T("wxART_TOOLBAR"),
                         &DisabledBitmap,_T("wxART_TOOLBAR"),
                         ItemKind.wx_str(),
                         Item->m_ShortHelp.wx_str(),
                         Item->m_LongHelp.wx_str());
+                        #else
+                        Child->GetIdName().c_str(),
+                        Extra->m_Label.c_str(),
+                        &Bitmap,_T("wxART_TOOLBAR"),
+                        &DisabledBitmap,_T("wxART_TOOLBAR"),
+                        ItemKind.c_str(),
+                        Item->m_ShortHelp.c_str(),
+                        Item->m_LongHelp.c_str());
+                        #endif
                     if ( Item->m_DropDown && (Item->m_ItemKind == wxITEM_NORMAL) )
                     {
+                        #if wxCHECK_VERSION(2, 9, 0)
                         Codef(_T("%ASetToolDropDown(%s, true);\n"),Item->GetIdName().wx_str());
+                        #else
+                        Codef(_T("%ASetToolDropDown(%s, true);\n"),Item->GetIdName().c_str());
+                        #endif
 
                     }
                 }
@@ -347,25 +348,47 @@ void wxsAuiToolBar::OnBuildCreatingCode()
                 {
                     wxsAuiToolBarLabel* Label = (wxsAuiToolBarLabel*) Child;
                     if ( Label->m_IsDefault )
-                        Codef(_T("%AAddLabel(%s, %t);\n"),Child->GetIdName().wx_str(),ATBExtra->m_Label.wx_str());
+                    {
+                        #if wxCHECK_VERSION(2, 9, 0)
+                        Codef(_T("%AAddLabel(%s, %t);\n"),Child->GetIdName().wx_str(),Extra->m_Label.wx_str());
+                        #else
+                        Codef(_T("%AAddLabel(%s, %t);\n"),Child->GetIdName().c_str(),Extra->m_Label.c_str());
+                        #endif
+
+                    }
                     else
-                        Codef(_T("%AAddLabel(%s, %t, %d);\n"),Child->GetIdName().wx_str(),ATBExtra->m_Label.wx_str(),static_cast<int>(Label->m_Width));
+                    {
+                        #if wxCHECK_VERSION(2, 9, 0)
+                        Codef(_T("%AAddLabel(%s, %t, %d);\n"),Child->GetIdName().wx_str(),Extra->m_Label.wx_str(),Label->m_Width);
+                        #else
+                        Codef(_T("%AAddLabel(%s, %t, %d);\n"),Child->GetIdName().c_str(),Extra->m_Label.c_str(),Label->m_Width);
+                        #endif
+                    }
                 }
                 else if ( ClassName == _T("wxAuiToolBarSpacer") )
                 {
                     wxsAuiToolBarSpacer* Spacer = (wxsAuiToolBarSpacer*) Child;
-                    if ( Spacer->m_Stretch ) Codef(_T("%AAddStretchSpacer(%d);\n"),static_cast<int>(Spacer->m_Proportion));
-                    else                     Codef(_T("%AAddSpacer(%d);\n"),static_cast<int>(Spacer->m_Pixels));
+                    if ( Spacer->m_Stretch ) Codef(_T("%AAddStretchSpacer(%d);\n"),Spacer->m_Proportion);
+                    else                     Codef(_T("%AAddSpacer(%d);\n"),Spacer->m_Pixels);
                 }
                 else
                 {
                     // If child is not any of wxAuiToolBarItems, it is a wxControl
-                    Codef(_T("%AAddControl(%o, %t);\n"),i,ATBExtra->m_Label.wx_str());
-                    if ( !ATBExtra->m_Enabled && Child->GetBaseProps()->m_Enabled ) Codef(_T("%s->Enable(false);\n"),Child->GetVarName().wx_str());
+                    #if wxCHECK_VERSION(2, 9, 0)
+                    Codef(_T("%AAddControl(%o, %t);\n"),i,Extra->m_Label.wx_str());
+                    if ( !Extra->m_Enabled && Child->GetBaseProps()->m_Enabled ) Codef(_T("%s->Enable(false);\n"),Child->GetVarName().wx_str());
+                    #else
+                    Codef(_T("%AAddControl(%o, %t);\n"),i,Extra->m_Label.c_str());
+                    if ( !Extra->m_Enabled && Child->GetBaseProps()->m_Enabled ) Codef(_T("%s->Enable(false);\n"),Child->GetVarName().c_str());
+                    #endif
                     continue;
                 }
 
-                if ( !ATBExtra->m_Enabled ) Codef(_T("%AEnableTool(%s, false);\n"),Child->GetIdName().wx_str());
+                #if wxCHECK_VERSION(2, 9, 0)
+                if ( !Extra->m_Enabled ) Codef(_T("%AEnableTool(%s, false);\n"),Child->GetIdName().wx_str());
+                #else
+                if ( !Extra->m_Enabled ) Codef(_T("%AEnableTool(%s, false);\n"),Child->GetIdName().c_str());
+                #endif
             }
 
             Codef(_T("%ARealize();\n"));
@@ -373,7 +396,6 @@ void wxsAuiToolBar::OnBuildCreatingCode()
             break;
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsAuiToolBar::OnBuildCreatingCode"),GetLanguage());

@@ -2,9 +2,9 @@
  * This file is part of the Code::Blocks IDE and licensed under the GNU Lesser General Public License, version 3
  * http://www.gnu.org/licenses/lgpl-3.0.html
  *
- * $Revision$
- * $Id$
- * $HeadURL$
+ * $Revision: 5024 $
+ * $Id: editorcolourset.cpp 5024 2008-04-30 22:22:21Z killerbot $
+ * $HeadURL: https://svn.berlios.de/svnroot/repos/codeblocks/trunk/src/sdk/editorcolourset.cpp $
  */
 
 // Stop following warning:
@@ -22,9 +22,7 @@
     #include "logmanager.h"
     #include "filemanager.h"
     #include "manager.h"
-
     #include <wx/dir.h>
-    #include <wx/settings.h> // wxSystemSettings
 #endif
 #include "cbstyledtextctrl.h"
 
@@ -112,9 +110,13 @@ void SEditorColourSet::LoadAvailableSets()
 
     // user paths first
     wxString path = ConfigManager::GetFolder(sdDataUser) + _T("/lexers/");
-    if (wxDirExists(path) && dir.Open(path))
+    if (dir.Open(path))
     {
+        #if wxCHECK_VERSION(2, 9, 0)
         Manager::Get()->GetLogManager()->Log(F(_("Scanning for lexers in %s..."), path.wx_str()));
+        #else
+        Manager::Get()->GetLogManager()->Log(F(_("Scanning for lexers in %s..."), path.c_str()));
+        #endif
         bool ok = dir.GetFirst(&filename, _T("lexer_*.xml"), wxDIR_FILES);
         while(ok)
         {
@@ -128,9 +130,13 @@ void SEditorColourSet::LoadAvailableSets()
 
     // global paths next
     path = ConfigManager::GetFolder(sdDataGlobal) + _T("/lexers/");
-    if (wxDirExists(path) && dir.Open(path))
+    if (dir.Open(path))
     {
+        #if wxCHECK_VERSION(2, 9, 0)
         Manager::Get()->GetLogManager()->Log(F(_("Scanning for lexers in %s..."), path.wx_str()));
+        #else
+        Manager::Get()->GetLogManager()->Log(F(_("Scanning for lexers in %s..."), path.c_str()));
+        #endif
         bool ok = dir.GetFirst(&filename, _T("lexer_*.xml"), wxDIR_FILES);
         while(ok)
         {
@@ -726,7 +732,11 @@ void SEditorColourSet::SetKeywords(HighlightLanguage lang, int idx, const wxStri
         wxString tmp(_T(' '), keywords.length()); // faster than using Alloc()
 
         const wxChar *src = keywords.c_str();
+        #if wxCHECK_VERSION(2, 9, 0)
         wxChar *dst = (wxChar *) tmp.wx_str();
+        #else
+        wxChar *dst = (wxChar *) tmp.c_str();
+        #endif
         wxChar c;
         size_t len = 0;
 
@@ -787,12 +797,12 @@ wxString SEditorColourSet::GetSampleCode(HighlightLanguage lang, int* breakLine,
     // user path first
     wxString path = ConfigManager::GetFolder(sdDataUser) + _T("/lexers/");
     wxFileName fullname( path + shortname );
-    if ( !fullname.FileExists(path + shortname) )
+    if ( ! fullname.FileExists(path + shortname) )
     {
         // global path next
         path = ConfigManager::GetFolder(sdDataGlobal) + _T("/lexers/");
     }
-    if ( !mset.m_SampleCode.IsEmpty() )
+    if (!mset.m_SampleCode.IsEmpty())
         return path + mset.m_SampleCode;
     return wxEmptyString;
 }

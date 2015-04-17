@@ -113,10 +113,6 @@ void HexEditor::BuildModuleMenu(const ModuleType type, wxMenu* menu, const FileT
             break;
 
 
-        case mtEditorManager:
-        case mtLogManager:
-        case mtOpenFilesList:
-        case mtEditorTab:
         default:
             break;
     }
@@ -158,13 +154,12 @@ void HexEditor::OnOpenHexEditFileBrowser( wxCommandEvent& /*event*/ )
 
 void HexEditor::OnOpenHexEdit( wxCommandEvent& /*event*/ )
 {
-    cbProjectManagerUI &managerUI = Manager::Get()->GetProjectManager()->GetUI();
-    wxTreeCtrl *tree = managerUI.GetTree();
+    wxTreeCtrl *tree = Manager::Get()->GetProjectManager()->GetTree();
 
     if ( !tree )
         return;
 
-    wxTreeItemId treeItem =  managerUI.GetTreeSelection();
+    wxTreeItemId treeItem =  tree->GetSelection();
 
     if ( !treeItem.IsOk() )
         return;
@@ -176,7 +171,8 @@ void HexEditor::OnOpenHexEdit( wxCommandEvent& /*event*/ )
 
     if ( data->GetKind() == FileTreeData::ftdkFile )
     {
-        OpenProjectFile( data->GetProjectFile() );
+
+        OpenProjectFile( data->GetProject()->GetFile( data->GetFileIndex() ) );
     }
 }
 

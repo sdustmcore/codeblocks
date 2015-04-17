@@ -22,7 +22,6 @@
 
 #include "FileContentDisk.h"
 #include "TestCasesHelper.h"
-#include "globals.h"
 
 #include <wx/utils.h>
 #include <wx/progdlg.h>
@@ -258,7 +257,7 @@ bool FileContentDisk::WriteFile(const wxString& fileName)
         if ( AnnoyingDialog(
             _("HexEdit: Save may take long time"),
             _("Saving the file may take long time.\n"
-              "Do you want to continue?\n") ).ShowModal() != AnnoyingDialog::rtYES )
+              "Do you want to continue?\n") ).ShowModal() != wxID_YES )
         {
             return false;
         }
@@ -1194,8 +1193,6 @@ void TestCases::Test<4>()
                 Ensure( Remove( pos, size ), _T("Stress test over 1MB initial file size - remove" ) );
                 break;
             }
-            default:
-                break;
         }
     }
 

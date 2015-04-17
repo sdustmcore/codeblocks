@@ -27,8 +27,6 @@
 #include <wx/menu.h>
 #include "scrollingdialog.h"
 
-#include <prep.h>
-
 namespace
 {
     wxsRegisterItem<wxsMenuBar> Reg(_T("MenuBar"),wxsTTool,_T("Tools"),60);
@@ -50,7 +48,7 @@ namespace
                 PlaceWindow(this,pdlCentre,true);
             }
 
-            void OnOK(cb_unused wxCommandEvent& event)
+            void OnOK(wxCommandEvent& event)
             {
                 Editor->ApplyChanges();
                 EndModal(wxID_OK);
@@ -89,13 +87,12 @@ void wxsMenuBar::OnBuildCreatingCode()
             BuildSetupWindowCode();
             break;
 
-        case wxsUnknownLanguage: // fall-through
         default:
             wxsCodeMarks::Unknown(_T("wxsMenuBar::OnBuildCreatingCode"),GetLanguage());
     }
 }
 
-void wxsMenuBar::OnEnumToolProperties(cb_unused long Flags)
+void wxsMenuBar::OnEnumToolProperties(long Flags)
 {
 }
 
@@ -158,7 +155,7 @@ bool wxsMenuBar::OnCanAddChild(wxsItem* Item,bool ShowMessage)
     return true;
 }
 
-bool wxsMenuBar::OnMouseDClick(cb_unused wxWindow* Preview,cb_unused int PosX,cb_unused int PosY)
+bool wxsMenuBar::OnMouseDClick(wxWindow* Preview,int PosX,int PosY)
 {
     MenuEditorDialog Dlg(this);
     Dlg.ShowModal();

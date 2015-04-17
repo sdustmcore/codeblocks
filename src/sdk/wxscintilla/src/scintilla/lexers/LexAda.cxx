@@ -10,7 +10,6 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <assert.h>
-#include <ctype.h>
 
 #include <string>
 
@@ -18,6 +17,7 @@
 #include "Scintilla.h"
 #include "SciLexer.h"
 
+#include "PropSetSimple.h"
 #include "WordList.h"
 #include "LexAccessor.h"
 #include "Accessor.h"
@@ -65,6 +65,8 @@ static void ColouriseWhiteSpace(StyleContext& sc, bool& apostropheStartsAttribut
 static void ColouriseWord(StyleContext& sc, WordList& keywords, bool& apostropheStartsAttribute);
 
 static inline bool IsDelimiterCharacter(int ch);
+static inline bool IsNumberStartCharacter(int ch);
+static inline bool IsNumberCharacter(int ch);
 static inline bool IsSeparatorOrDelimiterCharacter(int ch);
 static bool IsValidIdentifier(const std::string& identifier);
 static bool IsValidNumber(const std::string& number);
@@ -308,6 +310,19 @@ static inline bool IsDelimiterCharacter(int ch) {
 	}
 }
 
+static inline bool IsNumberCharacter(int ch) {
+	return IsNumberStartCharacter(ch) ||
+	       ch == '_' ||
+	       ch == '.' ||
+	       ch == '#' ||
+	       (ch >= 'a' && ch <= 'f') ||
+	       (ch >= 'A' && ch <= 'F');
+}
+
+static inline bool IsNumberStartCharacter(int ch) {
+	return IsADigit(ch);
+}
+
 static inline bool IsSeparatorOrDelimiterCharacter(int ch) {
 	return IsASpace(ch) || IsDelimiterCharacter(ch);
 }
@@ -511,5 +526,5 @@ static inline bool IsWordCharacter(int ch) {
 }
 
 static inline bool IsWordStartCharacter(int ch) {
-	return (IsASCII(ch) && isalpha(ch)) || ch == '_';
+	return (isascii(ch) && isalpha(ch)) || ch == '_';
 }

@@ -44,6 +44,7 @@
 #include "Scintilla.h"
 #include "SciLexer.h"
 
+#include "PropSetSimple.h"
 #include "WordList.h"
 #include "LexAccessor.h"
 #include "Accessor.h"
@@ -113,16 +114,11 @@ static bool HasPrevLineContent(StyleContext &sc) {
     return false;
 }
 
-static bool AtTermStart(StyleContext &sc) {
-    return sc.currentPos == 0 || isspacechar(sc.chPrev);
-}
-
 static bool IsValidHrule(const unsigned int endPos, StyleContext &sc) {
-    int count = 1;
+    int c, count = 1;
     unsigned int i = 0;
-    for (;;) {
-        ++i;
-        int c = sc.GetRelative(i);
+    while (++i) {
+        c = sc.GetRelative(i);
         if (c == sc.ch)
             ++count;
         // hit a terminating character
@@ -141,6 +137,7 @@ static bool IsValidHrule(const unsigned int endPos, StyleContext &sc) {
             }
         }
     }
+    return false;
 }
 
 static void ColorizeMarkdownDoc(unsigned int startPos, int length, int initStyle,
@@ -377,38 +374,35 @@ static void ColorizeMarkdownDoc(unsigned int startPos, int length, int initStyle
                 }
             }
             // Code - also a special case for alternate inside spacing
-            if (sc.Match("``") && sc.GetRelative(3) != ' ' && AtTermStart(sc)) {
+            if (sc.Match("``") && sc.GetRelative(3) != ' ') {
                 sc.SetState(SCE_MARKDOWN_CODE2);
                 sc.Forward();
             }
-            else if (sc.ch == '`' && sc.chNext != ' ' && AtTermStart(sc)) {
+            else if (sc.ch == '`' && sc.chNext != ' ') {
                 sc.SetState(SCE_MARKDOWN_CODE);
             }
             // Strong
-            else if (sc.Match("**") && sc.GetRelative(2) != ' ' && AtTermStart(sc)) {
+            else if (sc.Match("**") && sc.GetRelative(2) != ' ') {
                 sc.SetState(SCE_MARKDOWN_STRONG1);
                 sc.Forward();
            }
-            else if (sc.Match("__") && sc.GetRelative(2) != ' ' && AtTermStart(sc)) {
+            else if (sc.Match("__") && sc.GetRelative(2) != ' ') {
                 sc.SetState(SCE_MARKDOWN_STRONG2);
                 sc.Forward();
             }
             // Emphasis
-            else if (sc.ch == '*' && sc.chNext != ' ' && AtTermStart(sc)) {
+            else if (sc.ch == '*' && sc.chNext != ' ')
                 sc.SetState(SCE_MARKDOWN_EM1);
-            }
-            else if (sc.ch == '_' && sc.chNext != ' ' && AtTermStart(sc)) {
+            else if (sc.ch == '_' && sc.chNext != ' ')
                 sc.SetState(SCE_MARKDOWN_EM2);
-            }
             // Strikeout
-            else if (sc.Match("~~") && sc.GetRelative(2) != ' ' && AtTermStart(sc)) {
+            else if (sc.Match("~~") && sc.GetRelative(2) != ' ') {
                 sc.SetState(SCE_MARKDOWN_STRIKEOUT);
                 sc.Forward();
             }
             // Beginning of line
-            else if (IsNewline(sc.ch)) {
+            else if (IsNewline(sc.ch))
                 sc.SetState(SCE_MARKDOWN_LINE_BEGIN);
-            }
         }
         // Advance if not holding back the cursor for this iteration.
         if (!freezeCursor)

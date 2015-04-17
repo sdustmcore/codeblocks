@@ -7,7 +7,6 @@
 #define PLUGINSCONFIGURATIONDLG_H
 
 #include "scrollingdialog.h"
-#include <wx/html/htmlwin.h>
 
 class wxCommandEvent;
 class wxListEvent;
@@ -18,11 +17,11 @@ class wxUpdateUIEvent;
  */
 class PluginsConfigurationDlg : public wxScrollingDialog
 {
-    public:
-        // class constructor
-        PluginsConfigurationDlg(wxWindow* parent);
-        // class destructor
-        ~PluginsConfigurationDlg();
+	public:
+		// class constructor
+		PluginsConfigurationDlg(wxWindow* parent);
+		// class destructor
+		~PluginsConfigurationDlg();
 
         void EndModal(int retCode);
     private:
@@ -32,9 +31,7 @@ class PluginsConfigurationDlg : public wxScrollingDialog
         void OnUninstall(wxCommandEvent& event);
         void OnExport(wxCommandEvent& event);
         void OnSelect(wxListEvent& event);
-        void OnMouseMotion(wxMouseEvent& event);
         void OnUpdateUI(wxUpdateUIEvent& event);
-        void OnLinkClicked(wxHtmlLinkEvent& event);
 
         DECLARE_EVENT_TABLE();
 };

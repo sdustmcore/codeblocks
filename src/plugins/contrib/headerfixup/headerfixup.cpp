@@ -31,7 +31,9 @@ namespace
 HeaderFixup::HeaderFixup()
 {
   if ( !Manager::LoadResource(_T("headerfixup.zip")) )
+  {
     NotifyMissingFile(_T("headerfixup.zip"));
+  }
 }// HeaderFixup
 
 // ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
@@ -54,10 +56,25 @@ void HeaderFixup::OnRelease(bool /*appShutDown*/)
 
 // ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
+int HeaderFixup::Configure()
+{
+  cbConfigurationDialog dlg(Manager::Get()->GetAppWindow(), wxID_ANY, _("Header Fixup Config"));
+  cbConfigurationPanel* panel = GetConfigurationPanel(&dlg);
+  if (panel)
+  {
+    dlg.AttachConfigurationPanel(panel);
+    PlaceWindow(&dlg);
+    return dlg.ShowModal() == wxID_OK ? 0 : -1;
+  }
+  return 1;
+}// Configure
+
+// ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+
 int HeaderFixup::Execute()
 {
   // if not attached, exit
-  if ( !IsAttached() )
+  if (!IsAttached())
     return -1;
 
   // if no project is opened -> inform the user and do not operate

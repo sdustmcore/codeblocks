@@ -17,6 +17,7 @@
 #include "Scintilla.h"
 #include "SciLexer.h"
 
+#include "PropSetSimple.h"
 #include "WordList.h"
 #include "LexAccessor.h"
 #include "Accessor.h"
@@ -233,7 +234,7 @@ static void ColouriseMagikDoc(unsigned int startPos, int length, int initStyle,
 	            }
 
 	            if(characters.InList(keyword)) {
-	                sc.Forward(static_cast<int>(strlen(keyword)));
+	                sc.Forward(strlen(keyword));
 	            } else {
 	                sc.Forward();
 	            }

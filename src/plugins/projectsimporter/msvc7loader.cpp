@@ -23,8 +23,6 @@
 
 #include <wx/choicdlg.h>
 
-#include <tinyxml/tinyxml.h>
-
 #include "prep.h"
 #include "msvc7loader.h"
 #include "multiselectdlg.h"
@@ -83,7 +81,11 @@ bool MSVC7Loader::Open(const wxString& filename)
     m_ConvertSwitches = m_pProject->GetCompilerID().IsSameAs(_T("gcc"));
     m_ProjectName = wxFileName(filename).GetName();
 
+    #if wxCHECK_VERSION(2, 9, 0)
     pMsg->DebugLog(F(_T("Importing MSVC 7.xx project: %s"), filename.wx_str()));
+    #else
+    pMsg->DebugLog(F(_T("Importing MSVC 7.xx project: %s"), filename.c_str()));
+    #endif
 
     TiXmlDocument doc(filename.mb_str());
     if (!doc.LoadFile())
@@ -111,7 +113,11 @@ bool MSVC7Loader::Open(const wxString& filename)
     if ((m_Version!=70) && (m_Version!=71))
     {
         // seems to work with visual 8 too ;)
+        #if wxCHECK_VERSION(2, 9, 0)
         pMsg->DebugLog(F(_T("Project version is '%s'. Although this loader was designed for version 7.xx, will try to import..."), ver.wx_str()));
+        #else
+        pMsg->DebugLog(F(_T("Project version is '%s'. Although this loader was designed for version 7.xx, will try to import..."), ver.c_str()));
+        #endif
     }
 
     m_pProject->ClearAllProperties();
@@ -125,7 +131,7 @@ bool MSVC7Loader::Open(const wxString& filename)
     return DoSelectConfiguration(root);
 }
 
-bool MSVC7Loader::Save(cb_unused const wxString& filename)
+bool MSVC7Loader::Save(const wxString& filename)
 {
     // no support to save MSVC7 projects
     return false;
@@ -241,8 +247,7 @@ bool MSVC7Loader::DoImport(TiXmlElement* conf)
         bt->SetTargetType(ttNative);
     else if (conftype.IsSameAs(_T("10"))) // typeGeneric 10
         bt->SetTargetType(ttCommandsOnly);
-    else // typeUnknown 0
-    {
+    else { // typeUnknown 0
         bt->SetTargetType(ttCommandsOnly);
         Manager::Get()->GetLogManager()->DebugLog(_T("unrecognized project type"));
     }
@@ -262,26 +267,24 @@ bool MSVC7Loader::DoImport(TiXmlElement* conf)
             // linker
             wxString tmp;
 
-            if ((bt->GetTargetType()==ttExecutable) || (bt->GetTargetType()==ttNative))
-            {
+            if ((bt->GetTargetType()==ttExecutable) || (bt->GetTargetType()==ttNative)) {
                 tmp = cbC2U(tool->Attribute("SubSystem"));
                 //subSystemNotSet 0
                 //subSystemConsole 1
                 //subSystemWindows 2
-                if (tmp.IsSameAs(_T("1")))
-                {
+                if (tmp.IsSameAs(_T("1"))) {
                     bt->SetTargetType(ttConsoleOnly);
                     //bt->AddLinkerOption("/SUBSYSTEM:CONSOLE"); // don't know if it is necessary
                 }
-                else if (tmp.IsSameAs(_T("3")))
+                else if (tmp.IsSameAs(_T("3"))) {
                     bt->SetTargetType(ttNative);
+                }
             } // else we keep executable
 
             tmp = ReplaceMSVCMacros(cbC2U(tool->Attribute("OutputFile")));
             tmp = UnixFilename(tmp);
             if (tmp.Last() == _T('.')) tmp.RemoveLast();
-            if (bt->GetTargetType() == ttStaticLib)
-            {
+            if (bt->GetTargetType() == ttStaticLib) {
                 // convert the lib name
                 Compiler* compiler = CompilerFactory::GetCompiler(m_pProject->GetCompilerID());
                 if (compiler)
@@ -337,8 +340,7 @@ bool MSVC7Loader::DoImport(TiXmlElement* conf)
             }
 
             // other options: /MACHINE:I386, /INCREMENTAL:YES, /STACK:10000000
-            if (!m_ConvertSwitches)
-            {
+            if (!m_ConvertSwitches) {
                 arr = GetArrayFromString(ReplaceMSVCMacros(cbC2U(tool->Attribute("AdditionalOptions"))), _T(" "));
                 for (unsigned int i = 0; i < arr.GetCount(); ++i) bt->AddLinkerOption(arr[i]);
             }
@@ -351,10 +353,7 @@ bool MSVC7Loader::DoImport(TiXmlElement* conf)
                 tmp = arr[i];
                 if (tmp.Right(4).CmpNoCase(_T(".lib")) == 0)
                     tmp.Remove(tmp.Length() - 4);
-                if ((tmp == _T("/dll")) || (tmp == _T("/DLL")))
-                    bt->AddLinkerOption(_T("--dll"));
-                else
-                    bt->AddLinkLib(tmp);
+                bt->AddLinkLib(tmp);
             }
 
             if (!m_ConvertSwitches)
@@ -400,12 +399,12 @@ bool MSVC7Loader::DoImport(TiXmlElement* conf)
             arr = GetArrayFromString(tmp, _T(","));
             if (arr.GetCount() == 1) // if it fails, try with semicolon
                 arr = GetArrayFromString(tmp, _T(";"));
-            for (unsigned int j = 0; j < arr.GetCount(); ++j)
+            for (unsigned int i = 0; i < arr.GetCount(); ++i)
             {
                 if (m_ConvertSwitches)
-                    bt->AddCompilerOption(wxString(_T("-D")) + arr[j]);
+                    bt->AddCompilerOption(wxString(_T("-D")) + arr[i]);
                 else
-                    bt->AddCompilerOption(wxString(_T("/D")) + arr[j]);
+                    bt->AddCompilerOption(wxString(_T("/D")) + arr[i]);
             }
 
             tmp = cbC2U(tool->Attribute("WarningLevel"));
@@ -538,9 +537,9 @@ bool MSVC7Loader::DoImport(TiXmlElement* conf)
             {
                 wxArrayString FIfiles;
                 ParseInputString(tmp, FIfiles);
-                for (size_t j = 0; j < FIfiles.GetCount(); ++j)
-                    bt->AddCompilerOption(m_ConvertSwitches? _T("-include ") + ReplaceMSVCMacros(FIfiles[j])
-                                          : _T("/FI ") + ReplaceMSVCMacros(FIfiles[j]));
+                for (size_t i = 0; i < FIfiles.GetCount(); ++i)
+                    bt->AddCompilerOption(m_ConvertSwitches? _T("-include ") + ReplaceMSVCMacros(FIfiles[i])
+                                          : _T("/FI ") + ReplaceMSVCMacros(FIfiles[i]));
             }
 
         }
@@ -577,58 +576,6 @@ bool MSVC7Loader::DoImportFiles(TiXmlElement* root, int numConfigurations)
         while (file)
         {
             wxString fname = ReplaceMSVCMacros(cbC2U(file->Attribute("RelativePath")));
-
-            TiXmlElement* conf = file->FirstChildElement("FileConfiguration");
-            while (conf)
-            {
-                // find the target to which it applies
-                wxString sTargetName = cbC2U(conf->Attribute("Name"));
-                sTargetName.Replace(_T("|"), _T(" "), true);
-                ProjectBuildTarget* bt = m_pProject->GetBuildTarget(sTargetName);
-
-                TiXmlElement* tool = conf->FirstChildElement("Tool");
-                while (tool)
-                {
-                    // get additional include directories
-                    wxString sAdditionalInclude;
-                    sAdditionalInclude = cbC2U(tool->Attribute("AdditionalIncludeDirectories"));
-
-                    if (sAdditionalInclude.Len() > 0)
-                    {
-                        // we have to add the additionnal include directories.
-                        // parse the different include directories (comma separated)
-                        int iStart;
-                        int iCommaPosition;
-                        iStart = 0;
-                        iCommaPosition = sAdditionalInclude.Find(_T(","));
-                        do
-                        {
-                            int iEnd;
-                            if (iCommaPosition != wxNOT_FOUND)
-                            {
-                                iEnd = iCommaPosition - 1;
-                                if (iEnd < iStart) iEnd = iStart;
-                            }
-                            else
-                                iEnd = sAdditionalInclude.Len() - 1;
-
-                            wxString sInclude = sAdditionalInclude.Mid(iStart, iEnd - iStart + 1);
-                            if (bt)
-                                bt->AddIncludeDir(sInclude);
-
-                            // remove the directory from the include list
-                            sAdditionalInclude = sAdditionalInclude.Mid(iEnd + 2);
-                            iCommaPosition = sAdditionalInclude.Find(_T(","));
-                        }
-                        while (sAdditionalInclude.Len() > 0);
-                    }
-
-                    tool = tool->NextSiblingElement();
-                }
-
-                conf = conf->NextSiblingElement("FileConfiguration");
-            }
-
             if ((!fname.IsEmpty()) && (fname != _T(".\\")))
             {
                 if (fname.StartsWith(_T(".\\")))
@@ -689,7 +636,12 @@ void MSVC7Loader::HandleFileConfiguration(TiXmlElement* file, ProjectFile* pf)
                 name.Replace(_T("|"), _T(" "), true); // Replace '|' to ensure proper check
                 pf->RemoveBuildTarget(name);
                 Manager::Get()->GetLogManager()->DebugLog(
-                    F(_("removed %s from %s"), pf->file.GetFullPath().wx_str(), name.wx_str()));
+                    F(_("removed %s from %s"),
+                    #if wxCHECK_VERSION(2, 9, 0)
+                    pf->file.GetFullPath().wx_str(), name.wx_str()));
+                    #else
+                    pf->file.GetFullPath().c_str(), name.c_str()));
+                    #endif
             }
         }
         fconf = fconf->NextSiblingElement("FileConfiguration");

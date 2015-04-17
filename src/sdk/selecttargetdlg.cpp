@@ -24,57 +24,56 @@
 #include "selecttargetdlg.h"
 
 BEGIN_EVENT_TABLE(SelectTargetDlg, wxScrollingDialog)
-    EVT_CHECKBOX(XRCID("chkSetAsDefaultExec"), SelectTargetDlg::OnCheckboxSelection)
-    EVT_LISTBOX(XRCID("lstItems"), SelectTargetDlg::OnListboxSelection)
-    EVT_LISTBOX_DCLICK(XRCID("lstItems"), SelectTargetDlg::OnListboxDClick)
-    EVT_BUTTON(XRCID("btnHostApplication"),    SelectTargetDlg::OnHostApplicationButtonClick)
+	EVT_CHECKBOX(XRCID("chkSetAsDefaultExec"), SelectTargetDlg::OnCheckboxSelection)
+	EVT_LISTBOX(XRCID("lstItems"), SelectTargetDlg::OnListboxSelection)
+	EVT_LISTBOX_DCLICK(XRCID("lstItems"), SelectTargetDlg::OnListboxDClick)
+	EVT_BUTTON(XRCID("btnHostApplication"),	SelectTargetDlg::OnHostApplicationButtonClick)
 END_EVENT_TABLE()
 
 SelectTargetDlg::SelectTargetDlg(wxWindow* parent, cbProject* project, int selected)
-    : m_pProject(project),
-    m_Selected(selected)
+	: m_pProject(project),
+	m_Selected(selected)
 {
-    //ctor
-    wxXmlResource::Get()->LoadObject(this, parent, _T("dlgSelectTarget"),_T("wxScrollingDialog"));
+	//ctor
+	wxXmlResource::Get()->LoadObject(this, parent, _T("dlgSelectTarget"),_T("wxScrollingDialog"));
 
-    wxListBox* list = XRCCTRL(*this, "lstItems", wxListBox);
-    list->Clear();
-    for (int i = 0; i < m_pProject->GetBuildTargetsCount(); ++i)
-    {
-        ProjectBuildTarget* target = m_pProject->GetBuildTarget(i);
-        list->Append(target->GetTitle());
-    }
-    if (selected != -1)
-        list->SetSelection(selected);
-    else
-    {
-        int item = list->FindString(m_pProject->GetActiveBuildTarget());
-        if (item == wxNOT_FOUND)
+	wxListBox* list = XRCCTRL(*this, "lstItems", wxListBox);
+	list->Clear();
+	for (int i = 0; i < m_pProject->GetBuildTargetsCount(); ++i)
+	{
+		ProjectBuildTarget* target = m_pProject->GetBuildTarget(i);
+		list->Append(target->GetTitle());
+	}
+	if (selected != -1)
+		list->SetSelection(selected);
+	else
+	{
+	    int item = list->FindString(m_pProject->GetActiveBuildTarget());
+	    if (item == wxNOT_FOUND)
             item = list->FindString(m_pProject->GetDefaultExecuteTarget());
-        list->SetSelection(item);
-    }
+		list->SetSelection(item);
+	}
 
-    UpdateSelected();
-    XRCCTRL(*this, "wxID_OK", wxButton)->MoveBeforeInTabOrder (XRCCTRL(*this, "lstItems", wxListBox));
+	UpdateSelected();
+	XRCCTRL(*this, "wxID_OK", wxButton)->MoveBeforeInTabOrder (XRCCTRL(*this, "lstItems", wxListBox));
 }
 
 SelectTargetDlg::~SelectTargetDlg()
 {
-    //dtor
+	//dtor
 }
 
 void SelectTargetDlg::UpdateSelected()
 {
     wxString name = XRCCTRL(*this, "lstItems", wxListBox)->GetStringSelection();
-    ProjectBuildTarget* target = m_pProject->GetBuildTarget(name);
-    if (target)
-    {
+	ProjectBuildTarget* target = m_pProject->GetBuildTarget(name);
+	if (target)
+	{
         XRCCTRL(*this, "chkSetAsDefaultExec", wxCheckBox)->SetValue(name == m_pProject->GetDefaultExecuteTarget());
-        XRCCTRL(*this, "txtParams", wxTextCtrl)->SetValue(target->GetExecutionParameters());
-        XRCCTRL(*this, "txtHostApp", wxTextCtrl)->SetValue(target->GetHostApplication());
-        XRCCTRL(*this, "chkHostInTerminal", wxCheckBox)->SetValue(target->GetRunHostApplicationInTerminal());
-    }
-    XRCCTRL(*this, "wxID_OK", wxButton)->Enable(target);
+		XRCCTRL(*this, "txtParams", wxTextCtrl)->SetValue(target->GetExecutionParameters());
+		XRCCTRL(*this, "txtHostApp", wxTextCtrl)->SetValue(target->GetHostApplication());
+	}
+	XRCCTRL(*this, "wxID_OK", wxButton)->Enable(target);
 } // end of UpdateSelected
 
 ProjectBuildTarget* SelectTargetDlg::GetSelectionTarget()
@@ -84,18 +83,18 @@ ProjectBuildTarget* SelectTargetDlg::GetSelectionTarget()
 
 // events
 
-void SelectTargetDlg::OnListboxSelection(cb_unused wxCommandEvent& event)
+void SelectTargetDlg::OnListboxSelection(wxCommandEvent& /*event*/)
 {
-    UpdateSelected();
+	UpdateSelected();
 } // end of OnListboxSelection
 
-void SelectTargetDlg::OnListboxDClick(cb_unused wxCommandEvent& event)
+void SelectTargetDlg::OnListboxDClick(wxCommandEvent& /*event*/)
 {
     UpdateSelected();
     EndModal(wxID_OK);
 } // end of OnListboxDClick
 
-void SelectTargetDlg::OnCheckboxSelection(cb_unused wxCommandEvent& event)
+void SelectTargetDlg::OnCheckboxSelection(wxCommandEvent& /*event*/)
 {
     if (XRCCTRL(*this, "chkSetAsDefaultExec", wxCheckBox)->GetValue())
     {
@@ -104,7 +103,7 @@ void SelectTargetDlg::OnCheckboxSelection(cb_unused wxCommandEvent& event)
     }
 } // end of OnCheckboxSelection
 
-void SelectTargetDlg::OnHostApplicationButtonClick(cb_unused wxCommandEvent& event)
+void SelectTargetDlg::OnHostApplicationButtonClick(wxCommandEvent& /*event*/)
 {
     if(wxTextCtrl* obj = XRCCTRL(*this, "txtHostApp", wxTextCtrl))
     {
@@ -125,11 +124,11 @@ void SelectTargetDlg::OnHostApplicationButtonClick(cb_unused wxCommandEvent& eve
         wxFileName fname(dlg.GetPath());
         if (fname.GetFullPath().StartsWith(m_pProject->GetCommonTopLevelPath()))
         {
-            fname.MakeRelativeTo(m_pProject->GetCommonTopLevelPath());
-            obj->SetValue(fname.GetFullPath());
+        	fname.MakeRelativeTo(m_pProject->GetCommonTopLevelPath());
+			obj->SetValue(fname.GetFullPath());
         }
-        else
-            obj->SetValue(fname.GetFullPath());
+		else
+			obj->SetValue(fname.GetFullPath());
     }
 } // end of OnHostApplicationButtonClick
 
@@ -154,8 +153,7 @@ void SelectTargetDlg::EndModal(int retCode)
             }
             target->SetExecutionParameters(execution_parameters);
             target->SetHostApplication(XRCCTRL(*this, "txtHostApp", wxTextCtrl)->GetValue());
-            target->SetRunHostApplicationInTerminal(XRCCTRL(*this, "chkHostInTerminal", wxCheckBox)->IsChecked());
         }
     }
-    wxScrollingDialog::EndModal(retCode);
+	wxScrollingDialog::EndModal(retCode);
 } // end of EndModal

@@ -9,22 +9,19 @@
 
 #include "sdk.h"
 #ifndef CB_PRECOMP
-    #include <wx/filename.h>
-    #include <wx/fs_zip.h>
-    #include "globals.h"
-    #include <wx/intl.h>
-    #include <wx/utils.h>
-    #include <wx/xrc/xmlres.h>
-    #include "cbeditor.h"
-    #include "configmanager.h"
-    #include "editormanager.h"
-    #include "logmanager.h"
-    #include "manager.h"
+#include <wx/filename.h>
+#include <wx/fs_zip.h>
+#include "globals.h"
+#include <wx/intl.h>
+#include <wx/utils.h>
+#include <wx/xrc/xmlres.h>
+#include "cbeditor.h"
+#include "configmanager.h"
+#include "editormanager.h"
+#include "manager.h"
 #endif
-
 #include <wx/choicdlg.h>
 #include <wx/filedlg.h>
-
 #include "EmbeddedHtmlPanel.h"
 #include "defaultmimehandler.h"
 #include "editmimetypesdlg.h"
@@ -96,26 +93,26 @@ void DefaultMimeHandler::OnAttach()
 
     m_Html = new EmbeddedHtmlPanel(Manager::Get()->GetAppWindow());
 
-    CodeBlocksDockEvent evt(cbEVT_ADD_DOCK_WINDOW);
-    evt.pWindow = m_Html;
+	CodeBlocksDockEvent evt(cbEVT_ADD_DOCK_WINDOW);
+	evt.pWindow = m_Html;
     evt.name = _T("DefMimeHandler_HTMLViewer");
-    evt.title = _("HTML viewer");
+	evt.title = _("HTML viewer");
     evt.dockSide = CodeBlocksDockEvent::dsFloating;
     evt.desiredSize.Set(350, 250);
     evt.floatingSize.Set(350, 250);
     evt.minimumSize.Set(150, 150);
     evt.shown = false;
-    Manager::Get()->ProcessEvent(evt);
+	Manager::Get()->ProcessEvent(evt);
 }
 
 
-void DefaultMimeHandler::OnRelease(cb_unused bool appShutDown)
+void DefaultMimeHandler::OnRelease(bool appShutDown)
 {
-    CodeBlocksDockEvent evt(cbEVT_REMOVE_DOCK_WINDOW);
-    evt.pWindow = m_Html;
-    Manager::Get()->ProcessEvent(evt);
-    m_Html->Destroy();
-    m_Html = 0;
+	CodeBlocksDockEvent evt(cbEVT_REMOVE_DOCK_WINDOW);
+	evt.pWindow = m_Html;
+	Manager::Get()->ProcessEvent(evt);
+	m_Html->Destroy();
+	m_Html = 0;
 
     // save configuration
     ConfigManager* conf = Manager::Get()->GetConfigManager(_T("mime_types"));
@@ -134,10 +131,15 @@ void DefaultMimeHandler::OnRelease(cb_unused bool appShutDown)
         txt << mt->wildcard << _T(";");
         txt << mt->program << _T(' ');
         wxString key;
-        key.Printf(_T("MimeType%u"), i);
+        key.Printf(_T("MimeType%d"), i);
         conf->Write(key, txt);
     }
     WX_CLEAR_ARRAY(m_MimeTypes);
+}
+
+int DefaultMimeHandler::Configure()
+{
+    return 0;
 }
 
 cbConfigurationPanel* DefaultMimeHandler::GetConfigurationPanel(wxWindow* parent)
@@ -146,7 +148,7 @@ cbConfigurationPanel* DefaultMimeHandler::GetConfigurationPanel(wxWindow* parent
     return dlg;
 }
 
-bool DefaultMimeHandler::CanHandleFile(cb_unused const wxString& filename) const
+bool DefaultMimeHandler::CanHandleFile(const wxString& filename) const
 {
     // always return true
     // even if we don't know how to handle the file,
@@ -165,16 +167,16 @@ int DefaultMimeHandler::OpenFile(const wxString& filename)
     cbMimeType* mt = FindMimeTypeFor(filename);
     if (mt)
         return DoOpenFile(mt, filename);
-    else if (the_file.GetExt().CmpNoCase(_T("htm")) == 0 ||
-            the_file.GetExt().CmpNoCase(_T("html")) == 0)
-    {
-        // embedded help viewer (unless the user has added an explicit association manually)
-        m_Html->Open(filename);
-        CodeBlocksDockEvent evt(cbEVT_SHOW_DOCK_WINDOW);
-        evt.pWindow = m_Html;
-        Manager::Get()->ProcessEvent(evt);
-        return 0;
-    }
+	else if (the_file.GetExt().CmpNoCase(_T("htm")) == 0 ||
+			the_file.GetExt().CmpNoCase(_T("html")) == 0)
+	{
+		// embedded help viewer (unless the user has added an explicit association manually)
+		m_Html->Open(filename);
+		CodeBlocksDockEvent evt(cbEVT_SHOW_DOCK_WINDOW);
+		evt.pWindow = m_Html;
+		Manager::Get()->ProcessEvent(evt);
+		return 0;
+	}
     else
     {
         // not yet supported. ask the user how to open it.
@@ -266,10 +268,10 @@ wxString DefaultMimeHandler::ChooseExternalProgram()
 {
     wxFileDialog dlg(0,
                      _("Select program"),
-                    wxEmptyString,
-                    wxEmptyString,
-                    FileFilters::GetFilterAll(),
-                    wxFD_OPEN | compatibility::wxHideReadonly);
+					wxEmptyString,
+					wxEmptyString,
+					FileFilters::GetFilterAll(),
+					wxFD_OPEN | compatibility::wxHideReadonly);
     PlaceWindow(&dlg);
     if (dlg.ShowModal() == wxID_OK)
         return dlg.GetPath();
@@ -299,10 +301,10 @@ int DefaultMimeHandler::DoOpenFile(cbMimeType* mt, const wxString& filename)
         ShellExecute(0, wxString(_T("open")).c_str(), filename.c_str(), 0, 0, SW_SHOW);
         #endif
         #ifdef __WXGTK__
-        wxExecute(wxString::Format(_T("xdg-open \"%s\""), filename.c_str()));
+        wxExecute(wxString::Format(_T("xdg-open %s"), filename.c_str()));
         #endif
         #ifdef __WXMAC__
-        wxExecute(wxString::Format(_T("open \"%s\""), filename.c_str()));
+        wxExecute(wxString::Format(_T("open %s"), filename.c_str()));
         #endif
         return 0;
     }
@@ -316,8 +318,6 @@ int DefaultMimeHandler::DoOpenFile(cbMimeType* mt, const wxString& filename)
             external.Replace(_T("$(FILE)"), filename);
         else
             external << _T(" \"") << filename << _T("\""); // file args wrapped in quotes (bug #1187231)
-
-        Manager::Get()->GetLogManager()->Log(_T("Launching command: ") + external);
 
         // launch external program
         int ret = 0;

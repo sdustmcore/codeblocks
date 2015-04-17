@@ -8,98 +8,93 @@
  */
 
 #include "asstreamiterator.h"
-
-#include <vector>
-
-#include "cbstyledtextctrl.h"
 #include "globals.h"
 
-ASStreamIterator::ASStreamIterator(cbEditor* cbe, const wxChar* in) :
-  m_Ed(cbe),
-  m_CharPtr(in),
-  m_SavedCharPtr(0),
-  m_CurChar(0),
-  m_CurLine(0),
-  m_FoundBookmark(false),
-  m_FoundBreakpoint(false)
+ASStreamIterator::ASStreamIterator(cbEditor *cbe, const wxChar* in)
+: m_cbe(cbe), m_In(in), m_PeekStart(0), m_curline(0), m_foundBookmark(false),
+m_foundBreakpoint(false)
 {
+	//ctor
 }
 
 ASStreamIterator::~ASStreamIterator()
 {
+	//dtor
 }
 
 bool ASStreamIterator::hasMoreLines() const
 {
-    return (*m_CharPtr) != 0;
+    return (*m_In) != 0;
 }
 
-int ASStreamIterator::getStreamLength() const
+inline bool ASStreamIterator::IsEOL(wxChar ch)
 {
-    return static_cast<int>(m_Ed->GetControl()->GetLength());
+    if (ch == _T('\r') || ch == _T('\n'))
+    {
+        return true;
+    }
+
+    return false;
 }
 
-std::string ASStreamIterator::nextLine(cb_unused bool emptyLineWasDeleted)
+std::string ASStreamIterator::nextLine(bool /*emptyLineWasDeleted*/)
 {
-    // hack: m_CurLine = 0 is a special case we should not evaluate here
-    if (m_Ed && m_CurLine && m_Ed->HasBookmark(m_CurLine))
-        m_FoundBookmark = true;
-
-    if (m_Ed && m_CurLine && m_Ed->HasBreakpoint(m_CurLine))
-        m_FoundBreakpoint = true;
+    // hack: m_curline = 0 is a special case we should not evaluate here
+    if (m_cbe && m_curline && m_cbe->HasBookmark(m_curline))
+    {
+        m_foundBookmark = true;
+    }
+    if (m_cbe && m_curline && m_cbe->HasBreakpoint(m_curline))
+    {
+        m_foundBreakpoint = true;
+    }
 
     return readLine();
 }
-
-std::string ASStreamIterator::peekNextLine()
-{
-    if (!m_SavedCharPtr)
-        m_SavedCharPtr = m_CharPtr;
-
-    return readLine();
-}
-
-void ASStreamIterator::peekReset()
-{
-    m_CharPtr = m_SavedCharPtr;
-    m_SavedCharPtr = 0;
-}
-
-std::streamoff ASStreamIterator::tellg()
-{
-    return static_cast<std::streamoff>(m_CurChar);
-}
-
-// private
 
 std::string ASStreamIterator::readLine()
 {
-    static std::vector<wxChar> buf;
-    buf.clear();
+    m_buffer.clear();
 
-    while (*m_CharPtr != 0)
+    while (*m_In != 0)
     {
-        if ( !IsEOL(*m_CharPtr) )
-            buf.push_back(*m_CharPtr);
+        if (!IsEOL(*m_In))
+        {
+            m_buffer.push_back(*m_In);
+        }
 
-        ++m_CharPtr;
-        ++m_CurChar;
+        ++m_In;
 
-        if ( IsEOL(*m_CharPtr) )
+        if (IsEOL(*m_In))
         {
             // if CRLF (two chars) peek next char (avoid duplicating empty-lines)
-            if (*m_CharPtr != *(m_CharPtr + 1) && IsEOL(*(m_CharPtr + 1)))
+            if (*m_In != *(m_In + 1) && IsEOL(*(m_In + 1)))
             {
-                ++m_CharPtr;
-                ++m_CurChar;
+                ++m_In;
             }
 
             break;
         }
     }
 
-    buf.push_back(0);
-    ++m_CurLine;
+    m_buffer.push_back(0);
+    ++m_curline;
 
-    return static_cast<std::string>( cbU2C(&buf[0]) );
+    return std::string(cbU2C(&m_buffer[0]));
+}
+
+std::string ASStreamIterator::peekNextLine()
+{
+    if (!m_PeekStart)
+    {
+        m_PeekStart = m_In;
+    }
+
+    return readLine();
+}
+
+void ASStreamIterator::peekReset()
+{
+    m_In = m_PeekStart;
+    m_PeekStart = 0;
 }

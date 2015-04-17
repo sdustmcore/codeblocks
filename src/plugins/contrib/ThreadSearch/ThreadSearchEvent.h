@@ -39,8 +39,6 @@ public:
                                                                         // line index (starting from 1), matching line
     void SetLineTextArray(const wxArrayString& ArrayString) {m_LineTextArray = ArrayString;};
 
-    size_t GetNumberOfMatches() const { return m_LineTextArray.GetCount() / 2; }
-
 private:
     wxArrayString m_LineTextArray;
 };

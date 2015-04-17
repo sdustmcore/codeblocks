@@ -30,9 +30,9 @@ ValgrindListLog::ValgrindListLog(const wxArrayString& Titles, wxArrayInt& Widths
 ValgrindListLog::~ValgrindListLog()
 {
 	//dtor
-	Disconnect(ID_List, -1, wxEVT_COMMAND_LIST_ITEM_ACTIVATED,
-               (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction)
-               &ValgrindListLog::OnDoubleClick);
+    if (control && !Manager::IsAppShuttingDown())
+    control->RemoveEventHandler(this);
+
 }
 
 
@@ -45,16 +45,8 @@ wxWindow* ValgrindListLog::CreateControl(wxWindow* parent)
     Connect(ID_List, -1, wxEVT_COMMAND_LIST_ITEM_ACTIVATED,
             (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction)
             &ValgrindListLog::OnDoubleClick);
-    Manager::Get()->GetAppWindow()->PushEventHandler(this);
+	control->PushEventHandler(this);
 	return control;
-}
-
-void ValgrindListLog::DestroyControls()
-{
-    if ( !Manager::Get()->IsAppShuttingDown() )
-    {
-        Manager::Get()->GetAppWindow()->RemoveEventHandler(this);
-    }
 }
 
 void ValgrindListLog::OnDoubleClick(wxCommandEvent& /*event*/)
@@ -101,11 +93,4 @@ void ValgrindListLog::SyncEditor(int SelIndex)
 	{
 		Control->EnsureVisible(Line);
 	}
-}
-
-void ValgrindListLog::Fit()
-{
-    int columns = control->GetColumnCount();
-    for (int ii = 0; ii < columns; ++ii)
-        control->SetColumnWidth(ii, wxLIST_AUTOSIZE);
 }

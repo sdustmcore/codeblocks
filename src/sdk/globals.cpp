@@ -10,36 +10,27 @@
 #include "sdk_precomp.h"
 
 #ifndef CB_PRECOMP
-    #include <wx/file.h>
+    #include "globals.h"
     #include <wx/filename.h>
-    #include <wx/filesys.h>
+    #include <wx/file.h>
     #include <wx/image.h>
-    #include <wx/imaglist.h>
     #include <wx/listctrl.h>
-    #include <wx/menu.h>
-
-    #include "wx/wxscintilla.h"
-
+    #include <wx/filesys.h>
     #include "cbexception.h"
+    #include "manager.h"
     #include "configmanager.h" // ReadBool
     #include "filemanager.h"
-    #include "globals.h"
-    #include "logmanager.h"
-    #include "manager.h"
     #include "projectmanager.h"
 #endif
 
 #include "tinyxml/tinyxml.h"
-
-#include <wx/dirdlg.h>
 #include <wx/filefn.h>
-#include <wx/fontmap.h>
-#include <wx/msgdlg.h>
 #include <wx/tokenzr.h>
-
+#include <wx/dirdlg.h>
+#include <wx/msgdlg.h>
+#include <wx/fontmap.h>
 #include <algorithm>
 #include <string>
-
 #include "filefilters.h"
 #include "tinyxml/tinywxuni.h"
 #include "filegroupsandmasks.h"
@@ -48,6 +39,9 @@
     #include <unistd.h> // readlink
     #include <sys/stat.h> // lstat
 #endif
+
+namespace compatibility { typedef TernaryCondTypedef<wxMinimumVersion<2,5>::eval, wxTreeItemIdValue, long int>::eval tree_cookie_t; };
+
 
 const wxString DEFAULT_WORKSPACE     = _T("default.workspace");
 const wxString DEFAULT_ARRAY_SEP     = _T(";");
@@ -69,10 +63,13 @@ int GetPlatformsFromString(const wxString& platforms)
     if (pA || (pW && pU && pM))
         return spAll;
 
-    int     p  = 0;
-    if (pW) p |= spWindows;
-    if (pU) p |= spUnix;
-    if (pM) p |= spMac;
+    int p = 0;
+    if (pW)
+        p |= spWindows;
+    if (pU)
+        p |= spUnix;
+    if (pM)
+        p |= spMac;
     return p;
 }
 
@@ -101,7 +98,7 @@ wxString GetStringFromPlatforms(int platforms, bool forceSeparate)
     The method has been extended with a bool to specify if the seperator should be appended at the end.
     Ultimate goal : every client gives as a value : false.
     Why : well a seperator should separate, there's nothing to separate at the end (like nothing to separate
-    at the beginning, we don't put one there ...), but some client code is having problems when the separator is
+    at the begining, we don't put one there ...), but some client code is having problems when the separator is
     not present at the end. So for compatibility issues we have as default value for the new argument true, so the
     old code has the same behaviour as before [TODO: make those clients no longer dependent on this stupid final separator behaviour]
     New code will specify false as the bool value, so hoping rather soon a search on this method will have all hits showing
@@ -114,11 +111,13 @@ wxString GetStringFromArray(const wxArrayString& array, const wxString& separato
     for (unsigned int i = 0; i < array.GetCount(); ++i)
     {
         out << array[i];
-        if (i < array.GetCount() - 1 || SeparatorAtEnd)
+        if(i < array.GetCount() - 1 || SeparatorAtEnd)
+        {
             out << separator;
+        }
     }
     return out;
-}
+} // end of GetStringFromArray
 
 wxArrayString GetArrayFromString(const wxString& text, const wxString& separator, bool trimSpaces)
 {
@@ -152,95 +151,36 @@ wxArrayString GetArrayFromString(const wxString& text, const wxString& separator
     return out;
 }
 
-wxStringVec GetVectorFromString(const wxString& text, const wxString& separator, bool trimSpaces)
-{
-    wxStringVec out;
-    wxString search = text;
-    int seplen = separator.Length();
-    while (true)
-    {
-        int idx = search.Find(separator);
-        if (idx == -1)
-        {
-            if (trimSpaces)
-            {
-                search.Trim(false);
-                search.Trim(true);
-            }
-            if (!search.IsEmpty())
-                out.push_back(search);
-            break;
-        }
-        wxString part = search.Left(idx);
-        search.Remove(0, idx + seplen);
-        if (trimSpaces)
-        {
-            part.Trim(false);
-            part.Trim(true);
-        }
-        if (!part.IsEmpty())
-            out.push_back(part);
-    }
-    return out;
-}
-
-wxArrayString MakeUniqueArray(const wxArrayString& array, bool caseSens)
-{
-    wxArrayString out;
-    for (unsigned int i = 0; i < array.GetCount(); ++i)
-    {
-        if (caseSens)
-        {
-          if (out.Index(array[i]) == wxNOT_FOUND)
-              out.Add(array[i]);
-        }
-        else
-        {
-          if (out.Index(array[i].Lower()) == wxNOT_FOUND)
-              out.Add(array[i].Lower()); // append only lower-case for the moment
-        }
-    }
-    return out;
-}
-
-wxString MakeUniqueString(const wxString& text, const wxString& separator, bool caseSens)
-{
-    return GetStringFromArray( MakeUniqueArray( GetArrayFromString(text, separator), caseSens ), separator, false );
-}
-
 void AppendArray(const wxArrayString& from, wxArrayString& to)
 {
     for (unsigned int i = 0; i < from.GetCount(); ++i)
+    {
         to.Add(from[i]);
+    }
 }
 
-wxString UnixFilename(const wxString& filename, wxPathFormat format)
+wxString UnixFilename(const wxString& filename)
 {
     wxString result = filename;
 
-    if (format == wxPATH_NATIVE)
+    if(platform::windows)
     {
-        if (platform::windows)
-            format = wxPATH_WIN;
-        else
-            format = wxPATH_UNIX;
-    }
+        bool unc_name = result.StartsWith(_T("\\\\"));
 
-    // Unc-names always override platform specific settings otherwise they become corrupted
-    bool unc_name = result.StartsWith(_T("\\\\"));
-    if (format == wxPATH_WIN || unc_name) // wxPATH_WIN == wxPATH_DOS == wxPATH_OS2
-    {
-        result.Replace(wxT("/"), wxT("\\"));
-        while (result.Replace(wxT("\\\\"), wxT("\\")))
-            ; // loop for recursive removal of duplicate slashes
+        while (result.Replace(_T("/"), _T("\\")))
+            ;
+        while (result.Replace(_T("\\\\"), _T("\\")))
+            ;
+
         if (unc_name)
-            result.Prepend(wxT("\\"));
+            result = _T("\\") + result;
     }
     else
     {
-        result.Replace(wxT("\\"), wxT("/"));
-        while (result.Replace(wxT("//"), wxT("/")))
-            ; // loop for recursive removal of duplicate slashes
+        while (result.Replace(_T("\\"), _T("/")))
+            ;
+        while (result.Replace(_T("//"), _T("/")))
+            ;
     }
 
     return result;
@@ -248,15 +188,10 @@ wxString UnixFilename(const wxString& filename, wxPathFormat format)
 
 void QuoteStringIfNeeded(wxString& str)
 {
-    if ( NeedQuotes(str) )
-        str = wxString(_T("\"")) + str + _T("\"");
-}
-
-bool NeedQuotes(const wxString &str)
-{
     bool hasSpace = str.Find(_T(' ')) != -1;
     bool hasParen = !platform::windows && (str.Find(_T('(')) != -1 || str.Find(_T(')')) != -1);
-    return !str.IsEmpty() && str.GetChar(0) != _T('"') && (hasSpace || hasParen);
+    if (!str.IsEmpty() && str.GetChar(0) != _T('"') && (hasSpace || hasParen))
+        str = wxString(_T("\"")) + str + _T("\"");
 }
 
 wxString EscapeSpaces(const wxString& str)
@@ -280,7 +215,6 @@ FileType FileTypeOf(const wxString& filename)
         ext.IsSameAs(FileFilters::CC_EXT) ||
         ext.IsSameAs(FileFilters::CPP_EXT) ||
         ext.IsSameAs(FileFilters::CXX_EXT) ||
-        ext.IsSameAs(FileFilters::CPLPL_EXT) ||
         ext.IsSameAs(FileFilters::S_EXT) ||
         ext.IsSameAs(FileFilters::SS_EXT) ||
         ext.IsSameAs(FileFilters::S62_EXT) ||
@@ -289,10 +223,6 @@ FileType FileTypeOf(const wxString& filename)
         ext.IsSameAs(FileFilters::F77_EXT) ||
         ext.IsSameAs(FileFilters::F90_EXT) ||
         ext.IsSameAs(FileFilters::F95_EXT) ||
-        ext.IsSameAs(FileFilters::FOR_EXT) ||
-        ext.IsSameAs(FileFilters::FPP_EXT) ||
-        ext.IsSameAs(FileFilters::F03_EXT) ||
-        ext.IsSameAs(FileFilters::F08_EXT) ||
         ext.IsSameAs(FileFilters::JAVA_EXT)
        )
         return ftSource;
@@ -301,7 +231,6 @@ FileType FileTypeOf(const wxString& filename)
              ext.IsSameAs(FileFilters::HH_EXT) ||
              ext.IsSameAs(FileFilters::HPP_EXT) ||
              ext.IsSameAs(FileFilters::HXX_EXT) ||
-             ext.IsSameAs(FileFilters::HPLPL_EXT) ||
              ext.IsSameAs(FileFilters::INL_EXT)
             )
         return ftHeader;
@@ -320,9 +249,6 @@ FileType FileTypeOf(const wxString& filename)
 
     else if (ext.IsSameAs(FileFilters::MSVC7_EXT))
         return ftMSVC7Project;
-
-    else if (ext.IsSameAs(FileFilters::MSVC10_EXT))
-        return ftMSVC10Project;
 
     else if (ext.IsSameAs(FileFilters::MSVC6_WORKSPACE_EXT))
         return ftMSVC6Workspace;
@@ -369,7 +295,7 @@ FileType FileTypeOf(const wxString& filename)
     // DrewBoo: Before giving up, see if the ProjectManager
     // considers this extension a source or header
     // TODO (Morten#5#): Do what DrewBoo said: Try removing the above code
-    // TODO (Morten#3#): This code should actually be a method of filegroups and masks or alike. So we collect all extension specific things in one place. As of now this would break ABI compatibilty with 08.02 so this should happen later.
+    // TODO (Morten#3#): This code should actually be a method of filegrous and masks or alike. So we collect all extension specific things in one place. As of now this would break ABI compatibilty with 08.02 so this should happen later.
     else
     {
         ProjectManager *prjMgr = Manager::Get()->GetProjectManager();
@@ -392,45 +318,13 @@ FileType FileTypeOf(const wxString& filename)
     return ftOther;
 }
 
-wxString cbFindFileInPATH(const wxString &filename)
+void DoRememberSelectedNode(wxTreeCtrl* tree, wxString& selectedItemPath)
 {
-    wxString pathValues;
-    wxGetEnv(_T("PATH"), &pathValues);
-    if (pathValues.empty())
-        return wxEmptyString;
-
-    const wxString &sep = platform::windows ? _T(";") : _T(":");
-    wxChar pathSep = wxFileName::GetPathSeparator();
-    const wxArrayString &pathArray = GetArrayFromString(pathValues, sep);
-    for (size_t i = 0; i < pathArray.GetCount(); ++i)
+    wxTreeItemId item = tree->GetSelection();
+    while(item.IsOk())
     {
-        if (wxFileExists(pathArray[i] + pathSep + filename))
-        {
-            if (pathArray[i].AfterLast(pathSep).IsSameAs(_T("bin")))
-                return pathArray[i];
-        }
-    }
-    return wxEmptyString;
-}
-
-void DoRememberSelectedNodes(wxTreeCtrl* tree, wxArrayString& selectedItemPaths)
-{
-    wxArrayTreeItemIds items;
-
-    if (tree->GetSelections(items) < 1 )
-        return;
-
-    for (size_t i=0; i < items.GetCount(); ++i)
-    {
-        wxString path = wxEmptyString;
-        wxTreeItemId item = items[i];
-        while(item.IsOk())
-        {
-            path = _T("/") + tree->GetItemText(item) + path;
-            item = tree->GetItemParent(item);
-        }
-        if (path != wxEmptyString)
-            selectedItemPaths.Add(path);
+        selectedItemPath = _T("/") + tree->GetItemText(item) + selectedItemPath;
+        item = tree->GetItemParent(item);
     }
 }
 
@@ -451,22 +345,22 @@ void DoSelectRememberedNode(wxTreeCtrl* tree, const wxTreeItemId& parent, wxStri
         folder = tmpPath.Left(pos);
         tmpPath = tmpPath.Right(tmpPath.Length() - pos - 1);
         wxTreeItemId item = parent;
-        wxTreeItemIdValue cookie = nullptr;
+        compatibility::tree_cookie_t cookie = 0;
 
         while (item.IsOk())
         {
-            if (tree->GetItemText(item) != folder)
+            if(tree->GetItemText(item) != folder)
                 item = tree->GetNextSibling(item);
             else
             {
-                if (pos < 0)
+                if(pos < 0)
                 {
                     tree->SelectItem(item);
                     break;
                 }
                 else
                 {
-                    item = tree->GetNextChild(item, cookie);
+                    item=tree->GetNextChild(item, cookie);
                     DoSelectRememberedNode(tree, item, tmpPath);
                 }
             }
@@ -484,7 +378,7 @@ bool DoRememberExpandedNodes(wxTreeCtrl* tree, const wxTreeItemId& parent, wxArr
     wxString originalPath = path;
     bool found = false;
 
-    wxTreeItemIdValue cookie = nullptr;
+    compatibility::tree_cookie_t cookie = 0;
 
     wxTreeItemId child = tree->GetFirstChild(parent, cookie);
     while (child.IsOk())
@@ -530,7 +424,7 @@ void DoExpandRememberedNode(wxTreeCtrl* tree, const wxTreeItemId& parent, const 
 
         //Manager::Get()->GetLogManager()->Log(mltDevDebug, "%s, %s", folder.c_str(), tmpPath.c_str());
 
-        wxTreeItemIdValue cookie = nullptr;
+        compatibility::tree_cookie_t cookie = 0;
 
         wxTreeItemId child = tree->GetFirstChild(parent, cookie);
         while (child.IsOk())
@@ -547,52 +441,48 @@ void DoExpandRememberedNode(wxTreeCtrl* tree, const wxTreeItemId& parent, const 
     }
 }
 
-void SaveTreeState(wxTreeCtrl* tree, const wxTreeItemId& parent, wxArrayString& nodePaths, wxArrayString& selectedItemPaths)
+void SaveTreeState(wxTreeCtrl* tree, const wxTreeItemId& parent, wxArrayString& nodePaths, wxString& selectedItemPath)
 {
     nodePaths.Clear();
     if (!parent.IsOk() || !tree || !tree->ItemHasChildren(parent) || !tree->IsExpanded(parent))
         return;
-
     wxString tmp;
     if (!DoRememberExpandedNodes(tree, parent, nodePaths, tmp))
         nodePaths.Add(tmp); // just the tree root
 
-    selectedItemPaths.Clear();
-    DoRememberSelectedNodes(tree, selectedItemPaths);
+    selectedItemPath.clear();
+    DoRememberSelectedNode(tree, selectedItemPath);
 }
 
-void RestoreTreeState(wxTreeCtrl* tree, const wxTreeItemId& parent, wxArrayString& nodePaths, wxArrayString& selectedItemPaths)
+void RestoreTreeState(wxTreeCtrl* tree, const wxTreeItemId& parent, wxArrayString& nodePaths, wxString& selectedItemPath)
 {
     if (!parent.IsOk() || !tree)
         return;
-
     if (nodePaths.GetCount() == 0)
     {
         tree->Collapse(parent);
         return;
     }
-
     for (unsigned int i = 0; i < nodePaths.GetCount(); ++i)
         DoExpandRememberedNode(tree, parent, nodePaths[i]);
-
     nodePaths.Clear();
-    for (unsigned int i = 0; i < selectedItemPaths.GetCount(); ++i)
-        DoSelectRememberedNode(tree, tree->GetRootItem(), selectedItemPaths[i]);
-
-    selectedItemPaths.Clear();
+    DoSelectRememberedNode(tree, tree->GetRootItem(), selectedItemPath);
+    selectedItemPath.clear();
 }
 
 bool CreateDirRecursively(const wxString& full_path, int perms)
 {
-    wxFileName tmp(full_path);
-    if (wxDirExists(tmp.GetPath())) // early out, even if full_path is a filename, but the path already exists
+    if(wxDirExists(full_path)) // early out
         return true;
 
     wxArrayString dirs;
     wxString currdir;
-    currdir = tmp.GetVolume() + tmp.GetVolumeSeparator() + wxFILE_SEP_PATH;
-    dirs = tmp.GetDirs();
 
+    {
+        wxFileName tmp(full_path);
+        currdir = tmp.GetVolume() + tmp.GetVolumeSeparator() + wxFILE_SEP_PATH;
+        dirs = tmp.GetDirs();
+    }
     for (size_t i = 0; i < dirs.GetCount(); ++i)
     {
         currdir << dirs[i];
@@ -618,7 +508,9 @@ wxString ChooseDirectory(wxWindow* parent,
                          bool askToMakeRelative, // relative to initialPath
                          bool showCreateDirButton) // where supported
 {
-    wxDirDialog dlg(parent, message, _T(""),
+    wxDirDialog dlg(parent,
+                    message,
+                    _T(""),
                     (showCreateDirButton ? wxDD_NEW_DIR_BUTTON : 0) | wxRESIZE_BORDER);
     dlg.SetPath(initialPath);
     PlaceWindow(&dlg);
@@ -645,9 +537,8 @@ bool cbRead(wxFile& file, wxString& st, wxFontEncoding encoding)
     st.Empty();
     if (!file.IsOpened())
         return false;
-
     int len = file.Length();
-    if (!len)
+    if(!len)
     {
         file.Close();
         return true;
@@ -667,7 +558,7 @@ bool cbRead(wxFile& file, wxString& st, wxFontEncoding encoding)
     delete [] buff;
 
     return true;
-}
+} // end of cbRead
 
 wxString cbReadFileContents(wxFile& file, wxFontEncoding encoding)
 {
@@ -684,7 +575,7 @@ bool cbWrite(wxFile& file, const wxString& buff, wxFontEncoding encoding)
     {
         wxCSConv conv(encoding);
         result = file.Write(buff,conv);
-        if (result)
+        if(result)
             file.Flush();
         file.Close();
     }
@@ -698,7 +589,7 @@ bool cbSaveToFile(const wxString& filename, const wxString& contents, wxFontEnco
     return Manager::Get()->GetFileManager()->Save(filename, contents, encoding, bom);
 }
 
-// Save a TinyXML document correctly, even if the path contains unicode characters.
+// Saves a TinyXML document correctly, even if the path contains unicode characters.
 bool cbSaveTinyXMLDocument(TiXmlDocument* doc, const wxString& filename)
 {
     return TinyXML::SaveDocument(filename, doc);
@@ -717,7 +608,7 @@ wxString cbC2U(const char* str)
 // Return multibyte (C string) representation of the string
 const wxWX2MBbuf cbU2C(const wxString& str)
 {
-    if (platform::unicode)
+    if(platform::unicode)
         return str.mb_str(wxConvUTF8);
     else
         return str.mb_str();
@@ -731,7 +622,7 @@ wxFontEncoding DetectEncodingAndConvert(const char* strIn, wxString& strOut, wxF
     wxFontEncoding encoding = possibleEncoding;
     strOut.Clear();
 
-    if (platform::unicode)
+    if(platform::unicode)
     {
         if (possibleEncoding != wxFONTENCODING_UTF16 &&
             possibleEncoding != wxFONTENCODING_UTF16LE &&
@@ -764,8 +655,8 @@ wxFontEncoding DetectEncodingAndConvert(const char* strIn, wxString& strOut, wxF
                         encoding = (wxFontEncoding)i;
                         if (encoding == possibleEncoding)
                             continue; // skip if same as what was asked
-                        wxCSConv csconv(encoding);
-                        strOut = wxString(strIn, csconv);
+                        wxCSConv conv(encoding);
+                        strOut = wxString(strIn, conv);
                         if (strOut.Length() != 0)
                             break; // got it!
                     }
@@ -784,42 +675,20 @@ wxFontEncoding DetectEncodingAndConvert(const char* strIn, wxString& strOut, wxF
     return encoding;
 }
 
-wxString GetEOLStr(int eolMode)
-{
-    if (eolMode == -1)
-    {
-        static const int defEOL = platform::windows ? wxSCI_EOL_CRLF : wxSCI_EOL_LF;
-        eolMode = Manager::Get()->GetConfigManager(wxT("editor"))->ReadInt(wxT("/eol/eolmode"), defEOL);
-        if (eolMode == 3) // auto-detect EOL
-            eolMode = defEOL;
-    }
-    switch (eolMode)
-    {
-      case wxSCI_EOL_CR:
-          return wxT("\r");
-      case wxSCI_EOL_LF:
-          return wxT("\n");
-      default: // wxSCI_EOL_CRLF
-          return wxT("\r\n");
-    }
-}
-
 wxString URLEncode(const wxString &str) // not sure this is 100% standards compliant, but I hope so
 {
     wxString ret;
     wxString t;
-    for (unsigned int i = 0; i < str.length(); ++i)
+    for(unsigned int i = 0; i < str.length(); ++i)
     {
         wxChar c = str[i];
-        if (  (c >= _T('A') && c <= _T('Z'))
+        if(   (c >= _T('A') && c <= _T('Z'))
            || (c >= _T('a') && c <= _T('z'))
            || (c >= _T('0') && c <= _T('9'))
-           || (c == _T('.'))
-           || (c == _T('-'))
-           || (c == _T('_')) )
+           ||  c == _T('.') || c == _T('-') || c == _T('_') )
 
             ret.Append(c);
-        else if (c == _T(' '))
+        else if(c == _T(' '))
             ret.Append(_T('+'));
         else
         {
@@ -828,79 +697,6 @@ wxString URLEncode(const wxString &str) // not sure this is 100% standards compl
         }
     }
     return ret;
-}
-
-/** Adds support for backtick'd expressions under Windows. */
-typedef std::map<wxString, wxString> BackticksMap;
-BackticksMap m_Backticks; // all calls share the same cache
-wxString ExpandBackticks(wxString& str) // backticks are written in-place to str
-{
-    wxString ret;
-
-    // this function is not windows-only anymore because we parse the backticked command's output
-    // for compiler/linker search dirs
-
-    size_t start = str.find(_T('`'));
-    if (start == wxString::npos)
-        return ret; // no backticks here
-    size_t end = str.find(_T('`'), start + 1);
-    if (end == wxString::npos)
-        return ret; // no ending backtick; error?
-
-    while (start != wxString::npos && end != wxString::npos)
-    {
-        wxString cmd = str.substr(start + 1, end - start - 1);
-        cmd.Trim(true);
-        cmd.Trim(false);
-        if (cmd.IsEmpty())
-            break;
-
-        wxString bt;
-        BackticksMap::iterator it = m_Backticks.find(cmd);
-        if (it != m_Backticks.end()) // in the cache :)
-            bt = it->second;
-        else
-        {
-            Manager::Get()->GetLogManager()->DebugLog(F(_T("Caching result of `%s`"), cmd.wx_str()));
-            wxArrayString output;
-            if (platform::WindowsVersion() >= platform::winver_WindowsNT2000)
-                wxExecute(_T("cmd /c ") + cmd, output, wxEXEC_NODISABLE);
-            else
-                wxExecute(cmd,                 output, wxEXEC_NODISABLE);
-            bt = GetStringFromArray(output, _T(" "), false);
-            // add it in the cache
-            m_Backticks[cmd] = bt;
-            Manager::Get()->GetLogManager()->DebugLog(_T("Cached"));
-        }
-        ret << bt << _T(' ');
-        str = str.substr(0, start) + bt + str.substr(end + 1, wxString::npos);
-
-        // find next occurrence
-        start = str.find(_T('`'));
-        end = str.find(_T('`'), start + 1);
-    }
-
-    return ret; // return a list of the replaced expressions
-}
-
-wxMenu* CopyMenu(wxMenu* mnu, bool with_accelerators)
-{
-    if (!mnu || mnu->GetMenuItemCount() < 1)
-        return nullptr;
-    wxMenu* theMenu = new wxMenu();
-
-    for (size_t i = 0; i < mnu->GetMenuItemCount();++i)
-    {
-        wxMenuItem* tmpItem = mnu->FindItemByPosition(i);
-        wxMenuItem* theItem = new wxMenuItem(nullptr,
-                                             tmpItem->GetId(),
-                                             with_accelerators?tmpItem->GetItemLabel():tmpItem->GetItemLabelText(),
-                                             tmpItem->GetHelp(),
-                                             tmpItem->GetKind(),
-                                             CopyMenu(tmpItem->GetSubMenu()));
-        theMenu->Append(theItem);
-    }
-    return theMenu;
 }
 
 bool IsWindowReallyShown(wxWindow* win)
@@ -917,7 +713,7 @@ bool IsWindowReallyShown(wxWindow* win)
 bool NormalizePath(wxFileName& f,const wxString& base)
 {
     bool result = true;
-//    if (!f.IsAbsolute())
+//    if(!f.IsAbsolute())
     {
         f.Normalize(wxPATH_NORM_ALL & ~wxPATH_NORM_CASE, base);
         result = f.IsOk();
@@ -947,33 +743,44 @@ bool IsSuffixOfPath(wxFileName const & suffix, wxFileName const & path)
     int j = pathDirArray.GetCount() - 1;
     for (int i = suffixDirArray.GetCount() - 1; i >= 0; i--)
     {
-        // skip paths like /./././ and ////
         if (suffixDirArray[i] == _T(".") || suffixDirArray[i] == _T(""))
+        {
+            // skip paths like /./././ and ////
             continue;
+        }
 
-        // suffix has more directories than path - cannot represent the same path
         if (j < 0)
+        {
+            // suffix has more directories than path - cannot represent the same path
             return false;
+        }
 
-        // suffix contains ".." - from now on we cannot precisely determine
-        // whether suffix and path match - we assume that they do
         if (suffixDirArray[i] == _T(".."))
+        {
+            // suffix contains ".." - from now on we cannot precisely determine
+            // whether suffix and path match - we assume that they do
             return true;
-        // the corresponding directories of the two paths differ
+        }
         else if (suffixDirArray[i] != pathDirArray[j])
+        {
+            // the corresponding directories of the two paths differ
             return false;
+        }
 
         j--;
     }
 
     if (suffix.IsAbsolute() && (j >= 0 || suffix.GetVolume() != path.GetVolume()))
+    {
         return false;
+    }
 
     // 'suffix' is a suffix of 'path'
     return true;
 }
 
 // function to check the common controls version
+// (should it be moved in sdk globals?)
 #ifdef __WXMSW__
 #include <windows.h>
 #include <shlwapi.h>
@@ -981,8 +788,9 @@ bool UsesCommonControls6()
 {
     bool result = false;
     HINSTANCE hinstDll;
+    DWORD dwVersion = 0;
     hinstDll = LoadLibrary(_T("comctl32.dll"));
-    if (hinstDll)
+    if(hinstDll)
     {
         DLLGETVERSIONPROC pDllGetVersion;
         pDllGetVersion = (DLLGETVERSIONPROC)GetProcAddress(hinstDll, "DllGetVersion");
@@ -998,7 +806,10 @@ bool UsesCommonControls6()
             hr = (*pDllGetVersion)(&dvi);
 
             if (SUCCEEDED(hr))
+            {
+               dwVersion = MAKELONG(dvi.dwMinorVersion, dvi.dwMajorVersion);
                result = dvi.dwMajorVersion == 6;
+            }
         }
 
         FreeLibrary(hinstDll);
@@ -1035,34 +846,29 @@ wxBitmap cbLoadBitmap(const wxString& filename, wxBitmapType bitmapType)
     return wxBitmap(im);
 }
 
-// this doesn't work under wxGTK, and is only needed on wxMSW, we work around it on wxGTK
-#ifdef __WXMSW__
 void SetSettingsIconsStyle(wxListCtrl* lc, SettingsIconsStyle style)
 {
+// this doesn't work under wxGTK...
+#ifdef __WXMSW__
     long flags = lc->GetWindowStyleFlag();
     switch (style)
     {
-#if wxCHECK_VERSION(2, 9, 0)
-        case sisNoIcons: flags = (flags & ~wxLC_MASK_TYPE) | wxLC_LIST; break;
-#else
-        case sisNoIcons: flags = (flags & ~wxLC_MASK_TYPE) | wxLC_SMALL_ICON; break;
-#endif
-        default: flags = (flags & ~wxLC_MASK_TYPE) | wxLC_ICON; break;
+        case sisNoIcons: flags = (flags & ~wxLC_ICON) | wxLC_SMALL_ICON; break;
+        default: flags = (flags & ~wxLC_SMALL_ICON) | wxLC_ICON; break;
     }
     lc->SetWindowStyleFlag(flags);
-}
-#else
-void SetSettingsIconsStyle(cb_unused wxListCtrl* lc, cb_unused SettingsIconsStyle style) {}
 #endif
-
-SettingsIconsStyle GetSettingsIconsStyle(cb_unused wxListCtrl* lc)
-{
-    return GetSettingsIconsStyle();
 }
 
-SettingsIconsStyle GetSettingsIconsStyle()
+SettingsIconsStyle GetSettingsIconsStyle(wxListCtrl* lc)
 {
-    return SettingsIconsStyle(Manager::Get()->GetConfigManager(_T("app"))->ReadInt(_T("/environment/settings_size"), 0));
+// this doesn't work under wxGTK...
+#ifdef __WXMSW__
+    long flags = lc->GetWindowStyleFlag();
+    if (flags & wxLC_SMALL_ICON)
+        return sisNoIcons;
+#endif
+    return sisLargeIcons;
 }
 
 #ifdef __WXMSW__
@@ -1078,20 +884,21 @@ void PlaceWindow(wxTopLevelWindow *w, cbPlaceDialogMode mode, bool enforce)
 
     int the_mode;
 
-    if (!w)
+    if(!w)
         cbThrow(_T("Passed NULL pointer to PlaceWindow."));
 
-    ConfigManager *cfg = Manager::Get()->GetConfigManager(_T("app"));
-    if (!enforce && cfg->ReadBool(_T("/dialog_placement/do_place")) == false)
-        return;
-
     wxWindow* referenceWindow = Manager::Get()->GetAppWindow();
-    if (!referenceWindow)    // no application window available, so this is as good as we can get
+
+    if(!referenceWindow)    // no application window available, so this is as good as we can get
         referenceWindow = w;
 
     wxRect windowRect = w->GetRect();
 
-    if (mode == pdlBest)
+    ConfigManager *cfg = Manager::Get()->GetConfigManager(_T("app"));
+    if(!enforce && cfg->ReadBool(_T("/dialog_placement/do_place")) == false)
+        return;
+
+    if(mode == pdlBest)
         the_mode = cfg->ReadInt(_T("/dialog_placement/dialog_position"), (int) pdlCentre);
     else
         the_mode = (int) mode;
@@ -1145,7 +952,7 @@ void PlaceWindow(wxTopLevelWindow *w, cbPlaceDialogMode mode, bool enforce)
             int y1 = windowRect.y;
             int y2 = windowRect.y + windowRect.height;
 
-            if (windowRect.width > monitorWidth) // cannot place without clipping, so centre it
+            if(windowRect.width > monitorWidth) // cannot place without clipping, so centre it
             {
                 x1 = r.left + (monitorWidth  - windowRect.width)/2;
                 x2 = x1 + windowRect.width;
@@ -1156,7 +963,7 @@ void PlaceWindow(wxTopLevelWindow *w, cbPlaceDialogMode mode, bool enforce)
                 x1 = std::max(x2 - windowRect.width, (int) r.left);
                 x2 = x1 + windowRect.width;
             }
-            if (windowRect.height > monitorHeight) // cannot place without clipping, so centre it
+            if(windowRect.height > monitorHeight) // cannot place without clipping, so centre it
             {
                 y1 = r.top + (monitorHeight  - windowRect.height)/2;
                 y2 = y1 + windowRect.height;
@@ -1204,24 +1011,24 @@ void PlaceWindow(wxTopLevelWindow *w, cbPlaceDialogMode mode, bool enforce)
     int the_mode;
 
     wxWindow* referenceWindow = Manager::Get()->GetAppWindow();
-    if (!referenceWindow) // let's not crash on shutdown
+    if(!referenceWindow) // let's not crash on shutdown
         return;
 
-    if (!w)
+    if(!w)
         cbThrow(_T("Passed NULL pointer to PlaceWindow."));
 
 
     ConfigManager *cfg = Manager::Get()->GetConfigManager(_T("app"));
-    if (!enforce && cfg->ReadBool(_T("/dialog_placement/do_place")) == false)
+    if(!enforce && cfg->ReadBool(_T("/dialog_placement/do_place")) == false)
         return;
 
-    if (mode == pdlBest)
+    if(mode == pdlBest)
         the_mode = cfg->ReadInt(_T("/dialog_placement/dialog_position"), (int) pdlCentre);
     else
         the_mode = (int) mode;
 
 
-    if (the_mode == pdlCentre || the_mode == pdlHead)
+    if(the_mode == pdlCentre || the_mode == pdlHead)
     {
         w->CentreOnScreen();
         return;
@@ -1275,7 +1082,7 @@ namespace platform
 {
     windows_version_t cb_get_os()
     {
-        if (!platform::windows)
+        if(!platform::windows)
         {
             return winver_NotWindows;
         }
@@ -1286,33 +1093,25 @@ namespace platform
             int famWinNT = wxOS_WINDOWS_NT;
 
             int Major = 0;
-            int Minor = 0;
-            int family = wxGetOsVersion(&Major, &Minor);
+            int family = wxGetOsVersion(&Major, NULL);
 
-            if (family == famWin95)
+            if(family == famWin95)
                  return winver_Windows9598ME;
 
-            if (family == famWinNT)
+            if(family == famWinNT)
             {
-                if (Major == 5 && Minor == 0)
-                    return winver_WindowsNT2000;
-
-                if (Major == 5 && Minor == 1)
+                if(Major == 5)
                     return winver_WindowsXP;
 
-                if (Major == 5 && Minor == 2)
-                    return winver_WindowsServer2003;
+                if(Major == 6) // just guessing here, not sure if this is right
+                    return winver_Vista;
 
-                if (Major == 6 && Minor == 0)
-                    return winver_WindowsVista;
-
-                if (Major == 6 && Minor == 1)
-                    return winver_Windows7;
+                return winver_WindowsNT2000;
             }
 
             return winver_UnknownWindows;
         }
-    }
+    };
 
     windows_version_t WindowsVersion()
     {
@@ -1374,7 +1173,9 @@ wxString realpath(const wxString& path)
 int cbMessageBox(const wxString& message, const wxString& caption, int style, wxWindow *parent, int x, int y)
 {
     if (!parent)
+    {
         parent = Manager::Get()->GetAppWindow();
+    }
 
     // Cannot create a wxMessageDialog with a NULL as parent
     if (!parent)
@@ -1401,78 +1202,4 @@ int cbMessageBox(const wxString& message, const wxString& caption, int style, wx
     PlaceWindow(&dlg);
     // wxMessage*Dialog* returns any of wxID_OK, wxID_CANCEL, wxID_YES, wxID_NO
     return dlg.ShowModal();
-}
-
-wxImageList* cbProjectTreeImages::MakeImageList()
-{
-    static const wxString imgs[] =
-    {
-        // NOTE: Keep in sync with FileVisualState in globals.h!
-
-        // The following are related to (editable, source-) file states
-        _T("file.png"),                  // fvsNormal
-        _T("file-missing.png"),          // fvsMissing,
-        _T("file-modified.png"),         // fvsModified,
-        _T("file-readonly.png"),         // fvsReadOnly,
-
-        // The following are related to version control systems (vc)
-        _T("rc-file-added.png"),         // fvsVcAdded,
-        _T("rc-file-conflict.png"),      // fvsVcConflict,
-        _T("rc-file-missing.png"),       // fvsVcMissing,
-        _T("rc-file-modified.png"),      // fvsVcModified,
-        _T("rc-file-outofdate.png"),     // fvsVcOutOfDate,
-        _T("rc-file-uptodate.png"),      // fvsVcUpToDate,
-        _T("rc-file-requireslock.png"),  // fvsVcRequiresLock,
-        _T("rc-file-external.png"),      // fvsVcExternal,
-        _T("rc-file-gotlock.png"),       // fvsVcGotLock,
-        _T("rc-file-lockstolen.png"),    // fvsVcLockStolen,
-        _T("rc-file-mismatch.png"),      // fvsVcMismatch,
-        _T("rc-file-noncontrolled.png"), // fvsVcNonControlled,
-
-        // The following are related to C::B workspace/project/folder/virtual
-        _T("workspace.png"),             // fvsWorkspace,         WorkspaceIconIndex()
-        _T("workspace-readonly.png"),    // fvsWorkspaceReadOnly, WorkspaceIconIndex(true)
-        _T("project.png"),               // fvsProject,           ProjectIconIndex()
-        _T("project-readonly.png"),      // fvsProjectReadOnly,   ProjectIconIndex(true)
-        _T("folder_open.png"),           // fvsFolder,            FolderIconIndex()
-        _T("vfolder_open.png"),          // fvsVirtualFolder,     VirtualFolderIconIndex()
-
-        wxEmptyString
-    };
-    wxBitmap bmp;
-    wxImageList *images = new wxImageList(16, 16);
-    wxString prefix = ConfigManager::ReadDataPath() + _T("/images/");
-
-    for (int i = 0; !imgs[i].IsEmpty(); ++i)
-    {
-        bmp = cbLoadBitmap(prefix + imgs[i], wxBITMAP_TYPE_PNG); // workspace
-        images->Add(bmp);
-    }
-    return images;
-}
-
-int cbProjectTreeImages::WorkspaceIconIndex(bool read_only)
-{
-    if (read_only)
-        return (int)fvsWorkspaceReadOnly;
-
-    return (int)fvsWorkspace;
-}
-
-int cbProjectTreeImages::ProjectIconIndex(bool read_only)
-{
-    if (read_only)
-        return (int)fvsProjectReadOnly;
-
-    return (int)fvsProject;
-}
-
-int cbProjectTreeImages::FolderIconIndex()
-{
-    return (int)fvsFolder;
-}
-
-int cbProjectTreeImages::VirtualFolderIconIndex()
-{
-    return (int)fvsVirtualFolder;
 }

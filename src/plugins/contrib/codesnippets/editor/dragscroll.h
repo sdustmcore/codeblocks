@@ -66,7 +66,8 @@ class cbDragScroll : public cbPlugin
         bool BuildToolBar(wxToolBar* /*toolBar*/){ return false; }
 		void OnAttach(); // fires when the plugin is attached to the application
 		void OnRelease(bool appShutDown); // fires when the plugin is released from the application
-        virtual cbConfigurationPanel* GetConfigurationPanel(wxWindow* parent);
+     virtual cbConfigurationPanel* GetConfigurationPanel(wxWindow* parent);
+     virtual int Configure(wxWindow* parent = 0);
 
     static cbDragScroll* pDragScroll;
 	protected:

@@ -15,12 +15,12 @@
 * You should have received a copy of the GNU General Public License
 * along with wxSmith. If not, see <http://www.gnu.org/licenses/>.
 *
-* $Revision$
-* $Id$
-* $HeadURL$
+* $Revision: 5795 $
+* $Id: wxsdialog.cpp 5795 2009-09-16 10:10:30Z mortenmacfly $
+* $HeadURL: svn+ssh://jenslody@svn.berlios.de/svnroot/repos/codeblocks/branches/wxpropgrid_debugger/src/plugins/contrib/wxSmith/wxwidgets/defitems/wxsdialog.cpp $
 */
 
-#include <wx/app.h>        // wxTheApp
+#include <wx/app.h>		// wxTheApp
 #include <wx/frame.h> // wxFRAME_SHAPED
 #include <wx/settings.h> // wxSystemSettings, wxSYS_COLOUR_BTNFACE
 #include "wxsscrollingdialog.h"
@@ -73,7 +73,11 @@ void wxsScrollingDialog::OnBuildCreatingCode()
         case wxsCPP:
         {
             AddHeader(_T("\"scrollingdialog.h\""),GetInfo().ClassName,hfInPCH);
+            #if wxCHECK_VERSION(2, 9, 0)
             Codef(_T("%C(%W, %I, %t, wxDefaultPosition, wxDefaultSize, %T, %N);\n"),Title.wx_str());
+            #else
+            Codef(_T("%C(%W, %I, %t, wxDefaultPosition, wxDefaultSize, %T, %N);\n"),Title.c_str());
+            #endif
             if ( !GetBaseProps()->m_Size.IsDefault || (GetPropertiesFlags()&flSource && IsRootItem() && GetBaseProps()->m_SizeFromArg) )
             {
                 Codef(_T("%ASetClientSize(%S);\n"));
@@ -92,7 +96,6 @@ void wxsScrollingDialog::OnBuildCreatingCode()
             return;
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsScrollingDialog::OnBuildCreatingCode"),GetLanguage());
