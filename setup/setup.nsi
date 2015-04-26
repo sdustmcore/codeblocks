@@ -236,6 +236,8 @@ accessOK:
         File ${CB_ADDONS}\exchndl.win32\dbghelp.dll
         File ${CB_ADDONS}\exchndl.win32\exchndl.dll
         File ${CB_ADDONS}\exchndl.win32\mgwhelp.dll
+        File ${CB_ADDONS}\exchndl.win32\symsrv.dll
+        File ${CB_ADDONS}\exchndl.win32\symsrv.yes
         File ${CB_BASE}\wxpropgrid.dll
         File ${MINGW_BASE}\bin\mingwm10.dll
         SetOutPath $INSTDIR${CB_SHARE_CB}
@@ -2345,6 +2347,8 @@ Section "-un.Core Files (required)" UNSEC_CORE
     Delete /REBOOTOK $INSTDIR\dbghelp.dll
     Delete /REBOOTOK $INSTDIR\exchndl.dll
     Delete /REBOOTOK $INSTDIR\mgwhelp.dll
+    Delete /REBOOTOK $INSTDIR\symsrv.dll
+    Delete /REBOOTOK $INSTDIR\symsrv.yes
     Delete /REBOOTOK $INSTDIR\codeblocks.exe
     Delete /REBOOTOK $INSTDIR\codeblocks.dll
     Delete /REBOOTOK $INSTDIR\Addr2LineUI.exe
