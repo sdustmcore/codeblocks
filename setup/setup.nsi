@@ -233,11 +233,11 @@ accessOK:
         File ${CB_BASE}\CbLauncher.exe
         File ${CB_BASE}\codeblocks.dll
         File ${CB_BASE}\codeblocks.exe
-        File ${CB_ADDONS}\exchndl.win32\dbghelp.dll
-        File ${CB_ADDONS}\exchndl.win32\exchndl.dll
-        File ${CB_ADDONS}\exchndl.win32\mgwhelp.dll
-        File ${CB_ADDONS}\exchndl.win32\symsrv.dll
-        File ${CB_ADDONS}\exchndl.win32\symsrv.yes
+        File ${CB_BASE}\dbghelp.dll
+        File ${CB_BASE}\exchndl.dll
+        File ${CB_BASE}\mgwhelp.dll
+        File ${CB_BASE}\symsrv.dll
+        File ${CB_BASE}\symsrv.yes
         File ${CB_BASE}\wxpropgrid.dll
         File ${MINGW_BASE}\bin\mingwm10.dll
         SetOutPath $INSTDIR${CB_SHARE_CB}
