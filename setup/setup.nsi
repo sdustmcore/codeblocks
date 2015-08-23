@@ -68,10 +68,10 @@ Name CodeBlocks
 ###########
 # Possibly required to adjust manually:
 # (Folder with wxWidgets DLL - unicode, monolithic.)
-!define WX_BASE          C:\Devel\CodeBlocks\Releases\CodeBlocks_15xx
+!define WX_BASE          D:\Devel\CodeBlocks\Releases\CodeBlocks_15xx
 # Possibly required to adjust manually:
 # (CodeBlocks binary folder - the one where codeblocks.exe is.)
-!define CB_BASE          C:\Devel\CodeBlocks\Releases\CodeBlocks_15xx
+!define CB_BASE          D:\Devel\CodeBlocks\Releases\CodeBlocks_15xx
 !define CB_SHARE         \share
 !define CB_SHARE_CB      ${CB_SHARE}\CodeBlocks
 !define CB_DOCS          ${CB_SHARE_CB}\docs
@@ -86,13 +86,13 @@ Name CodeBlocks
 !define CB_XML_COMPILERS ${CB_SHARE_CB}\compilers
 # Possibly required to adjust manually:
 # (Folder with full MinGW/GCC installation, *including* debugger.)
-!define MINGW_BASE       C:\Devel\CodeBlocks\Releases\MinGW
+!define MINGW_BASE       D:\Devel\CodeBlocks\Releases\MinGW
 # Possibly required to adjust manually:
 # (Folder with logos and GPL license as text file.)
-!define CB_ADDONS        C:\Devel\CodeBlocks\Releases\Setup
+!define CB_ADDONS        D:\Devel\CodeBlocks\Releases\Setup
 # Possibly required to adjust manually:
 # (Folder with documentation provided by mariocup.)
-!define CB_DOCS_SRC      C:\Devel\CodeBlocks\Releases\Setup
+!define CB_DOCS_SRC      D:\Devel\CodeBlocks\Releases\Setup
 !ifdef MINGW_BUNDLE
 !define CB_MINGW         \MinGW
 !endif
@@ -714,6 +714,14 @@ accessOK:
 
 
         SectionGroup "Others"
+            Section "Google Protocol Buffer"
+                SectionIn 1 4
+                SetOutPath $INSTDIR${CB_LEXERS}
+                SetOverwrite on
+                File ${CB_BASE}${CB_LEXERS}\lexer_proto.xml
+                WriteRegStr HKCU "${REGKEY}\Components" "Google Protocol Buffer" 1
+            SectionEnd
+
             Section "MASM"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
@@ -2248,6 +2256,11 @@ SectionEnd
 
 # "Others"
 
+Section "-un.Google Protocol Buffer" UNSEC_PROTO
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_proto.xml
+    DeleteRegValue HKCU "${REGKEY}\Components" "Google Protocol Buffer"
+SectionEnd
+
 Section "-un.MASM" UNSEC_MASM
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_masm.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_masm.sample
@@ -2470,6 +2483,7 @@ Function un.onInit
     !insertmacro SELECT_UNSECTION "diff"                               ${UNSEC_DIFF}
     !insertmacro SELECT_UNSECTION "Makefile"                           ${UNSEC_MAKE}
     # "Others"
+    !insertmacro SELECT_UNSECTION "Google Protocol Buffer"             ${UNSEC_PROTO}
     !insertmacro SELECT_UNSECTION "MASM"                               ${UNSEC_MASM}
     !insertmacro SELECT_UNSECTION "MATLAB"                             ${UNSEC_MATLAB}
     !insertmacro SELECT_UNSECTION "NSIS installer script"              ${UNSEC_NSIS}
