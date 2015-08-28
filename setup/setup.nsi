@@ -68,10 +68,11 @@ Name CodeBlocks
 ###########
 # Possibly required to adjust manually:
 # (Folder with wxWidgets DLL - unicode, monolithic.)
-!define WX_BASE          D:\Devel\CodeBlocks\Releases\CodeBlocks_15xx
+!define WX_BASE          C:\Devel\CodeBlocks\Releases\CodeBlocks_15xx
+!define WX_VER           28
 # Possibly required to adjust manually:
 # (CodeBlocks binary folder - the one where codeblocks.exe is.)
-!define CB_BASE          D:\Devel\CodeBlocks\Releases\CodeBlocks_15xx
+!define CB_BASE          C:\Devel\CodeBlocks\Releases\CodeBlocks_15xx
 !define CB_SHARE         \share
 !define CB_SHARE_CB      ${CB_SHARE}\CodeBlocks
 !define CB_DOCS          ${CB_SHARE_CB}\docs
@@ -86,13 +87,13 @@ Name CodeBlocks
 !define CB_XML_COMPILERS ${CB_SHARE_CB}\compilers
 # Possibly required to adjust manually:
 # (Folder with full MinGW/GCC installation, *including* debugger.)
-!define MINGW_BASE       D:\Devel\CodeBlocks\Releases\MinGW
+!define MINGW_BASE       C:\Devel\CodeBlocks\Releases\MinGW
 # Possibly required to adjust manually:
 # (Folder with logos and GPL license as text file.)
-!define CB_ADDONS        D:\Devel\CodeBlocks\Releases\Setup
+!define CB_ADDONS        C:\Devel\CodeBlocks\Releases\Setup
 # Possibly required to adjust manually:
 # (Folder with documentation provided by mariocup.)
-!define CB_DOCS_SRC      D:\Devel\CodeBlocks\Releases\Setup
+!define CB_DOCS_SRC      C:\Devel\CodeBlocks\Releases\Setup
 !ifdef MINGW_BUNDLE
 !define CB_MINGW         \MinGW
 !endif
@@ -227,7 +228,7 @@ doInstall:
             Abort
 accessOK:
         SetOverwrite on
-        File ${WX_BASE}\wxmsw28u_gcc_cb.dll
+        File ${WX_BASE}\wxmsw${WX_VER}u_gcc_cb.dll
         File ${CB_BASE}\Addr2LineUI.exe
         File ${CB_BASE}\cb_console_runner.exe
         File ${CB_BASE}\CbLauncher.exe
@@ -238,7 +239,9 @@ accessOK:
         File ${CB_BASE}\mgwhelp.dll
         File ${CB_BASE}\symsrv.dll
         File ${CB_BASE}\symsrv.yes
+${If} ${WX_VER} == "28"
         File ${CB_BASE}\wxpropgrid.dll
+${EndIf}
         File ${MINGW_BASE}\bin\mingwm10.dll
         SetOutPath $INSTDIR${CB_SHARE_CB}
         File ${CB_BASE}${CB_SHARE_CB}\start_here.zip
@@ -2367,8 +2370,9 @@ Section "-un.Core Files (required)" UNSEC_CORE
     Delete /REBOOTOK $INSTDIR\Addr2LineUI.exe
     Delete /REBOOTOK $INSTDIR\cb_console_runner.exe
     Delete /REBOOTOK $INSTDIR\CbLauncher.exe
+${If} ${WX_VER} == "28"
     Delete /REBOOTOK $INSTDIR\wxpropgrid.dll
-    Delete /REBOOTOK $INSTDIR\wxmsw28u_gcc_cb.dll
+${EndIf}
     DeleteRegValue HKCU "${REGKEY}\Components" "Core Files (required)"
 SectionEnd
 
