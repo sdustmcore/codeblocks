@@ -27,6 +27,7 @@
 #####################################################################
 
 Name CodeBlocks
+XPStyle on
 
 # Uncomment the following line to remove the
 # 'Nullsoft Install System vX.XX' String:
@@ -128,11 +129,11 @@ Name CodeBlocks
 ###################################################################################
 
 # Included files
-!include Sections.nsh
 !include MUI2.nsh
+!include Sections.nsh
 
 # Reserved Files
-ReserveFile "${NSISDIR}\Plugins\AdvSplash.dll"
+ReserveFile "${NSISDIR}\Plugins\x86-ansi\AdvSplash.dll"
 
 # Installer pages
 !insertmacro MUI_PAGE_WELCOME
@@ -239,9 +240,9 @@ accessOK:
         File ${CB_BASE}\mgwhelp.dll
         File ${CB_BASE}\symsrv.dll
         File ${CB_BASE}\symsrv.yes
-${If} ${WX_VER} == "28"
+!if ${WX_VER} == 28
         File ${CB_BASE}\wxpropgrid.dll
-${EndIf}
+!endif
         File ${MINGW_BASE}\bin\mingwm10.dll
         SetOutPath $INSTDIR${CB_SHARE_CB}
         File ${CB_BASE}${CB_SHARE_CB}\start_here.zip
@@ -2367,12 +2368,13 @@ Section "-un.Core Files (required)" UNSEC_CORE
     Delete /REBOOTOK $INSTDIR\symsrv.yes
     Delete /REBOOTOK $INSTDIR\codeblocks.exe
     Delete /REBOOTOK $INSTDIR\codeblocks.dll
-    Delete /REBOOTOK $INSTDIR\Addr2LineUI.exe
-    Delete /REBOOTOK $INSTDIR\cb_console_runner.exe
     Delete /REBOOTOK $INSTDIR\CbLauncher.exe
-${If} ${WX_VER} == "28"
+    Delete /REBOOTOK $INSTDIR\cb_console_runner.exe
+    Delete /REBOOTOK $INSTDIR\Addr2LineUI.exe
+    Delete /REBOOTOK $INSTDIR\wxmsw${WX_VER}u_gcc_cb.dll
+!if ${WX_VER} == 28
     Delete /REBOOTOK $INSTDIR\wxpropgrid.dll
-${EndIf}
+!endif
     DeleteRegValue HKCU "${REGKEY}\Components" "Core Files (required)"
 SectionEnd
 
