@@ -15,7 +15,7 @@
 #####################################################################
 # To compile this script:                                           #
 # - adopt the PATH's to the binary / stuff to package below         #
-# - download and install NSIS (v2.46) from here:                    #
+# - download and install NSIS (v3) from here:                       #
 #   http://nsis.sourceforge.net/Download                            #
 # - run NSIS using this command line                                #
 #   C:\PATH_TO\NSIS\makensis.exe setup.nsi                          #
@@ -45,7 +45,7 @@ XPStyle on
 #########################################################
 
 # The following line toggles whether the installer includes the MinGW
-# compiler suite (including GDB) or not. Uncomment to exclude MinGW.
+# compiler suite (including GDB) or not. Uncomment to include MinGW.
 #!define MINGW_BUNDLE
 # The following line toggles whether the installer includes the
 # CBLauncher tool for portable settings (AppData in the C::B folder).
