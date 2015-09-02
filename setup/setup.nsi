@@ -1440,17 +1440,23 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         File ${CB_BASE}\wxkwic.dll
         File ${CB_BASE}\wxled.dll
         File ${CB_BASE}\wxspeedbutton.dll
+!if ${WX_VER} == 28
         File ${CB_BASE}\wxtreelist.dll
+!endif
         SetOutPath $INSTDIR${CB_SHARE_CB}
         File ${CB_BASE}${CB_SHARE_CB}\wxsmith.zip
         File ${CB_BASE}${CB_SHARE_CB}\wxSmithAui.zip
         File ${CB_BASE}${CB_SHARE_CB}\wxSmithContribItems.zip
+!if ${WX_VER} == 28
         File ${CB_BASE}${CB_SHARE_CB}\wxSmithPlot.zip
+!endif
         SetOutPath $INSTDIR${CB_PLUGINS}
         File ${CB_BASE}${CB_PLUGINS}\wxsmith.dll
         File ${CB_BASE}${CB_PLUGINS}\wxSmithAui.dll
         File ${CB_BASE}${CB_PLUGINS}\wxSmithContribItems.dll
+!if ${WX_VER} == 28
         File ${CB_BASE}${CB_PLUGINS}\wxSmithPlot.dll
+!endif
         SetOutPath $INSTDIR${CB_IMG_SETTINGS}
         File ${CB_BASE}${CB_IMG_SETTINGS}\wxsmith.png
         File ${CB_BASE}${CB_IMG_SETTINGS}\wxsmith-off.png
@@ -1828,8 +1834,10 @@ Section "-un.wxSmith plugin" UNSEC_WXSMITH
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\wxsmith.dll
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\wxSmithAui.dll
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\wxSmithContribItems.dll
+!if ${WX_VER} == 28
     Delete /REBOOTOK $INSTDIR${CB_PLUGINS}\wxSmithPlot.dll
     Delete /REBOOTOK $INSTDIR\wxtreelist.dll
+!endif
     Delete /REBOOTOK $INSTDIR\wxspeedbutton.dll
     Delete /REBOOTOK $INSTDIR\wxled.dll
     Delete /REBOOTOK $INSTDIR\wxkwic.dll
@@ -1840,7 +1848,9 @@ Section "-un.wxSmith plugin" UNSEC_WXSMITH
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\wxsmith.zip
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\wxSmithAui.zip
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\wxSmithContribItems.zip
+!if ${WX_VER} == 28
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\wxSmithPlot.zip
+!endif
     Delete /REBOOTOK $INSTDIR\wxsmithlib.dll
     DeleteRegValue HKCU "${REGKEY}\Components" "wxSmith plugin"
 SectionEnd
