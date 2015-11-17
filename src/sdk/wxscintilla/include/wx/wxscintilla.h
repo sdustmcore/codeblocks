@@ -23,7 +23,7 @@
 #include <wx/defs.h>
 
 /* C::B -> Don't forget to change version number here and in wxscintilla.cpp at the bottom */
-#define wxSCINTILLA_VERSION _T("3.53.0")
+#define wxSCINTILLA_VERSION _T("3.62.0")
 
 #include <wx/control.h>
 #include <wx/dnd.h>
@@ -77,6 +77,7 @@ class WXDLLIMPEXP_FWD_CORE wxScrollBar;
 #define wxSCI_WS_INVISIBLE 0
 #define wxSCI_WS_VISIBLEALWAYS 1
 #define wxSCI_WS_VISIBLEAFTERINDENT 2
+#define wxSCI_WS_VISIBLEONLYININDENT 3
 #define wxSCI_EOL_CRLF 0
 #define wxSCI_EOL_CR 1
 #define wxSCI_EOL_LF 2
@@ -175,6 +176,7 @@ class WXDLLIMPEXP_FWD_CORE wxScrollBar;
 #define wxSCI_CHARSET_MAC 77
 #define wxSCI_CHARSET_OEM 255
 #define wxSCI_CHARSET_RUSSIAN 204
+#define wxSCI_CHARSET_OEM866 866
 #define wxSCI_CHARSET_CYRILLIC 1251
 #define wxSCI_CHARSET_SHIFTJIS 128
 #define wxSCI_CHARSET_SYMBOL 2
@@ -188,6 +190,7 @@ class WXDLLIMPEXP_FWD_CORE wxScrollBar;
 #define wxSCI_CASE_MIXED 0
 #define wxSCI_CASE_UPPER 1
 #define wxSCI_CASE_LOWER 2
+#define wxSCI_CASE_CAMEL 3
 #define wxSCI_FONT_SIZE_MULTIPLIER 100
 #define wxSCI_WEIGHT_NORMAL 400
 #define wxSCI_WEIGHT_SEMIBOLD 600
@@ -209,6 +212,9 @@ class WXDLLIMPEXP_FWD_CORE wxScrollBar;
 #define wxSCI_INDIC_DOTBOX 12
 #define wxSCI_INDIC_SQUIGGLEPIXMAP 13
 #define wxSCI_INDIC_COMPOSITIONTHICK 14
+#define wxSCI_INDIC_COMPOSITIONTHIN 15
+#define wxSCI_INDIC_FULLBOX 16
+#define wxSCI_INDIC_TEXTFORE 17
 /* C::B begin */
 #define wxSCI_INDIC_HIGHLIGHT 31 // please change also in Scintilla.h !!
 /* C::B end */
@@ -220,6 +226,9 @@ class WXDLLIMPEXP_FWD_CORE wxScrollBar;
 #define wxSCI_INDIC1_MASK 0x40
 #define wxSCI_INDIC2_MASK 0x80
 #define wxSCI_INDICS_MASK 0xE0
+#define wxSCI_INDICVALUEBIT 0x1000000
+#define wxSCI_INDICVALUEMASK 0xFFFFFF
+#define wxSCI_INDICFLAG_VALUEFORE 1
 #define wxSCI_IV_NONE 0
 #define wxSCI_IV_REAL 1
 #define wxSCI_IV_LOOKFORWARD 2
@@ -262,6 +271,10 @@ class WXDLLIMPEXP_FWD_CORE wxScrollBar;
 #define wxSCI_FOLDFLAG_LEVELNUMBERS 0x0040
 #define wxSCI_FOLDFLAG_LINESTATE 0x0080
 #define wxSCI_TIME_FOREVER 10000000
+#define wxSCI_IDLESTYLING_NONE 0
+#define wxSCI_IDLESTYLING_TOVISIBLE 1
+#define wxSCI_IDLESTYLING_AFTERVISIBLE 2
+#define wxSCI_IDLESTYLING_ALL 3
 #define wxSCI_WRAP_NONE 0
 #define wxSCI_WRAP_WORD 1
 #define wxSCI_WRAP_CHAR 2
@@ -447,6 +460,11 @@ class WXDLLIMPEXP_FWD_CORE wxScrollBar;
 #define wxSCI_SCMOD_ALT 4
 #define wxSCI_SCMOD_SUPER 8
 #define wxSCI_SCMOD_META 16
+#define wxSCI_AC_FILLUP 1
+#define wxSCI_AC_DOUBLECLICK 2
+#define wxSCI_AC_TAB 3
+#define wxSCI_AC_NEWLINE 4
+#define wxSCI_AC_COMMAND 5
 
 /// For SciLexer.h
 #define wxSCI_LEX_CONTAINER 0
@@ -995,6 +1013,24 @@ class WXDLLIMPEXP_FWD_CORE wxScrollBar;
 #define wxSCI_ERR_JAVA_STACK 20
 #define wxSCI_ERR_VALUE 21
 #define wxSCI_ERR_GCC_INCLUDED_FROM 22
+#define wxSCI_ERR_ESCSEQ 23
+#define wxSCI_ERR_ESCSEQ_UNKNOWN 24
+#define wxSCI_ERR_ES_BLACK 40
+#define wxSCI_ERR_ES_RED 41
+#define wxSCI_ERR_ES_GREEN 42
+#define wxSCI_ERR_ES_BROWN 43
+#define wxSCI_ERR_ES_BLUE 44
+#define wxSCI_ERR_ES_MAGENTA 45
+#define wxSCI_ERR_ES_CYAN 46
+#define wxSCI_ERR_ES_GRAY 47
+#define wxSCI_ERR_ES_DARK_GRAY 48
+#define wxSCI_ERR_ES_BRIGHT_RED 49
+#define wxSCI_ERR_ES_BRIGHT_GREEN 50
+#define wxSCI_ERR_ES_YELLOW 51
+#define wxSCI_ERR_ES_BRIGHT_BLUE 52
+#define wxSCI_ERR_ES_BRIGHT_MAGENTA 53
+#define wxSCI_ERR_ES_BRIGHT_CYAN 54
+#define wxSCI_ERR_ES_WHITE 55
 
 /// Lexical states for SCLEX_BATCH
 #define wxSCI_BAT_DEFAULT 0
@@ -2205,6 +2241,7 @@ class WXDLLIMPEXP_FWD_CORE wxScrollBar;
 #define wxSCI_COFFEESCRIPT_COMMENTBLOCK 22
 #define wxSCI_COFFEESCRIPT_VERBOSE_REGEX 23
 #define wxSCI_COFFEESCRIPT_VERBOSE_REGEX_COMMENT 24
+#define wxSCI_COFFEESCRIPT_INSTANCEPROPERTY 25
 
 /// Lexical states for SCLEX_AVS
 #define wxSCI_AVS_DEFAULT 0
@@ -3209,6 +3246,24 @@ public:
     // Retrieve whether indicator drawn under or over text.
     bool IndicatorGetUnder(int indic) const;
 
+    // Set a hover indicator to plain, squiggle or TT.
+    void IndicSetHoverStyle(int indic, int style);
+
+    // Retrieve the hover style of an indicator.
+    int IndicGetHoverStyle(int indic) const;
+
+    // Set the foreground hover colour of an indicator.
+    void IndicSetHoverFore(int indic, const wxColour& fore);
+
+    // Retrieve the foreground hover colour of an indicator.
+    wxColour IndicGetHoverFore(int indic) const;
+
+    // Set the attributes of an indicator.
+    void IndicSetFlags(int indic, int flags);
+
+    // Retrieve the attributes of an indicator.
+    int IndicGetFlags(int indic) const;
+
     // Set the foreground colour of all whitespace and whether to use this setting.
     void SetWhitespaceForeground(bool useSetting, const wxColour& fore);
 
@@ -3571,6 +3626,20 @@ public:
     // Get the position that ends the target.
     int GetTargetEnd() const;
 
+    // Sets both the start and end of the target in one call.
+    void SetTargetRange(int start, int end);
+
+    // Retrieve the text in the target.
+/* C::B begin */
+    wxString GetTargetText() const;
+/* C::B end */
+
+    // Make the target range start and end be the same as the selection range start and end.
+    void TargetFromSelection();
+
+    // Sets the target to the whole document.
+    void TargetWholeDocument();
+
     // Replace the target text with the argument text.
     // Text is counted so it can contain NULs.
     // Returns the length of the replacement text.
@@ -3724,6 +3793,15 @@ public:
     // Get position of end of word.
     int WordEndPosition(int pos, bool onlyWordCharacters);
 
+    // Is the range start..end considered a word?
+    bool IsRangeWord(int start, int end);
+
+    // Sets limits to idle styling.
+    void SetIdleStyling(int idleStyling);
+
+    // Retrieve the limits to idle styling.
+    int GetIdleStyling() const;
+
     // Sets whether text is word wrapped.
     void SetWrapMode(int mode);
 
@@ -3836,10 +3914,8 @@ public:
     int GetMultiPaste() const;
 
     // Retrieve the value of a tag from a regular expression search.
+    // Result is NUL-terminated.
     wxString GetTag(int tagNumber) const;
-
-    // Make the target range start and end be the same as the selection range start and end.
-    void TargetFromSelection();
 
     // Join the lines in the target.
     void LinesJoin();
@@ -4447,12 +4523,6 @@ public:
     // the range of a call to GetRangePointer.
     int GetGapPosition() const;
 
-    // Always interpret keyboard input as Unicode
-    void SetKeysUnicode(bool keysUnicode);
-
-    // Are keys always interpreted as Unicode?
-    bool GetKeysUnicode() const;
-
     // Set the alpha fill colour of the given indicator.
     void IndicatorSetAlpha(int indicator, int alpha);
 
@@ -4688,6 +4758,14 @@ public:
 
     // Swap that caret and anchor of the main selection.
     void SwapMainAnchorCaret();
+
+    // Add the next occurrence of the main selection to the set of selections as main.
+    // If the current selection is empty then select word around caret.
+    void MultipleSelectAddNext();
+
+    // Add each occurrence of the main selection in the target to the set of selections.
+    // If the current selection is empty then select word around caret.
+    void MultipleSelectAddEach();
 
     // Indicate that the internal state of a lexer has changed over a range and therefore
     // there may be a need to redraw.

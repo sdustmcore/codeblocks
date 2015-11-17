@@ -354,7 +354,8 @@ void ScintillaWX::Initialise() {
 void ScintillaWX::Finalise() {
     ScintillaBase::Finalise();
 /* C::B begin */
-    // SetTicking function is deprecated since we implement fine grained timers
+    // The following function is deprecated since we implement fine grained timers
+    // SetTicking(false);
 /* C::B end */
     SetIdle(false);
     DestroySystemCaret();
@@ -418,7 +419,9 @@ bool ScintillaWX::SetIdle(bool on) {
 }
 
 /* C::B begin */
-    // SetTicking function is deprecated since we implement fine grained timers
+    // The following function is deprecated since we implement fine grained timers
+// void ScintillaWX::SetTicking(bool on) {
+// }
 /* C::B end */
 
 
@@ -707,11 +710,14 @@ void ScintillaWX::CopyToClipboard(const SelectionText& st) {
         wxString text = wxTextBuffer::Translate(sci2wx(st.Data(), st.Length()));
 
 /* C::B begin */
+        // Leave the following lines that way to enable compilation with GCC 3.3.3
+        wxDataFormat dataFormat(wxString(wxT("application/x-cbrectdata")));
+        wxCustomDataObject* rectData = new wxCustomDataObject(dataFormat);
+
         // composite object will hold "plain text" for pasting in other programs and a custom
         // object for local use that remembers what kind of selection was made (stream or
         // rectangular).
         wxDataObjectComposite* obj = new wxDataObjectComposite();
-        wxCustomDataObject* rectData = new wxCustomDataObject(wxDataFormat(wxString(wxT("application/x-cbrectdata"))));
 
         char* buffer = new char[st.LengthWithTerminator()];
         buffer[0] = (st.rectangular)? (char)1 : (char)0;
@@ -806,7 +812,7 @@ void ScintillaWX::UpdateSystemCaret() {
             CreateSystemCaret();
         }
         Point pos = PointMainCaret();
-        ::SetCaretPos(pos.x, pos.y);
+        ::SetCaretPos(wxRound(pos.x), wxRound(pos.y));
     }
 #endif
 }
@@ -848,13 +854,18 @@ bool ScintillaWX::CreateSystemCaret() {
 
 bool ScintillaWX::DestroySystemCaret() {
 #ifdef __WXMSW__
-    ::HideCaret(GetHwndOf(sci));
-    BOOL retval = ::DestroyCaret();
-    if (sysCaretBitmap) {
-        ::DeleteObject(sysCaretBitmap);
-        sysCaretBitmap = 0;
+    if (sysCaretBitmap)
+    {
+        ::HideCaret(GetHwndOf(sci));
+        BOOL retval = ::DestroyCaret();
+        if (sysCaretBitmap) {
+            ::DeleteObject(sysCaretBitmap);
+            sysCaretBitmap = 0;
+        }
+        return retval != 0;
     }
-    return retval != 0;
+    else
+        return false;
 #else
     return false;
 #endif
@@ -1019,7 +1030,7 @@ void ScintillaWX::FullPaintDC(wxDC* dc) {
 void ScintillaWX::DoHScroll(int type, int pos) {
     int xPos = xOffset;
     PRectangle rcText = GetTextRectangle();
-    int pageWidth = rcText.Width() * 2 / 3;
+    int pageWidth = wxRound(rcText.Width() * 2 / 3);
     if (type == wxEVT_SCROLLWIN_LINEUP || type == wxEVT_SCROLL_LINEUP)
         xPos -= H_SCROLL_STEP;
     else if (type == wxEVT_SCROLLWIN_LINEDOWN || type == wxEVT_SCROLL_LINEDOWN)
@@ -1029,7 +1040,7 @@ void ScintillaWX::DoHScroll(int type, int pos) {
     else if (type == wxEVT_SCROLLWIN_PAGEDOWN || type == wxEVT_SCROLL_PAGEDOWN) {
         xPos += pageWidth;
         if (xPos > scrollWidth - rcText.Width()) {
-            xPos = scrollWidth - rcText.Width();
+            xPos = wxRound(scrollWidth - rcText.Width());
         }
     }
     else if (type == wxEVT_SCROLLWIN_TOP || type == wxEVT_SCROLL_TOP)
@@ -1071,14 +1082,14 @@ void ScintillaWX::DoMouseWheel(wxMouseWheelAxis axis, int rotation, int delta,
     int pixels;
 
     if (axis == wxMOUSE_WHEEL_HORIZONTAL) {
-        wheelHRotation += rotation * (columnsPerAction * vs.spaceWidth);
+        wheelHRotation += wxRound(rotation * (columnsPerAction * vs.spaceWidth));
         pixels = wheelHRotation / delta;
         wheelHRotation -= pixels * delta;
         if (pixels != 0) {
             xPos += pixels;
             PRectangle rcText = GetTextRectangle();
             if (xPos > scrollWidth - rcText.Width()) {
-                xPos = scrollWidth - rcText.Width();
+                xPos = wxRound(scrollWidth - rcText.Width());
             }
             HorizontalScrollTo(xPos);
         }
@@ -1123,6 +1134,7 @@ void ScintillaWX::DoLoseFocus(){
     DestroySystemCaret();
 /* C::B begin */
     // SetTicking function is deprecated since we implement fine grained timers
+    // SetTicking(false);
 /* C::B end */
 }
 
@@ -1134,6 +1146,7 @@ void ScintillaWX::DoGainFocus(){
     CreateSystemCaret();
 /* C::B begin */
     // SetTicking function is deprecated since we implement fine grained timers
+    // SetTicking(true);
 /* C::B end */
 }
 
@@ -1311,7 +1324,7 @@ void ScintillaWX::DoContextMenu(Point pt) {
 }
 
 void ScintillaWX::DoOnListBox() {
-    AutoCompleteCompleted();
+    AutoCompleteCompleted(0, SC_AC_COMMAND);
 }
 
 
@@ -1401,7 +1414,7 @@ void ScintillaWX::DoScrollToLine(int line) {
 
 
 void ScintillaWX::DoScrollToColumn(int column) {
-    HorizontalScrollTo(column * vs.spaceWidth);
+    HorizontalScrollTo(wxRound(column * vs.spaceWidth));
 }
 
 // wxGTK doesn't appear to need this explicit clipping code any longer, but I

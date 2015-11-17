@@ -10,11 +10,13 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+#include <stdexcept>
 #include <algorithm>
 
 #include "Platform.h"
 
 #include "Scintilla.h"
+#include "Position.h"
 #include "SplitVector.h"
 #include "Partitioning.h"
 #include "CellBuffer.h"
@@ -1102,6 +1104,10 @@ void CellBuffer::PerformUndoStep() {
 /* CHANGEBAR end */
 	const Action &actionStep = uh.GetUndoStep();
 	if (actionStep.at == insertAction) {
+		if (substance.Length() < actionStep.lenData) {
+			throw std::runtime_error(
+				"CellBuffer::PerformUndoStep: deletion must be less than document length.");
+		}
 /* CHANGEBAR begin */
         BasicDeleteChars(actionStep.position, actionStep.lenData, true);
 /* CHANGEBAR end */

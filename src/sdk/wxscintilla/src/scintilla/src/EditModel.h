@@ -29,7 +29,7 @@ public:
 
 class EditModel {
 	// Private so EditModel objects can not be copied
-	EditModel(const EditModel &);
+	explicit EditModel(const EditModel &);
 	EditModel &operator=(const EditModel &);
 
 public:
@@ -52,6 +52,7 @@ public:
 	ContractionState cs;
 	// Hotspot support
 	Range hotspot;
+	int hoverIndicatorPos;
 
 	// Wrapping support
 	int wrapWidth;
