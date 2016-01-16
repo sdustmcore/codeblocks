@@ -60,7 +60,7 @@ XPStyle on
 # Defines #
 ###########
 !define REGKEY           "SOFTWARE\$(^Name)"
-!define VERSION          15.xx
+!define VERSION          16.01
 !define COMPANY          "The Code::Blocks Team"
 !define URL              http://www.codeblocks.org
 
@@ -69,11 +69,11 @@ XPStyle on
 ###########
 # Possibly required to adjust manually:
 # (Folder with wxWidgets DLL - unicode, monolithic.)
-!define WX_BASE          C:\Devel\CodeBlocks\Releases\CodeBlocks_15xx
+!define WX_BASE          C:\Devel\CodeBlocks\Releases\CodeBlocks_1601
 !define WX_VER           28
 # Possibly required to adjust manually:
 # (CodeBlocks binary folder - the one where codeblocks.exe is.)
-!define CB_BASE          C:\Devel\CodeBlocks\Releases\CodeBlocks_15xx
+!define CB_BASE          C:\Devel\CodeBlocks\Releases\CodeBlocks_1601
 !define CB_SHARE         \share
 !define CB_SHARE_CB      ${CB_SHARE}\CodeBlocks
 !define CB_DOCS          ${CB_SHARE_CB}\docs
@@ -104,8 +104,8 @@ XPStyle on
 #########
 # Possibly required to adjust manually:
 # Note: These files are only required for the installer.
-!define CB_SPLASH        ${CB_ADDONS}\setup_splash_15xx.bmp
-!define CB_LOGO          ${CB_ADDONS}\setup_logo_15xx.bmp
+!define CB_SPLASH        ${CB_ADDONS}\setup_splash_1601.bmp
+!define CB_LOGO          ${CB_ADDONS}\setup_logo_1601.bmp
 # Possibly required to adjust manually:
 # Note: This file is only required for the installer.
 !define CB_LICENSE       ${CB_ADDONS}\gpl-3.0.txt
