@@ -365,6 +365,15 @@ accessOK:
                 WriteRegStr HKCU "${REGKEY}\Components" "Java" 1
             SectionEnd
 
+            Section "JavaScript"
+                SectionIn 1 4
+                SetOutPath $INSTDIR${CB_LEXERS}
+                SetOverwrite on
+                File ${CB_BASE}${CB_LEXERS}\lexer_javascript.sample
+                File ${CB_BASE}${CB_LEXERS}\lexer_javascript.xml
+                WriteRegStr HKCU "${REGKEY}\Components" "JavaScript" 1
+            SectionEnd
+
             Section "Objective-C"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
@@ -2028,6 +2037,12 @@ Section "-un.Java" UNSEC_JAVA
     DeleteRegValue HKCU "${REGKEY}\Components" "Java"
 SectionEnd
 
+Section "-un.JavaScript" UNSEC_JAVA_SCRIPT
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_javascript.xml
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_javascript.sample
+    DeleteRegValue HKCU "${REGKEY}\Components" "JavaScript"
+SectionEnd
+
 Section "-un.Objective-C" UNSEC_OBJECTIVE_C
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_objc.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_objc.sample
@@ -2450,6 +2465,7 @@ Function un.onInit
     !insertmacro SELECT_UNSECTION "The D Language"                     ${UNSEC_D}
     !insertmacro SELECT_UNSECTION "Fortran"                            ${UNSEC_F}
     !insertmacro SELECT_UNSECTION "Java"                               ${UNSEC_JAVA}
+    !insertmacro SELECT_UNSECTION "JavaScript"                         ${UNSEC_JAVA_SCRIPT}
     !insertmacro SELECT_UNSECTION "Objective-C"                        ${UNSEC_OBJECTIVE_C}
     !insertmacro SELECT_UNSECTION "Pascal"                             ${UNSEC_PASCAL}
     !insertmacro SELECT_UNSECTION "Smalltalk"                          ${UNSEC_SMALLTALK}
