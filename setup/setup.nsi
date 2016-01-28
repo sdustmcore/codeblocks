@@ -49,7 +49,12 @@ XPStyle on
 #!define MINGW_BUNDLE
 # The following line toggles whether the installer includes the
 # CBLauncher tool for portable settings (AppData in the C::B folder).
-#!define CB_LAUNCHER
+!define CB_LAUNCHER
+
+# The following line toggles the admin or user istallation package.
+# Preferred should be the admin installation package, however, for
+# non-admins the user installation packge is the only one working.
+!define CB_ADMIN_INSTALLER
 
 # Notice installer packagers:
 # Some paths are system specific and need most likely to be adjusted
@@ -69,11 +74,11 @@ XPStyle on
 ###########
 # Possibly required to adjust manually:
 # (Folder with wxWidgets DLL - unicode, monolithic.)
-!define WX_BASE          C:\Devel\CodeBlocks\Releases\CodeBlocks_1601
+!define WX_BASE          D:\Devel\CodeBlocks\Releases\CodeBlocks_1601
 !define WX_VER           28
 # Possibly required to adjust manually:
 # (CodeBlocks binary folder - the one where codeblocks.exe is.)
-!define CB_BASE          C:\Devel\CodeBlocks\Releases\CodeBlocks_1601
+!define CB_BASE          D:\Devel\CodeBlocks\Releases\CodeBlocks_1601
 !define CB_SHARE         \share
 !define CB_SHARE_CB      ${CB_SHARE}\CodeBlocks
 !define CB_DOCS          ${CB_SHARE_CB}\docs
@@ -88,13 +93,13 @@ XPStyle on
 !define CB_XML_COMPILERS ${CB_SHARE_CB}\compilers
 # Possibly required to adjust manually:
 # (Folder with full MinGW/GCC installation, *including* debugger.)
-!define MINGW_BASE       C:\Devel\CodeBlocks\Releases\MinGW
+!define MINGW_BASE       D:\Devel\CodeBlocks\Releases\MinGW
 # Possibly required to adjust manually:
 # (Folder with logos and GPL license as text file.)
-!define CB_ADDONS        C:\Devel\CodeBlocks\Releases\Setup
+!define CB_ADDONS        D:\Devel\CodeBlocks\Releases\Setup
 # Possibly required to adjust manually:
 # (Folder with documentation provided by mariocup.)
-!define CB_DOCS_SRC      C:\Devel\CodeBlocks\Releases\Setup
+!define CB_DOCS_SRC      D:\Devel\CodeBlocks\Releases\Setup
 !ifdef MINGW_BUNDLE
 !define CB_MINGW         \MinGW
 !endif
@@ -173,10 +178,14 @@ ShowUninstDetails show
 # The value is embedded in the installer and uninstaller's XML manifest
 # and tells Vista/7, and probably future versions of Windows, what privileges
 # level the installer requires.
-# -> user requests the a normal user's level with no administrative privileges
+# -> user  requests the a normal user's level with no administrative privileges
 # -> admin requests administrator level and will cause Windows to prompt the
 #    user to verify privilege escalation.
+!ifdef CB_ADMIN_INSTALLER
 RequestExecutionLevel admin
+!else
+RequestExecutionLevel user
+!endif
 
 ######################
 # Installer sections #
@@ -281,6 +290,7 @@ accessOK:
             WriteRegStr HKCU "${REGKEY}\Components" "Program Shortcut" 1
         SectionEnd
 
+!ifdef CB_ADMIN_INSTALLER
         Section "Program Shortcut All Users" SEC_PROGRAMSHORTCUT_ALL
             SectionIn 1 2 3 4
             SetShellVarContext all
@@ -294,6 +304,7 @@ accessOK:
             SetShellVarContext current
             WriteRegStr HKCU "${REGKEY}\Components" "Program Shortcut All Users" 1
         SectionEnd
+!endif
 
         Section "Desktop Shortcut" SEC_DESKTOPSHORTCUT
             SectionIn 1
@@ -2329,12 +2340,14 @@ Section "-un.Program Shortcut" UNSEC_PROGRAMSHORTCUT
     DeleteRegValue HKCU "${REGKEY}\Components" "Program Shortcut"
 SectionEnd
 
+!ifdef CB_ADMIN_INSTALLER
 Section "-un.Program Shortcut All Users" UNSEC_PROGRAMSHORTCUT_ALL
     SetShellVarContext all
     Delete "$SMPROGRAMS\${CB_SM_GROUP}\$(^Name).lnk"
     SetShellVarContext current
     DeleteRegValue HKCU "${REGKEY}\Components" "Program Shortcut All Users"
 SectionEnd
+!endif
 
 Section "-un.Desktop Shortcut" UNSEC_DESKTOPSHORTCUT
     Delete /REBOOTOK "$DESKTOP\$(^Name).lnk"
@@ -2455,7 +2468,9 @@ Function un.onInit
     !insertmacro SELECT_UNSECTION "Core Files (required)"              ${UNSEC_CORE}
 
     !insertmacro SELECT_UNSECTION "Program Shortcut"                   ${UNSEC_PROGRAMSHORTCUT}
+!ifdef CB_ADMIN_INSTALLER
     !insertmacro SELECT_UNSECTION "Program Shortcut All Users"         ${UNSEC_PROGRAMSHORTCUT_ALL}
+!endif
     !insertmacro SELECT_UNSECTION "Desktop Shortcut"                   ${UNSEC_DESKTOPSHORTCUT}
     !insertmacro SELECT_UNSECTION "Quick Launch Shortcut"              ${UNSEC_QUICKLAUNCHSHORTCUT}
 
@@ -2592,7 +2607,9 @@ FunctionEnd
 
 !insertmacro MUI_DESCRIPTION_TEXT ${SECGRP_SHORTCUTS}        "Shortcuts to be created."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_PROGRAMSHORTCUT}     "Creates a shortcut to Code::Blocks in the startmenu."
+!ifdef CB_ADMIN_INSTALLER
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_PROGRAMSHORTCUT_ALL} "Creates a shortcut to Code::Blocks in the startmenu for all users (requires admins rights)."
+!endif
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_DESKTOPSHORTCUT}     "Creates a shortcut to Code::Blocks on the desktop."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_QUICKLAUNCHSHORTCUT} "Creates a shortcut to Code::Blocks in the quick lauch bar."
 
