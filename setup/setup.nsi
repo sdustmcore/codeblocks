@@ -1486,13 +1486,23 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
 
 SectionGroupEnd
 
+Section "C::B CBP2Make" SEC_CBP2MAKE
+    SectionIn 1
+    SetOutPath $INSTDIR
+    SetOverwrite on
+    File ${CB_BASE}\cbp2make.exe
+    SetOutPath $SMPROGRAMS\${CB_SM_GROUP}
+    CreateShortcut "$SMPROGRAMS\${CB_SM_GROUP}\$(^Name) CBP2Make.lnk" $INSTDIR\cbp2make.exe
+    WriteRegStr HKCU "${REGKEY}\Components" "C::B CBP2Make" 1
+SectionEnd
+
 Section "C::B Share Config" SEC_SHARECONFIG
     SectionIn 1
     SetOutPath $INSTDIR
     SetOverwrite on
     File ${CB_BASE}\cb_share_config.exe
     SetOutPath $SMPROGRAMS\${CB_SM_GROUP}
-    CreateShortcut "$SMPROGRAMS\${CB_SM_GROUP}\CB Share Config.lnk" $INSTDIR\cb_share_config.exe
+    CreateShortcut "$SMPROGRAMS\${CB_SM_GROUP}\$(^Name) Share Config.lnk" $INSTDIR\cb_share_config.exe
     WriteRegStr HKCU "${REGKEY}\Components" "C::B Share Config" 1
 SectionEnd
 
@@ -1581,8 +1591,14 @@ SectionEnd
 
 Section "-un.C::B Share Config" UNSEC_SHARECONFIG
     Delete /REBOOTOK $INSTDIR\cb_share_config.exe
-    Delete /REBOOTOK "$SMPROGRAMS\${CB_SM_GROUP}\CB Share Config.lnk"
+    Delete /REBOOTOK "$SMPROGRAMS\${CB_SM_GROUP}\$(^Name) Share Config.lnk"
     DeleteRegValue HKCU "${REGKEY}\Components" "C::B Share Config"
+SectionEnd
+
+Section "-un.C::B CBP2Make" UNSEC_CBP2MAKE
+    Delete /REBOOTOK $INSTDIR\cbp2make.exe
+    Delete /REBOOTOK "$SMPROGRAMS\${CB_SM_GROUP}\$(^Name) CBP2Make.lnk"
+    DeleteRegValue HKCU "${REGKEY}\Components" "C::B CBP2Make"
 SectionEnd
 
 # C::B contrib plugins begin
@@ -2586,6 +2602,7 @@ Function un.onInit
     !insertmacro SELECT_UNSECTION "ThreadSearch plugin"                ${UNSEC_THREADSEARCH}
     !insertmacro SELECT_UNSECTION "wxSmith plugin"                     ${UNSEC_WXSMITH}
 
+    !insertmacro SELECT_UNSECTION "C::B CBP2Make"                      ${UNSEC_CBP2MAKE}
     !insertmacro SELECT_UNSECTION "C::B Share Config"                  ${UNSEC_SHARECONFIG}
 
 !ifdef CB_LAUNCHER
@@ -2671,6 +2688,7 @@ FunctionEnd
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_THREADSEARCH}        "Multi-threaded 'Search in files' with preview window."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_WXSMITH}             "RAD tool used to create wxWidgets based GUI applications, forms, dialogs and other."
 
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_CBP2MAKE}            "Allow to convert Code::Blocks Project (*.cbp) files into Makefiles for misc. platforms."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_SHARECONFIG}         "Allows sharing of most important settings between Code::Blocks instances or different users."
 
 !ifdef CB_LAUNCHER
