@@ -23,6 +23,7 @@
 #include <wxsadvqppchild.h>
 #include <wxwidgets/wxsitemresdata.h>
 #include <wx/menu.h>
+#include <wx/textdlg.h>
 #include <wxwidgets/wxsflags.h>
 
 #include "../wxAuiManager/wxsAuiManager.h"

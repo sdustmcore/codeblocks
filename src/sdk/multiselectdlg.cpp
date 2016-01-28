@@ -17,6 +17,8 @@
     #include "globals.h"
 #endif
 
+#include <wx/textdlg.h>
+
 #include "multiselectdlg.h"
 
 BEGIN_EVENT_TABLE(MultiSelectDlg, wxScrollingDialog)
@@ -139,7 +141,7 @@ void MultiSelectDlg::SelectWildCard(const wxString& wild, bool select, bool clea
 
 void MultiSelectDlg::OnWildcard(cb_unused wxCommandEvent& event)
 {
-    wxString wild = cbGetTextFromUser(_("Enter a selection wildcard\n(e.g. \"dlg*.cpp\" "
+    wxString wild = wxGetTextFromUser(_("Enter a selection wildcard\n(e.g. \"dlg*.cpp\" "
                                         "would select all files starting with \"dlg\" and "
                                         "ending in \".cpp\")\nSeparate multiple masks with \";\":"),
                                         _("Wildcard selection"));

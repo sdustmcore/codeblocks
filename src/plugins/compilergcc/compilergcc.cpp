@@ -24,6 +24,7 @@
 
 #ifndef CB_PRECOMP
     #include <wx/app.h>
+    #include <wx/textdlg.h>
     #include <wx/toolbar.h>
 #endif
 

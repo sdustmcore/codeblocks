@@ -12,10 +12,6 @@
 
 #include "cbplugin.h" // the base class we 're inheriting
 
-#include <wx/string.h>
-
-class wxArrayString;
-class ConfigManager;
 class TextCtrlLogger;
 class CppCheckListLog;
 
@@ -30,30 +26,14 @@ public:
 
     virtual cbConfigurationPanel* GetConfigurationPanel(wxWindow* /*parent*/);
 private:
-    struct SCppCheckAttribs
-    {
-      wxString InputFileName;
-      wxString IncludeList;
-      wxString DefineList;
-    };
-    typedef struct SCppCheckAttribs TCppCheckAttribs;
-
     void WriteToLog(const wxString& Text);
     void AppendToLog(const wxString& Text);
-
     bool DoCppCheckVersion();
-    int  DoCppCheckExecute(TCppCheckAttribs& CppCheckAttribs);
-    void DoCppCheckAnalysis(const wxString& Xml);
-
-    wxString GetExecutable(ConfigManager* cfg);
-    bool     CppCheckExecute(const wxString& CommandLine, wxArrayString& Output, wxArrayString& Errors);
 
     TextCtrlLogger*  m_CppCheckLog;      //!< log tab in the message pane
     CppCheckListLog* m_ListLog;          //!< log tab to click/double click to take you to offending line of code
     int              m_LogPageIndex;     //!< index of our log tab (can this change during run time ??)
     int              m_ListLogPageIndex; //!< index of our list log tab
-
-    wxString         m_PATH;
 };
 
 #endif // CPPCHECK_H_INCLUDED

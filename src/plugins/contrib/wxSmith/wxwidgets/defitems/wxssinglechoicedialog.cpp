@@ -75,7 +75,6 @@ void wxsSingleChoiceDialog::OnBuildCreatingCode()
             return;
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsSingleChoiceDialog::OnBuildCreatingCode"),GetLanguage());
@@ -83,7 +82,7 @@ void wxsSingleChoiceDialog::OnBuildCreatingCode()
     }
 }
 
-void wxsSingleChoiceDialog::OnEnumToolProperties(cb_unused long Flags)
+void wxsSingleChoiceDialog::OnEnumToolProperties(long Flags)
 {
     WXS_SHORT_STRING(wxsSingleChoiceDialog,m_Message,_("Message"),_T("message"),_T(""),false);
     WXS_SHORT_STRING(wxsSingleChoiceDialog,m_Caption,_("Caption"),_T("caption"),_T(""),false);

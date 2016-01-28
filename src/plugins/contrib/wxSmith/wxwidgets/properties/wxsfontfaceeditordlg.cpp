@@ -23,11 +23,9 @@
 #include "wxsfontfaceeditordlg.h"
 #include <wx/fontdlg.h>
 
-#include <prep.h>
-
 //(*InternalHeaders(wxsFontFaceEditorDlg)
-#include <wx/intl.h>
 #include <wx/string.h>
+#include <wx/intl.h>
 //*)
 
 //(*IdInit(wxsFontFaceEditorDlg)
@@ -70,8 +68,8 @@ wxsFontFaceEditorDlg::wxsFontFaceEditorDlg(wxWindow* parent,wxString& _Face,wxWi
     BoxSizer1->SetSizeHints(this);
     Center();
 
-    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,wxCommandEventHandler(wxsFontFaceEditorDlg::OnButton1Click));
-    Connect(wxID_OK,wxEVT_COMMAND_BUTTON_CLICKED,wxCommandEventHandler(wxsFontFaceEditorDlg::OnButton2Click));
+    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&wxsFontFaceEditorDlg::OnButton1Click);
+    Connect(wxID_OK,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&wxsFontFaceEditorDlg::OnButton2Click);
     //*)
     FaceName->SetValue(Face);
 }
@@ -82,13 +80,13 @@ wxsFontFaceEditorDlg::~wxsFontFaceEditorDlg()
     //*)
 }
 
-void wxsFontFaceEditorDlg::OnButton2Click(cb_unused wxCommandEvent& event)
+void wxsFontFaceEditorDlg::OnButton2Click(wxCommandEvent& event)
 {
     Face = FaceName->GetValue();
     EndModal(wxID_OK);
 }
 
-void wxsFontFaceEditorDlg::OnButton1Click(cb_unused wxCommandEvent& event)
+void wxsFontFaceEditorDlg::OnButton1Click(wxCommandEvent& event)
 {
     wxFont Font = ::wxGetFontFromUser();
     if ( Font.Ok() )

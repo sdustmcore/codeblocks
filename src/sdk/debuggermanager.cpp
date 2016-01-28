@@ -1158,8 +1158,9 @@ inline void RefreshBreakpoints(cb_unused const cbDebuggerPlugin* plugin)
     for (int ii = 0; ii < count; ++ii)
     {
         EditorBase *editor = editorManager->GetEditor(ii);
-        if (editor->IsBuiltinEditor())
-            static_cast<cbEditor*>(editor)->RefreshBreakpointMarkers();
+        if (!editor->IsBuiltinEditor())
+            continue;
+        editor->RefreshBreakpointMarkers();
     }
 }
 

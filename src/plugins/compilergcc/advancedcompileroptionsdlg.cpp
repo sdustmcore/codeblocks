@@ -17,6 +17,7 @@
     #include <wx/sizer.h>
     #include <wx/spinctrl.h>
     #include <wx/textctrl.h>
+    #include <wx/textdlg.h>
     #include <wx/xrc/xmlres.h>
     #include "compilerfactory.h"
     #include "globals.h"
@@ -323,7 +324,7 @@ void AdvancedCompilerOptionsDlg::OnExtChange(wxCommandEvent& WXUNUSED(event))
 
 void AdvancedCompilerOptionsDlg::OnAddExt(wxCommandEvent& WXUNUSED(event))
 {
-    wxString ext = cbGetTextFromUser(_("Please enter a semi-colon separated list of extensions, without the leading dot:"), _("New extension"));
+    wxString ext = wxGetTextFromUser(_("Please enter a semi-colon separated list of extensions, without the leading dot:"), _("New extension"));
     ext.Trim(false);
     ext.Trim(true);
     if (!ext.IsEmpty())

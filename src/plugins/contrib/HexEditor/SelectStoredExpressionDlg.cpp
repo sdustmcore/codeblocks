@@ -22,6 +22,7 @@
 
 #include "SelectStoredExpressionDlg.h"
 #include <configmanager.h>
+#include <wx/textdlg.h>
 
 //(*InternalHeaders(SelectStoredExpressionDlg)
 #include <wx/string.h>
@@ -190,7 +191,7 @@ void SelectStoredExpressionDlg::AddingExpression( const wxString& defaultName, c
     wxString name = defaultName;
     for (;;)
     {
-        name = cbGetTextFromUser( _("Enter name for this expression"), _("New stored expression"), name );
+        name = wxGetTextFromUser( _("Enter name for this expression"), _("New stored expression"), name );
 
         if ( name.IsEmpty() )
         {
@@ -219,7 +220,7 @@ void SelectStoredExpressionDlg::AddingExpression( const wxString& defaultName, c
         }
     }
 
-    wxString value = cbGetTextFromUser(
+    wxString value = wxGetTextFromUser(
         _("Enter expression"),
         _("New stored expression"),
         defaultExpression );
@@ -301,7 +302,7 @@ void SelectStoredExpressionDlg::OnButton3Click(wxCommandEvent& /*event*/)
     ListData* data = GetSelection();
     if ( !data ) return;
 
-    wxString value = cbGetTextFromUser(
+    wxString value = wxGetTextFromUser(
         _("Enter new expression"),
         _("Modifying expression"),
         data->GetValue() );

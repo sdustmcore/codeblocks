@@ -33,6 +33,7 @@
     #include <wx/sizer.h>
     #include <wx/spinctrl.h>
     #include <wx/stattext.h>
+    #include <wx/textdlg.h>
     #include <wx/treectrl.h>
     #include <wx/xrc/xmlres.h>
 #endif
@@ -604,7 +605,7 @@ void ProjectOptionsDlg::OnTargetBuildOptionsClick(cb_unused wxCommandEvent& even
 
 void ProjectOptionsDlg::OnAddBuildTargetClick(cb_unused wxCommandEvent& event)
 {
-    wxString targetName = cbGetTextFromUser(_("Enter the new build target name:"),
+    wxString targetName = wxGetTextFromUser(_("Enter the new build target name:"),
                                             _("New build target"));
     if (!ValidateTargetName(targetName))
         return;
@@ -642,7 +643,7 @@ void ProjectOptionsDlg::OnEditBuildTargetClick(cb_unused wxCommandEvent& event)
     }
 
     wxString oldTargetName = target->GetTitle();
-    wxString newTargetName = cbGetTextFromUser(_("Change the build target name:"),
+    wxString newTargetName = wxGetTextFromUser(_("Change the build target name:"),
                                                _("Rename build target"),
                                               oldTargetName);
     if (newTargetName == oldTargetName || !ValidateTargetName(newTargetName))
@@ -670,7 +671,7 @@ void ProjectOptionsDlg::OnCopyBuildTargetClick(cb_unused wxCommandEvent& event)
         return;
     }
 
-    wxString newTargetName = cbGetTextFromUser(_("Enter the duplicated build target's name:"),
+    wxString newTargetName = wxGetTextFromUser(_("Enter the duplicated build target's name:"),
                                                _("Duplicate build target"),
                                               _("Copy of ") + target->GetTitle());
     if (!ValidateTargetName(newTargetName))
@@ -886,7 +887,7 @@ void ProjectOptionsDlg::OnFileToggleMarkClick(cb_unused wxCommandEvent& event)
 
 void ProjectOptionsDlg::OnFileMarkOnClick(cb_unused wxCommandEvent& event)
 {
-    wxString wildcard = cbGetTextFromUser(_("Select wildcard (file mask) to toggle on:"),
+    wxString wildcard = wxGetTextFromUser(_("Select wildcard (file mask) to toggle on:"),
                                           _("Select files"), _T("*.*"));
     if (wildcard.IsEmpty()) return; // user pressed Cancel
 
@@ -910,7 +911,7 @@ void ProjectOptionsDlg::OnFileMarkOnClick(cb_unused wxCommandEvent& event)
 
 void ProjectOptionsDlg::OnFileMarkOffClick(cb_unused wxCommandEvent& event)
 {
-    wxString wildcard = cbGetTextFromUser(_("Select wildcard (file mask) to toggle off:"),
+    wxString wildcard = wxGetTextFromUser(_("Select wildcard (file mask) to toggle off:"),
                                           _("Select files"), _T("*.*"));
     if (wildcard.IsEmpty()) return; // user pressed Cancel
 

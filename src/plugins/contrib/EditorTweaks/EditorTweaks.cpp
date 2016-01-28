@@ -5,6 +5,7 @@
 
 #ifndef CB_PRECOMP
     #include <wx/menu.h>
+    #include <wx/textdlg.h>
     #include <wx/toolbar.h>
 #endif
 
@@ -1087,7 +1088,7 @@ void EditorTweaks::OnAlignOthers(wxCommandEvent& /*event*/)
     // create the name and call the first DialogBox
     const wxString MessageArgumentString = _("Insert a new character");
     const wxString CaptionArgumentString = _("New character");
-    NewAlignmentString = cbGetTextFromUser( MessageArgumentString, CaptionArgumentString );
+    NewAlignmentString = wxGetTextFromUser( MessageArgumentString, CaptionArgumentString );
     if (NewAlignmentString !=_T(""))
     {
         // check if the new character is equal as an exist
@@ -1114,7 +1115,7 @@ void EditorTweaks::OnAlignOthers(wxCommandEvent& /*event*/)
         // create the name and call the second DialogBox
         const wxString MessageName = _("Insert a name for the (new) character");
         const wxString CaptionName = NewAlignmentString;
-        NewAlignmentStringName = cbGetTextFromUser( MessageName, CaptionName , AlignerMenuEntries[i].MenuName);
+        NewAlignmentStringName = wxGetTextFromUser( MessageName, CaptionName , AlignerMenuEntries[i].MenuName);
         if (NewAlignmentStringName != _T(""))
             AlignerMenuEntries[i].MenuName = NewAlignmentStringName;
 

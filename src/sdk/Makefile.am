@@ -87,6 +87,7 @@ libcodeblocks_la_SOURCES = annoyingdialog.cpp \
 						loggers.cpp \
 						logmanager.cpp \
 						macrosmanager.cpp \
+						managedthread.cpp \
 						manager.cpp \
 						menuitemsmanager.cpp \
 						multiselectdlg.cpp \

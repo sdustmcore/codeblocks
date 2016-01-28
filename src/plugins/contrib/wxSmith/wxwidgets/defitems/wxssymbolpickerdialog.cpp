@@ -72,7 +72,6 @@ void wxsSymbolPickerDialog::OnBuildCreatingCode()
             BuildSetupWindowCode();
             break;
 
-        case wxsUnknownLanguage: // fall-through
         default:
             wxsCodeMarks::Unknown(_T("wxsSymbolPickerDialog::OnBuildCreatingCode"),GetLanguage());
     }
@@ -80,6 +79,6 @@ void wxsSymbolPickerDialog::OnBuildCreatingCode()
 
 //------------------------------------------------------------------------------
 
-void wxsSymbolPickerDialog::OnEnumToolProperties(cb_unused long Flags)
+void wxsSymbolPickerDialog::OnEnumToolProperties(long Flags)
 {
 }

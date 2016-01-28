@@ -53,7 +53,6 @@ void wxsGridSizer::OnBuildSizerCreatingCode()
             return;
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsGridSizer::OnBuildSizerCreatingCode"),GetLanguage());
@@ -61,7 +60,7 @@ void wxsGridSizer::OnBuildSizerCreatingCode()
     }
 }
 
-void wxsGridSizer::OnEnumSizerProperties(cb_unused long Flags)
+void wxsGridSizer::OnEnumSizerProperties(long Flags)
 {
     WXS_LONG(wxsGridSizer,Cols,_("Cols"),_T("cols"),0);
     WXS_LONG(wxsGridSizer,Rows,_("Rows"),_T("rows"),0);

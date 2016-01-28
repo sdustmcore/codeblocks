@@ -145,7 +145,6 @@ void wxsGrid::OnBuildCreatingCode()
             return;
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsGrid::OnBuildCreatingCode"),GetLanguage());

@@ -19,6 +19,7 @@
     #include "globals.h"
 #endif
 
+#include <wx/textdlg.h>
 #include "projectsfilemasksdlg.h"
 
 BEGIN_EVENT_TABLE(ProjectsFileMasksDlg, wxScrollingDialog)
@@ -85,7 +86,7 @@ void ProjectsFileMasksDlg::OnUpdateUI(cb_unused wxUpdateUIEvent& event)
 
 void ProjectsFileMasksDlg::OnAdd(cb_unused wxCommandEvent& event)
 {
-    wxString groupName = cbGetTextFromUser(_("Enter the new group name:"),
+    wxString groupName = wxGetTextFromUser(_("Enter the new group name:"),
                                             _("New group"));
     if (groupName.IsEmpty())
         return;
@@ -101,7 +102,7 @@ void ProjectsFileMasksDlg::OnEdit(cb_unused wxCommandEvent& event)
 {
     wxListBox* pList = XRCCTRL(*this, "lstCategories", wxListBox);
     wxString oldName = pList->GetStringSelection();
-    wxString groupName = cbGetTextFromUser(_("Rename the group:"),
+    wxString groupName = wxGetTextFromUser(_("Rename the group:"),
                                             _("Edit group"), oldName);
     if (!groupName.IsEmpty() && groupName != oldName)
     {

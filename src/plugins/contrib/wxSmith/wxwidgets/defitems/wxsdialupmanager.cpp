@@ -102,7 +102,6 @@ void wxsDialUpManager::OnBuildCreatingCode()
             return;
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsDialUpManager::OnBuildCreatingCode"), GetLanguage());
@@ -116,7 +115,7 @@ void wxsDialUpManager::OnBuildCreatingCode()
  * \return void
  *
  */
-void wxsDialUpManager::OnEnumToolProperties(cb_unused long Flags)
+void wxsDialUpManager::OnEnumToolProperties(long Flags)
 {
     bool bAutoCheck;
     if ((wxPlatformInfo::Get().GetOperatingSystemId() & wxOS_WINDOWS) > 0)

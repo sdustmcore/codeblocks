@@ -126,7 +126,7 @@ wxsItemRes::wxsItemRes(wxsProject* Owner,const wxString& Type,bool CanBeMain):
 }
 
 
-        wxsItemRes::wxsItemRes(const wxString& FileName,const TiXmlElement* XrcElem,const wxString& Type):
+wxsItemRes::wxsItemRes(const wxString& FileName,const TiXmlElement* XrcElem,const wxString& Type):
     wxWidgetsRes(0,Type),
     m_WxsFileName(wxEmptyString),
     m_SrcFileName(wxEmptyString),
@@ -316,7 +316,7 @@ bool wxsItemRes::CreateNewResource(NewResourceParams& Params)
             {
                 wxString Name = GetProjectPath()+Params.Hdr;
                 wxFileName::Mkdir(wxFileName(Name).GetPath(),0777,wxPATH_MKDIR_FULL);
-                wxFile HdrFile(Name,wxFile::write);
+                wxFile File(Name,wxFile::write);
                 wxString Guard = HFN.GetName().Upper() + _T("_H");
                 wxString Header = CppEmptyHeader;
                 wxString InitFuncDecl;
@@ -347,8 +347,7 @@ bool wxsItemRes::CreateNewResource(NewResourceParams& Params)
                 {
                     case NewResourceParams::Private:   Scope = _T("\tprivate:\n\n"); break;
                     case NewResourceParams::Protected: Scope = _T("\tprotected:\n\n"); break;
-                    case NewResourceParams::Public: // fall-through
-                    default: break;
+                    default:;
                 }
                 Header.Replace(_T("$(MembersScope)"),Scope);
                 Scope = _T("");
@@ -359,7 +358,6 @@ bool wxsItemRes::CreateNewResource(NewResourceParams& Params)
                         case NewResourceParams::Public:    Scope = _T("\tpublic:\n\n"); break;
                         case NewResourceParams::Private:   Scope = _T("\tprivate:\n\n"); break;
                         case NewResourceParams::Protected: Scope = _T("\tprotected:\n\n"); break;
-                        default: break;
                     }
                 }
                 Header.Replace(_T("$(IdsScope)"),Scope);
@@ -371,14 +369,13 @@ bool wxsItemRes::CreateNewResource(NewResourceParams& Params)
                         case NewResourceParams::Public:    Scope = _T("\tpublic:\n\n"); break;
                         case NewResourceParams::Private:   Scope = _T("\tprivate:\n\n"); break;
                         case NewResourceParams::Protected: Scope = _T("\tprotected:\n\n"); break;
-                        default: break;
                     }
                 }
                 Header.Replace(_T("$(HandlersScope)"),Scope);
 
                 // TODO: Use wxsCoder to save file's content, so it will
                 //       have proper encoding and EOL stuff
-                if ( !HdrFile.Write(Header) ) return false;
+                if ( !File.Write(Header) ) return false;
             }
 
             m_SrcFileName = Params.Src;
@@ -386,15 +383,15 @@ bool wxsItemRes::CreateNewResource(NewResourceParams& Params)
             {
                 wxString Name = GetProjectPath()+Params.Src;
                 wxFileName::Mkdir(wxFileName(Name).GetPath(),0777,wxPATH_MKDIR_FULL);
-                wxFile SrcFile(Name,wxFile::write);
+                wxFile File(Name,wxFile::write);
                 HFN.MakeRelativeTo(wxFileName(Name).GetPath());
                 wxString Include = HFN.GetFullPath(wxPATH_UNIX);
                 wxString PchCode;
                 if ( Params.UsePch )
                 {
-                    wxFileName PCHFN(GetProjectPath()+Params.Pch);
-                    PCHFN.MakeRelativeTo(wxFileName(Name).GetPath());
-                    PchCode << _T("#include \"") << PCHFN.GetFullPath(wxPATH_UNIX) << _T("\"\n");
+                    wxFileName PCH(GetProjectPath()+Params.Pch);
+                    PCH.MakeRelativeTo(wxFileName(Name).GetPath());
+                    PchCode << _T("#include \"") << PCH.GetFullPath(wxPATH_UNIX) << _T("\"\n");
                 }
                 wxString CtorInitCode;
                 if ( Params.UseInitFunc )
@@ -414,17 +411,17 @@ bool wxsItemRes::CreateNewResource(NewResourceParams& Params)
                         _T("#endif\n");
                 }
 
-                wxString SourceStr = CppEmptySource;
-                SourceStr.Replace(_T("$(PchCode)"),PchCode);
-                SourceStr.Replace(_T("$(CtorArgs)"),CtorArgs);
-                SourceStr.Replace(_T("$(Include)"),Include);
-                SourceStr.Replace(_T("$(ClassName)"),Params.Class);
-                SourceStr.Replace(_T("$(BaseClassName)"),Params.BaseClass);
-                SourceStr.Replace(_T("$(CtorInit)"),CtorInitCode);
-                SourceStr.Replace(_T("$(InternalHeadersPch)"),IntHeadersPch);
+                wxString Source = CppEmptySource;
+                Source.Replace(_T("$(PchCode)"),PchCode);
+                Source.Replace(_T("$(CtorArgs)"),CtorArgs);
+                Source.Replace(_T("$(Include)"),Include);
+                Source.Replace(_T("$(ClassName)"),Params.Class);
+                Source.Replace(_T("$(BaseClassName)"),Params.BaseClass);
+                Source.Replace(_T("$(CtorInit)"),CtorInitCode);
+                Source.Replace(_T("$(InternalHeadersPch)"),IntHeadersPch);
                 // TODO: Use wxsCoder to save file's content, so it will
                 //       have proper encoding and EOL stuff
-                if ( !SrcFile.Write(SourceStr) ) return false;
+                if ( !File.Write(Source) ) return false;
             }
 
             m_XrcFileName = Params.Xrc;
@@ -432,8 +429,8 @@ bool wxsItemRes::CreateNewResource(NewResourceParams& Params)
             {
                 wxString Name = GetProjectPath()+Params.Xrc;
                 wxFileName::Mkdir(wxFileName(Name).GetPath(),0777,wxPATH_MKDIR_FULL);
-                wxFile XrcFile(Name,wxFile::write);
-                if ( !XrcFile.Write(EmptyXrc) ) return false;
+                wxFile File(Name,wxFile::write);
+                if ( !File.Write(EmptyXrc) ) return false;
             }
 
             if ( Params.Wxs.IsEmpty() )
@@ -467,11 +464,11 @@ bool wxsItemRes::CreateNewResource(NewResourceParams& Params)
                 Params.Wxs = WxsName;
                 {
                     wxString Name = GetProjectPath()+m_WxsFileName;
-                    wxFile WxsFile(Name,wxFile::write);
+                    wxFile File(Name,wxFile::write);
                     wxString Content = EmptyWxs;
                     Content.Replace(_T("$(ClassName)"),Params.Class);
                     Content.Replace(_T("$(BaseClassName)"),GetResourceType());
-                    if ( !WxsFile.Write(Content) )
+                    if ( !File.Write(Content) )
                     {
                         return false;
                     }
@@ -486,9 +483,7 @@ bool wxsItemRes::CreateNewResource(NewResourceParams& Params)
             return true;
         }
 
-        case wxsUnknownLanguage: // fall-through
-        default:
-          break;
+        default:;
     }
 
     SetLanguage(wxsUnknownLanguage);

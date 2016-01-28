@@ -201,7 +201,6 @@ class MainFrame : public wxFrame
         void OnEditBookmarksToggle(wxCommandEvent& event);
         void OnEditBookmarksNext(wxCommandEvent& event);
         void OnEditBookmarksPrevious(wxCommandEvent& event);
-        void OnEditBookmarksClearAll(wxCommandEvent& event);
 
         void OnViewLayout(wxCommandEvent& event);
         void OnViewLayoutSave(wxCommandEvent& event);

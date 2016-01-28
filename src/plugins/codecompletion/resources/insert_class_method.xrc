@@ -18,13 +18,13 @@
 						<object class="wxStaticText" name="ID_STATICTEXT1">
 							<label>Known classes:</label>
 						</object>
-						<flag>wxALIGN_LEFT</flag>
+						<flag></flag>
 					</object>
 					<object class="sizeritem">
 						<object class="wxStaticText" name="ID_STATICTEXT2">
 							<label>Class methods:</label>
 						</object>
-						<flag>wxALIGN_LEFT</flag>
+						<flag></flag>
 					</object>
 					<object class="sizeritem">
 						<object class="wxListBox" name="lstClasses" />
@@ -108,19 +108,23 @@
 				<border>8</border>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStdDialogButtonSizer">
-					<object class="button">
+				<object class="wxBoxSizer">
+					<object class="sizeritem">
 						<object class="wxButton" name="wxID_OK">
 							<label>&amp;Insert</label>
+							<default>1</default>
 						</object>
+						<flag>wxRIGHT</flag>
+						<border>8</border>
 					</object>
-					<object class="button">
+					<object class="sizeritem">
 						<object class="wxButton" name="wxID_CANCEL">
-							<label></label>
+							<label>&amp;Cancel</label>
 						</object>
+						<flag></flag>
 					</object>
 				</object>
-				<flag>wxALL|wxEXPAND</flag>
+				<flag>wxBOTTOM|wxALIGN_CENTER_HORIZONTAL</flag>
 				<border>8</border>
 			</object>
 		</object>

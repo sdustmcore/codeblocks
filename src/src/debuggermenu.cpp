@@ -10,6 +10,7 @@
 
 #ifndef CB_PRECOMP
     #include <wx/menu.h>
+    #include <wx/textdlg.h>
     #include <wx/toolbar.h>
     #include <wx/xrc/xmlres.h>
 
@@ -683,7 +684,7 @@ void DebuggerMenuHandler::OnAddDataBreakpoint(cb_unused wxCommandEvent& event)
 void DebuggerMenuHandler::OnAttachToProcess(cb_unused wxCommandEvent& event)
 {
     cbAssert(m_activeDebugger);
-    wxString pidStr = cbGetTextFromUser(_("PID to attach to:"));
+    wxString pidStr = wxGetTextFromUser(_("PID to attach to:"));
     if (!pidStr.empty())
     {
         m_activeDebugger->AttachToProcess(pidStr);
@@ -699,7 +700,7 @@ void DebuggerMenuHandler::OnDetachFromProcess(cb_unused wxCommandEvent& event)
 void DebuggerMenuHandler::OnSendCommand(cb_unused wxCommandEvent& event)
 {
     cbAssert(m_activeDebugger);
-    wxString cmd = cbGetTextFromUser(_("Enter command for Debugger:"), _("Send command to Debugger:"), m_lastCommand);
+    wxString cmd = wxGetTextFromUser(_("Enter command for Debugger:"), _("Send command to Debugger:"), m_lastCommand);
     if (cmd.IsEmpty())
         return;
 

@@ -226,7 +226,6 @@ void wxsTreeCtrl::OnBuildCreatingCode()
                 return;
             }
 
-        case wxsUnknownLanguage: // fall-through
         default:
             {
                 wxsCodeMarks::Unknown(_T("wxsTreeCtrl::OnBuildCreatingCode"), GetLanguage());
@@ -324,7 +323,7 @@ wxObject *wxsTreeCtrl::OnBuildPreview(wxWindow *Parent, long Flags)
  * \return void
  *
  */
-void wxsTreeCtrl::OnEnumWidgetProperties(cb_unused long Flags)
+void wxsTreeCtrl::OnEnumWidgetProperties(long Flags)
 {
     static wxString     sImageNames[128];
     static const wxChar *pImageNames[128];

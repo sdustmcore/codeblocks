@@ -69,7 +69,6 @@ void wxsStaticBitmap::OnBuildCreatingCode()
             return;
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsStaticBitmap::OnBuildCreatingCode"),GetLanguage());
@@ -86,7 +85,7 @@ wxObject* wxsStaticBitmap::OnBuildPreview(wxWindow* Parent,long Flags)
     return SetupWindow(Preview,Flags);
 }
 
-void wxsStaticBitmap::OnEnumWidgetProperties(cb_unused long Flags)
+void wxsStaticBitmap::OnEnumWidgetProperties(long Flags)
 {
    WXS_BITMAP(wxsStaticBitmap,Bitmap,_("Bitmap"),_T("bitmap"),_T("wxART_OTHER"))
 }

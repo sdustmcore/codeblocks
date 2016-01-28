@@ -63,12 +63,12 @@ namespace
                 m_Data->NotifyPreviewClosed();
             }
 
-            void OnEscape(cb_unused wxCommandEvent& event)
+            void OnEscape(wxCommandEvent& event)
             {
                 Close();
             }
 
-            void OnClose(cb_unused wxCloseEvent& event)
+            void OnClose(wxCloseEvent& event)
             {
                 Destroy();
             }

@@ -25,6 +25,8 @@
 #include "wxsitemresdata.h"
 #include "../wxscoder.h"
 
+#include <wx/textdlg.h>
+
 #include <editormanager.h>
 #include "cbstyledtextctrl.h"
 
@@ -320,7 +322,6 @@ void wxsEventsEditor::FindFunctions(const wxString& ArgType,wxArrayString& Array
             break;
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsEventsEditor::FindFunctions"),m_Language);
@@ -364,7 +365,7 @@ wxString wxsEventsEditor::GetNewFunction(const wxsEventDesc* Event)
 
     for (;;)
     {
-        Name = ::cbGetTextFromUser(_("Enter name for new handler:"),_("New handler"),Name);
+        Name = ::wxGetTextFromUser(_("Enter name for new handler:"),_("New handler"),Name);
         if ( !Name.Length() ) return _T("");
 
         if ( !wxsCodeMarks::ValidateIdentifier(m_Language,Name) )
@@ -449,7 +450,6 @@ bool wxsEventsEditor::CreateNewFunction(const wxsEventDesc* Event,const wxString
             return true;
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsEventsEditor::CreateNewFunction"),m_Language);

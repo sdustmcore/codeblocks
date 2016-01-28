@@ -83,7 +83,6 @@ void wxsMessageDialog::OnBuildCreatingCode()
             BuildSetupWindowCode();
             break;
 
-        case wxsUnknownLanguage: // fall-through
         default:
             wxsCodeMarks::Unknown(_T("wxsMessageDialog::OnBuildCreatingCode"), GetLanguage());
     }
@@ -95,7 +94,7 @@ void wxsMessageDialog::OnBuildCreatingCode()
  * \return void
  *
  */
-void wxsMessageDialog::OnEnumToolProperties(cb_unused long Flags)
+void wxsMessageDialog::OnEnumToolProperties(long Flags)
 {
     WXS_SHORT_STRING(wxsMessageDialog, m_sCaption, _("Caption"), _T("caption"), _T(""), true);
     WXS_SHORT_STRING(wxsMessageDialog, m_sMessage, _("Message"), _T("message"), wxMessageBoxCaptionStr, true);

@@ -4,7 +4,7 @@ Preparations for a release:
     http://svn.code.sf.net/p/codeblocks/code/branches/release-16.xx
 
 2.) Adopt the RELEASE #define in:
-    [C::B]\src\src\appglobals.h
+    [C::B]\src\src\appglobals.h 
     ...and remove the comment.
 
 3.) Feel free to adopt or add a new logo in e.g.:
