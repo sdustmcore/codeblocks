@@ -85,6 +85,7 @@ XPStyle on
 !define CB_LEXERS        ${CB_SHARE_CB}\lexers
 !define CB_PLUGINS       ${CB_SHARE_CB}\plugins
 !define CB_SCRIPTS       ${CB_SHARE_CB}\scripts
+!define CB_SCTESTS       ${CB_SCRIPTS}\tests
 !define CB_TEMPLATES     ${CB_SHARE_CB}\templates
 !define CB_WIZARD        ${CB_TEMPLATES}\wizard
 !define CB_IMAGES        ${CB_SHARE_CB}\images
@@ -238,7 +239,7 @@ doInstall:
             Abort
 accessOK:
         SetOverwrite on
-        File ${WX_BASE}\wxmsw${WX_VER}u_gcc_cb.dll
+        File ${WX_BASE}\wxmsw${WX_VER}u_gcc_custom.dll
         File ${CB_BASE}\Addr2LineUI.exe
         File ${CB_BASE}\cb_console_runner.exe
         File ${CB_BASE}\CbLauncher.exe
@@ -258,14 +259,14 @@ accessOK:
         File ${CB_BASE}${CB_SHARE_CB}\tips.txt
         File ${CB_BASE}${CB_SHARE_CB}\manager_resources.zip
         File ${CB_BASE}${CB_SHARE_CB}\resources.zip
-        File ${CB_BASE}${CB_SCRIPTS}\stl-views-1.0.3.gdb
         SetOutPath $INSTDIR${CB_DOCS}
         File ${CB_DOCS_SRC}\codeblocks.chm
         File ${CB_DOCS_SRC}\codeblocks.pdf
         File ${CB_DOCS_SRC}\index.ini
         SetOutPath $INSTDIR${CB_SCRIPTS}
         File ${CB_BASE}${CB_SCRIPTS}\*.script
-        File ${CB_BASE}${CB_SCRIPTS}\stl-views-1.0.3.gdb
+        SetOutPath $INSTDIR${CB_SCTESTS}
+        File ${CB_BASE}${CB_SCTESTS}\*.script
         SetOutPath $INSTDIR${CB_TEMPLATES}
         File ${CB_BASE}${CB_TEMPLATES}\*.*
         SetOutPath $INSTDIR${CB_IMAGES}
@@ -422,6 +423,15 @@ accessOK:
                 File ${CB_BASE}${CB_LEXERS}\lexer_angelscript.sample
                 File ${CB_BASE}${CB_LEXERS}\lexer_angelscript.xml
                 WriteRegStr HKCU "${REGKEY}\Components" "Angelscript" 1
+            SectionEnd
+
+            Section "AutoTools"
+                SectionIn 1 4
+                SetOutPath $INSTDIR${CB_LEXERS}
+                SetOverwrite on
+                File ${CB_BASE}${CB_LEXERS}\lexer_autotools.sample
+                File ${CB_BASE}${CB_LEXERS}\lexer_autotools.xml
+                WriteRegStr HKCU "${REGKEY}\Components" "AutoTools" 1
             SectionEnd
 
             Section "Caml"
@@ -583,6 +593,15 @@ accessOK:
 
 
         SectionGroup "Graphics Programming"
+            Section "CUDA"
+                SectionIn 1 4
+                SetOutPath $INSTDIR${CB_LEXERS}
+                SetOverwrite on
+                File ${CB_BASE}${CB_LEXERS}\lexer_cu.sample
+                File ${CB_BASE}${CB_LEXERS}\lexer_cu.xml
+                WriteRegStr HKCU "${REGKEY}\Components" "CUDA" 1
+            SectionEnd
+
             Section "GLSL (GLslang)"
                 SectionIn 1 4
                 SetOutPath $INSTDIR${CB_LEXERS}
@@ -734,6 +753,15 @@ accessOK:
                 File ${CB_BASE}${CB_LEXERS}\lexer_make.xml
                 WriteRegStr HKCU "${REGKEY}\Components" "Makefile" 1
             SectionEnd
+
+            Section "PowerShell"
+                SectionIn 1 4
+                SetOutPath $INSTDIR${CB_LEXERS}
+                SetOverwrite on
+                File ${CB_BASE}${CB_LEXERS}\lexer_powershell.sample
+                File ${CB_BASE}${CB_LEXERS}\lexer_powershell.xml
+                WriteRegStr HKCU "${REGKEY}\Components" "PowerShell" 1
+            SectionEnd
         SectionGroupEnd
 
 
@@ -744,6 +772,15 @@ accessOK:
                 SetOverwrite on
                 File ${CB_BASE}${CB_LEXERS}\lexer_proto.xml
                 WriteRegStr HKCU "${REGKEY}\Components" "Google Protocol Buffer" 1
+            SectionEnd
+
+            Section "InnoSetup"
+                SectionIn 1 4
+                SetOutPath $INSTDIR${CB_LEXERS}
+                SetOverwrite on
+                File ${CB_BASE}${CB_LEXERS}\lexer_inno.sample
+                File ${CB_BASE}${CB_LEXERS}\lexer_inno.xml
+                WriteRegStr HKCU "${REGKEY}\Components" "InnoSetup" 1
             SectionEnd
 
             Section "MASM"
@@ -1455,6 +1492,7 @@ SectionGroup "Contrib Plugins" SECGRP_CONTRIB_PLUGINS
         File ${CB_BASE}\wxsmithlib.dll
         File ${CB_BASE}\wxchartctrl.dll
         File ${CB_BASE}\wxcustombutton.dll
+        File ${CB_BASE}\wxdatetimepicker.dll
         File ${CB_BASE}\wxflatnotebook.dll
         File ${CB_BASE}\wximagepanel.dll
         File ${CB_BASE}\wxkwic.dll
@@ -1494,6 +1532,16 @@ Section "C::B CBP2Make" SEC_CBP2MAKE
     SetOutPath $SMPROGRAMS\${CB_SM_GROUP}
     CreateShortcut "$SMPROGRAMS\${CB_SM_GROUP}\$(^Name) CBP2Make.lnk" $INSTDIR\cbp2make.exe
     WriteRegStr HKCU "${REGKEY}\Components" "C::B CBP2Make" 1
+SectionEnd
+
+Section "C::B CC Test" SEC_CCTEST
+    SectionIn 1
+    SetOutPath $INSTDIR
+    SetOverwrite on
+    File ${CB_BASE}\cctest.exe
+    SetOutPath $SMPROGRAMS\${CB_SM_GROUP}
+    CreateShortcut "$SMPROGRAMS\${CB_SM_GROUP}\$(^Name) CC Test.lnk" $INSTDIR\cctst.exe
+    WriteRegStr HKCU "${REGKEY}\Components" "C::B CC Test" 1
 SectionEnd
 
 Section "C::B Share Config" SEC_SHARECONFIG
@@ -1593,6 +1641,12 @@ Section "-un.C::B Share Config" UNSEC_SHARECONFIG
     Delete /REBOOTOK $INSTDIR\cb_share_config.exe
     Delete /REBOOTOK "$SMPROGRAMS\${CB_SM_GROUP}\$(^Name) Share Config.lnk"
     DeleteRegValue HKCU "${REGKEY}\Components" "C::B Share Config"
+SectionEnd
+
+Section "-un.C::B CC Test" UNSEC_CCTEST
+    Delete /REBOOTOK $INSTDIR\cctest.exe
+    Delete /REBOOTOK "$SMPROGRAMS\${CB_SM_GROUP}\$(^Name) CC Test.lnk"
+    DeleteRegValue HKCU "${REGKEY}\Components" "C::B CC Test"
 SectionEnd
 
 Section "-un.C::B CBP2Make" UNSEC_CBP2MAKE
@@ -1876,6 +1930,7 @@ Section "-un.wxSmith plugin" UNSEC_WXSMITH
     Delete /REBOOTOK $INSTDIR\wxkwic.dll
     Delete /REBOOTOK $INSTDIR\wximagepanel.dll
     Delete /REBOOTOK $INSTDIR\wxflatnotebook.dll
+    Delete /REBOOTOK $INSTDIR\wxdatetimepicker.dll
     Delete /REBOOTOK $INSTDIR\wxcustombutton.dll
     Delete /REBOOTOK $INSTDIR\wxchartctrl.dll
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\wxsmith.zip
@@ -2043,7 +2098,6 @@ Section "-un.Ada" UNSEC_ADA
     DeleteRegValue HKCU "${REGKEY}\Components" "Ada"
 SectionEnd
 
-
 Section "-un.The D Language" UNSEC_D
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_d.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_d.sample
@@ -2094,6 +2148,12 @@ Section "-un.Angelscript" UNSEC_AS
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_angelscript.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_angelscript.sample
     DeleteRegValue HKCU "${REGKEY}\Components" "Angelscript"
+SectionEnd
+
+Section "-un.AutoTools" UNSEC_AT
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_autotools.xml
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_autotools.sample
+    DeleteRegValue HKCU "${REGKEY}\Components" "AutoTools"
 SectionEnd
 
 Section "-un.Caml" UNSEC_CAML
@@ -2206,6 +2266,12 @@ Section "-un.Makefile" UNSEC_MAKE
     DeleteRegValue HKCU "${REGKEY}\Components" "Makefile"
 SectionEnd
 
+Section "-un.PowerShell" UNSEC_PS
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_powershell.xml
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_powershell.sample
+    DeleteRegValue HKCU "${REGKEY}\Components" "PowerShell"
+SectionEnd
+
 # "Markup Languages"
 
 Section "-un.BiBTeX" UNSEC_BIBTEX
@@ -2239,6 +2305,12 @@ Section "-un.XML" UNSEC_XML
 SectionEnd
 
 # "Graphics Programming"
+
+Section "-un.CUDA" UNSEC_CUDA
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_cu.xml
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_cu.sample
+    DeleteRegValue HKCU "${REGKEY}\Components" "CUDA"
+SectionEnd
 
 Section "-un.GLSL (GLslang)" UNSEC_GLSL
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_glsl.xml
@@ -2311,6 +2383,12 @@ Section "-un.Google Protocol Buffer" UNSEC_PROTO
     DeleteRegValue HKCU "${REGKEY}\Components" "Google Protocol Buffer"
 SectionEnd
 
+Section "-un.InnoSetup" UNSEC_INNO
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_inno.xml
+    Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_inno.sample
+    DeleteRegValue HKCU "${REGKEY}\Components" "InnoSetup"
+SectionEnd
+
 Section "-un.MASM" UNSEC_MASM
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_masm.xml
     Delete /REBOOTOK $INSTDIR${CB_LEXERS}\lexer_masm.sample
@@ -2380,6 +2458,8 @@ SectionEnd
 # C::B core begin
 
 Section "-un.Core Files (required)" UNSEC_CORE
+    # Just use RMDir following, if it fails that's ok
+    # cause the post section will handle this.
     Delete /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}\*.png
     RMDir  /REBOOTOK $INSTDIR${CB_IMG_SETTINGS}
     Delete /REBOOTOK $INSTDIR${CB_IMG_16}\*.png
@@ -2387,13 +2467,10 @@ Section "-un.Core Files (required)" UNSEC_CORE
     Delete /REBOOTOK $INSTDIR${CB_IMAGES}\*.png
     RMDir  /REBOOTOK $INSTDIR${CB_IMAGES}
     Delete /REBOOTOK $INSTDIR${CB_TEMPLATES}\*.*
-    # Just try the following, if it fails that's ok
-    # cause the post section will handle this.
     RMDir            $INSTDIR${CB_TEMPLATES}
-    Delete /REBOOTOK $INSTDIR${CB_SCRIPTS}\stl-views-1.0.3.gdb
+    Delete /REBOOTOK $INSTDIR${CB_SCTESTS}\*.script
+    RMDir            $INSTDIR${CB_SCTESTS}
     Delete /REBOOTOK $INSTDIR${CB_SCRIPTS}\*.script
-    # Just try the following, if it fails that's ok
-    # cause the post section will handle this.
     RMDir            $INSTDIR${CB_SCRIPTS}
     RMDir            $INSTDIR${CB_LEXERS}
     RMDir            $INSTDIR${CB_PLUGINS}
@@ -2401,7 +2478,6 @@ Section "-un.Core Files (required)" UNSEC_CORE
     Delete /REBOOTOK $INSTDIR${CB_DOCS}\codeblocks.chm
     Delete /REBOOTOK $INSTDIR${CB_DOCS}\codeblocks.pdf
     RMDir  /REBOOTOK $INSTDIR${CB_DOCS}
-    Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\stl-views-1.0.3.gdb
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\resources.zip
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\manager_resources.zip
     Delete /REBOOTOK $INSTDIR${CB_SHARE_CB}\tips.txt
@@ -2419,7 +2495,7 @@ Section "-un.Core Files (required)" UNSEC_CORE
     Delete /REBOOTOK $INSTDIR\CbLauncher.exe
     Delete /REBOOTOK $INSTDIR\cb_console_runner.exe
     Delete /REBOOTOK $INSTDIR\Addr2LineUI.exe
-    Delete /REBOOTOK $INSTDIR\wxmsw${WX_VER}u_gcc_cb.dll
+    Delete /REBOOTOK $INSTDIR\wxmsw${WX_VER}u_gcc_custom.dll
 !if ${WX_VER} == 28
     Delete /REBOOTOK $INSTDIR\wxpropgrid.dll
 !endif
@@ -2502,6 +2578,7 @@ Function un.onInit
     !insertmacro SELECT_UNSECTION "Smalltalk"                          ${UNSEC_SMALLTALK}
     # "Script Languages"
     !insertmacro SELECT_UNSECTION "Angelscript"                        ${UNSEC_AS}
+    !insertmacro SELECT_UNSECTION "AutoTools"                          ${UNSEC_AT}
     !insertmacro SELECT_UNSECTION "Caml"                               ${UNSEC_CAML}
     !insertmacro SELECT_UNSECTION "Coffee"                             ${UNSEC_COFFEE}
     !insertmacro SELECT_UNSECTION "Game Monkey"                        ${UNSEC_GM}
@@ -2521,6 +2598,7 @@ Function un.onInit
     !insertmacro SELECT_UNSECTION "LaTeX"                              ${UNSEC_LATEX}
     !insertmacro SELECT_UNSECTION "XML"                                ${UNSEC_XML}
     # "Graphics Programming"
+    !insertmacro SELECT_UNSECTION "CUDA"                               ${UNSEC_CUDA}
     !insertmacro SELECT_UNSECTION "GLSL (GLSlang)"                     ${UNSEC_GLSL}
     !insertmacro SELECT_UNSECTION "nVidia Cg"                          ${UNSEC_CG}
     !insertmacro SELECT_UNSECTION "Ogre"                               ${UNSEC_OGRE}
@@ -2539,8 +2617,10 @@ Function un.onInit
     !insertmacro SELECT_UNSECTION "Cmake"                              ${UNSEC_CMAKE}
     !insertmacro SELECT_UNSECTION "diff"                               ${UNSEC_DIFF}
     !insertmacro SELECT_UNSECTION "Makefile"                           ${UNSEC_MAKE}
+    !insertmacro SELECT_UNSECTION "PowerShell"                         ${UNSEC_PS}
     # "Others"
     !insertmacro SELECT_UNSECTION "Google Protocol Buffer"             ${UNSEC_PROTO}
+    !insertmacro SELECT_UNSECTION "InnoSetup"                          ${UNSEC_INNO}
     !insertmacro SELECT_UNSECTION "MASM"                               ${UNSEC_MASM}
     !insertmacro SELECT_UNSECTION "MATLAB"                             ${UNSEC_MATLAB}
     !insertmacro SELECT_UNSECTION "NSIS installer script"              ${UNSEC_NSIS}
