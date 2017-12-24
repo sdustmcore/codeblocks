@@ -65,7 +65,7 @@ XPStyle on
 # Defines #
 ###########
 !define REGKEY           "SOFTWARE\$(^Name)"
-!define VERSION          17.xx
+!define VERSION          17.12
 !define COMPANY          "The Code::Blocks Team"
 !define URL              http://www.codeblocks.org
 
@@ -239,7 +239,7 @@ doInstall:
             Abort
 accessOK:
         SetOverwrite on
-        File ${WX_BASE}\wxmsw${WX_VER}u_gcc_custom.dll
+        File ${WX_BASE}\wxmsw${WX_VER}u_gcc_cb.dll
         File ${CB_BASE}\Addr2LineUI.exe
         File ${CB_BASE}\cb_console_runner.exe
         File ${CB_BASE}\CbLauncher.exe
@@ -2495,7 +2495,7 @@ Section "-un.Core Files (required)" UNSEC_CORE
     Delete /REBOOTOK $INSTDIR\CbLauncher.exe
     Delete /REBOOTOK $INSTDIR\cb_console_runner.exe
     Delete /REBOOTOK $INSTDIR\Addr2LineUI.exe
-    Delete /REBOOTOK $INSTDIR\wxmsw${WX_VER}u_gcc_custom.dll
+    Delete /REBOOTOK $INSTDIR\wxmsw${WX_VER}u_gcc_cb.dll
 !if ${WX_VER} == 28
     Delete /REBOOTOK $INSTDIR\wxpropgrid.dll
 !endif
