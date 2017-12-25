@@ -46,7 +46,7 @@ XPStyle on
 
 # The following line toggles whether the installer includes the MinGW
 # compiler suite (including GDB) or not. Uncomment to include MinGW.
-#!define MINGW_BUNDLE
+!define MINGW_BUNDLE
 # The following line toggles whether the installer includes the
 # CBLauncher tool for portable settings (AppData in the C::B folder).
 !define CB_LAUNCHER
@@ -74,11 +74,11 @@ XPStyle on
 ###########
 # Possibly required to adjust manually:
 # (Folder with wxWidgets DLL - unicode, monolithic.)
-!define WX_BASE          D:\Devel\CodeBlocks\Releases\CodeBlocks_17xx
+!define WX_BASE          C:\wxMSW-2.8.12\lib\gcc_dll
 !define WX_VER           28
 # Possibly required to adjust manually:
 # (CodeBlocks binary folder - the one where codeblocks.exe is.)
-!define CB_BASE          D:\Devel\CodeBlocks\Releases\CodeBlocks_17xx
+!define CB_BASE          C:\CB17xx\src\output
 !define CB_SHARE         \share
 !define CB_SHARE_CB      ${CB_SHARE}\CodeBlocks
 !define CB_DOCS          ${CB_SHARE_CB}\docs
@@ -94,13 +94,13 @@ XPStyle on
 !define CB_XML_COMPILERS ${CB_SHARE_CB}\compilers
 # Possibly required to adjust manually:
 # (Folder with full MinGW/GCC installation, *including* debugger.)
-!define MINGW_BASE       D:\Devel\CodeBlocks\Releases\MinGW
+!define MINGW_BASE       C:\TDM-GCC-32
 # Possibly required to adjust manually:
 # (Folder with logos and GPL license as text file.)
-!define CB_ADDONS        D:\Devel\CodeBlocks\Releases\Setup
+!define CB_ADDONS        C:\CB17xxSetup
 # Possibly required to adjust manually:
 # (Folder with documentation provided by mariocup.)
-!define CB_DOCS_SRC      D:\Devel\CodeBlocks\Releases\Setup
+!define CB_DOCS_SRC      C:\CB17xxSetup
 !ifdef MINGW_BUNDLE
 !define CB_MINGW         \MinGW
 !endif
@@ -110,8 +110,8 @@ XPStyle on
 #########
 # Possibly required to adjust manually:
 # Note: These files are only required for the installer.
-!define CB_SPLASH        ${CB_ADDONS}\setup_splash_17xx.bmp
-!define CB_LOGO          ${CB_ADDONS}\setup_logo_17xx.bmp
+!define CB_SPLASH        ${CB_ADDONS}\setup_splash_1712.bmp
+!define CB_LOGO          ${CB_ADDONS}\setup_logo_1712.bmp
 # Possibly required to adjust manually:
 # Note: This file is only required for the installer.
 !define CB_LICENSE       ${CB_ADDONS}\gpl-3.0.txt
@@ -139,7 +139,8 @@ XPStyle on
 !include Sections.nsh
 
 # Reserved Files
-ReserveFile "${NSISDIR}\Plugins\x86-ansi\AdvSplash.dll"
+ReserveFile "${NSISDIR}\Plugins\AdvSplash.dll"
+#ReserveFile "${NSISDIR}\Plugins\x86-ansi\AdvSplash.dll"
 
 # Installer pages
 !insertmacro MUI_PAGE_WELCOME
