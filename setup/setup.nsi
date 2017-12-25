@@ -46,7 +46,7 @@ XPStyle on
 
 # The following line toggles whether the installer includes the MinGW
 # compiler suite (including GDB) or not. Uncomment to include MinGW.
-!define MINGW_BUNDLE
+#!define MINGW_BUNDLE
 # The following line toggles whether the installer includes the
 # CBLauncher tool for portable settings (AppData in the C::B folder).
 !define CB_LAUNCHER
