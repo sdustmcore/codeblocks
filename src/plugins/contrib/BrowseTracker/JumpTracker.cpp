@@ -139,7 +139,7 @@ void JumpTracker::OnAttach()
 
 }
 // ----------------------------------------------------------------------------
-void JumpTracker::OnRelease(bool appShutDown)
+void JumpTracker::OnRelease(bool /*appShutDown*/)
 // ----------------------------------------------------------------------------
 {
     // do de-initialization for your plugin
@@ -148,16 +148,11 @@ void JumpTracker::OnRelease(bool appShutDown)
     // NOTE: after this function, the inherited member variable
     // m_IsAttached will be FALSE...
 
-    wxWindow* appWin = Manager::Get()->GetAppWindow();
-
-    //If appShutdown leave the event handler, else crashes on linux
-    if (not appShutDown)
-        appWin->RemoveEventHandler(this); //2017/11/23 stop uninstall crash 2017/12/6 crashes linux
-
     // Free JumpData memory
     wxCommandEvent evt;
     OnMenuJumpClear(evt);
 
+    wxWindow* appWin = Manager::Get()->GetAppWindow();
     appWin->Disconnect(idMenuJumpBack, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(JumpTracker::OnMenuJumpBack), 0, this);
     appWin->Disconnect(idMenuJumpNext, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(JumpTracker::OnMenuJumpNext), 0, this);
     appWin->Disconnect(idMenuJumpClear, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(JumpTracker::OnMenuJumpClear), 0, this);
@@ -167,8 +162,6 @@ void JumpTracker::OnRelease(bool appShutDown)
     appWin->Disconnect(idToolJumpNext, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(JumpTracker::OnMenuJumpNext), 0, this);
     appWin->Disconnect(idToolJumpPrev, wxEVT_UPDATE_UI, wxUpdateUIEventHandler(JumpTracker::OnUpdateUI), 0, this);
     appWin->Disconnect(idToolJumpNext, wxEVT_UPDATE_UI, wxUpdateUIEventHandler(JumpTracker::OnUpdateUI), 0, this);
-
-    Manager::Get()->    Manager::Get()->RemoveAllEventSinksFor(this); //2017/11/23
 
 }
 // ----------------------------------------------------------------------------

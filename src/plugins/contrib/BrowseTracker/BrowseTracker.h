@@ -220,7 +220,6 @@ class BrowseTracker : public cbPlugin
 
         void OnStartShutdown(CodeBlocksEvent& event);
         //-void OnPageChanged(wxAuiNotebookEvent& event);
-        void AppShuttingDown(CodeBlocksEvent& event); //2017/12/7
 
         void OnMenuBrowseMarkPrevious(wxCommandEvent& event);
         void OnMenuBrowseMarkNext(wxCommandEvent& event);
