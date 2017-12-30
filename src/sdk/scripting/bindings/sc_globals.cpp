@@ -10,7 +10,6 @@
 #include <sdk_precomp.h>
 #ifndef CB_PRECOMP
     #include <wx/string.h>
-    #include <wx/textdlg.h>
     #include <globals.h>
     #include <settings.h>
     #include <manager.h>
@@ -25,6 +24,7 @@
 
 #include <wx/colordlg.h>
 #include <wx/numdlg.h>
+#include <wx/textdlg.h>
 #include <infowindow.h>
 
 namespace ScriptBindings
@@ -132,7 +132,7 @@ namespace ScriptBindings
                     if (id != wxNOT_FOUND)
                     {
                         wxCommandEvent evt(wxEVT_COMMAND_MENU_SELECTED, id);
-                        #if wxCHECK_VERSION(3, 0, 0)
+                        #if wxCHECK_VERSION(2, 9, 0)
                         mbar->GetEventHandler()->ProcessEvent(evt);
                         #else
                         if ( !mbar->ProcessEvent(evt) )
@@ -185,7 +185,7 @@ namespace ScriptBindings
     }
     wxString wx_GetTextFromUser(const wxString& message, const wxString& caption, const wxString& default_value)
     {
-        return cbGetTextFromUser(message, caption, default_value);
+        return wxGetTextFromUser(message, caption, default_value);
     }
 
     long wxString_ToLong(wxString const &str)

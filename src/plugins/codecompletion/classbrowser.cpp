@@ -775,8 +775,7 @@ void ClassBrowser::OnSearch(cb_unused wxCommandEvent& event)
         }
         if (selections.GetCount() > 1)
         {
-            int sel = cbGetSingleChoiceIndex(_("Please make a selection:"), _("Multiple matches"), selections,
-                                             Manager::Get()->GetAppWindow(), wxSize(400, 400));
+            int sel = wxGetSingleChoiceIndex(_("Please make a selection:"), _("Multiple matches"), selections);
             if (sel == -1)
                 return;
 

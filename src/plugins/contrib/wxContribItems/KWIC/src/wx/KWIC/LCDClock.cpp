@@ -64,9 +64,12 @@ kwxLCDClock::~kwxLCDClock()
 void kwxLCDClock::OnTimer(wxTimerEvent &WXUNUSED(event))
 {
 	wxDateTime now = wxDateTime::Now();
+	double jDate ;
 
 	if (!now.IsEqualTo(m_LastCheck))
 	{
+		jDate = now.GetModifiedJulianDayNumber();
+
 		SetValue(now.FormatISOTime()) ;	//(HH:MM:SS)
 		m_LastCheck = now ;
 	}

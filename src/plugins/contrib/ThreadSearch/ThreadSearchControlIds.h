@@ -50,7 +50,6 @@ struct ControlIDs
         idChkUseDefaultOptionsOnThreadSearch,
         idChkDisplayLogHeaders,
         idChkDrawLogLines,
-        idChkAutosizeLogColumns,
         idChkViewThreadSearchToolBar,
         idChkShowCodePreview,
         idChkShowThreadSearchWidgets,

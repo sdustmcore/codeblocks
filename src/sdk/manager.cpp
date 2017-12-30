@@ -110,6 +110,7 @@ static wxString GetCodeblocksEventName(wxEventType type)
     else if (type==cbEVT_CLEAN_PROJECT_STARTED) name = _T("cbEVT_CLEAN_PROJECT_STARTED");
     else if (type==cbEVT_CLEAN_WORKSPACE_STARTED) name = _T("cbEVT_CLEAN_WORKSPACE_STARTED");
     else if (type==cbEVT_DEBUGGER_STARTED) name = _T("cbEVT_DEBUGGER_STARTED");
+    else if (type==cbEVT_DEBUGGER_STARTED) name = _T("cbEVT_DEBUGGER_STARTED");
     else if (type==cbEVT_DEBUGGER_PAUSED) name = _T("cbEVT_DEBUGGER_PAUSED");
     else if (type==cbEVT_DEBUGGER_FINISHED) name = _T("cbEVT_DEBUGGER_FINISHED");
     else name = _("unknown CodeBlocksEvent");
@@ -160,6 +161,10 @@ Manager::~Manager()
             mit->second.erase(mit->second.begin());
         }
     }
+
+//    Shutdown();
+    CfgMgrBldr::Free(); // only terminate config at the very last moment
+//    FileManager::Free();
 }
 
 
@@ -232,7 +237,6 @@ void Manager::Shutdown()
     TemplateManager::Free();
     CCManager::Free();
     PluginManager::Free();
-    DebuggerManager::Free();
     ScriptingManager::Free();
     ProjectManager::Free();
     EditorManager::Free();
@@ -240,7 +244,6 @@ void Manager::Shutdown()
     MacrosManager::Free();
     UserVariableManager::Free();
     LogManager::Free();
-    CfgMgrBldr::Free();
 }
 
 bool Manager::ProcessEvent(CodeBlocksEvent& event)

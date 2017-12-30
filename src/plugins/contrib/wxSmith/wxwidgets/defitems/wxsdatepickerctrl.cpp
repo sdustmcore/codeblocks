@@ -75,7 +75,6 @@ void wxsDatePickerCtrl::OnBuildCreatingCode()
             return;
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsDatePickerCtrl::OnBuildCreatingCode"),GetLanguage());
@@ -102,6 +101,6 @@ wxObject* wxsDatePickerCtrl::OnBuildPreview(wxWindow* Parent,long Flags)
  * \return void
  *
  */
-void wxsDatePickerCtrl::OnEnumWidgetProperties(cb_unused long Flags)
+void wxsDatePickerCtrl::OnEnumWidgetProperties(long Flags)
 {
 }

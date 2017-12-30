@@ -50,7 +50,6 @@ void wxsStatusBar::OnBuildCreatingCode()
     switch ( GetLanguage() )
     {
         case wxsCPP:
-        {
             AddHeader(_T("<wx/statusbr.h>"),GetInfo().ClassName,hfInPCH);
             Codef(_T("%C(%W, %I, %T, %N);\n"));
             if ( m_Fields>0 )
@@ -80,15 +79,13 @@ void wxsStatusBar::OnBuildCreatingCode()
             }
             BuildSetupWindowCode();
             break;
-        }
 
-        case wxsUnknownLanguage: // fall-through
         default:
             wxsCodeMarks::Unknown(_T("wxsStatusBar::OnBuildCreatingCode"),GetLanguage());
     }
 }
 
-void wxsStatusBar::OnEnumToolProperties(cb_unused long Flags)
+void wxsStatusBar::OnEnumToolProperties(long Flags)
 {
 }
 
@@ -118,7 +115,7 @@ bool wxsStatusBar::OnCanAddToResource(wxsItemResData* Data,bool ShowMessage)
     return true;
 }
 
-        bool wxsStatusBar::OnCanAddChild(cb_unused wxsItem* Item,bool ShowMessage)
+bool wxsStatusBar::OnCanAddChild(wxsItem* Item,bool ShowMessage)
 {
     if ( ShowMessage )
     {
@@ -127,7 +124,7 @@ bool wxsStatusBar::OnCanAddToResource(wxsItemResData* Data,bool ShowMessage)
     return false;
 }
 
-bool wxsStatusBar::OnCanAddToParent(cb_unused wxsParent* Item,bool ShowMessage)
+bool wxsStatusBar::OnCanAddToParent(wxsParent* Item,bool ShowMessage)
 {
     if ( ShowMessage )
     {
@@ -139,7 +136,7 @@ bool wxsStatusBar::OnCanAddToParent(cb_unused wxsParent* Item,bool ShowMessage)
 
 void wxsStatusBar::OnAddExtraProperties(wxsPropertyGridManager* Grid)
 {
-    #if wxCHECK_VERSION(3, 0, 0) || wxCHECK_PROPGRID_VERSION(1, 4, 0)
+    #if wxCHECK_VERSION(2, 9, 0) || wxCHECK_PROPGRID_VERSION(1, 4, 0)
     Grid->SelectPage(0);
     #else
     Grid->SetTargetPage(0);
@@ -176,7 +173,7 @@ void wxsStatusBar::OnExtraPropertyChanged(wxsPropertyGridManager* Grid,wxPGId Id
         {
             for ( int i=NewFields; i<m_Fields; i++ )
             {
-                #if wxCHECK_VERSION(3, 0, 0) || wxCHECK_PROPGRID_VERSION(1, 4, 0)
+                #if wxCHECK_VERSION(2, 9, 0) || wxCHECK_PROPGRID_VERSION(1, 4, 0)
                 Grid->DeleteProperty(m_ParentIds[i]);
                 #else
                 Grid->Delete(m_ParentIds[i]);
@@ -186,7 +183,7 @@ void wxsStatusBar::OnExtraPropertyChanged(wxsPropertyGridManager* Grid,wxPGId Id
         else if ( NewFields > m_Fields )
         {
             // Adding new properties
-            #if wxCHECK_VERSION(3, 0, 0) || wxCHECK_PROPGRID_VERSION(1, 4, 0)
+            #if wxCHECK_VERSION(2, 9, 0) || wxCHECK_PROPGRID_VERSION(1, 4, 0)
             Grid->SelectPage(0);
             #else
             Grid->SetTargetPage(0);

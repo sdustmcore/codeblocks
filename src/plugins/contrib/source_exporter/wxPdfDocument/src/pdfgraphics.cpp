@@ -1860,23 +1860,26 @@ wxPdfDocument::SetLineStyle(const wxPdfLineStyle& linestyle)
   }
 
   const wxPdfArrayDouble& dash = linestyle.GetDash();
-  wxString dashString = wxT("");
-  size_t j;
-  for (j = 0; j < dash.GetCount(); j++)
+  if (&dash != NULL)
   {
-    if (j > 0)
+    wxString dashString = wxT("");
+    size_t j;
+    for (j = 0; j < dash.GetCount(); j++)
     {
-      dashString += wxString(wxT(" "));
+      if (j > 0)
+      {
+        dashString += wxString(wxT(" "));
+      }
+      dashString += wxPdfUtility::Double2String(dash[j]*m_k,2);
     }
-    dashString += wxPdfUtility::Double2String(dash[j]*m_k,2);
+    double phase = linestyle.GetPhase();
+    if (phase < 0 || dashString.Length() == 0)
+    {
+      phase = 0;
+    }
+    OutAscii(wxString(wxT("[")) + dashString + wxString(wxT("] ")) +
+             wxPdfUtility::Double2String(phase*m_k,2) + wxString(wxT(" d")));
   }
-  double phase = linestyle.GetPhase();
-  if (phase < 0 || dashString.Length() == 0)
-  {
-    phase = 0;
-  }
-  OutAscii(wxString(wxT("[")) + dashString + wxString(wxT("] ")) +
-           wxPdfUtility::Double2String(phase*m_k,2) + wxString(wxT(" d")));
   SetDrawColour(linestyle.GetColour());
 }
 

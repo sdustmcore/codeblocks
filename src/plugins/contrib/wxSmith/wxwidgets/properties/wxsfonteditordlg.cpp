@@ -38,8 +38,8 @@
 #define FFAM_TELETYPE     0x05
 
 //(*InternalHeaders(wxsFontEditorDlg)
-#include <wx/intl.h>
 #include <wx/string.h>
+#include <wx/intl.h>
 //*)
 
 //(*IdInit(wxsFontEditorDlg)
@@ -86,12 +86,12 @@ wxsFontEditorDlg::wxsFontEditorDlg(wxWindow* parent,wxsFontData& _Data,wxWindowI
 {
     Initialized = false;
     //(*Initialize(wxsFontEditorDlg)
-    wxBoxSizer* BoxSizer4;
-    wxBoxSizer* BoxSizer6;
-    wxBoxSizer* BoxSizer5;
     wxStaticBoxSizer* StaticBoxSizer7;
+    wxBoxSizer* BoxSizer4;
     wxBoxSizer* BoxSizer1;
+    wxBoxSizer* BoxSizer6;
     wxStdDialogButtonSizer* StdDialogButtonSizer1;
+    wxBoxSizer* BoxSizer5;
 
     Create(parent, id, _("Advanced font settings"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("id"));
     BoxSizer1 = new wxBoxSizer(wxVERTICAL);
@@ -220,34 +220,34 @@ wxsFontEditorDlg::wxsFontEditorDlg(wxWindow* parent,wxsFontData& _Data,wxWindowI
     BoxSizer1->Fit(this);
     BoxSizer1->SetSizeHints(this);
 
-    Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,wxCommandEventHandler(wxsFontEditorDlg::OnUpdateContent));
-    Connect(ID_CHECKBOX8,wxEVT_COMMAND_CHECKBOX_CLICKED,wxCommandEventHandler(wxsFontEditorDlg::OnBaseFontUseChange));
-    Connect(ID_CHOICE2,wxEVT_COMMAND_CHOICE_SELECTED,wxCommandEventHandler(wxsFontEditorDlg::OnUpdatePreview));
-    Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,wxCommandEventHandler(wxsFontEditorDlg::OnUpdateContent));
-    Connect(ID_COMBOBOX1,wxEVT_COMMAND_COMBOBOX_SELECTED,wxCommandEventHandler(wxsFontEditorDlg::OnUpdatePreview));
-    Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,wxCommandEventHandler(wxsFontEditorDlg::OnUpdateContent));
-    Connect(ID_CHOICE3,wxEVT_COMMAND_CHOICE_SELECTED,wxCommandEventHandler(wxsFontEditorDlg::OnUpdatePreview));
-    Connect(ID_CHECKBOX7,wxEVT_COMMAND_CHECKBOX_CLICKED,wxCommandEventHandler(wxsFontEditorDlg::OnUpdateContent));
-    Connect(ID_SPINCTRL1,wxEVT_COMMAND_SPINCTRL_UPDATED,wxSpinEventHandler(wxsFontEditorDlg::OnSizeValChange));
-    Connect(ID_CHECKBOX6,wxEVT_COMMAND_CHECKBOX_CLICKED,wxCommandEventHandler(wxsFontEditorDlg::OnUpdateContent));
-    Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,wxCommandEventHandler(wxsFontEditorDlg::OnUpdatePreview));
-    Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,wxCommandEventHandler(wxsFontEditorDlg::OnUpdateContent));
-    Connect(ID_RADIOBUTTON1,wxEVT_COMMAND_RADIOBUTTON_SELECTED,wxCommandEventHandler(wxsFontEditorDlg::OnUpdatePreview));
-    Connect(ID_RADIOBUTTON2,wxEVT_COMMAND_RADIOBUTTON_SELECTED,wxCommandEventHandler(wxsFontEditorDlg::OnUpdatePreview));
-    Connect(ID_RADIOBUTTON3,wxEVT_COMMAND_RADIOBUTTON_SELECTED,wxCommandEventHandler(wxsFontEditorDlg::OnUpdatePreview));
-    Connect(ID_CHECKBOX4,wxEVT_COMMAND_CHECKBOX_CLICKED,wxCommandEventHandler(wxsFontEditorDlg::OnUpdateContent));
-    Connect(ID_RADIOBUTTON4,wxEVT_COMMAND_RADIOBUTTON_SELECTED,wxCommandEventHandler(wxsFontEditorDlg::OnUpdatePreview));
-    Connect(ID_RADIOBUTTON5,wxEVT_COMMAND_RADIOBUTTON_SELECTED,wxCommandEventHandler(wxsFontEditorDlg::OnUpdatePreview));
-    Connect(ID_RADIOBUTTON6,wxEVT_COMMAND_RADIOBUTTON_SELECTED,wxCommandEventHandler(wxsFontEditorDlg::OnUpdatePreview));
-    Connect(ID_CHECKBOX5,wxEVT_COMMAND_CHECKBOX_CLICKED,wxCommandEventHandler(wxsFontEditorDlg::OnUpdateContent));
-    Connect(ID_RADIOBUTTON7,wxEVT_COMMAND_RADIOBUTTON_SELECTED,wxCommandEventHandler(wxsFontEditorDlg::OnUpdatePreview));
-    Connect(ID_RADIOBUTTON8,wxEVT_COMMAND_RADIOBUTTON_SELECTED,wxCommandEventHandler(wxsFontEditorDlg::OnUpdatePreview));
-    Connect(ID_LISTBOX1,wxEVT_COMMAND_LISTBOX_SELECTED,wxCommandEventHandler(wxsFontEditorDlg::OnUpdateContent));
-    Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,wxCommandEventHandler(wxsFontEditorDlg::OnFaceAddClick));
-    Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,wxCommandEventHandler(wxsFontEditorDlg::OnFaceDelClick));
-    Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,wxCommandEventHandler(wxsFontEditorDlg::OnFaceEditClick));
-    Connect(ID_BUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,wxCommandEventHandler(wxsFontEditorDlg::OnFaceUpClick));
-    Connect(ID_BUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,wxCommandEventHandler(wxsFontEditorDlg::OnFaceDownClick));
+    Connect(ID_CHOICE1,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&wxsFontEditorDlg::OnUpdateContent);
+    Connect(ID_CHECKBOX8,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&wxsFontEditorDlg::OnBaseFontUseChange);
+    Connect(ID_CHOICE2,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&wxsFontEditorDlg::OnUpdatePreview);
+    Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&wxsFontEditorDlg::OnUpdateContent);
+    Connect(ID_COMBOBOX1,wxEVT_COMMAND_COMBOBOX_SELECTED,(wxObjectEventFunction)&wxsFontEditorDlg::OnUpdatePreview);
+    Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&wxsFontEditorDlg::OnUpdateContent);
+    Connect(ID_CHOICE3,wxEVT_COMMAND_CHOICE_SELECTED,(wxObjectEventFunction)&wxsFontEditorDlg::OnUpdatePreview);
+    Connect(ID_CHECKBOX7,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&wxsFontEditorDlg::OnUpdateContent);
+    Connect(ID_SPINCTRL1,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&wxsFontEditorDlg::OnSizeValChange);
+    Connect(ID_CHECKBOX6,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&wxsFontEditorDlg::OnUpdateContent);
+    Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&wxsFontEditorDlg::OnUpdatePreview);
+    Connect(ID_CHECKBOX3,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&wxsFontEditorDlg::OnUpdateContent);
+    Connect(ID_RADIOBUTTON1,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&wxsFontEditorDlg::OnUpdatePreview);
+    Connect(ID_RADIOBUTTON2,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&wxsFontEditorDlg::OnUpdatePreview);
+    Connect(ID_RADIOBUTTON3,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&wxsFontEditorDlg::OnUpdatePreview);
+    Connect(ID_CHECKBOX4,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&wxsFontEditorDlg::OnUpdateContent);
+    Connect(ID_RADIOBUTTON4,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&wxsFontEditorDlg::OnUpdatePreview);
+    Connect(ID_RADIOBUTTON5,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&wxsFontEditorDlg::OnUpdatePreview);
+    Connect(ID_RADIOBUTTON6,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&wxsFontEditorDlg::OnUpdatePreview);
+    Connect(ID_CHECKBOX5,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&wxsFontEditorDlg::OnUpdateContent);
+    Connect(ID_RADIOBUTTON7,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&wxsFontEditorDlg::OnUpdatePreview);
+    Connect(ID_RADIOBUTTON8,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&wxsFontEditorDlg::OnUpdatePreview);
+    Connect(ID_LISTBOX1,wxEVT_COMMAND_LISTBOX_SELECTED,(wxObjectEventFunction)&wxsFontEditorDlg::OnUpdateContent);
+    Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&wxsFontEditorDlg::OnFaceAddClick);
+    Connect(ID_BUTTON5,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&wxsFontEditorDlg::OnFaceDelClick);
+    Connect(ID_BUTTON6,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&wxsFontEditorDlg::OnFaceEditClick);
+    Connect(ID_BUTTON8,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&wxsFontEditorDlg::OnFaceUpClick);
+    Connect(ID_BUTTON7,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&wxsFontEditorDlg::OnFaceDownClick);
     //*)
     Initialized = true;
 
@@ -272,7 +272,7 @@ wxsFontEditorDlg::~wxsFontEditorDlg()
     //*)
 }
 
-void wxsFontEditorDlg::OnButton1Click(cb_unused wxCommandEvent& event)
+void wxsFontEditorDlg::OnButton1Click(wxCommandEvent& event)
 {
 }
 
@@ -330,32 +330,32 @@ void wxsFontEditorDlg::UpdatePreview()
     TestArea->SetFont(Font);
 }
 
-void wxsFontEditorDlg::ReadData(wxsFontData& _Data)
+void wxsFontEditorDlg::ReadData(wxsFontData& Data)
 {
-    if ( _Data.IsDefault )
+    if ( Data.IsDefault )
     {
         FontType->SetSelection(FT_DFAULT);
         return;
     }
 
-    if ( !_Data.SysFont.empty() && _Data.HasSysFont )
+    if ( !Data.SysFont.empty() && Data.HasSysFont )
     {
         FontType->SetSelection(FT_SYSTEM);
-        if ( _Data.HasSysFont )
+        if ( Data.HasSysFont )
         {
             BaseFontUse->SetValue(true);
-            if ( !BaseFontVal->SetStringSelection(_Data.SysFont) )
+            if ( !BaseFontVal->SetStringSelection(Data.SysFont) )
             {
                 BaseFontVal->SetSelection(0);
             }
         }
 
-        if ( !_Data.HasSize && _Data.HasRelativeSize )
+        if ( !Data.HasSize && Data.HasRelativeSize )
         {
             RelSizeUse->SetValue(true);
 
             // TODO: Shouldn't we also use non-locale-printf fix ?
-            RelSizeVal->SetValue(wxString::Format(_T("%f"),_Data.RelativeSize));
+            RelSizeVal->SetValue(wxString::Format(_T("%f"),Data.RelativeSize));
         }
     }
     else
@@ -363,10 +363,10 @@ void wxsFontEditorDlg::ReadData(wxsFontData& _Data)
         FontType->SetSelection(FT_CUSTOM);
     }
 
-    if ( _Data.HasFamily )
+    if ( Data.HasFamily )
     {
         FamUse->SetValue(true);
-        switch ( _Data.Family )
+        switch ( Data.Family )
         {
             case wxFONTFAMILY_DECORATIVE: FamVal->SetSelection(FFAM_DECORATIVE); break;
             case wxFONTFAMILY_ROMAN:      FamVal->SetSelection(FFAM_ROMAN); break;
@@ -374,15 +374,13 @@ void wxsFontEditorDlg::ReadData(wxsFontData& _Data)
             case wxFONTFAMILY_SWISS:      FamVal->SetSelection(FFAM_SWISS); break;
             case wxFONTFAMILY_MODERN:     FamVal->SetSelection(FFAM_MODERN); break;
             case wxFONTFAMILY_TELETYPE:   FamVal->SetSelection(FFAM_TELETYPE); break;
-            case wxFONTFAMILY_DEFAULT: // fall-though
-            case wxFONTFAMILY_UNKNOWN: // fall-though
             default:                      FamUse->SetValue(false);
         }
     }
 
-    if ( _Data.HasEncoding )
+    if ( Data.HasEncoding )
     {
-        int Index = Encodings.Index(_Data.Encoding);
+        int Index = Encodings.Index(Data.Encoding);
         if ( Index != wxNOT_FOUND )
         {
             EncodUse->SetValue(true);
@@ -390,53 +388,53 @@ void wxsFontEditorDlg::ReadData(wxsFontData& _Data)
         }
     }
 
-    if ( _Data.HasSize )
+    if ( Data.HasSize )
     {
         SizeUse->SetValue(true);
-        SizeVal->SetValue(_Data.Size);
+        SizeVal->SetValue(Data.Size);
     }
 
-    FaceList->Append(_Data.Faces);
+    FaceList->Append(Data.Faces);
     FaceList->SetSelection(0);
 
-    if ( _Data.HasStyle )
+    if ( Data.HasStyle )
     {
         StyleUse->SetValue(true);
-        StyleNorm->SetValue(_Data.Style == wxFONTSTYLE_NORMAL);
-        StyleItal->SetValue(_Data.Style == wxFONTSTYLE_ITALIC);
-        StyleSlant->SetValue(_Data.Style == wxFONTSTYLE_SLANT);
+        StyleNorm->SetValue(Data.Style == wxFONTSTYLE_NORMAL);
+        StyleItal->SetValue(Data.Style == wxFONTSTYLE_ITALIC);
+        StyleSlant->SetValue(Data.Style == wxFONTSTYLE_SLANT);
     }
 
-    if ( _Data.HasWeight )
+    if ( Data.HasWeight )
     {
         WeightUse->SetValue(true);
-        WeightNorm->SetValue(_Data.Weight == wxFONTWEIGHT_NORMAL);
-        WeightLight->SetValue(_Data.Weight == wxFONTWEIGHT_LIGHT);
-        WeightBold->SetValue(_Data.Weight == wxFONTWEIGHT_BOLD);
+        WeightNorm->SetValue(Data.Weight == wxFONTWEIGHT_NORMAL);
+        WeightLight->SetValue(Data.Weight == wxFONTWEIGHT_LIGHT);
+        WeightBold->SetValue(Data.Weight == wxFONTWEIGHT_BOLD);
     }
 
-    if ( _Data.HasUnderlined )
+    if ( Data.HasUnderlined )
     {
         UnderUse->SetValue(true);
-        UnderYes->SetValue(_Data.Underlined);
-        UnderNo->SetValue(!_Data.Underlined);
+        UnderYes->SetValue(Data.Underlined);
+        UnderNo->SetValue(!Data.Underlined);
     }
 }
 
-void wxsFontEditorDlg::StoreData(wxsFontData& _Data)
+void wxsFontEditorDlg::StoreData(wxsFontData& Data)
 {
     if ( FontType->GetSelection() == FT_DFAULT )
     {
-        _Data.IsDefault = true;
-        _Data.HasSize = false;
-        _Data.HasStyle = false;
-        _Data.HasWeight = false;
-        _Data.HasUnderlined = false;
-        _Data.HasFamily = false;
-        _Data.HasEncoding = false;
-        _Data.HasSysFont = false;
-        _Data.HasRelativeSize = false;
-        _Data.Faces.Clear();
+        Data.IsDefault = true;
+        Data.HasSize = false;
+        Data.HasStyle = false;
+        Data.HasWeight = false;
+        Data.HasUnderlined = false;
+        Data.HasFamily = false;
+        Data.HasEncoding = false;
+        Data.HasSysFont = false;
+        Data.HasRelativeSize = false;
+        Data.Faces.Clear();
         return;
     }
 
@@ -520,19 +518,19 @@ void wxsFontEditorDlg::StoreData(wxsFontData& _Data)
     }
 }
 
-void wxsFontEditorDlg::OnUpdateContent(cb_unused wxCommandEvent& event)
+void wxsFontEditorDlg::OnUpdateContent(wxCommandEvent& event)
 {
     UpdateContent();
     UpdatePreview();
 }
 
-void wxsFontEditorDlg::OnButton2Click(cb_unused wxCommandEvent& event)
+void wxsFontEditorDlg::OnButton2Click(wxCommandEvent& event)
 {
     StoreData(Data);
     EndModal(wxID_OK);
 }
 
-void wxsFontEditorDlg::OnButton1Click1(cb_unused wxCommandEvent& event)
+void wxsFontEditorDlg::OnButton1Click1(wxCommandEvent& event)
 {
     wxFont Font  = ::wxGetFontFromUser();
     if ( !Font.Ok() ) return;
@@ -577,7 +575,7 @@ void wxsFontEditorDlg::OnButton1Click1(cb_unused wxCommandEvent& event)
     UpdatePreview();
 }
 
-void wxsFontEditorDlg::OnFaceAddClick(cb_unused wxCommandEvent& event)
+void wxsFontEditorDlg::OnFaceAddClick(wxCommandEvent& event)
 {
     wxString Face;
     wxsFontFaceEditorDlg Dlg(this,Face);
@@ -590,7 +588,7 @@ void wxsFontEditorDlg::OnFaceAddClick(cb_unused wxCommandEvent& event)
     }
 }
 
-void wxsFontEditorDlg::OnFaceDelClick(cb_unused wxCommandEvent& event)
+void wxsFontEditorDlg::OnFaceDelClick(wxCommandEvent& event)
 {
     int Index = FaceList->GetSelection();
     if ( Index != wxNOT_FOUND )
@@ -609,7 +607,7 @@ void wxsFontEditorDlg::OnFaceDelClick(cb_unused wxCommandEvent& event)
     UpdatePreview();
 }
 
-void wxsFontEditorDlg::OnFaceEditClick(cb_unused wxCommandEvent& event)
+void wxsFontEditorDlg::OnFaceEditClick(wxCommandEvent& event)
 {
     int Index = FaceList->GetSelection();
     if ( Index != wxNOT_FOUND )
@@ -624,7 +622,7 @@ void wxsFontEditorDlg::OnFaceEditClick(cb_unused wxCommandEvent& event)
     UpdatePreview();
 }
 
-void wxsFontEditorDlg::OnFaceUpClick(cb_unused wxCommandEvent& event)
+void wxsFontEditorDlg::OnFaceUpClick(wxCommandEvent& event)
 {
     int Index = FaceList->GetSelection();
     if ( Index != wxNOT_FOUND && Index > 0 )
@@ -636,7 +634,7 @@ void wxsFontEditorDlg::OnFaceUpClick(cb_unused wxCommandEvent& event)
     UpdatePreview();
 }
 
-void wxsFontEditorDlg::OnFaceDownClick(cb_unused wxCommandEvent& event)
+void wxsFontEditorDlg::OnFaceDownClick(wxCommandEvent& event)
 {
     int Index = FaceList->GetSelection();
     if ( Index != wxNOT_FOUND && Index < (int)FaceList->GetCount()-1 )
@@ -648,7 +646,7 @@ void wxsFontEditorDlg::OnFaceDownClick(cb_unused wxCommandEvent& event)
     UpdatePreview();
 }
 
-void wxsFontEditorDlg::OnUpdatePreview(cb_unused wxCommandEvent& event)
+void wxsFontEditorDlg::OnUpdatePreview(wxCommandEvent& event)
 {
     if ( Initialized )
     {
@@ -656,7 +654,7 @@ void wxsFontEditorDlg::OnUpdatePreview(cb_unused wxCommandEvent& event)
     }
 }
 
-void wxsFontEditorDlg::OnSizeValChange(cb_unused wxSpinEvent& event)
+void wxsFontEditorDlg::OnSizeValChange(wxSpinEvent& event)
 {
     if ( Initialized )
     {
@@ -664,7 +662,7 @@ void wxsFontEditorDlg::OnSizeValChange(cb_unused wxSpinEvent& event)
     }
 }
 
-void wxsFontEditorDlg::OnBaseFontUseChange(cb_unused wxCommandEvent& event)
+void wxsFontEditorDlg::OnBaseFontUseChange(wxCommandEvent& event)
 {
     BaseFontUse->SetValue(true);
 }

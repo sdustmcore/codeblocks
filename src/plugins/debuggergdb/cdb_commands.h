@@ -20,11 +20,7 @@
 static wxRegEx reProcessInf(_T("id:[ \t]+([A-Fa-f0-9]+)[ \t]+create"));
 static wxRegEx reWatch(_T("(\\+0x[A-Fa-f0-9]+ )"));
 static wxRegEx reBT1(_T("([0-9]+) ([A-Fa-f0-9]+) ([A-Fa-f0-9]+) ([^[]*)"));
-
-// Match lines like:
-// 0018ff38 004013ef dbgtest!main+0x3 [main.cpp @ 8]
-static wxRegEx reBT2(_T("\\[(.+)[ \\t]@[ \\t]([0-9]+)\\][ \\t]*"));
-
+static wxRegEx reBT2(_T("\\[([A-z]:)(.*) @ ([0-9]+)\\]"));
 //    15 00401020 55               push    ebp
 //    61 004010f9 ff15dcc24000  call dword ptr [Win32GUI!_imp__GetMessageA (0040c2dc)]
 //    71 0040111f c21000           ret     0x10
@@ -424,7 +420,6 @@ class CdbCmd_Backtrace : public DebuggerCmd
                 return;
 
             bool firstValid = true;
-            bool sourceValid = false;
             cbStackFrame frameToSwitch;
 
             // start from line 1
@@ -444,9 +439,8 @@ class CdbCmd_Backtrace : public DebuggerCmd
                     // do we have file/line info?
                     if (reBT2.Matches(lines[i]))
                     {
-                        sf.SetFile(reBT2.GetMatch(lines[i], 1), reBT2.GetMatch(lines[i], 2));
-                        if (firstValid)
-                            sourceValid = true;
+                        sf.SetFile(reBT2.GetMatch(lines[i], 1) + reBT2.GetMatch(lines[i], 2),
+                                   reBT2.GetMatch(lines[i], 3));
                     }
                     m_pDriver->GetStackFrames().push_back(cb::shared_ptr<cbStackFrame>(new cbStackFrame(sf)));
 
@@ -458,8 +452,7 @@ class CdbCmd_Backtrace : public DebuggerCmd
                 }
             }
             Manager::Get()->GetDebuggerManager()->GetBacktraceDialog()->Reload();
-
-            if (!firstValid && sourceValid)
+            if (!firstValid)
             {
                 Cursor cursor;
                 cursor.file = frameToSwitch.GetFilename();

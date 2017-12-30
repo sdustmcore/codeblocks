@@ -88,7 +88,6 @@ void wxsSearchCtrl::OnBuildCreatingCode()
             return;
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsSearchCtrl::OnBuildCreatingCode"),GetLanguage());
@@ -123,7 +122,7 @@ wxObject* wxsSearchCtrl::OnBuildPreview(wxWindow* parent,long flags)
  * \return void
  *
  */
-void wxsSearchCtrl::OnEnumWidgetProperties(cb_unused long Flags)
+void wxsSearchCtrl::OnEnumWidgetProperties(long flags)
 {
     WXS_SHORT_STRING(wxsSearchCtrl, m_sValue, _("Value"), _T("value"), wxEmptyString, false)
     WXS_BOOL(wxsSearchCtrl, m_bShowSearchBtn, _("Search Button"), _T("search_button"), true)

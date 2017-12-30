@@ -15,7 +15,7 @@
   #include <wx/menu.h>
   #include <wx/toolbar.h>
 
-  #include <tinyxml.h>
+  #include <tinyxml/tinyxml.h>
 
   #include "cbproject.h"
   #include "globals.h"

@@ -320,7 +320,6 @@ void wxsItemEditorContent::OnMouse(wxMouseEvent& event)
         case msDraggingItem:      OnMouseDraggingItem      (event); break;
         case msTargetSearch:      OnMouseTargetSearch      (event); break;
         case msWaitForIdle:                                         break;
-        case msIdle: // fall-through
         default:                  OnMouseIdle              (event); break;
     }
 
@@ -454,7 +453,6 @@ void wxsItemEditorContent::OnMouseIdle(wxMouseEvent& event)
                     SetCur(wxCURSOR_SIZEWE);
                     break;
 
-                case DragBoxTypeCnt: // fall-through
                 default:
                     SetCur(wxCURSOR_ARROW);
             }
@@ -628,9 +626,7 @@ void wxsItemEditorContent::OnMouseDraggingPoint(wxMouseEvent& event)
             GridFixupForGlobalCoordinates(rightBtm->PosX,rightBtm->PosY,m_CurDragItem);
             break;
 
-        case DragBoxTypeCnt: // fall-through
-        default:
-            break;
+        default:;
     }
 
     int LX = leftTop->PosX;
@@ -1112,7 +1108,7 @@ bool wxsItemEditorContent::IsContinousInsert()
 
 void wxsItemEditorContent::OnKeyDown(wxKeyEvent& event)
 {
-    #if wxCHECK_VERSION(3, 0, 0)
+    #if wxCHECK_VERSION(2, 9, 0)
     GetParent()->GetEventHandler()->ProcessEvent(event);
     #else
     GetParent()->ProcessEvent(event);

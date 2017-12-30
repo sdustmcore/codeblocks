@@ -427,9 +427,8 @@ void wxBarChartPoints::Draw(
                             lbl,
                             UP );
                 break;
-            case NONE: // fall-through
-            default:
-                break;
+        default:
+            break;
         }
     }
 

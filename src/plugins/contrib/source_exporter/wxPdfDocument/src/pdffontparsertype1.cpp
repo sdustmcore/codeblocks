@@ -399,6 +399,7 @@ wxPdfFontParserType1::ReadAFM(wxInputStream& afmFile)
     wxString token, tokenBoxHeight;
     long nParam;
     long cc, width, boxHeight, glyphNumber;
+    wxString weight;
 /* C::B begin */
 //    bool hasGlyphNumbers = false;
 /* C::B end */
@@ -1215,10 +1216,11 @@ wxPdfFontParserType1::ReadPFM(wxInputStream& pfmFile)
   // the hyphen to a space.  This actually works in a lot of cases.
   wxString fullName = fontName;
   fullName.Replace(wxT("-"), wxT(" "));
+  wxString familyName = wxEmptyString;
   if (hdr.face != 0)
   {
     pfmFile.SeekI(hdr.face);
-    ReadString(pfmFile);
+    wxString familyName = ReadString(pfmFile);
   }
 
   wxString encodingScheme = (hdr.charset != 0) ? wxString(wxT("FontSpecific")) : wxString(wxT("AdobeStandardEncoding"));
@@ -2073,6 +2075,7 @@ wxPdfFontParserType1::ParseDict(wxInputStream* stream, int start, int length, bo
   bool ok = true;
   bool haveInteger = false;
   long intValue = 0;
+  wxString token;
   int limit = start + length;
   stream->SeekI(start);
   while (!ready && stream->TellI() < limit)
@@ -2336,7 +2339,8 @@ wxPdfFontParserType1::ParseEncoding(wxInputStream* stream)
     while (true)
     {
       // Stop when next token is 'def' or ']'
-      if (stream->Peek() == ']')
+      char ch = stream->Peek();
+      if (ch == ']')
       {
         break;
       }
@@ -2374,7 +2378,7 @@ wxPdfFontParserType1::ParseEncoding(wxInputStream* stream)
   }
   else
   {
-    token = GetToken(stream);
+    wxString token = GetToken(stream);
     if (token.IsSameAs(wxT("StandardEncoding"))   ||
         token.IsSameAs(wxT("ExpertEncoding"))     ||
         token.IsSameAs(wxT("ISOLatin1Encoding")))

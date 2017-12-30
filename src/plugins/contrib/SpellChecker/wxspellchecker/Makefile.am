@@ -2,8 +2,9 @@ AM_CPPFLAGS = $(WX_CXXFLAGS) \
 		$(CB_HUNSPELL_CFLAGS) \
 		-I$(srcdir)/include \
 		-I$(srcdir)/.. \
-		-I$(top_srcdir)/src/sdk/wxscintilla/include \
-		-DHUNSPELL_STATIC
+		-I$(top_srcdir)/src/sdk/wxscintilla/include
+
+CXXFLAGS = @CXXFLAGS@ -DHUNSPELL_STATIC
 
 noinst_LTLIBRARIES = libwxSpellChecker.la
 

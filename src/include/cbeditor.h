@@ -218,40 +218,37 @@ class DLLIMPORT cbEditor : public EditorBase
         bool RemoveBreakpoint(int line = -1, bool notifyDebugger = true);
 
         /** Toggle debugger breakpoint at specified line. If @c line is -1, use current line. */
-        virtual void ToggleBreakpoint(int line = -1, bool notifyDebugger = true);
+        void ToggleBreakpoint(int line = -1, bool notifyDebugger = true);
 
         /** Does @c line has debugger breakpoint? If @c line is -1, use current line. */
-        virtual bool HasBreakpoint(int line) const;
+        bool HasBreakpoint(int line) const;
 
         /** Go to next debugger breakpoint. */
-        virtual void GotoNextBreakpoint();
+        void GotoNextBreakpoint();
 
         /** Go to previous debugger breakpoint. */
-        virtual void GotoPreviousBreakpoint();
+        void GotoPreviousBreakpoint();
 
         /** Refresh all markers for the breakpoints (only the markers for the current debugger will be shown) */
-        virtual void RefreshBreakpointMarkers();
-
-        /** Clear all bookmarks. */
-        virtual void ClearAllBookmarks();
+        void RefreshBreakpointMarkers();
 
         /** Toggle bookmark at specified line. If @c line is -1, use current line. */
-        virtual void ToggleBookmark(int line = -1);
+        void ToggleBookmark(int line = -1);
 
         /** Does @c line has bookmark? */
-        virtual bool HasBookmark(int line) const;
+        bool HasBookmark(int line) const;
 
         /** Go to next bookmark. */
-        virtual void GotoNextBookmark();
+        void GotoNextBookmark();
 
         /** Go to previous bookmark. */
-        virtual void GotoPreviousBookmark();
+        void GotoPreviousBookmark();
 
         /** Highlight the line the debugger will execute next. */
-        virtual void SetDebugLine(int line);
+        void SetDebugLine(int line);
 
         /** Highlight the specified line as error. */
-        virtual void SetErrorLine(int line);
+        void SetErrorLine(int line);
 
         /** Split the editor window.
           * @param split The type of split: horizontal or vertical. */
@@ -305,10 +302,6 @@ class DLLIMPORT cbEditor : public EditorBase
         static void ApplyStyles(cbStyledTextCtrl* control);
 
         void AutoIndentDone();
-
-        /// Applies the styles that match the filename of the editor.
-        /// Should be called after new file is created. Calling SaveAs does the same thing.
-        void SetEditorStyle();
     private:
         cbEditor(cb_unused const cbEditor& rhs); // prevent copy construction
 
@@ -326,6 +319,7 @@ class DLLIMPORT cbEditor : public EditorBase
         void UnderlineFoldedLines(bool underline);
         cbStyledTextCtrl* CreateEditor();
         void ConnectEvents(cbStyledTextCtrl* stc);
+        void SetEditorStyle();
         void SetEditorStyleBeforeFileOpen();
         void SetEditorStyleAfterFileOpen();
         static void InternalSetEditorStyleBeforeFileOpen(cbStyledTextCtrl* control);

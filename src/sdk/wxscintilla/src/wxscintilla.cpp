@@ -197,7 +197,7 @@ bool wxScintilla::Create(wxWindow *parent,
                          const wxString& name)
 {
 /* C::B begin */
-#if defined (__WXMAC__) || wxCHECK_VERSION(3, 0, 0)
+#if defined (__WXMAC__) || wxCHECK_VERSION(2, 9, 0)
     style |= wxVSCROLL | wxHSCROLL;
 #endif
 /* C::B end */
@@ -228,12 +228,16 @@ bool wxScintilla::Create(wxWindow *parent,
 #endif
 
 /* C::B begin */
-    SetInitialSize(size);
+    #if wxCHECK_VERSION(2, 8, 0)
+        SetInitialSize(size);
+    #else
+        SetBestFittingSize(size);
+    #endif
 /* C::B end */
 
 /* C::B begin */
     // Reduces flicker on GTK+/X11
-    #if wxCHECK_VERSION(3, 0, 0)
+    #if wxCHECK_VERSION(2, 9, 0)
         SetBackgroundStyle(wxBG_STYLE_PAINT);
     #else
         SetBackgroundStyle(wxBG_STYLE_CUSTOM);
@@ -299,7 +303,7 @@ void wxScintilla::SetHScrollBar(wxScrollBar* bar)
 void wxScintilla::AddText(const wxString& text)
 {
     const wxWX2MBbuf buf = wx2sci(text);
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2, 9, 0)
     SendMsg(SCI_ADDTEXT, buf.length()-1, (uptr_t)(const char*)buf);
 #else
     SendMsg(SCI_ADDTEXT, strlen(buf), (uptr_t)(const char*)wx2sci(text));
@@ -1941,7 +1945,7 @@ int wxScintilla::ReplaceTarget(const wxString& text)
 {
     const wxWX2MBbuf buf = wx2sci(text);
 /* C::B begin */
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2, 9, 0)
     return SendMsg(SCI_REPLACETARGET, buf.length()-1, (uptr_t)(const char*)buf);
 #else
     return SendMsg(SCI_REPLACETARGET, strlen(buf), (uptr_t)(const char*)buf);
@@ -1960,7 +1964,7 @@ int wxScintilla::ReplaceTargetRE(const wxString& text)
 {
     const wxWX2MBbuf buf = wx2sci(text);
 /* C::B begin */
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2, 9, 0)
     return SendMsg(SCI_REPLACETARGETRE, buf.length()-1, (uptr_t)(const char*)buf);
 #else
     return SendMsg(SCI_REPLACETARGETRE, strlen(buf), (uptr_t)(const char*)buf);
@@ -1976,7 +1980,7 @@ int wxScintilla::SearchInTarget(const wxString& text)
 {
     const wxWX2MBbuf buf = wx2sci(text);
 /* C::B begin */
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2, 9, 0)
     return SendMsg(SCI_SEARCHINTARGET, buf.length()-1, (uptr_t)(const char*)buf);
 #else
     return SendMsg(SCI_SEARCHINTARGET, strlen(buf), (uptr_t)(const char*)buf);
@@ -2392,7 +2396,7 @@ bool wxScintilla::GetUseVerticalScrollBar() const
 void wxScintilla::AppendText(const wxString& text)
 {
     const wxWX2MBbuf buf = wx2sci(text);
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2, 9, 0)
     SendMsg(SCI_APPENDTEXT, buf.length()-1, (uptr_t)(const char*)buf);
 #else
     SendMsg(SCI_APPENDTEXT, strlen(buf), (uptr_t)(const char*)buf);
@@ -5258,17 +5262,6 @@ void wxScintilla::AppendTextRaw(const char* text, int length)
     SendMsg(SCI_APPENDTEXT, length, (uptr_t)text);
 }
 
-/* C::B begin capture mouse assert fix */
-void wxScintilla::SetMouseCapture(bool on)
-{
-    m_swx->SetMouseCapture(on);
-}
-
-bool wxScintilla::HaveMouseCapture() const
-{
-    return m_swx->HaveMouseCapture();
-}
-/* C::B end */
 
 
 
@@ -5370,7 +5363,7 @@ void wxScintilla::OnContextMenu(wxContextMenuEvent& evt)
 void wxScintilla::OnMouseWheel(wxMouseEvent& evt)
 {
 /* C::B begin */
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2,9,2)
     m_swx->DoMouseWheel(evt.GetWheelAxis(),
 #else
     m_swx->DoMouseWheel(ScintillaWX::wxMOUSE_WHEEL_VERTICAL,
@@ -5380,7 +5373,7 @@ void wxScintilla::OnMouseWheel(wxMouseEvent& evt)
                         evt.GetWheelDelta(),
                         evt.GetLinesPerAction(),
 /* C::B begin */
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2,9,5)
                         evt.GetColumnsPerAction(),
 #else
                         1,
@@ -5795,7 +5788,7 @@ wxScintillaEvent::wxScintillaEvent(const wxScintillaEvent& event):
 //----------------------------------------------------------------------
 
 /* C::B begin */
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2, 9, 2)
 /*static*/ wxVersionInfo wxScintilla::GetLibraryVersionInfo()
 {
     /* C::B -> Don't forget to change version number here and in wxscintilla.h at the top */

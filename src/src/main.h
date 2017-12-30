@@ -92,7 +92,7 @@ class MainFrame : public wxFrame
 
         void StartupDone();
 
-        cbProjectManagerUI* GetProjectManagerUI() { return m_pPrjManUI; }
+        ProjectManagerUI* GetProjectManagerUI() { return m_pPrjManUI; }
     private:
         // event handlers
 
@@ -128,9 +128,11 @@ class MainFrame : public wxFrame
         void OnFileImportProjectMSVSWksp(wxCommandEvent& event);
         void OnFileSave(wxCommandEvent& event);
         void OnFileSaveAs(wxCommandEvent& event);
+        void OnFileSaveAllFiles(wxCommandEvent& event);
         void OnFileSaveProject(wxCommandEvent& event);
         void OnFileSaveProjectAs(wxCommandEvent& event);
         void OnFileSaveProjectTemplate(wxCommandEvent& event);
+        void OnFileSaveProjectAllProjects(wxCommandEvent& event);
         void OnFileOpenDefWorkspace(wxCommandEvent& event);
         void OnFileSaveWorkspace(wxCommandEvent& event);
         void OnFileSaveWorkspaceAs(wxCommandEvent& event);
@@ -139,6 +141,7 @@ class MainFrame : public wxFrame
         void OnFileClose(wxCommandEvent& event);
         void OnFileCloseAll(wxCommandEvent& event);
         void OnFileCloseProject(wxCommandEvent& event);
+        void OnFileCloseAllProjects(wxCommandEvent& event);
         void OnFilePrintSetup(wxCommandEvent& event);
         void OnFilePrint(wxCommandEvent& event);
         void OnFileQuit(wxCommandEvent& event);
@@ -184,8 +187,6 @@ class MainFrame : public wxFrame
         void OnEditLowerCase(wxCommandEvent& event);
         void OnEditInsertNewLine(wxCommandEvent& event);
         void OnEditGotoLineEnd(wxCommandEvent& event);
-        void OnEditInsertNewLineBelow(wxCommandEvent& event);
-        void OnEditInsertNewLineAbove(wxCommandEvent& event);
         void OnEditSelectAll(wxCommandEvent& event);
         void OnEditSelectNext(wxCommandEvent& event);
         void OnEditSelectNextSkip(wxCommandEvent& event);
@@ -200,7 +201,6 @@ class MainFrame : public wxFrame
         void OnEditBookmarksToggle(wxCommandEvent& event);
         void OnEditBookmarksNext(wxCommandEvent& event);
         void OnEditBookmarksPrevious(wxCommandEvent& event);
-        void OnEditBookmarksClearAll(wxCommandEvent& event);
 
         void OnViewLayout(wxCommandEvent& event);
         void OnViewLayoutSave(wxCommandEvent& event);
@@ -295,8 +295,6 @@ class MainFrame : public wxFrame
         void OnShiftTab(wxCommandEvent& event);
         void OnCtrlAltTab(wxCommandEvent& event);
         void OnNotebookDoubleClick(CodeBlocksEvent& event);
-        // Statusbar highlighting menu
-        void OnHighlightMenu(wxCommandEvent& event);
     protected:
         void CreateIDE();
         void CreateMenubar();
@@ -355,7 +353,7 @@ class MainFrame : public wxFrame
         void InitializeRecentFilesHistory();
         void TerminateRecentFilesHistory();
         #if wxUSE_STATUSBAR
-        wxStatusBar *OnCreateStatusBar(int number, long style, wxWindowID id, const wxString& name) override;
+        virtual wxStatusBar *OnCreateStatusBar(int number, long style, wxWindowID id, const wxString& name);
         #endif
     protected:
         RecentItemsList m_filesHistory, m_projectsHistory;
@@ -365,7 +363,7 @@ class MainFrame : public wxFrame
 
         EditorManager*    m_pEdMan;
         ProjectManager*   m_pPrjMan;
-        cbProjectManagerUI* m_pPrjManUI;
+        ProjectManagerUI* m_pPrjManUI;
         LogManager*       m_pLogMan;
         InfoPane*         m_pInfoPane;
 
@@ -397,7 +395,6 @@ class MainFrame : public wxFrame
         MenuIDToScript m_MenuIDToScript;
 
         wxScrollingDialog* m_pBatchBuildDialog;
-        wxButton*          m_pHighlightButton;
 
         DebuggerMenuHandler*    m_debuggerMenuHandler;
         DebuggerToolbarHandler* m_debuggerToolbarHandler;

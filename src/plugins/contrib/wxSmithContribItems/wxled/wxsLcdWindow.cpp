@@ -64,13 +64,12 @@ void wxsLcdWindow::OnBuildCreatingCode()
                 Codef( _T( "%ASetValue( _T(\"%s\"));\n"), Content.wx_str());
             break;
 
-        case wxsUnknownLanguage: // fall-through
         default:
             wxsCodeMarks::Unknown(_T("wxsLcdWindow::OnBuildCreatingCode"),GetLanguage());
     }
 }
 
-wxObject* wxsLcdWindow::OnBuildPreview(wxWindow* Parent,cb_unused long Flags)
+wxObject* wxsLcdWindow::OnBuildPreview(wxWindow* Parent,long Flags)
 {
     wxLCDWindow* test = new wxLCDWindow( Parent, Pos( Parent), Size( Parent));
     test->SetNumberDigits( NumberOfDigits);
@@ -86,7 +85,7 @@ wxObject* wxsLcdWindow::OnBuildPreview(wxWindow* Parent,cb_unused long Flags)
     return test;
 }
 
-void wxsLcdWindow::OnEnumWidgetProperties(cb_unused long Flags)
+void wxsLcdWindow::OnEnumWidgetProperties(long Flags)
 {
 
     WXS_LONG(

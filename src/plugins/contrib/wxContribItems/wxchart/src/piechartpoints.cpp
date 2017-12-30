@@ -423,7 +423,6 @@ void wxPieChartPoints::Draw(
                     lbl = GetName(iData).c_str();
                     wxLbl.Draw( hp, x2, y2, GetColor(iData), lbl, p );
                     break;
-                case NONE: // fall-through
                 default:
                     break;
                 }

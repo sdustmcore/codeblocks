@@ -262,10 +262,59 @@ void wxPropertyGrid::AutoGetTranslation ( bool ) { }
 
 // -----------------------------------------------------------------------
 
+#if !wxCHECK_VERSION(2, 7, 1)
+
+#if defined(__WXMSW__)
+
+#ifndef WS_EX_COMPOSITED
+    #define WS_EX_COMPOSITED        0x02000000L
+#endif
+static bool wxPGIsWindowBuffered( const wxWindow* wnd )
+{
+    while ( wnd )
+    {
+        if ( GetWindowLong((HWND)wnd->GetHWND(), GWL_EXSTYLE) & WS_EX_COMPOSITED )
+            return true;
+        if ( wnd->IsTopLevel() )
+            break;
+        wnd = wnd->GetParent();
+    }
+
+    return false;
+}
+
+#elif defined(__WXGTK20__)
+
+#include <gtk/gtk.h>
+static bool wxPGIsWindowBuffered( const wxWindow* wnd )
+{
+    return GTK_WIDGET_DOUBLE_BUFFERED(wnd->GetHandle());
+}
+
+#elif defined(__WXMAC_OSX__) || defined(__WXCOCOA__) || defined(__WXDFB__)
+
+static bool wxPGIsWindowBuffered( const wxWindow* WXUNUSED(wnd) )
+{
+    return true;
+}
+
+#else
+
+static bool wxPGIsWindowBuffered( const wxWindow* WXUNUSED(wnd) )
+{
+    return false;
+}
+
+#endif
+
+#else
+
 static bool wxPGIsWindowBuffered( const wxWindow* wnd )
 {
     return wnd->IsDoubleBuffered();
 }
+
+#endif
 
 // -----------------------------------------------------------------------
 
@@ -316,7 +365,33 @@ static void wxPGDrawFocusRect( wxDC& dc, const wxRect& rect )
 
 // -----------------------------------------------------------------------
 
-#if !wxCHECK_VERSION(3, 0, 0)
+#if !wxCHECK_VERSION(2,8,0)
+
+// There is no wxString::EndsWith() in wxWidgets 2.6.
+
+// check that the string ends with suffix and return the rest of it in the
+// provided pointer if it is not NULL, otherwise return false
+bool wxPG_String_EndsWith(const wxString& str, const wxChar *suffix, wxString *rest)
+{
+    wxASSERT_MSG( suffix, wxT("invalid parameter in wxString::EndssWith") );
+
+    int start = str.length() - wxStrlen(suffix);
+    if ( start < 0 || wxStrcmp(str.c_str() + start, suffix) != 0 )
+        return false;
+
+    if ( rest )
+    {
+        // put the rest of the string into provided pointer
+        rest->assign(str, 0, start);
+    }
+
+    return true;
+}
+
+#endif
+
+
+#if !wxCHECK_VERSION(2,9,0)
 
 //
 // wxSplit (and maybe wxJoin) is needed for editable state code
@@ -373,7 +448,7 @@ wxArrayString wxSplit(const wxString& str, const wxChar sep, const wxChar escape
     return ret;
 }
 
-#endif  // !wxCHECK_VERSION(3, 0, 0)
+#endif  // !wxCHECK_VERSION(2,9,0)
 
 // -----------------------------------------------------------------------
 // Choice related methods from various classes
@@ -505,8 +580,10 @@ wxPGGlobalVarsClass::wxPGGlobalVarsClass()
     v = wxVariant(list);
     wxVariantClassInfo_list = wxPGVariantDataGetClassInfo(v.GetData());
 
+#if wxCHECK_VERSION(2,8,0)
     v << *wxRED;
     wxVariantClassInfo_wxColour = wxPGVariantDataGetClassInfo(v.GetData());
+#endif
 
 #if wxUSE_DATETIME
     v = wxVariant(wxDateTime::Now());
@@ -566,7 +643,6 @@ wxPGGlobalVarsClass::~wxPGGlobalVarsClass()
 
 IMPLEMENT_ABSTRACT_CLASS(wxPGProperty, wxObject)
 
-wxString wxString_wxPG_LABEL = wxT("_LABEL_AS_NAME");
 
 void wxPGProperty::Init()
 {
@@ -603,10 +679,11 @@ void wxPGProperty::Init()
 
 void wxPGProperty::Init( const wxString& label, const wxString& name )
 {
-    m_label = label;
+    if ( &label != ((wxString*)NULL) )
+        m_label = label;
 
 #ifndef __WXPYTHON__
-    if ( name != wxString_wxPG_LABEL)
+    if ( &name != ((wxString*)NULL) )
 #else
     if ( (&name != ((wxString*)NULL)) && name != wxT("_LABEL_AS_NAME") )
 #endif
@@ -1400,8 +1477,10 @@ wxVariant wxPGProperty::GetDefaultValue() const
 
         if ( wxPGIsVariantClassInfo(classInfo, arrstring) )
             return wxVariant(wxArrayString());
+#if wxCHECK_VERSION(2,8,0)
         if ( wxPGIsVariantClassInfo(classInfo, wxColour) )
             return WXVARIANT(*wxRED);
+#endif
 #if wxUSE_DATETIME
         if ( wxPGIsVariantClassInfo(classInfo, datetime) )
             return wxVariant(wxDateTime::Now());
@@ -1876,7 +1955,7 @@ void wxPGProperty::SetValueImage( wxBitmap& bmp )
 {
     delete m_valueBitmap;
 
-    if ( bmp.Ok() )
+    if ( &bmp && bmp.Ok() )
     {
         // Resize the image
         wxSize maxSz = GetGrid()->GetImageSize();
@@ -2823,7 +2902,7 @@ wxPGCell::wxPGCell( const wxString& text,
     : m_bitmap(bitmap), m_fgCol(fgCol), m_bgCol(bgCol)
 {
 #ifndef __WXPYTHON__
-    if ( text != wxString_wxPG_LABEL )
+    if ( &text != ((wxString*)NULL) )
 #else
     if ( (&text != ((wxString*)NULL)) && text != wxT("_LABEL_AS_NAME") )
 #endif
@@ -3136,11 +3215,15 @@ bool wxPropertyGrid::Create( wxWindow *parent,
         // draw internally in this case.
         // Unfortunately we can't easily draw our own border, so revert to
         // themed drawing.
+  #if wxCHECK_VERSION(2,8,5)
     #ifdef __WXMSW__
         style |= GetThemedBorderStyle();
     #else
         style |= wxBORDER_SIMPLE;
     #endif
+  #else
+        style |= wxBORDER_SIMPLE;
+  #endif
 
 #else
         style |= wxBORDER_SUNKEN;
@@ -7337,7 +7420,15 @@ void wxPropertyGrid::DestroyEditorWnd( wxWindow* wnd )
     if ( !wnd )
         return;
 
+#if wxCHECK_VERSION(2,8,0)
     wxPendingDelete.Append(wnd);
+#else
+    // Do not free editors immediately (for sake of processing events)
+    if ( !m_windowsToDelete )
+        m_windowsToDelete = new wxArrayPtrVoid;
+
+    m_windowsToDelete->push_back(wnd);
+#endif
     wnd->Hide();
 }
 
@@ -7387,12 +7478,26 @@ bool wxPropertyGrid::DoSelectProperty( wxPGProperty* p, unsigned int flags )
 /* C::B begin */
     struct UnsetValue
     {
-        UnsetValue(bool &value) : m_value(value) {}
-        ~UnsetValue() { m_value = false; }
-        bool &m_value;
+        UnsetValue(bool &value) : value(value) {}
+        ~UnsetValue() { value = false; }
+        bool &value;
     };
     UnsetValue unsetValue(m_inDoSelectProperty);
 /* C::B end */
+
+#if !wxCHECK_VERSION(2,8,0)
+    //
+    // Delete windows pending for deletion
+    if ( m_windowsToDelete && !m_inDoPropertyChanged && m_windowsToDelete->size() )
+    {
+        unsigned int i;
+
+        for ( i=0; i<m_windowsToDelete->size(); i++ )
+            delete ((wxWindow*)((*m_windowsToDelete)[i]));
+
+        m_windowsToDelete->clear();
+    }
+#endif
 
     if ( !m_pState )
         return false;
@@ -8367,6 +8472,7 @@ bool wxPropertyGrid::HandleMouseMove( int x, unsigned int y, wxMouseEvent &event
         {
 
             int newSplitterX = x - m_dragOffset;
+            int splitterX = x - splitterHitOffset;
 
             // Splitter redraw required?
             if ( newSplitterX != splitterX )
@@ -8691,6 +8797,9 @@ void wxPropertyGrid::OnMouseClick( wxMouseEvent &event )
     {
         HandleMouseClick(x,y,event);
     }
+#if !wxCHECK_VERSION(2,8,8)
+    event.Skip();
+#endif
 }
 
 // -----------------------------------------------------------------------
@@ -8700,6 +8809,9 @@ void wxPropertyGrid::OnMouseRightClick( wxMouseEvent &event )
     int x, y;
     CalcUnscrolledPosition( event.m_x, event.m_y, &x, &y );
     HandleMouseRightClick(x,y,event);
+#if !wxCHECK_VERSION(2,8,8)
+    event.Skip();
+#endif
 }
 
 // -----------------------------------------------------------------------
@@ -8712,6 +8824,9 @@ void wxPropertyGrid::OnMouseDoubleClick( wxMouseEvent &event )
     int x, y;
     CalcUnscrolledPosition( event.m_x, event.m_y, &x, &y );
     HandleMouseDoubleClick(x,y,event);
+#if !wxCHECK_VERSION(2,8,8)
+    event.Skip();
+#endif
 }
 
 // -----------------------------------------------------------------------
@@ -8723,6 +8838,9 @@ void wxPropertyGrid::OnMouseMove( wxMouseEvent &event )
     {
         HandleMouseMove(x,y,event);
     }
+#if !wxCHECK_VERSION(2,8,8)
+    event.Skip();
+#endif
 }
 
 // -----------------------------------------------------------------------
@@ -8742,6 +8860,9 @@ void wxPropertyGrid::OnMouseUp( wxMouseEvent &event )
     {
         HandleMouseUp(x,y,event);
     }
+#if !wxCHECK_VERSION(2,8,8)
+    event.Skip();
+#endif
 }
 
 // -----------------------------------------------------------------------
@@ -8883,13 +9004,33 @@ void wxPropertyGrid::SendNavigationKeyEvent( int dir )
 }
 
 
+//
+// Add wxKeyEvent GetModifiers() for wx2.6
+//
+#if !wxCHECK_VERSION(2,8,0)
+
+static inline int wxPG_wxKeyEvent_GetModifiers( const wxKeyEvent& event )
+{
+    int modifiers = 0;
+    if ( event.ControlDown() ) modifiers |= wxMOD_CONTROL;
+    if ( event.AltDown() ) modifiers |= wxMOD_ALT;
+    if ( event.ShiftDown() ) modifiers |= wxMOD_SHIFT;
+    return modifiers;
+}
+
+#endif  // !wxCHECK_VERSION(2,8,0)
+
 int wxPropertyGrid::KeyEventToActions(wxKeyEvent &event, int* pSecond) const
 {
     // Translates wxKeyEvent to wxPG_ACTION_XXX
 
     int keycode = event.GetKeyCode();
 
+#if wxCHECK_VERSION(2,8,0)
     int modifiers = event.GetModifiers();
+#else
+    int modifiers = wxPG_wxKeyEvent_GetModifiers(event);
+#endif
 
     wxASSERT( !(modifiers&~(0xFFFF)) );
 
@@ -9537,6 +9678,9 @@ void wxPropertyGrid::OnFocusEvent( wxFocusEvent& event )
 void wxPropertyGrid::OnChildFocusEvent( wxChildFocusEvent& event )
 {
     HandleFocusChange((wxWindow*)event.GetEventObject());
+#if !wxCHECK_VERSION(2,8,8)
+    event.Skip();
+#endif
 }
 
 // -----------------------------------------------------------------------
@@ -9629,7 +9773,7 @@ void wxPropertyGridInterface::NamesToProperties( wxArrayPGProperty* properties,
 // VariantDatas
 // ----------------------------------------------------------------------------
 
-#if !wxCHECK_VERSION(3, 0, 0)
+#if !wxCHECK_VERSION(2,9,0)
 IMPLEMENT_ABSTRACT_CLASS(wxPGVariantData, wxVariantData)
 #endif
 
@@ -9640,6 +9784,9 @@ WX_PG_IMPLEMENT_VARIANT_DATA(wxPGVariantDataLongLong, wxLongLong)
 WX_PG_IMPLEMENT_VARIANT_DATA(wxPGVariantDataULongLong, wxULongLong)
 
 WX_PG_IMPLEMENT_WXOBJECT_VARIANT_DATA_WITH_PROPER_EQ(wxPGVariantDataFont, wxFont)
+#if !wxCHECK_VERSION(2,8,0)
+    WX_PG_IMPLEMENT_WXOBJECT_VARIANT_DATA_WITH_PROPER_EQ(wxPGVariantDataColour, wxColour)
+#endif
 
 #ifdef __WXPYTHON__
 
@@ -9739,7 +9886,11 @@ wxObject* wxPG_VariantToWxObject( const wxVariant& variant, wxClassInfo* classIn
          return (wxObject*) pgvdata->GetValuePtr();
 
     if ( wxPGIsVariantClassInfo(wxPGVariantDataGetClassInfo(vdata), wxobject) )
+#if wxCHECK_VERSION(2,8,0)
         return variant.GetWxObjectPtr();
+#else
+        return ((wxVariant*)(&variant))->GetWxObjectPtr();
+#endif
 
     return (wxObject*) NULL;
 }
@@ -9759,7 +9910,7 @@ long wxPGVariantToInt( const wxVariant& variant, long defVal )
     if ( wxPGIsVariantType(variant, bool) )
         return variant.GetBool() ? 1 : 0;
 
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2,9,0)
     if ( typeid(*variant.GetData()) == typeid(wxPGVariantDataLongLong) )
 #else
     if ( wxPGVariantDataGetClassInfo(variant.GetData()) == &wxPGVariantDataLongLong::ms_classInfo )
@@ -9794,7 +9945,7 @@ bool wxPGVariantToLongLong( const wxVariant& variant, wxLongLong_t* pResult )
         return true;
     }
 
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2,9,0)
     if ( typeid(*variant.GetData()) == typeid(wxPGVariantDataLongLong) )
 #else
     if ( wxPGVariantDataGetClassInfo(variant.GetData()) == &wxPGVariantDataLongLong::ms_classInfo )
@@ -9820,7 +9971,7 @@ bool wxPGVariantToULongLong( const wxVariant& variant, wxULongLong_t* pResult )
         return true;
     }
 
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2,9,0)
     if ( typeid(*variant.GetData()) == typeid(wxPGVariantDataULongLong) )
 #else
     if ( wxPGVariantDataGetClassInfo(variant.GetData()) == &wxPGVariantDataULongLong::ms_classInfo )
@@ -9852,7 +10003,7 @@ bool wxPGVariantToDouble( const wxVariant& variant, double* pResult )
         return true;
     }
 
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2,9,0)
     if ( typeid(*variant.GetData()) == typeid(wxPGVariantDataLongLong) )
 #else
     if ( wxPGVariantDataGetClassInfo(variant.GetData()) == &wxPGVariantDataLongLong::ms_classInfo )
@@ -9879,7 +10030,7 @@ bool wxPGVariantToWxObjectPtr( const wxVariant& value, wxObject** result )
     if ( !vdata->GetValueClassInfo() )
         return false;
 
-    wxPGVariantData* pgvdata = wxDynamicCastVariantData(vdata, wxPGVariantData);
+	wxPGVariantData* pgvdata = wxDynamicCastVariantData(vdata, wxPGVariantData);
     if ( pgvdata )
     {
         *result = (wxObject*) pgvdata->GetValuePtr();
@@ -10233,7 +10384,7 @@ void wxPGChoices::Add( const wxArrayString& arr, const wxArrayInt& arrint )
     for ( i = 0; i < itemcount; i++ )
     {
         int value = wxPG_INVALID_VALUE;
-        if ( arrint.size() )
+        if ( &arrint && arrint.size() )
             value = arrint[i];
         m_data->Insert( -1, new wxPGChoiceEntry(arr[i], value) );
     }
@@ -10289,7 +10440,7 @@ wxArrayString wxPGChoices::GetLabels() const
     wxArrayString arr;
     unsigned int i;
 
-    if ( IsOk() )
+    if ( this && IsOk() )
         for ( i=0; i<GetCount(); i++ )
             arr.push_back(GetLabel(i));
 
@@ -11053,13 +11204,13 @@ wxString wxPropertyGridInterface::SaveEditableState( int includedStates ) const
     //
     // Save state on page basis
     size_t pageIndex = 0;
-    wxPropertyGridState* pageStateIdx = GetPageState(pageIndex);
+    wxPropertyGridState* pageState = GetPageState(pageIndex);
     wxArrayPtrVoid pageStates;
-    while ( pageStateIdx )
+    while ( pageState )
     {
-        pageStates.Add(pageStateIdx);
+        pageStates.Add(pageState);
         pageIndex += 1;
-        pageStateIdx = GetPageState(pageIndex);
+        pageState = GetPageState(pageIndex);
     }
 
     for ( pageIndex=0; pageIndex < pageStates.size(); pageIndex++ )
@@ -11092,10 +11243,9 @@ wxString wxPropertyGridInterface::SaveEditableState( int includedStates ) const
                 const wxPGProperty* p = it.GetProperty();
 
                 if ( !p->HasFlag(wxPG_PROP_COLLAPSED) )
-                {
                     result += EscapeDelimiters(p->GetName());
                     result += wxT(",");
-                }
+
             }
 
             if ( result.Last() == wxT(',') )

@@ -140,7 +140,11 @@ wxObject* wxsScrollingDialog::OnBuildPreview(wxWindow* Parent,long Flags)
             {
                 NewSize.SetDefaults(wxSize(400,450));
                 NewItem->SetSize(NewSize);
-                NewItem->SetInitialSize(NewSize);
+                #if wxCHECK_VERSION(2,8,0)
+                    NewItem->SetInitialSize(NewSize);
+                #else
+                    NewItem->SetBestFittingSize(NewSize);
+                #endif
                 if ( GetChildCount() == 1 )
                 {
                     // If there's only one child it's size gets dialog's size
@@ -154,7 +158,11 @@ wxObject* wxsScrollingDialog::OnBuildPreview(wxWindow* Parent,long Flags)
             else
             {
                 NewItem->SetSize(NewSize);
-                NewItem->SetInitialSize(NewSize);
+                #if wxCHECK_VERSION(2,8,0)
+                    NewItem->SetInitialSize(NewSize);
+                #else
+                    NewItem->SetBestFittingSize(NewSize);
+                #endif
             }
         }
     }
@@ -162,7 +170,7 @@ wxObject* wxsScrollingDialog::OnBuildPreview(wxWindow* Parent,long Flags)
     return NewItem;
 }
 
-void wxsScrollingDialog::OnEnumContainerProperties(cb_unused long Flags)
+void wxsScrollingDialog::OnEnumContainerProperties(long Flags)
 {
     WXS_SHORT_STRING(wxsScrollingDialog,Title,_("Title"),_T("title"),_T(""),false)
     WXS_BOOL(wxsScrollingDialog,Centered,_("Centered"),_T("centered"),false);

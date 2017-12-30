@@ -82,7 +82,6 @@ void wxsHyperlinkCtrl::OnBuildCreatingCode()
             return;
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsHyperlinkCtrl::OnBuildCreatingCode"),GetLanguage());
@@ -125,7 +124,7 @@ wxObject* wxsHyperlinkCtrl::OnBuildPreview(wxWindow* parent,long flags)
  * \return void
  *
  */
-void wxsHyperlinkCtrl::OnEnumWidgetProperties(cb_unused long Flags)
+void wxsHyperlinkCtrl::OnEnumWidgetProperties(long flags)
 {
     WXS_STRING(wxsHyperlinkCtrl,m_Label,_("Label"),_T("label"),_T(""),false)
     WXS_SHORT_STRING(wxsHyperlinkCtrl,m_URL,_("URL"),_T("url"),_T(""),false)

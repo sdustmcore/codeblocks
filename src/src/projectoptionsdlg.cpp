@@ -15,6 +15,7 @@
     #include "macrosmanager.h"
     #include "pluginmanager.h"
     #include "projectmanager.h"
+    #include "pluginmanager.h"
     #include "scriptingmanager.h"
     #include "compilerfactory.h"
     #include "globals.h"
@@ -32,6 +33,7 @@
     #include <wx/sizer.h>
     #include <wx/spinctrl.h>
     #include <wx/stattext.h>
+    #include <wx/textdlg.h>
     #include <wx/treectrl.h>
     #include <wx/xrc/xmlres.h>
 #endif
@@ -102,7 +104,6 @@ ProjectOptionsDlg::ProjectOptionsDlg(wxWindow* parent, cbProject* project)
     m_pCompiler(nullptr)
 {
     wxXmlResource::Get()->LoadObject(this, parent, _T("dlgProjectOptions"),_T("wxScrollingDialog"));
-    XRCCTRL(*this, "wxID_OK", wxButton)->SetDefault();
 
     wxCheckListBox* list = XRCCTRL(*this, "lstFiles", wxCheckListBox);
 
@@ -134,11 +135,10 @@ ProjectOptionsDlg::ProjectOptionsDlg(wxWindow* parent, cbProject* project)
     XRCCTRL(*this, "chkCheckFiles", wxCheckBox)->SetValue(m_Project->GetCheckForExternallyModifiedFiles());
 
     FillBuildTargets();
-    DoTargetChange(false);
 
-    m_pCompiler = Manager::Get()->GetPluginManager()->GetFirstCompiler();
-
-    XRCCTRL(*this, "txtNotes", wxTextCtrl)->Connect(wxEVT_KEY_DOWN,wxKeyEventHandler(ProjectOptionsDlg::OnKeyDown),nullptr,this);
+    PluginsArray plugins = Manager::Get()->GetPluginManager()->GetCompilerOffers();
+    if (plugins.GetCount())
+        m_pCompiler = (cbCompilerPlugin*)plugins[0];
 
     // scripts
     BuildScriptsTree();
@@ -160,21 +160,6 @@ ProjectOptionsDlg::ProjectOptionsDlg(wxWindow* parent, cbProject* project)
 ProjectOptionsDlg::~ProjectOptionsDlg()
 {
     // insert your code here
-    XRCCTRL(*this, "txtNotes", wxTextCtrl)->Disconnect(wxEVT_KEY_DOWN,wxKeyEventHandler(ProjectOptionsDlg::OnKeyDown),nullptr,this);
-}
-
-void ProjectOptionsDlg::OnKeyDown(wxKeyEvent& event)
-{
-    if (event.ControlDown())
-    {
-        if (event.GetKeyCode() == 'J')
-        {
-            wxString buffer = XRCCTRL(*this, "txtNotes", wxTextCtrl)->GetValue();
-            Manager::Get()->GetMacrosManager()->ReplaceMacros(buffer,nullptr);
-            XRCCTRL(*this, "txtNotes", wxTextCtrl)->SetValue(buffer);
-        }
-    }
-    event.Skip();
 }
 
 void ProjectOptionsDlg::BuildScriptsTree()
@@ -223,12 +208,13 @@ void ProjectOptionsDlg::FillScripts()
 
 void ProjectOptionsDlg::FillBuildTargets()
 {
-    // add build targets to list
+    // add build targets
     wxListBox* lstTargets = XRCCTRL(*this, "lstBuildTarget", wxListBox);
     lstTargets->Clear();
     for (int i = 0; i < m_Project->GetBuildTargetsCount(); ++i)
         lstTargets->Append(m_Project->GetBuildTarget(i)->GetTitle());
     lstTargets->SetSelection(0);
+    DoTargetChange(false);
 }
 
 void ProjectOptionsDlg::DoTargetChange(bool saveOld)
@@ -241,7 +227,7 @@ void ProjectOptionsDlg::DoTargetChange(bool saveOld)
     if (lstTargets->GetSelection() == -1)
         lstTargets->SetSelection(0);
     ProjectBuildTarget* target = m_Project->GetBuildTarget(lstTargets->GetSelection());
-    if (!target || m_Current_Sel == lstTargets->GetSelection())
+    if (!target)
         return;
 
     // global project options
@@ -578,23 +564,14 @@ void ProjectOptionsDlg::OnBuildOrderClick(cb_unused wxCommandEvent& event)
     for (int i = 0; i < m_Project->GetBuildTargetsCount(); ++i)
         array.Add(m_Project->GetBuildTarget(i)->GetTitle());
 
-    wxListBox* lstTargets = XRCCTRL(*this, "lstBuildTarget", wxListBox);
-    wxString ActiveTarget;
-    if (lstTargets->GetSelection() != wxNOT_FOUND)
-        ActiveTarget = lstTargets->GetString(lstTargets->GetSelection());
-
     EditArrayOrderDlg dlg(this, array);
     PlaceWindow(&dlg);
     if (dlg.ShowModal() == wxID_OK)
     {
+        DoBeforeTargetChange(); // save changes in current target
         m_Project->ReOrderTargets(dlg.GetArray());
+        m_Current_Sel = -1; // force no "save changes" for next call
         FillBuildTargets();
-        // Retrieve active target.
-        if (!ActiveTarget.IsEmpty())
-        {
-            m_Current_Sel = lstTargets->FindString(ActiveTarget, true);
-            lstTargets->SetSelection(m_Current_Sel);
-        }
 
         CodeBlocksEvent e(cbEVT_PROJECT_TARGETS_MODIFIED);
         e.SetProject(m_Project);
@@ -628,7 +605,7 @@ void ProjectOptionsDlg::OnTargetBuildOptionsClick(cb_unused wxCommandEvent& even
 
 void ProjectOptionsDlg::OnAddBuildTargetClick(cb_unused wxCommandEvent& event)
 {
-    wxString targetName = cbGetTextFromUser(_("Enter the new build target name:"),
+    wxString targetName = wxGetTextFromUser(_("Enter the new build target name:"),
                                             _("New build target"));
     if (!ValidateTargetName(targetName))
         return;
@@ -666,7 +643,7 @@ void ProjectOptionsDlg::OnEditBuildTargetClick(cb_unused wxCommandEvent& event)
     }
 
     wxString oldTargetName = target->GetTitle();
-    wxString newTargetName = cbGetTextFromUser(_("Change the build target name:"),
+    wxString newTargetName = wxGetTextFromUser(_("Change the build target name:"),
                                                _("Rename build target"),
                                               oldTargetName);
     if (newTargetName == oldTargetName || !ValidateTargetName(newTargetName))
@@ -694,7 +671,7 @@ void ProjectOptionsDlg::OnCopyBuildTargetClick(cb_unused wxCommandEvent& event)
         return;
     }
 
-    wxString newTargetName = cbGetTextFromUser(_("Enter the duplicated build target's name:"),
+    wxString newTargetName = wxGetTextFromUser(_("Enter the duplicated build target's name:"),
                                                _("Duplicate build target"),
                                               _("Copy of ") + target->GetTitle());
     if (!ValidateTargetName(newTargetName))
@@ -910,7 +887,7 @@ void ProjectOptionsDlg::OnFileToggleMarkClick(cb_unused wxCommandEvent& event)
 
 void ProjectOptionsDlg::OnFileMarkOnClick(cb_unused wxCommandEvent& event)
 {
-    wxString wildcard = cbGetTextFromUser(_("Select wildcard (file mask) to toggle on:"),
+    wxString wildcard = wxGetTextFromUser(_("Select wildcard (file mask) to toggle on:"),
                                           _("Select files"), _T("*.*"));
     if (wildcard.IsEmpty()) return; // user pressed Cancel
 
@@ -934,7 +911,7 @@ void ProjectOptionsDlg::OnFileMarkOnClick(cb_unused wxCommandEvent& event)
 
 void ProjectOptionsDlg::OnFileMarkOffClick(cb_unused wxCommandEvent& event)
 {
-    wxString wildcard = cbGetTextFromUser(_("Select wildcard (file mask) to toggle off:"),
+    wxString wildcard = wxGetTextFromUser(_("Select wildcard (file mask) to toggle off:"),
                                           _("Select files"), _T("*.*"));
     if (wildcard.IsEmpty()) return; // user pressed Cancel
 

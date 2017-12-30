@@ -186,7 +186,7 @@ void Abbreviations::OnEditAutoComplete(cb_unused wxCommandEvent& event)
     if (acm_it != acm.end())
     {
         DoAutoComplete(editor);
-    }
+	}
     else
     {
         wxArrayString items;
@@ -240,20 +240,20 @@ void Abbreviations::DoAutoComplete(cbEditor* ed)
 
     m_IsAutoCompVisible = false;
 
-    LogManager* logMan = Manager::Get()->GetLogManager();
+    LogManager* msgMan = Manager::Get()->GetLogManager();
     int curPos = control->GetCurrentPos();
     int wordStartPos = control->WordStartPosition(curPos, true);
     const int endPos = control->WordEndPosition(curPos, true);
     wxString keyword = control->GetTextRange(wordStartPos, endPos);
     wxString lineIndent = ed->GetLineIndentString(control->GetCurrentLine());
-    logMan->DebugLog(_T("Auto-complete keyword: ") + keyword);
+    msgMan->DebugLog(_T("Auto-complete keyword: ") + keyword);
 
     AutoCompleteMap* pAutoCompleteMap = GetCurrentACMap(ed);
     AutoCompleteMap::iterator it = pAutoCompleteMap->find(keyword);
     if (it != pAutoCompleteMap->end() )
     {
         // found; auto-complete it
-        logMan->DebugLog(_T("Auto-complete match for keyword found."));
+        msgMan->DebugLog(_T("Auto-complete match for keyword found."));
 
         // indent code accordingly
         wxString code = it->second;
@@ -274,8 +274,8 @@ void Abbreviations::DoAutoComplete(cbEditor* ed)
                 return; // no ending parenthesis
 
             wxString macroName = code.SubString(macroPos + 2, macroPosEnd - 1);
-            logMan->DebugLog(_T("Found macro: ") + macroName);
-            wxString macro = cbGetTextFromUser(_("Please enter the text for \"") + macroName + _T("\":"),
+            msgMan->DebugLog(_T("Found macro: ") + macroName);
+            wxString macro = wxGetTextFromUser(_("Please enter the text for \"") + macroName + _T("\":"),
                                                _("Macro substitution"));
             if (macro.IsEmpty())
                 return;

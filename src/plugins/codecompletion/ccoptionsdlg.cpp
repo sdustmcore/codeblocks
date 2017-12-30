@@ -132,27 +132,16 @@ CCOptionsDlg::CCOptionsDlg(wxWindow* parent, NativeParser* np, CodeCompletion* c
     XRCCTRL(*this, "chkCCFileExtEmpty",        wxCheckBox)->SetValue(cfg->ReadBool(_T("/empty_ext"), true));
     XRCCTRL(*this, "txtCCFileExtSource",       wxTextCtrl)->SetValue(cfg->Read(_T("/source_ext"),    _T("c,cpp,cxx,cc,c++")));
 
-    // Page "Symbol browser"
 #if wxCHECK_VERSION(3, 0, 0)
-    // Do not disable the whole page, since there are some toolbar related options
-    // we only need to disable the wxTreeCtrl related options.
-    XRCCTRL(*this, "chkNoSB",        wxCheckBox)->Disable();
-    XRCCTRL(*this, "chkInheritance", wxCheckBox)->Disable();
-    XRCCTRL(*this, "chkExpandNS",    wxCheckBox)->Disable();
-    XRCCTRL(*this, "chkFloatCB",     wxCheckBox)->Disable();
-    XRCCTRL(*this, "chkTreeMembers", wxCheckBox)->Disable();
+    wxPanel *symbolBrowser = XRCCTRL(*this, "tabBrowser", wxPanel);
+    if (symbolBrowser)
+        symbolBrowser->Enable(false);
 #else
+    // Page "Symbol browser"
     XRCCTRL(*this, "chkNoSB",        wxCheckBox)->SetValue(!cfg->ReadBool(_T("/use_symbols_browser"), true));
+    XRCCTRL(*this, "chkFloatCB",     wxCheckBox)->SetValue(cfg->ReadBool(_T("/as_floating_window"),   false));
+    XRCCTRL(*this, "chkScopeFilter", wxCheckBox)->SetValue(cfg->ReadBool(_T("/scope_filter"),         true));
 #endif // wxCHECK_VERSION
-    XRCCTRL(*this, "chkFloatCB",     wxCheckBox)->SetValue(cfg->ReadBool(_T("/as_floating_window"), false));
-
-    // The toolbar section
-    wxCheckBox *scopeFilter = XRCCTRL(*this, "chkScopeFilter", wxCheckBox);
-    scopeFilter->SetValue(cfg->ReadBool(_T("/scope_filter"), true));
-    wxSpinCtrl *spinScopeLength = XRCCTRL(*this, "spnChoiceScopeLength", wxSpinCtrl);
-    spinScopeLength->Enable(scopeFilter->GetValue());
-    spinScopeLength->SetValue(cfg->ReadInt(_T("/toolbar_scope_length"), 280));
-    XRCCTRL(*this, "spnChoiceFunctionLength", wxSpinCtrl)->SetValue(cfg->ReadInt(_T("/toolbar_function_length"), 660));
 
     // -----------------------------------------------------------------------
     // Handle all options that are being handled by m_Parser
@@ -245,12 +234,8 @@ void CCOptionsDlg::OnApply()
     cfg->Write(_T("/browser_expand_ns"),        (bool) XRCCTRL(*this, "chkExpandNS",    wxCheckBox)->GetValue());
     cfg->Write(_T("/as_floating_window"),       (bool) XRCCTRL(*this, "chkFloatCB",     wxCheckBox)->GetValue());
     cfg->Write(_T("/browser_tree_members"),     (bool) XRCCTRL(*this, "chkTreeMembers", wxCheckBox)->GetValue());
+    cfg->Write(_T("/scope_filter"),             (bool) XRCCTRL(*this, "chkScopeFilter", wxCheckBox)->GetValue());
 #endif // wxCHECK_VERSION
-
-    // The toolbar section
-    cfg->Write(_T("/scope_filter"), (bool) XRCCTRL(*this, "chkScopeFilter", wxCheckBox)->GetValue());
-    cfg->Write(_T("/toolbar_scope_length"), (int)XRCCTRL(*this, "spnChoiceScopeLength", wxSpinCtrl)->GetValue());
-    cfg->Write(_T("/toolbar_function_length"), (int)XRCCTRL(*this, "spnChoiceFunctionLength", wxSpinCtrl)->GetValue());
 
     // Page "Documentation"
     cfg->Write(_T("/use_documentation_helper"), (bool) XRCCTRL(*this, "chkDocumentation", wxCheckBox)->GetValue());
@@ -373,17 +358,12 @@ void CCOptionsDlg::OnUpdateUI(cb_unused wxUpdateUIEvent& event)
     XRCCTRL(*this, "txtCCFileExtSource",      wxTextCtrl)->Enable(en);
 
     // Page "Symbol browser"
-#if !wxCHECK_VERSION(3, 0, 0)
     en = !XRCCTRL(*this, "chkNoSB",           wxCheckBox)->GetValue();
     XRCCTRL(*this, "chkInheritance",          wxCheckBox)->Enable(en);
     XRCCTRL(*this, "chkExpandNS",             wxCheckBox)->Enable(en);
     XRCCTRL(*this, "chkFloatCB",              wxCheckBox)->Enable(en);
     XRCCTRL(*this, "chkTreeMembers",          wxCheckBox)->Enable(en);
-#endif // !wxCHECK_VERSION
-
-    // Toolbar section
-    wxCheckBox *scopeFilter = XRCCTRL(*this, "chkScopeFilter", wxCheckBox);
-    XRCCTRL(*this, "spnChoiceScopeLength", wxSpinCtrl)->Enable(scopeFilter->GetValue());
+    XRCCTRL(*this, "chkScopeFilter",          wxCheckBox)->Enable(en);
 
     // Page "Documentation"
     en = XRCCTRL(*this, "chkDocumentation",   wxCheckBox)->GetValue();

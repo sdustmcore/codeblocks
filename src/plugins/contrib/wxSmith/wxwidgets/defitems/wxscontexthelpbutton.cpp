@@ -71,7 +71,6 @@ void wxsContextHelpButton::OnBuildCreatingCode()
             return;
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsContextHelpButton::OnBuildCreatingCode"), GetLanguage());
@@ -99,6 +98,6 @@ wxObject* wxsContextHelpButton::OnBuildPreview(wxWindow* Parent,long Flags)
  * \return void
  *
  */
-void wxsContextHelpButton::OnEnumWidgetProperties(cb_unused long Flags)
+void wxsContextHelpButton::OnEnumWidgetProperties(long Flags)
 {
 }

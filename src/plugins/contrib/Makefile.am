@@ -1,157 +1,157 @@
 if BUILD_AUTOVERSIONING
-MAYBE_AUTOVERSIONING=AutoVersioning appdata
+MAYBE_AUTOVERSIONING=AutoVersioning
 endif
 
 if BUILD_BROWSETRACKER
-MAYBE_BROWSETRACKER=BrowseTracker appdata
+MAYBE_BROWSETRACKER=BrowseTracker
 endif
 
 if BUILD_BYOGAMES
-MAYBE_BYOGAMES=byogames appdata
+MAYBE_BYOGAMES=byogames
 endif
 
 if BUILD_CBKODERS
-MAYBE_CBKODERS=cb_koders appdata
+MAYBE_CBKODERS=cb_koders
 endif
 
 if BUILD_CODESNIPPETS
-MAYBE_CODESNIPPETS=codesnippets appdata
+MAYBE_CODESNIPPETS=codesnippets
 endif
 
 if BUILD_CODESTAT
-MAYBE_CODESTAT=codestat appdata
+MAYBE_CODESTAT=codestat
 endif
 
 if BUILD_COPYSTRINGS
-MAYBE_COPYSTRINGS=copystrings appdata
+MAYBE_COPYSTRINGS=copystrings
 endif
 
 if BUILD_CSCOPE
-MAYBE_CSCOPE=Cscope appdata
+MAYBE_CSCOPE=Cscope
 endif
 
 if BUILD_DOXYBLOCKS
-MAYBE_DOXYBLOCKS=DoxyBlocks appdata
+MAYBE_DOXYBLOCKS=DoxyBlocks
 endif
 
 if BUILD_DRAGSCROLL
-MAYBE_DRAGSCROLL=dragscroll appdata
+MAYBE_DRAGSCROLL=dragscroll
 endif
 
 if BUILD_EDITORCONFIG
-MAYBE_EDITORCONFIG=EditorConfig appdata
+MAYBE_EDITORCONFIG=EditorConfig
 endif
 
 if BUILD_EDITORTWEAKS
-MAYBE_EDITORTWEAKS=EditorTweaks appdata
+MAYBE_EDITORTWEAKS=EditorTweaks
 endif
 
 if BUILD_ENVVARS
-MAYBE_ENVVARS=envvars appdata
+MAYBE_ENVVARS=envvars
 endif
 
 if BUILD_FILEMANAGER
-MAYBE_FILEMANAGER=FileManager appdata
+MAYBE_FILEMANAGER=FileManager
 endif
 
 if BUILD_HELP
-MAYBE_HELP=help_plugin appdata
+MAYBE_HELP=help_plugin
 endif
 
 if BUILD_HEADERFIXUP
-MAYBE_HEADERFIXUP=headerfixup appdata
+MAYBE_HEADERFIXUP=headerfixup
 endif
 
 if BUILD_KEYBINDER
-MAYBE_KEYBINDER=keybinder appdata
+MAYBE_KEYBINDER=keybinder
 endif
 
 if BUILD_LIBFINDER
-MAYBE_LIBFINDER=wxContribItems lib_finder appdata
+MAYBE_LIBFINDER=wxContribItems lib_finder
 endif
 
 if BUILD_PROFILER
-MAYBE_PROFILER=profiler appdata
+MAYBE_PROFILER=profiler
 endif
 
 if BUILD_PROJECTOPTIONSMANIPULATOR
-MAYBE_PROJECTOPTIONSMANIPULATOR=ProjectOptionsManipulator appdata
+MAYBE_PROJECTOPTIONSMANIPULATOR=ProjectOptionsManipulator
 endif
 
 if BUILD_REGEX
-MAYBE_REGEX=regex_testbed appdata
+MAYBE_REGEX=regex_testbed
 endif
 
 if BUILD_REOPENEDITOR
-MAYBE_REOPENEDITOR=ReopenEditor appdata
+MAYBE_REOPENEDITOR=ReopenEditor
 endif
 
 if BUILD_EXPORTER
-MAYBE_EXPORTER=source_exporter appdata
+MAYBE_EXPORTER=source_exporter
 endif
 
 if BUILD_SMARTINDENT
-MAYBE_SMARTINDENT=SmartIndent appdata
+MAYBE_SMARTINDENT=SmartIndent
 endif
 
 if BUILD_SPELLCHECKER
-MAYBE_SPELLCHECKER=SpellChecker appdata
+MAYBE_SPELLCHECKER=SpellChecker
 endif
 
 if BUILD_SYMTAB
-MAYBE_SYMTAB=symtab appdata
+MAYBE_SYMTAB=symtab
 endif
 
 if BUILD_THREADSEARCH
-MAYBE_THREADSEARCH=wxContribItems ThreadSearch appdata
+MAYBE_THREADSEARCH=wxContribItems ThreadSearch
 endif
 
 if BUILD_TOOLSPLUS
-MAYBE_TOOLSPLUS=ToolsPlus appdata
+MAYBE_TOOLSPLUS=ToolsPlus
 endif
 
 if BUILD_VALGRIND
-MAYBE_VALGRIND=Valgrind appdata
+MAYBE_VALGRIND=Valgrind
 endif
 
 if BUILD_WXCONTRIB
-MAYBE_WXCONTRIB=wxContribItems appdata
+MAYBE_WXCONTRIB=wxContribItems
 endif
 
 if BUILD_WXSMITH
-MAYBE_WXSMITH=wxSmith appdata
+MAYBE_WXSMITH=wxSmith
 endif
 
 if BUILD_WXSMITHCONTRIB
-MAYBE_WXSMITHCONTRIB=wxSmith wxContribItems wxSmithContribItems appdata
+MAYBE_WXSMITHCONTRIB=wxSmith wxContribItems wxSmithContribItems
 endif
 
 if BUILD_WXSMITHAUI
-MAYBE_WXSMITHAUI=wxSmith wxSmithAui appdata
+MAYBE_WXSMITHAUI=wxSmith wxSmithAui
 endif
 
 if BUILD_HEXEDITOR
-MAYBE_HEXEDITOR=HexEditor appdata
+MAYBE_HEXEDITOR=HexEditor
 endif
 
 if BUILD_INCSEARCH
-MAYBE_INCSEARCH=IncrementalSearch appdata
+MAYBE_INCSEARCH=IncrementalSearch
 endif
 
 if BUILD_MOUSESAP
-MAYBE_MOUSESAP=MouseSap appdata
+MAYBE_MOUSESAP=MouseSap
 endif
 
 if BUILD_NASSISHNEIDERMAN
-MAYBE_NASSISHNEIDERMAN=NassiShneiderman appdata
+MAYBE_NASSISHNEIDERMAN=NassiShneiderman
 endif
 
 if BUILD_CCCC
-MAYBE_CCCC=Cccc appdata
+MAYBE_CCCC=Cccc
 endif
 
 if BUILD_CPPCHECK
-MAYBE_CPPCHECK=CppCheck appdata
+MAYBE_CPPCHECK=CppCheck
 endif
 
 SUBDIRS = $(MAYBE_AUTOVERSIONING) \
@@ -194,8 +194,7 @@ SUBDIRS = $(MAYBE_AUTOVERSIONING) \
 		$(MAYBE_WXSMITHCONTRIB) \
 		$(MAYBE_WXSMITHAUI)
 
-DIST_SUBDIRS = appdata \
-		AutoVersioning \
+DIST_SUBDIRS = AutoVersioning \
 		BrowseTracker \
 		byogames \
 		cb_koders \
@@ -235,6 +234,7 @@ DIST_SUBDIRS = appdata \
 		wxSmith \
 		wxSmithContribItems \
 		wxSmithAui \
+		wxSmithDateTimePicker \
 		wxSmithDemo \
 		wxSmithIExplore \
 		wxSmithSTC

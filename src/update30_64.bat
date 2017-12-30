@@ -44,7 +44,7 @@ echo Compressing core UI resources
 %ZIPCMD% -jqu9 %CB_DEVEL_RESDIR%\manager_resources.zip sdk\resources\*.xrc sdk\resources\images\*.png > nul
 %ZIPCMD% -jqu9 %CB_DEVEL_RESDIR%\start_here.zip src\resources\start_here\*.html src\resources\start_here\*.png > nul
 echo Compressing plugins UI resources
-%ZIPCMD% -jqu9 %CB_DEVEL_RESDIR%\Astyle.zip plugins\astyle\resources\manifest.xml plugins\astyle\resources\*.xrc > nul
+%ZIPCMD% -jqu9 %CB_DEVEL_RESDIR%\astyle.zip plugins\astyle\resources\manifest.xml plugins\astyle\resources\*.xrc > nul
 %ZIPCMD% -jqu9 %CB_DEVEL_RESDIR%\autosave.zip plugins\autosave\manifest.xml plugins\autosave\*.xrc > nul
 %ZIPCMD% -jqu9 %CB_DEVEL_RESDIR%\classwizard.zip plugins\classwizard\resources\manifest.xml plugins\classwizard\resources\*.xrc > nul
 %ZIPCMD% -jqu9 %CB_DEVEL_RESDIR%\codecompletion.zip plugins\codecompletion\resources\manifest.xml plugins\codecompletion\resources\*.xrc > nul
@@ -87,12 +87,14 @@ xcopy /D /y plugins\compilergcc\resources\compilers\*.xml %CB_OUTPUT_RESDIR%\com
 echo Makefile.am >  excludes30_64.txt
 echo Makefile.in >> excludes30_64.txt
 echo \.svn\      >> excludes30_64.txt
+echo *.gdb       >> excludes30_64.txt
 xcopy /D /y /s plugins\scriptedwizard\resources\* %CB_DEVEL_RESDIR%\templates\wizard /EXCLUDE:excludes30_64.txt >nul
 xcopy /D /y /s plugins\scriptedwizard\resources\* %CB_OUTPUT_RESDIR%\templates\wizard /EXCLUDE:excludes30_64.txt >nul
 xcopy /D /y templates\common\* %CB_OUTPUT_RESDIR%\templates /EXCLUDE:excludes30_64.txt > nul
 xcopy /D /y templates\win32\* %CB_OUTPUT_RESDIR%\templates /EXCLUDE:excludes30_64.txt > nul
 xcopy /D /y templates\common\* %CB_DEVEL_RESDIR%\templates /EXCLUDE:excludes30_64.txt > nul
 xcopy /D /y templates\win32\* %CB_DEVEL_RESDIR%\templates /EXCLUDE:excludes30_64.txt > nul
+xcopy /D /y scripts\*.gdb %CB_OUTPUT_RESDIR% > nul
 xcopy /D /y scripts\* %CB_DEVEL_RESDIR%\scripts /EXCLUDE:excludes30_64.txt > nul
 xcopy /D /y scripts\* %CB_OUTPUT_RESDIR%\scripts /EXCLUDE:excludes30_64.txt > nul
 xcopy /D /y scripts\tests\* %CB_DEVEL_RESDIR%\scripts\tests /EXCLUDE:excludes30_64.txt > nul
@@ -100,7 +102,6 @@ xcopy /D /y scripts\tests\* %CB_OUTPUT_RESDIR%\scripts\tests /EXCLUDE:excludes30
 del excludes30_64.txt
 xcopy /D /y tips.txt %CB_DEVEL_RESDIR% > nul
 xcopy /D /y tips.txt %CB_OUTPUT_RESDIR% > nul
-echo Synching files between devel and output folder
 xcopy /D /y tools\ConsoleRunner\cb_console_runner30_64.exe devel30_64 > nul
 xcopy /D /y tools\ConsoleRunner\cb_console_runner30_64.exe output30_64 > nul
 if exist devel30_64\cb_console_runner.exe del devel30_64\cb_console_runner.exe > nul
@@ -111,13 +112,12 @@ xcopy /D /y devel30_64\*.exe output30_64 > nul
 xcopy /D /y devel30_64\*.dll output30_64 > nul
 xcopy /D /y %CB_DEVEL_RESDIR%\plugins\*.dll %CB_OUTPUT_RESDIR%\plugins > nul
 
-echo Stripping debug info from output30_64 tree
+echo Stripping debug info from output tree
 strip output30_64\*.exe
 strip output30_64\*.dll
 strip %CB_OUTPUT_RESDIR%\plugins\*.dll
 
 REM Copy these files later as stripping symbols would corrupt them
-echo Copying crash handler files
 xcopy /y exchndl\win64\bin\*.dll devel30_64  > nul
 xcopy /y exchndl\win64\bin\*.yes devel30_64  > nul
 xcopy /y exchndl\win64\bin\*.dll output30_64 > nul

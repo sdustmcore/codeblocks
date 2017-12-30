@@ -28,7 +28,7 @@ namespace
 
     WXS_ST_BEGIN(wxsTextCtrlStyles,_T(""))
         WXS_ST(wxTE_NO_VSCROLL)
-#if !wxCHECK_VERSION(3, 0, 0)
+#if !wxCHECK_VERSION(2, 9, 0)
         WXS_ST(wxTE_AUTO_SCROLL)
 #endif
         WXS_ST(wxTE_PROCESS_ENTER)
@@ -81,7 +81,6 @@ void wxsTextCtrl::OnBuildCreatingCode()
             return;
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsTextCtrl::OnBuildCreatingCode"),GetLanguage());
@@ -95,7 +94,7 @@ wxObject* wxsTextCtrl::OnBuildPreview(wxWindow* Parent,long Flags)
     return SetupWindow(Preview,Flags);
 }
 
-void wxsTextCtrl::OnEnumWidgetProperties(cb_unused long Flags)
+void wxsTextCtrl::OnEnumWidgetProperties(long Flags)
 {
     WXS_STRING(wxsTextCtrl,Text,_("Text"),_T("value"),_T(""),false)
     WXS_LONG(wxsTextCtrl,MaxLength,_("Max Length"),_T("maxlength"),0)

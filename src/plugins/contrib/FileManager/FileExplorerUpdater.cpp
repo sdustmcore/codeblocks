@@ -131,7 +131,7 @@ void Updater::ReadStream(bool all)
     wxStopWatch sw;
     while(m_exec_proc->IsInputAvailable())
     {
-        int c = 0;
+        int c;
         if (m_exec_stream->CanRead())
             c = m_exec_stream->GetC();
         if (m_exec_stream->LastRead()>0)
@@ -342,10 +342,10 @@ bool FileExplorerUpdater::GetCurrentState(const wxString &path)
 //            else
 //            itemstate=fvsNormal;
             wxFileName fn(path,filename);
-
+#if wxCHECK_VERSION(2,8,0)
             if (!fn.IsFileWritable())
                 itemstate=fvsReadOnly;
-
+#endif
             for(size_t i=0;i<sa.GetCount();i++)
             {
                 if (fn.GetFullPath() == sa[i].path || fn.SameAs(sa[i].path))

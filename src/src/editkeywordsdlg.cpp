@@ -10,7 +10,6 @@
 #include <sdk.h>
 
 #ifndef CB_PRECOMP
-    #include <wx/button.h>
     #include <wx/intl.h>
     #include <wx/xrc/xmlres.h>
     #include <wx/spinctrl.h>
@@ -33,7 +32,6 @@ EditKeywordsDlg::EditKeywordsDlg(wxWindow* parent, EditorColourSet* theme, Highl
 {
     //ctor
     wxXmlResource::Get()->LoadObject(this, parent, _T("dlgEditLangKeywords"),_T("wxScrollingDialog"));
-    XRCCTRL(*this, "wxID_OK", wxButton)->SetDefault();
 
     spnSet      = XRCCTRL(*this, "spnSet",      wxSpinCtrl);
     txtKeywords = XRCCTRL(*this, "txtKeywords", wxTextCtrl);

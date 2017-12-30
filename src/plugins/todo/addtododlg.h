@@ -36,8 +36,8 @@ enum ToDoCommentType
 class AddTodoDlg : public wxScrollingDialog
 {
     public:
-        AddTodoDlg(wxWindow* parent, const wxArrayString& users, const wxArrayString& types, std::bitset<(int)tdctError+1> supportedTdcts);
-        virtual ~AddTodoDlg() {};
+        AddTodoDlg(wxWindow* parent, wxArrayString users, wxArrayString types, std::bitset<(int)tdctError+1> supportedTdcts);
+        ~AddTodoDlg();
 
         wxString GetText() const;
         wxString GetUser() const;
@@ -48,13 +48,14 @@ class AddTodoDlg : public wxScrollingDialog
         ToDoCommentType GetCommentType() const;
 
         void EndModal(int retVal);
-
     private:
-        void OnAddUser(wxCommandEvent&);
-        void OnDelUser(wxCommandEvent&);
-        void OnAddType(wxCommandEvent&);
-        void OnDelType(wxCommandEvent&);
+        void OnAddUser(wxCommandEvent& event);
+        void OnDelUser(wxCommandEvent& event);
+        void OnAddType(wxCommandEvent& event);
+        void OnDelType(wxCommandEvent& event);
 
+        wxArrayString m_Users;
+        wxArrayString m_Types;
         std::bitset<(int)tdctError+1> m_supportedTdcts;
         DECLARE_EVENT_TABLE()
 };

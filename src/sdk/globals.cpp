@@ -10,7 +10,6 @@
 #include "sdk_precomp.h"
 
 #ifndef CB_PRECOMP
-    #include <wx/choicdlg.h>
     #include <wx/file.h>
     #include <wx/filename.h>
     #include <wx/filesys.h>
@@ -18,7 +17,6 @@
     #include <wx/imaglist.h>
     #include <wx/listctrl.h>
     #include <wx/menu.h>
-    #include <wx/textdlg.h>
 
     #include "wx/wxscintilla.h"
 
@@ -31,7 +29,7 @@
     #include "projectmanager.h"
 #endif
 
-#include <tinyxml.h>
+#include "tinyxml/tinyxml.h"
 
 #include <wx/dirdlg.h>
 #include <wx/display.h>
@@ -44,7 +42,7 @@
 #include <string>
 
 #include "filefilters.h"
-#include "tinywxuni.h"
+#include "tinyxml/tinywxuni.h"
 #include "filegroupsandmasks.h"
 
 #ifndef __WXMSW__
@@ -58,17 +56,9 @@ const wxString DEFAULT_ARRAY_SEP     = _T(";");
 #ifndef __WXMAC__
 const wxString DEFAULT_CONSOLE_TERM  = _T("xterm -T $TITLE -e");
 #else
-const wxString DEFAULT_CONSOLE_TERM  = _T("osascript -e 'tell app \"Terminal\"' -e 'activate' -e 'do script quoted form of \"$SCRIPT\"' -e 'end tell'");
+const wxString DEFAULT_CONSOLE_TERM  = _T("osascript -e 'tell app \"Terminal\"' -e 'activate' -e 'do script \"$SCRIPT\"' -e 'end tell'");
 #endif
 const wxString DEFAULT_CONSOLE_SHELL = _T("/bin/sh -c");
-
-#if defined __WXMSW__
-const wxString cbDEFAULT_OPEN_FOLDER_CMD = _T("explorer.exe /select,");
-#elif defined __WXMAC__
-const wxString cbDEFAULT_OPEN_FOLDER_CMD = _T("open -R");
-#else
-const wxString cbDEFAULT_OPEN_FOLDER_CMD = _T("xdg-open");
-#endif
 
 int GetPlatformsFromString(const wxString& platforms)
 {
@@ -198,7 +188,7 @@ wxStringVec GetVectorFromString(const wxString& text, const wxString& separator,
 wxArrayString MakeUniqueArray(const wxArrayString& array, bool caseSens)
 {
     wxArrayString out;
-    for (size_t i = 0; i < array.GetCount(); ++i)
+    for (unsigned int i = 0; i < array.GetCount(); ++i)
     {
         if (caseSens)
         {
@@ -221,7 +211,7 @@ wxString MakeUniqueString(const wxString& text, const wxString& separator, bool 
 
 void AppendArray(const wxArrayString& from, wxArrayString& to)
 {
-    for (size_t i = 0; i < from.GetCount(); ++i)
+    for (unsigned int i = 0; i < from.GetCount(); ++i)
         to.Add(from[i]);
 }
 
@@ -307,11 +297,6 @@ FileType FileTypeOf(const wxString& filename)
         ext.IsSameAs(FileFilters::JAVA_EXT)
        )
         return ftSource;
-
-    else if (ext.IsSameAs(FileFilters::TPP_EXT) ||
-             ext.IsSameAs(FileFilters::TCC_EXT)
-            )
-        return ftTemplateSource;
 
     else if (ext.IsSameAs(FileFilters::H_EXT) ||
              ext.IsSameAs(FileFilters::HH_EXT) ||
@@ -989,64 +974,6 @@ bool IsSuffixOfPath(wxFileName const & suffix, wxFileName const & path)
     return true;
 }
 
-bool cbResolveSymLinkedDirPath(wxString& dirpath)
-{
-#ifdef _WIN32
-    return false;
-#else
-    if (dirpath.Last() == wxFILE_SEP_PATH)
-        dirpath.RemoveLast();
-
-    struct stat fileStats;
-    if (lstat(dirpath.mb_str(wxConvUTF8), &fileStats) != 0)
-        return false;
-
-    // If the path is a symbolic link, then try to resolve it.
-    // This is needed to prevent infinite loops, when a folder is pointing to itself or its parent folder.
-    if (S_ISLNK(fileStats.st_mode))
-    {
-        char buffer[4096];
-        int result = readlink(dirpath.mb_str(wxConvUTF8), buffer, WXSIZEOF(buffer) - 1);
-        if (result != -1)
-        {
-            buffer[result] = '\0'; // readlink() doesn't NUL-terminate the buffer
-            wxString pathStr(buffer, wxConvUTF8);
-            wxFileName fileName = wxFileName::DirName(pathStr);
-
-            // If this is a relative symbolic link, we need to make it absolute.
-            if (!fileName.IsAbsolute())
-            {
-                wxFileName dirNamePath;
-                if (dirpath.Last() == wxFILE_SEP_PATH)
-                    dirNamePath = wxFileName::DirName(dirpath);
-                else
-                    dirNamePath = wxFileName::DirName(dirpath + wxFILE_SEP_PATH);
-                dirNamePath.RemoveLastDir();
-                // Make the new filename absolute relative to the parent folder.
-                fileName.MakeAbsolute(dirNamePath.GetFullPath());
-            }
-
-            wxString fullPath = fileName.GetFullPath();
-            if (fullPath.Last() == wxT('.')) // this case should be handled because of a bug in wxWidgets
-                fullPath.RemoveLast();
-            if (fullPath.Last() == wxFILE_SEP_PATH)
-                fullPath.RemoveLast();
-            dirpath = fullPath;
-            return true;
-        }
-    }
-
-    return false;
-#endif // _WIN32
-}
-
-wxString cbResolveSymLinkedDirPathRecursive(wxString dirpath)
-{
-    while (cbResolveSymLinkedDirPath(dirpath))
-        ;
-    return dirpath;
-}
-
 // function to check the common controls version
 #ifdef __WXMSW__
 #include <windows.h>
@@ -1116,7 +1043,7 @@ void SetSettingsIconsStyle(wxListCtrl* lc, SettingsIconsStyle style)
     long flags = lc->GetWindowStyleFlag();
     switch (style)
     {
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2, 9, 0)
         case sisNoIcons: flags = (flags & ~wxLC_MASK_TYPE) | wxLC_LIST; break;
 #else
         case sisNoIcons: flags = (flags & ~wxLC_MASK_TYPE) | wxLC_SMALL_ICON; break;
@@ -1409,65 +1336,6 @@ int cbMessageBox(const wxString& message, const wxString& caption, int style, wx
     // wxMessage*Dialog* returns any of wxID_OK, wxID_CANCEL, wxID_YES, wxID_NO
     return dlg.ShowModal();
 }
-
-DLLIMPORT int cbGetSingleChoiceIndex(const wxString& message, const wxString& caption,
-                                     const wxArrayString& choices, wxWindow *parent,
-                                     const wxSize &size, int initialSelection)
-{
-    if (!parent)
-        parent = Manager::Get()->GetAppWindow();
-
-    wxSingleChoiceDialog dialog(parent, message, caption, choices);
-    dialog.SetSelection(initialSelection);
-    dialog.SetSize(size);
-    PlaceWindow(&dialog);
-    return (dialog.ShowModal() == wxID_OK ? dialog.GetSelection() : -1);
-}
-
-DLLIMPORT wxArrayInt cbGetMultiChoiceDialog(const wxString& message, const wxString& caption,
-                                     const wxArrayString& choices, wxWindow *parent,
-                                     const wxSize& size, const wxArrayInt& initialSelection)
-{
-    if (!parent)
-        parent = Manager::Get()->GetAppWindow();
-
-    wxMultiChoiceDialog dialog(parent, message, caption, choices);
-    dialog.SetSelections(initialSelection);
-    dialog.SetSize(size);
-    PlaceWindow(&dialog);
-
-    if (dialog.ShowModal() == wxID_OK)
-        return dialog.GetSelections();
-    else
-        return wxArrayInt();
-}
-
-#if wxCHECK_VERSION(3, 0, 0)
-const char* cbGetTextFromUserPromptStr = wxGetTextFromUserPromptStr;
-#else
-const wxChar* cbGetTextFromUserPromptStr = wxGetTextFromUserPromptStr;
-#endif // wxCHECK_VERSION
-
-wxString cbGetTextFromUser(const wxString& message, const wxString& caption, const wxString& defaultValue,
-                           wxWindow *parent, wxCoord x, wxCoord y, bool centre)
-{
-    if (!parent)
-        parent = Manager::Get()->GetAppWindow();
-
-    long style = wxTextEntryDialogStyle;
-    if (centre)
-        style |= wxCENTRE;
-    else
-        style &= ~wxCENTRE;
-
-    wxTextEntryDialog dialog(parent, message, caption, defaultValue, style, wxPoint(x, y));
-    PlaceWindow(&dialog);
-    wxString str;
-    if (dialog.ShowModal() == wxID_OK)
-        str = dialog.GetValue();
-    return str;
-}
-
 
 wxImageList* cbProjectTreeImages::MakeImageList()
 {

@@ -517,7 +517,6 @@ const int idBookmarks = wxNewId();
 const int idBookmarksToggle = wxNewId();
 const int idBookmarksPrevious = wxNewId();
 const int idBookmarksNext = wxNewId();
-const int idBookmarksClearAll = wxNewId();
 const int idFolding = wxNewId();
 const int idFoldingFoldAll = wxNewId();
 const int idFoldingUnfoldAll = wxNewId();
@@ -565,7 +564,6 @@ BEGIN_EVENT_TABLE(cbEditor, EditorBase)
     EVT_MENU(idBookmarksToggle, cbEditor::OnContextMenuEntry)
     EVT_MENU(idBookmarksPrevious, cbEditor::OnContextMenuEntry)
     EVT_MENU(idBookmarksNext, cbEditor::OnContextMenuEntry)
-    EVT_MENU(idBookmarksClearAll, cbEditor::OnContextMenuEntry)
     EVT_MENU(idFoldingFoldAll, cbEditor::OnContextMenuEntry)
     EVT_MENU(idFoldingUnfoldAll, cbEditor::OnContextMenuEntry)
     EVT_MENU(idFoldingToggleAll, cbEditor::OnContextMenuEntry)
@@ -1007,11 +1005,8 @@ cbStyledTextCtrl* cbEditor::CreateEditor()
     cbStyledTextCtrl* control = new cbStyledTextCtrl(this, wxNewId(), wxDefaultPosition, size);
     control->UsePopUp(false);
 
-    ConfigManager *config = Manager::Get()->GetConfigManager(_T("editor"));
-    wxString encodingName = config->Read(_T("/default_encoding"), wxEmptyString);
-    m_pData->m_encoding = wxFontMapper::GetEncodingFromName(encodingName);
-    if (m_pData->m_encoding == wxFONTENCODING_MAX && encodingName == wxT("default"))
-        m_pData->m_encoding = wxFont::GetDefaultEncoding();
+    m_pData->m_encoding = wxFontMapper::GetEncodingFromName(
+        Manager::Get()->GetConfigManager(_T("editor"))->Read(_T("/default_encoding"), wxEmptyString) );
 
     for (int marker = 0 ; marker <= wxSCI_MARKNUM_LASTUNUSED ; ++marker)
         control->MarkerDefine(marker, wxSCI_MARK_EMPTY);
@@ -1136,13 +1131,13 @@ void cbEditor::Split(cbEditor::SplitType split)
     m_pControl2->SetDocPointer(m_pControl->GetDocPointer());
 
     // on wxGTK > 2.9 we need to thaw before reparent and refreeze the editor here or the whole app stays frozen
-    #if defined ( __WXGTK__ ) && wxCHECK_VERSION(3, 0, 0)
+    #if defined ( __WXGTK__ ) && wxCHECK_VERSION(2, 9, 0)
     Thaw();
     #endif
     // parent both controls under the splitter
     m_pControl->Reparent(m_pSplitter);
     m_pControl2->Reparent(m_pSplitter);
-    #if defined ( __WXGTK__ ) && wxCHECK_VERSION(3, 0, 0)
+    #if defined ( __WXGTK__ ) && wxCHECK_VERSION(2, 9, 0)
     Freeze();
     #endif
 
@@ -1202,12 +1197,12 @@ void cbEditor::Unsplit()
     m_pSizer->Detach(m_pSplitter);
 
     // on wxGTK > 2.9 we need to thaw before reparent and refreeze the editor here or the whole app stays frozen
-    #if defined ( __WXGTK__ ) && wxCHECK_VERSION(3, 0, 0)
+    #if defined ( __WXGTK__ ) && wxCHECK_VERSION(2, 9, 0)
     Thaw();
     #endif
     // parent the left control under this
     m_pControl->Reparent(this);
-    #if defined ( __WXGTK__ ) && wxCHECK_VERSION(3, 0, 0)
+    #if defined ( __WXGTK__ ) && wxCHECK_VERSION(2, 9, 0)
     Freeze();
     #endif
     // add it in the sizer
@@ -1843,13 +1838,12 @@ bool cbEditor::SaveAs()
     if (mgr && Path.IsEmpty())
         Path = mgr->Read(_T("/file_dialogs/save_file_as/directory"), Path);
 
-    wxFileDialog dlg(Manager::Get()->GetAppWindow(), _("Save file"), Path, fname.GetFullName(),
-                     wxEmptyString, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    // Initialize the wildcards here. If we do it in the wxFileDialog constructor it will detect
-    // that our file name doesn't have extension and it will try to add one. It doens't have a
-    // correct value for the filter index we want, so it uses the first one which is ads for Ada
-    // files. This is happening only on wxGTK.
-    dlg.SetWildcard(Filters);
+    wxFileDialog dlg(Manager::Get()->GetAppWindow(),
+                                         _("Save file"),
+                                         Path,
+                                         fname.GetFullName(),
+                                         Filters,
+                                         wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     dlg.SetFilterIndex(StoredIndex);
     PlaceWindow(&dlg);
     if (dlg.ShowModal() != wxID_OK)
@@ -2349,12 +2343,6 @@ void cbEditor::GotoPreviousBookmark()
     MarkerPrevious(BOOKMARK_MARKER);
 }
 
-void cbEditor::ClearAllBookmarks()
-{
-    cbStyledTextCtrl* control = GetControl();
-    control->MarkerDeleteAll(BOOKMARK_MARKER);
-}
-
 void cbEditor::SetDebugLine(int line)
 {
     MarkLine(DEBUG_MARKER, line);
@@ -2509,17 +2497,6 @@ void cbEditor::MarkerNext(int marker)
 {
     int line = GetControl()->GetCurrentLine() + 1;
     int newLine = GetControl()->MarkerNext(line, 1 << marker);
-
-    // Start from beginning if at last marker.
-    if (newLine == -1)
-    {
-        line = 0;
-        newLine = GetControl()->MarkerNext(line, 1 << marker);
-
-        if (newLine != -1)
-            InfoWindow::Display(_("Find bookmark action"), _("Reached the end of the document"), 1000);
-    }
-
     if (newLine != -1)
         GotoLine(newLine);
 }
@@ -2528,17 +2505,6 @@ void cbEditor::MarkerPrevious(int marker)
 {
     int line = GetControl()->GetCurrentLine() - 1;
     int newLine = GetControl()->MarkerPrevious(line, 1 << marker);
-
-    // Back to last one if at first marker.
-    if (newLine == -1)
-    {
-        line = GetControl()->GetLineCount();
-        newLine = GetControl()->MarkerPrevious(line, 1 << marker);
-
-        if (newLine != -1)
-            InfoWindow::Display(_("Find bookmark action"), _("Reached the end of the document"), 1000);
-    }
-
     if (newLine != -1)
         GotoLine(newLine);
 }
@@ -2742,7 +2708,6 @@ wxMenu* cbEditor::CreateContextSubMenu(long id)
         menu->Append(idBookmarksToggle, _("Toggle bookmark"));
         menu->Append(idBookmarksPrevious, _("Goto previous bookmark"));
         menu->Append(idBookmarksNext, _("Goto next bookmark"));
-        menu->Append(idBookmarksClearAll, _("Clear all bookmarks"));
     }
     else if (id == idFolding)
     {
@@ -2802,8 +2767,8 @@ void cbEditor::AddToContextMenu(wxMenu* popup,ModuleType type,bool pluginsdone)
         }
 
         wxMenu* splitMenu = new wxMenu;
-        splitMenu->Append(idSplitHorz, _("Horizontally (top-bottom)"));
-        splitMenu->Append(idSplitVert, _("Vertically (left-right)"));
+        splitMenu->Append(idSplitHorz, _("Horizontally"));
+        splitMenu->Append(idSplitVert, _("Vertically"));
         splitMenu->AppendSeparator();
         splitMenu->Append(idUnsplit, _("Unsplit"));
         // enable/disable entries accordingly
@@ -2941,50 +2906,41 @@ void cbEditor::OnAfterBuildContextMenu(cb_unused ModuleType type)
 
 void cbEditor::Print(bool selectionOnly, PrintColourMode pcm, bool line_numbers)
 {
-    cbStyledTextCtrl * control = GetControl();
-    if (!control)
-        return;
-
-    // Remember same settings, so we can restore them.
-    int oldMarginWidth = control->GetMarginWidth(C_LINE_MARGIN);
-    int oldMarginType = control->GetMarginType(C_LINE_MARGIN);
-    int oldEdgeMode = control->GetEdgeMode();
-
     // print line numbers?
-    control->SetMarginType(C_LINE_MARGIN, wxSCI_MARGIN_NUMBER);
+    m_pControl->SetMarginType(C_LINE_MARGIN, wxSCI_MARGIN_NUMBER);
     if (!line_numbers)
     {
-        control->SetPrintMagnification(-1);
-        control->SetMarginWidth(C_LINE_MARGIN, 0);
+        m_pControl->SetPrintMagnification(-1);
+        m_pControl->SetMarginWidth(C_LINE_MARGIN, 0);
     }
     else
     {
-        control->SetPrintMagnification(-2);
-        control->SetMarginWidth(C_LINE_MARGIN, 1);
+        m_pControl->SetPrintMagnification(-2);
+        m_pControl->SetMarginWidth(C_LINE_MARGIN, 1);
     }
     // never print the gutter line
-    control->SetEdgeMode(wxSCI_EDGE_NONE);
+    m_pControl->SetEdgeMode(wxSCI_EDGE_NONE);
 
     switch (pcm)
     {
         case pcmAsIs:
-            control->SetPrintColourMode(wxSCI_PRINT_NORMAL);
+            m_pControl->SetPrintColourMode(wxSCI_PRINT_NORMAL);
             break;
         case pcmBlackAndWhite:
-            control->SetPrintColourMode(wxSCI_PRINT_BLACKONWHITE);
+            m_pControl->SetPrintColourMode(wxSCI_PRINT_BLACKONWHITE);
             break;
         case pcmColourOnWhite:
-            control->SetPrintColourMode(wxSCI_PRINT_COLOURONWHITE);
+            m_pControl->SetPrintColourMode(wxSCI_PRINT_COLOURONWHITE);
             break;
         case pcmInvertColours:
-            control->SetPrintColourMode(wxSCI_PRINT_INVERTLIGHT);
+            m_pControl->SetPrintColourMode(wxSCI_PRINT_INVERTLIGHT);
             break;
         default:
             break;
     }
     InitPrinting();
-    cbEditorPrintout printout(m_Filename, control, selectionOnly);
-    if (!g_printer->Print(this, &printout, true))
+    wxPrintout* printout = new cbEditorPrintout(m_Filename, m_pControl, selectionOnly);
+    if (!g_printer->Print(this, printout, true))
     {
         if (wxPrinter::GetLastError() == wxPRINTER_ERROR)
         {
@@ -2999,16 +2955,15 @@ void cbEditor::Print(bool selectionOnly, PrintColourMode pcm, bool line_numbers)
         Manager::Get()->GetConfigManager(_T("app"))->Write(_T("/printerdialog/paperid"), (int)ppd->GetPaperId());
         Manager::Get()->GetConfigManager(_T("app"))->Write(_T("/printerdialog/paperorientation"), (int)ppd->GetOrientation());
     }
+    delete printout;
 
-    // revert line number settings
-    control->SetMarginType(C_LINE_MARGIN, oldMarginType);
-    control->SetMarginWidth(C_LINE_MARGIN, oldMarginWidth);
-
-    // revert gutter settings
-    control->SetEdgeMode(oldEdgeMode);
-
-    // restore line numbers if needed
-    m_pData->SetLineNumberColWidth(m_pControl && m_pControl2);
+    // revert line numbers and gutter settings
+    ConfigManager* mgr = Manager::Get()->GetConfigManager(_T("editor"));
+    if (mgr->ReadBool(_T("/show_line_numbers"), true))
+        m_pControl->SetMarginWidth(C_LINE_MARGIN, 48);
+    else
+        m_pControl->SetMarginWidth(C_LINE_MARGIN, 0);
+    m_pControl->SetEdgeMode(mgr->ReadInt(_T("/gutter/mode"), 0));
 }
 
 // events
@@ -3059,8 +3014,6 @@ void cbEditor::OnContextMenuEntry(wxCommandEvent& event)
         MarkerNext(BOOKMARK_MARKER);
     else if (id == idBookmarksPrevious)
         MarkerPrevious(BOOKMARK_MARKER);
-    else if (id == idBookmarksClearAll)
-        control->MarkerDeleteAll(BOOKMARK_MARKER);
     else if (id == idFoldingFoldAll)
         FoldAll();
     else if (id == idFoldingUnfoldAll)
@@ -3317,7 +3270,7 @@ void cbEditor::OnEditorModified(wxScintillaEvent& event)
     bool isDel = event.GetModificationType() & wxSCI_MOD_DELETETEXT;
     if ((isAdd || isDel) && linesAdded != 0)
     {
-        // whether to show line-numbers or not is handled in SetLineNumberColWidth() now
+        // wheter to show line-numbers or not is handled in SetLineNumberColWidth() now
         m_pData->SetLineNumberColWidth();
 
         // NB: I don't think polling for each debugger every time will slow things down enough
@@ -3327,23 +3280,20 @@ void cbEditor::OnEditorModified(wxScintillaEvent& event)
         // although we only reach this part of the code only if a line has been added/removed
         // so, yes, it might not be that bad after all
         int startline = m_pControl->LineFromPosition(event.GetPosition());
-        if (m_pControl == event.GetEventObject())
+        const DebuggerManager::RegisteredPlugins &plugins = Manager::Get()->GetDebuggerManager()->GetAllDebuggers();
+        cbDebuggerPlugin *active = Manager::Get()->GetDebuggerManager()->GetActiveDebugger();
+        for (DebuggerManager::RegisteredPlugins::const_iterator it = plugins.begin(); it != plugins.end(); ++it)
         {
-            const DebuggerManager::RegisteredPlugins &plugins = Manager::Get()->GetDebuggerManager()->GetAllDebuggers();
-            cbDebuggerPlugin *active = Manager::Get()->GetDebuggerManager()->GetActiveDebugger();
-            for (DebuggerManager::RegisteredPlugins::const_iterator it = plugins.begin(); it != plugins.end(); ++it)
-            {
-                if (it->first != active)
-                    it->first->EditorLinesAddedOrRemoved(this, startline + 1, linesAdded);
-            }
-            if (active)
-                active->EditorLinesAddedOrRemoved(this, startline + 1, linesAdded);
-
-            cbBreakpointsDlg *dlg = Manager::Get()->GetDebuggerManager()->GetBreakpointDialog();
-            if (dlg)
-                dlg->Reload();
-            RefreshBreakpointMarkers();
+            if (it->first != active)
+                it->first->EditorLinesAddedOrRemoved(this, startline + 1, linesAdded);
         }
+        if (active)
+            active->EditorLinesAddedOrRemoved(this, startline + 1, linesAdded);
+
+        cbBreakpointsDlg *dlg = Manager::Get()->GetDebuggerManager()->GetBreakpointDialog();
+        if (dlg)
+            dlg->Reload();
+        RefreshBreakpointMarkers();
     }
     // If we remove the folding-point (the brace or whatever) from a folded block,
     // we have to make the hidden lines visible, otherwise, they

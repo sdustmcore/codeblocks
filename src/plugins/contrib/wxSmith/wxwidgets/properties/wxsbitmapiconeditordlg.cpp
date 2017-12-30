@@ -26,8 +26,8 @@
 #include <wx/filedlg.h>
 
 //(*InternalHeaders(wxsBitmapIconEditorDlg)
-#include <wx/intl.h>
 #include <wx/string.h>
+#include <wx/intl.h>
 //*)
 
 #define TIMER_DELAY    250
@@ -121,18 +121,18 @@ BEGIN_EVENT_TABLE(wxsBitmapIconEditorDlg,wxScrollingDialog)
     EVT_TIMER(-1,wxsBitmapIconEditorDlg::OnTimer)
 END_EVENT_TABLE()
 
-wxsBitmapIconEditorDlg::wxsBitmapIconEditorDlg(wxWindow* parent,wxsBitmapIconData& _Data,const wxString& _DefaultClient):
+wxsBitmapIconEditorDlg::wxsBitmapIconEditorDlg(wxWindow* parent,wxsBitmapIconData& _Data,const wxString& _DefaultClient,wxWindowID id):
     Timer1(0),
     DefaultClient(_DefaultClient),
     Data(_Data)
 {
     //(*Initialize(wxsBitmapIconEditorDlg)
-    wxBoxSizer* BoxSizer4;
-    wxBoxSizer* BoxSizer5;
+    wxBoxSizer* BoxSizer3;
     wxBoxSizer* BoxSizer7;
     wxBoxSizer* BoxSizer2;
+    wxBoxSizer* BoxSizer4;
     wxBoxSizer* BoxSizer1;
-    wxBoxSizer* BoxSizer3;
+    wxBoxSizer* BoxSizer5;
 
     Create(parent, wxID_ANY, _("Image editor"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER, _T("wxID_ANY"));
     BoxSizer1 = new wxBoxSizer(wxVERTICAL);
@@ -191,15 +191,15 @@ wxsBitmapIconEditorDlg::wxsBitmapIconEditorDlg(wxWindow* parent,wxsBitmapIconDat
     BoxSizer1->Fit(this);
     BoxSizer1->SetSizeHints(this);
 
-    Connect(ID_RADIOBUTTON1,wxEVT_COMMAND_RADIOBUTTON_SELECTED,wxCommandEventHandler(wxsBitmapIconEditorDlg::OnUpdatePreview));
-    Connect(ID_RADIOBUTTON2,wxEVT_COMMAND_RADIOBUTTON_SELECTED,wxCommandEventHandler(wxsBitmapIconEditorDlg::OnUpdatePreview));
-    Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,wxCommandEventHandler(wxsBitmapIconEditorDlg::OnFileNameText));
-    Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,wxCommandEventHandler(wxsBitmapIconEditorDlg::OnButton3Click));
-    Connect(ID_RADIOBUTTON3,wxEVT_COMMAND_RADIOBUTTON_SELECTED,wxCommandEventHandler(wxsBitmapIconEditorDlg::OnUpdatePreview));
-    Connect(ID_COMBOBOX2,wxEVT_COMMAND_COMBOBOX_SELECTED,wxCommandEventHandler(wxsBitmapIconEditorDlg::OnArtIdSelect));
-    Connect(ID_COMBOBOX1,wxEVT_COMMAND_COMBOBOX_SELECTED,wxCommandEventHandler(wxsBitmapIconEditorDlg::OnArtIdSelect));
-    Connect(ID_TEXTCTRL2,wxEVT_COMMAND_TEXT_UPDATED,wxCommandEventHandler(wxsBitmapIconEditorDlg::OnCodeTextText));
-    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,wxCommandEventHandler(wxsBitmapIconEditorDlg::OnButton1Click));
+    Connect(ID_RADIOBUTTON1,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&wxsBitmapIconEditorDlg::OnUpdatePreview);
+    Connect(ID_RADIOBUTTON2,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&wxsBitmapIconEditorDlg::OnUpdatePreview);
+    Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&wxsBitmapIconEditorDlg::OnFileNameText);
+    Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&wxsBitmapIconEditorDlg::OnButton3Click);
+    Connect(ID_RADIOBUTTON3,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&wxsBitmapIconEditorDlg::OnUpdatePreview);
+    Connect(ID_COMBOBOX2,wxEVT_COMMAND_COMBOBOX_SELECTED,(wxObjectEventFunction)&wxsBitmapIconEditorDlg::OnArtIdSelect);
+    Connect(ID_COMBOBOX1,wxEVT_COMMAND_COMBOBOX_SELECTED,(wxObjectEventFunction)&wxsBitmapIconEditorDlg::OnArtIdSelect);
+    Connect(ID_TEXTCTRL2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&wxsBitmapIconEditorDlg::OnCodeTextText);
+    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&wxsBitmapIconEditorDlg::OnButton1Click);
     //*)
 
     for ( const wxChar** Ptr = PredefinedIds; *Ptr; Ptr++ )
@@ -227,7 +227,7 @@ wxsBitmapIconEditorDlg::~wxsBitmapIconEditorDlg()
     //*)
 }
 
-void wxsBitmapIconEditorDlg::OnTimer(cb_unused wxTimerEvent& event)
+void wxsBitmapIconEditorDlg::OnTimer(wxTimerEvent& event)
 {
     wxsBitmapIconData PreviewData;
     WriteData(PreviewData);
@@ -261,78 +261,78 @@ void wxsBitmapIconEditorDlg::UpdatePreview()
     }
 }
 
-void wxsBitmapIconEditorDlg::WriteData(wxsBitmapIconData& _Data)
+void wxsBitmapIconEditorDlg::WriteData(wxsBitmapIconData& Data)
 {
     if ( NoImage->GetValue() )
     {
-        _Data.Id.Clear();
-        _Data.Client.Clear();
-        _Data.CodeText.Clear();
-        _Data.FileName.Clear();
+        Data.Id.Clear();
+        Data.Client.Clear();
+        Data.CodeText.Clear();
+        Data.FileName.Clear();
     }
     else if ( ImageFile->GetValue() )
     {
-        _Data.Id.Clear();
-        _Data.Client.Clear();
-        _Data.CodeText.Clear();
-        _Data.FileName = FileName->GetValue();
+        Data.Id.Clear();
+        Data.Client.Clear();
+        Data.CodeText.Clear();
+        Data.FileName = FileName->GetValue();
     }
     else if ( ImageCode->GetValue() )
     {
-        _Data.Id.Clear();
-        _Data.Client.Clear();
-        _Data.CodeText = CodeText->GetValue();
-        _Data.FileName.Clear();
+        Data.Id.Clear();
+        Data.Client.Clear();
+        Data.CodeText = CodeText->GetValue();
+        Data.FileName.Clear();
     }
     else
     {
-        _Data.Id = ArtId->GetValue();
-        _Data.Client = Data.Id.empty() ? _T("") : ArtClient->GetValue();
-        _Data.CodeText.Clear();
-        _Data.FileName.Clear();
+        Data.Id = ArtId->GetValue();
+        Data.Client = Data.Id.empty() ? _T("") : ArtClient->GetValue();
+        Data.CodeText.Clear();
+        Data.FileName.Clear();
     }
 }
 
-void wxsBitmapIconEditorDlg::ReadData(wxsBitmapIconData& _Data)
+void wxsBitmapIconEditorDlg::ReadData(wxsBitmapIconData& Data)
 {
-    if ( _Data.Id.empty() )
+    if ( Data.Id.empty() )
     {
-        if ( _Data.FileName.empty() && _Data.CodeText.empty() )
+        if ( Data.FileName.empty() && Data.CodeText.empty() )
         {
             NoImage->SetValue(true);
         }
-        else if( !_Data.CodeText.empty() )
+        else if( !Data.CodeText.empty() )
         {
             ImageCode->SetValue(true);
-            CodeText->SetValue(_Data.CodeText);
+            CodeText->SetValue(Data.CodeText);
         }
         else
         {
             ImageFile->SetValue(true);
-            FileName->SetValue(_Data.FileName);
+            FileName->SetValue(Data.FileName);
         }
     }
     else
     {
         ImageArt->SetValue(true);
-        ArtId->SetValue(_Data.Id);
-        ArtClient->SetValue(_Data.Client);
+        ArtId->SetValue(Data.Id);
+        ArtClient->SetValue(Data.Client);
     }
 }
 
-void wxsBitmapIconEditorDlg::OnButton1Click(cb_unused wxCommandEvent& event)
+void wxsBitmapIconEditorDlg::OnButton1Click(wxCommandEvent& event)
 {
     WriteData(Data);
     EndModal(wxID_OK);
 }
 
-void wxsBitmapIconEditorDlg::OnFileNameText(cb_unused wxCommandEvent& event)
+void wxsBitmapIconEditorDlg::OnFileNameText(wxCommandEvent& event)
 {
     ImageFile->SetValue(true);
     UpdatePreview();
 }
 
-void wxsBitmapIconEditorDlg::OnButton3Click(cb_unused wxCommandEvent& event)
+void wxsBitmapIconEditorDlg::OnButton3Click(wxCommandEvent& event)
 {
     wxString FileNameStr = ::wxFileSelector(_("Choose image file"));
     if ( FileNameStr.empty() ) return;
@@ -341,18 +341,18 @@ void wxsBitmapIconEditorDlg::OnButton3Click(cb_unused wxCommandEvent& event)
     UpdatePreview();
 }
 
-void wxsBitmapIconEditorDlg::OnArtIdSelect(cb_unused wxCommandEvent& event)
+void wxsBitmapIconEditorDlg::OnArtIdSelect(wxCommandEvent& event)
 {
     ImageArt->SetValue(true);
     UpdatePreview();
 }
 
-void wxsBitmapIconEditorDlg::OnUpdatePreview(cb_unused wxCommandEvent& event)
+void wxsBitmapIconEditorDlg::OnUpdatePreview(wxCommandEvent& event)
 {
     UpdatePreview();
 }
 
-void wxsBitmapIconEditorDlg::OnCodeTextText(cb_unused wxCommandEvent& event)
+void wxsBitmapIconEditorDlg::OnCodeTextText(wxCommandEvent& event)
 {
     UpdatePreview();
 }

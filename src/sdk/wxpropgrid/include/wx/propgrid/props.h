@@ -215,7 +215,10 @@ WX_PG_IMPLEMENT_PROPERTY_CLASS(CLASSNAME,wxSystemColourProperty,wxColour,const w
 CLASSNAME::CLASSNAME( const wxString& label, const wxString& name, const wxColour& value ) \
     : wxPG_PROPCLASS(wxSystemColourProperty)(label,name,LABELS,VALUES,&gs_##CLASSNAME##_choicesCache,value ) \
 { \
-    Init( value ); \
+    if ( &value ) \
+        Init( value ); \
+    else \
+        Init( *wxWHITE ); \
     m_flags |= wxPG_PROP_TRANSLATE_CUSTOM; \
 } \
 CLASSNAME::~CLASSNAME() { } \
@@ -317,7 +320,7 @@ public:
     }
 
     bool DoValidate( wxPropertyGrid* propGrid, wxValidator* validator, const wxString& value );
-
+    
 private:
     wxTextCtrl*         m_textCtrl;
 };
@@ -624,7 +627,7 @@ public:
 #ifndef SWIG
     wxEnumProperty( const wxString& label = wxPG_LABEL, const wxString& name = wxPG_LABEL,
         const wxChar** labels = NULL, const long* values = NULL, int value = 0 );
-    wxEnumProperty( const wxString& label, const wxString& name,
+    wxEnumProperty( const wxString& label, const wxString& name, 
         wxPGChoices& choices, int value = 0 );
 
     // Special constructor for caching choices (used by derived class)
@@ -706,7 +709,7 @@ public:
 #ifndef SWIG
     wxFlagsProperty( const wxString& label, const wxString& name, const wxChar** labels,
         const long* values = NULL, long value = 0 );
-    wxFlagsProperty( const wxString& label, const wxString& name,
+    wxFlagsProperty( const wxString& label, const wxString& name, 
         wxPGChoices& choices, long value = 0 );
 #endif
     wxFlagsProperty( const wxString& label = wxPG_LABEL, const wxString& name = wxPG_LABEL,
@@ -1045,7 +1048,7 @@ public:
     }
 
     /** Override to return wxValidator to be used with the wxTextCtrl
-        in dialog. Note that the validator is used in the standard
+        in dialog. Note that the validator is used in the standard 
         wx way, ie. it immediately prevents user from entering invalid
         input.
 

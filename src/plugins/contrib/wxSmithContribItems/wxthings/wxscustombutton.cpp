@@ -163,13 +163,12 @@ void wxsCustomButton::OnBuildCreatingCode()
             break;
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
             wxsCodeMarks::Unknown(_T("wxsCustomButton::OnBuildCreatingCode"),GetLanguage());
     }
 }
 
-wxObject* wxsCustomButton::OnBuildPreview(wxWindow* Parent,cb_unused long Flags)
+wxObject* wxsCustomButton::OnBuildPreview(wxWindow* Parent,long Flags)
 {
     wxCustomButton* Button = new wxCustomButton(
         Parent,
@@ -217,7 +216,7 @@ wxObject* wxsCustomButton::OnBuildPreview(wxWindow* Parent,cb_unused long Flags)
     return Button;
 }
 
-void wxsCustomButton::OnEnumWidgetProperties(cb_unused long Flags)
+void wxsCustomButton::OnEnumWidgetProperties(long Flags)
 {
     WXS_ENUM(wxsCustomButton,m_Type,_("Type"),_T("type"),TypeValues,TypeNames,wxCUSTBUT_BUTTON);
     WXS_BOOL(wxsCustomButton,m_Flat,_("Flat"),_T("flat"),false);

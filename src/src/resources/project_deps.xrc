@@ -37,15 +37,12 @@
 				<border>8</border>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStdDialogButtonSizer">
-					<object class="button">
-						<object class="wxButton" name="wxID_CANCEL">
-							<label>&amp;Close</label>
-						</object>
-					</object>
+				<object class="wxButton" name="wxID_CANCEL">
+					<label>&amp;Close</label>
+					<default>1</default>
 				</object>
-				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
+				<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL</flag>
+				<border>8</border>
 			</object>
 		</object>
 	</object>

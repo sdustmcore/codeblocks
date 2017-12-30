@@ -34,9 +34,6 @@ namespace
         WXS_ST(wxSP_VERTICAL)
         WXS_ST(wxSP_ARROW_KEYS)
         WXS_ST(wxSP_WRAP)
-        WXS_ST(wxALIGN_LEFT)
-        WXS_ST(wxALIGN_CENTER_HORIZONTAL)
-        WXS_ST(wxALIGN_RIGHT)
         WXS_ST_DEFAULTS()
     WXS_ST_END()
 
@@ -75,7 +72,6 @@ void wxsSpinCtrl::OnBuildCreatingCode()
             return;
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsSpinCtrl::OnBuildCreatingCode"),GetLanguage());
@@ -90,7 +86,7 @@ wxObject* wxsSpinCtrl::OnBuildPreview(wxWindow* Parent,long Flags)
     return SetupWindow(Preview,Flags);
 }
 
-void wxsSpinCtrl::OnEnumWidgetProperties(cb_unused long Flags)
+void wxsSpinCtrl::OnEnumWidgetProperties(long Flags)
 {
     WXS_SHORT_STRING(wxsSpinCtrl,Value,_("Value"),_T("value"),_T(""),true)
     WXS_LONG(wxsSpinCtrl,Min,_("Min"),_T("min"),0)

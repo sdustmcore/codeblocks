@@ -17,9 +17,9 @@
 #include <manager.h>
 #include <projectbuildtarget.h>
 #include <projectmanager.h>
-#include <tinyxml.h>
+#include <tinyxml/tinyxml.h>
 #endif
-#include <tinywxuni.h>
+#include <tinyxml/tinywxuni.h>
 #include <wx/textfile.h>
 
 #include "projectloader_hooks.h"
@@ -69,7 +69,7 @@ AutoVersioning::AutoVersioning()
       new ProjectLoaderHooks::HookFunctor<AutoVersioning>(this, &AutoVersioning::OnProjectLoadingHook);
     m_AutoVerHookId = ProjectLoaderHooks::RegisterHook(AutoVerHook);
     m_Modified = false;
-    m_Project = nullptr;
+    m_Project = 0;
 } // end of constructor
 
 AutoVersioning::~AutoVersioning()
@@ -105,7 +105,7 @@ void AutoVersioning::OnRelease(bool /*appShutDown*/)
         m_timerStatus->Stop();
     }
     delete m_timerStatus;
-    m_timerStatus = nullptr;
+    m_timerStatus = 0;
 }
 
 void AutoVersioning::BuildMenu(wxMenuBar* menuBar)
@@ -311,7 +311,7 @@ void AutoVersioning::OnProjectClosed(CodeBlocksEvent& event)
         m_IsVersioned.erase(event.GetProject());
         if(m_Project == event.GetProject())
         {   // should always be the case (??? we hope ??)
-            m_Project = nullptr;
+            m_Project = 0;
         }
     }
 }// OnProjectClosed

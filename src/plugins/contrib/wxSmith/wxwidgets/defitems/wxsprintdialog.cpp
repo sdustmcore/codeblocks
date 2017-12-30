@@ -105,7 +105,6 @@ void wxsPrintDialog::OnBuildCreatingCode()
             return;
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsPrintDialog::OnBuildCreatingCode"),GetLanguage());
@@ -119,7 +118,7 @@ void wxsPrintDialog::OnBuildCreatingCode()
  * \return void
  *
  */
-void wxsPrintDialog::OnEnumToolProperties(cb_unused long Flags)
+void wxsPrintDialog::OnEnumToolProperties(long Flags)
 {
     WXS_BOOL(wxsPrintDialog, m_bEnableHelp, _("Enable Help"), _T("enable_help"), false)
     WXS_BOOL(wxsPrintDialog, m_bEnablePageNumbers, _("Enable Page Numbers"), _T("enable_page_numbers"), true)

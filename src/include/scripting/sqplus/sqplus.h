@@ -11,7 +11,6 @@
 #define _SQ_PLUS_H_
 
 #include <stdlib.h>
-#include <string.h>
 
 #ifdef __APPLE__
   #include <malloc/malloc.h>
@@ -48,15 +47,8 @@
 #define SQ_CALL_RAISE_ERROR SQFalse
 #endif
 
-// this does the same as commenting out the "#ifdef _UNICODE"-stuff in our
-// bundled squirrel.h, but works also for system-squirrel
-#ifdef _UNICODE
-  #undef _UNICODE
-  #include "squirrel.h"
-  #define _UNICODE
-#else
-  #include "squirrel.h"
-#endif // _UNICODE
+#include "squirrel.h"
+
 // C::B patch: so it builds on 64bit, ecapsulate bool/int/float using Squirrel types (this patch applies everywhere, where threse types are used)
 typedef SQInteger BOOL_T;
 typedef SQInteger INT_T;
@@ -421,7 +413,6 @@ template<typename T>
 void BindConstant(SquirrelObject & so,T constant,const SQChar * scriptVarName) {
   validateConstantType(constant);
   VarRefPtr pvr = createVarRef(so,scriptVarName);
-  // C::B patch: Handler for newer compilers
 #if __cplusplus>=201103L
   static_assert(sizeof(constant)<=sizeof(void*), "using larger type");
 #endif

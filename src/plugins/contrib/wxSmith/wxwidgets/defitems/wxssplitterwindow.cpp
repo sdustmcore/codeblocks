@@ -52,7 +52,7 @@ namespace
 wxsSplitterWindow::wxsSplitterWindow(wxsItemResData* Data):
     wxsContainer(Data,&Reg.Info,wxsSplitterWindowEvents,wxsSplitterWindowStyles),
     SashPos(0),
-    MinPaneSize(10),
+    MinSize(10),
     Orientation(wxHORIZONTAL),
     SashGravity(0.5f)
 {
@@ -62,9 +62,9 @@ wxObject* wxsSplitterWindow::OnBuildPreview(wxWindow* Parent,long Flags)
 {
     wxSplitterWindow* Splitter = new wxSplitterWindow(Parent,GetId(),Pos(Parent),Size(Parent),Style());
     SetupWindow(Splitter,Flags);
-    if ( MinPaneSize != -1 )
+    if ( MinSize != -1 )
     {
-        Splitter->SetMinimumPaneSize(MinPaneSize);
+        Splitter->SetMinimumPaneSize(MinSize);
     }
     AddChildrenPreview(Splitter,Flags);
     if ( GetChildCount() == 0 )
@@ -109,7 +109,7 @@ void wxsSplitterWindow::OnBuildCreatingCode()
             AddHeader(_T("<wx/splitter.h>"),_T("wxSplitterEvent"),0);
             Codef(_T("%C(%W, %I, %P, %S, %T, %N);\n"));
             BuildSetupWindowCode();
-            if ( MinPaneSize != -1 ) Codef(_T("%ASetMinimumPaneSize(%d);\n"),MinPaneSize);
+            if ( MinSize != -1 ) Codef(_T("%ASetMinimumPaneSize(%d);\n"),MinSize);
             Codef(_T("%ASetSashGravity(%f);\n"),SashGravity);
             AddChildrenCode();
             if ( GetChildCount() == 0 )
@@ -135,14 +135,14 @@ void wxsSplitterWindow::OnBuildCreatingCode()
     }
 }
 
-void wxsSplitterWindow::OnEnumContainerProperties(cb_unused long Flags)
+void wxsSplitterWindow::OnEnumContainerProperties(long Flags)
 {
     static const long    OrientValues[] = { wxHORIZONTAL, wxVERTICAL, 0 };
     static const wxChar* OrientNames[]  = { _T("horizontal"), _T("vertical"), 0 };
 
     WXS_LONG(wxsSplitterWindow,SashPos,_("Sash position"),_T("sashpos"),0);
     WXS_FLOAT(wxsSplitterWindow,SashGravity,_("Sash gravity"), _T("sashgravity"), 0.5);
-    WXS_LONG(wxsSplitterWindow,MinPaneSize,_("Min. pane size"),_T("minpanesize"),-1);
+    WXS_LONG(wxsSplitterWindow,MinSize,_("Min. pane size"),_T("minsize"),-1);
     WXS_ENUM(wxsSplitterWindow,Orientation,_("Orientation"),_T("orientation"),OrientValues,OrientNames,wxHORIZONTAL);
 }
 

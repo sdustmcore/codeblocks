@@ -36,36 +36,7 @@
 
 #include "pluginsconfigurationdlg.h" // class's header file
 
-static wxString GetInitialInfo()
-{
-    wxString initialInfo;
-    initialInfo << _T("<html><body><font color=\"#0000AA\">");
-    initialInfo << _("Tip: The above list allows for multiple selections.");
-    initialInfo << _T("</font><br /><br /><b><font color=\"red\">");
-    initialInfo << _("Have you saved your work first?");
-    initialInfo << _T("</font></b><br /><i><font color=\"black\">\n");
-    initialInfo << _("If a plugin is not well-written, it could cause Code::Blocks to crash ");
-    initialInfo << _("when performing any operation on it...");
-    initialInfo << _T("<br></font></b><br /><i><font color=\"green\">\n");
-    initialInfo << _("Some additional plugins can be found here:");
-    initialInfo << _T("</font></b><br /><i><font color=\"black\">\n");
-    initialInfo << _T("<A href=\"http://wiki.codeblocks.org/index.php?title=Announcement_for_plugins/patches\">");
-    initialInfo << _T("http://wiki.codeblocks.org/index.php?title=Announcement_for_plugins/patches\n </A>");
-
-    if (PluginManager::GetSafeMode())
-    {
-        initialInfo << _T("</font></i><br /><br /><b><font color=\"red\">");
-        initialInfo << _("Code::Blocks started up in \"safe-mode\"");
-        initialInfo << _T("</font></b><br /><i><font color=\"black\">\n");
-        initialInfo << _("All plugins were disabled on startup so that you can troubleshoot ");
-        initialInfo << _("problematic plugins. Enable plugins at will now...");
-    }
-
-    initialInfo << _T("</font></i><br /></body></html>\n");
-    return initialInfo;
-}
-
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2, 9, 1)
 inline int wxCALLBACK sortByTitle(wxIntPtr item1, wxIntPtr item2, cb_unused wxIntPtr sortData)
 #else
 inline int wxCALLBACK sortByTitle(long item1, long item2, cb_unused long sortData)
@@ -93,7 +64,6 @@ END_EVENT_TABLE()
 PluginsConfigurationDlg::PluginsConfigurationDlg(wxWindow* parent)
 {
     wxXmlResource::Get()->LoadObject(this, parent, _T("dlgConfigurePlugins"),_T("wxScrollingDialog"));
-    XRCCTRL(*this, "wxID_CANCEL", wxButton)->SetDefault();
     FillList();
 
     // install options
@@ -126,7 +96,31 @@ PluginsConfigurationDlg::PluginsConfigurationDlg(wxWindow* parent)
     XRCCTRL(*this, "htmlInfo", wxHtmlWindow)->SetFonts(wxEmptyString, wxEmptyString, &sizes[0]);
 #endif
 
-    XRCCTRL(*this, "htmlInfo", wxHtmlWindow)->SetPage(GetInitialInfo());
+    wxString initialInfo;
+    initialInfo << _T("<html><body><font color=\"#0000AA\">");
+    initialInfo << _("Tip: The above list allows for multiple selections.");
+    initialInfo << _T("</font><br /><br /><b><font color=\"red\">");
+    initialInfo << _("Have you saved your work first?");
+    initialInfo << _T("</font></b><br /><i><font color=\"black\">\n");
+    initialInfo << _("If a plugin is not well-written, it could cause Code::Blocks to crash ");
+    initialInfo << _("when performing any operation on it...");
+    initialInfo << _T("<br></font></b><br /><i><font color=\"green\">\n");
+    initialInfo << _("Some additional plugins can be found here:");
+    initialInfo << _T("</font></b><br /><i><font color=\"black\">\n");
+    initialInfo << _("<A href=\"http://wiki.codeblocks.org/index.php?title=Announcement_for_plugins/patches\">http://wiki.codeblocks.org/index.php?title=Announcement_for_plugins/patches\n </A>");
+
+    if (PluginManager::GetSafeMode())
+    {
+        initialInfo << _T("</font></i><br /><br /><b><font color=\"red\">");
+        initialInfo << _("Code::Blocks started up in \"safe-mode\"");
+        initialInfo << _T("</font></b><br /><i><font color=\"black\">\n");
+        initialInfo << _("All plugins were disabled on startup so that you can troubleshoot ");
+        initialInfo << _("problematic plugins. Enable plugins at will now...");
+    }
+
+    initialInfo << _T("</font></i><br /></body></html>\n");
+
+    XRCCTRL(*this, "htmlInfo", wxHtmlWindow)->SetPage(initialInfo);
 
     XRCCTRL(*this, "lstPlugins", wxListCtrl)->Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(PluginsConfigurationDlg::OnMouseMotion));
     XRCCTRL(*this, "lstPlugins", wxListCtrl)->Connect(wxEVT_MOTION,       wxMouseEventHandler(PluginsConfigurationDlg::OnMouseMotion));
@@ -297,8 +291,6 @@ void PluginsConfigurationDlg::OnUninstall(cb_unused wxCommandEvent& event)
     FillList();
     if (!failure.IsEmpty())
         cbMessageBox(_("One or more plugins were not un-installed successfully:\n\n") + failure, _("Warning"), wxICON_WARNING, this);
-
-    XRCCTRL(*this, "htmlInfo", wxHtmlWindow)->SetPage(GetInitialInfo());
 }
 
 void PluginsConfigurationDlg::OnExport(cb_unused wxCommandEvent& event)

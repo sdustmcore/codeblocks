@@ -27,12 +27,7 @@
 
 #include <cbdebugger_interfaces.h>
 
-// Parse CDB prompts. Support both 32 and 64 bit inferiors
-// The strings looks something like this:
-// 0:000>
-// 0:000:x86>
-static wxRegEx rePrompt(_T("([0-9]+:){1,2}[0-9]+(:x86)?>"));
-
+static wxRegEx rePrompt(_T("([0-9]+:){1,2}[0-9]+>"));
 static wxRegEx reBP(_T("Breakpoint ([0-9]+) hit"));
 // one stack frame (to access current file; is there another way???)
 //  # ChildEBP RetAddr

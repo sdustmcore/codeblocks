@@ -78,8 +78,6 @@ class Wiz : public cbWizardPlugin
         bool IsCheckboxChecked(const wxString& name);
 
         void FillComboboxWithCompilers(const wxString& name);
-        void FillContainerWithSelectCompilers( const wxString& name, const wxString& validCompilerIDs );
-        void AppendContainerWithSelectCompilers( const wxString& name, const wxString& validCompilerIDs );
         wxString GetCompilerFromCombobox(const wxString& name);
         void FillContainerWithCompilers(const wxString& name, const wxString& compilerID,
                                         const wxString& validCompilerIDs);
@@ -152,10 +150,6 @@ class Wiz : public cbWizardPlugin
                                         const wxString& releaseOut,
                                         const wxString& releaseObjOut);
 
-        int       FillContainerWithChoices( const wxString& name, const wxString& choices );
-        int       AppendContainerWithChoices( const wxString& name, const wxString& choices );
-        wxString  GetWizardScriptFolder(void);
-
         // pre-defined pages
         void AddInfoPage(const wxString& pageId, const wxString& intro_msg);
         void AddFilePathPage(bool showHeaderGuard);
@@ -196,7 +190,6 @@ class Wiz : public cbWizardPlugin
         wxString m_ReleaseName;
         wxString m_ReleaseOutputDir;
         wxString m_ReleaseObjOutputDir;
-        wxString m_WizardScriptFolder;
 	private:
         Wiz(cb_unused const Wiz& rhs); // prevent copy construction
 };

@@ -268,11 +268,7 @@ cbProject* ProjectManager::LoadProject(const wxString& filename, bool activateIt
             // (we must call RebuildTree() before SetProject() is called)
             m_pProjectToActivate = result;
         else
-        {
-            // I don't think we need to refresh the tree one more time.
-            // This is already done in the EndLoadingProject call.
-            SetProject(result, false);
-        }
+            SetProject(result, true);
     }
 
     return result;
@@ -583,7 +579,7 @@ bool ProjectManager::CloseWorkspace()
 
     if (m_pWorkspace)
     {
-        if (!Manager::IsBatchBuild() && !m_ui->QueryCloseWorkspace())
+        if (!m_ui->QueryCloseWorkspace())
         {
             m_IsClosingWorkspace = false;
             return false;

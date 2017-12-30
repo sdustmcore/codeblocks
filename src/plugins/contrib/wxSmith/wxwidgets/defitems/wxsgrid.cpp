@@ -42,11 +42,11 @@ namespace
         WXS_EVI(EVT_CMD_GRID_LABEL_RIGHT_CLICK,wxEVT_GRID_LABEL_RIGHT_CLICK,wxGridEvent,LabelRightClick)
         WXS_EVI(EVT_CMD_GRID_LABEL_LEFT_DCLICK,wxEVT_GRID_LABEL_LEFT_DCLICK,wxGridEvent,LabelLeftDClick)
         WXS_EVI(EVT_CMD_GRID_LABEL_RIGHT_DCLICK,wxEVT_GRID_LABEL_RIGHT_DCLICK,wxGridEvent,LabelRightDClick)
-        WXS_EVI(EVT_CMD_GRID_CELL_CHANGED,wxEVT_GRID_CELL_CHANGED,wxGridEvent,CellChanged)     // added in 3.0
-        WXS_EVI(EVT_CMD_GRID_CELL_CHANGING,wxEVT_GRID_CELL_CHANGING,wxGridEvent,CellChanging)  // added in 3.0
+        WXS_EVI(EVT_CMD_GRID_CELL_CHANGE,wxEVT_GRID_CELL_CHANGE,wxGridEvent,CellChange)
         WXS_EVI(EVT_CMD_GRID_SELECT_CELL,wxEVT_GRID_SELECT_CELL,wxGridEvent,CellSelect)
         WXS_EVI(EVT_CMD_GRID_EDITOR_HIDDEN,wxEVT_GRID_EDITOR_HIDDEN,wxGridEvent,EditorHidden)
         WXS_EVI(EVT_CMD_GRID_EDITOR_SHOWN,wxEVT_GRID_EDITOR_SHOWN,wxGridEvent,EditorShown)
+
         WXS_EV_DEFAULTS()
     WXS_EV_END()
 
@@ -145,7 +145,6 @@ void wxsGrid::OnBuildCreatingCode()
             return;
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsGrid::OnBuildCreatingCode"),GetLanguage());

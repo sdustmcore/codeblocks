@@ -27,7 +27,7 @@
 #include <cbplugin.h>
 #include <settings.h>
 #include <sdk_events.h>
-#include <tinyxml.h>
+#include <tinyxml/tinyxml.h>
 
 #include "librarydetectionmanager.h"
 #include "resultmap.h"

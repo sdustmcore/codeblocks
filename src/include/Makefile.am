@@ -1,8 +1,4 @@
-SUBDIRS = scripting
-if ! HAVE_TINYXML
-SUBDIRS += tinyxml
-endif
-DIST_SUBDIRS = scripting tinyxml
+SUBDIRS = scripting tinyxml
 
 if PRECOMPILE_HEADERS
 BUILT_SOURCES = sdk.h.gch \
@@ -15,6 +11,8 @@ AM_CPPFLAGS = $(WX_CXXFLAGS) \
 			-I$(top_builddir)/src/include \
 			-I$(top_srcdir)/src/include \
 			-I$(top_srcdir)/src/sdk/wxscintilla/include \
+			-I$(top_srcdir)/src/include/tinyxml \
+			-I$(top_srcdir)/src/include/scripting/include \
  			-I$(top_srcdir)/src/include/scripting/sqplus \
 			-I$(top_srcdir)/src/include/mozilla_chardet \
 			-I$(top_srcdir)/src/include/mozilla_chardet/mfbt \
@@ -89,13 +87,14 @@ ALLHEADERS = annoyingdialog.h \
 				ibaseworkspaceloader.h \
 				id.h \
 				importers_globals.h \
-				incremental_select_helper.h \
+				incrementalselectlistdlg.h \
 				infowindow.h \
 				licenses.h \
 				logger.h \
 				loggers.h \
 				logmanager.h \
 				macrosmanager.h \
+				managedthread.h \
 				manager.h \
 				menuitemsmanager.h \
 				misctreeitemdata.h \
@@ -128,7 +127,6 @@ ALLHEADERS = annoyingdialog.h \
 				selecttargetdlg.h \
 				settings.h \
 				templatemanager.h \
-				tinywxuni.h \
 				toolsmanager.h \
 				uservarmanager.h \
 				workspaceloader.h \
@@ -191,4 +189,3 @@ clean-local:
 	-rm -f sdk_precomp.h.gch
 
 EXTRA_DIST = autorevision.h
-

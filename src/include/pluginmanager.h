@@ -18,7 +18,6 @@
 //forward decls
 struct PluginInfo;
 class cbPlugin;
-class cbCompilerPlugin;
 class cbMimePlugin;
 class cbConfigurationPanel;
 class cbProject;
@@ -76,9 +75,6 @@ WX_DEFINE_ARRAY(cbConfigurationPanel*, ConfigurationPanelsArray);
 class DLLIMPORT PluginManager : public Mgr<PluginManager>, public wxEvtHandler
 {
     public:
-        typedef std::vector<cbCompilerPlugin*> CompilerPlugins;
-
-    public:
         friend class Mgr<PluginManager>;
         friend class Manager; // give Manager access to our private members
         void CreateMenu(wxMenuBar* menuBar);
@@ -106,17 +102,15 @@ class DLLIMPORT PluginManager : public Mgr<PluginManager>, public wxEvtHandler
         const PluginInfo* GetPluginInfo(const wxString& pluginName);
         const PluginInfo* GetPluginInfo(cbPlugin* plugin);
 
-        const PluginElementsArray& GetPlugins() const { return m_Plugins; }
+        PluginElementsArray& GetPlugins(){ return m_Plugins; }
 
         PluginElement* FindElementByName(const wxString& pluginName);
         cbPlugin* FindPluginByName(const wxString& pluginName);
         cbPlugin* FindPluginByFileName(const wxString& pluginFileName);
 
-        const CompilerPlugins& GetCompilerPlugins() const { return m_CompilerPlugins; }
-        cbCompilerPlugin* GetFirstCompiler() const;
-
         PluginsArray GetToolOffers();
         PluginsArray GetMimeOffers();
+        PluginsArray GetCompilerOffers();
         PluginsArray GetDebuggerOffers();
         PluginsArray GetCodeCompletionOffers();
         PluginsArray GetSmartIndentOffers();
@@ -182,14 +176,10 @@ class DLLIMPORT PluginManager : public Mgr<PluginManager>, public wxEvtHandler
             PluginInfo info;
         };
         std::vector<PluginRegistration> m_RegisteredPlugins;
-        CompilerPlugins m_CompilerPlugins;
 
         static bool s_SafeMode;
 
         DECLARE_EVENT_TABLE()
 };
-
-DLLIMPORT bool cbHasRunningCompilers(const PluginManager *manager);
-DLLIMPORT void cbStopRunningCompilers(PluginManager *manager);
 
 #endif // PLUGINMANAGER_H

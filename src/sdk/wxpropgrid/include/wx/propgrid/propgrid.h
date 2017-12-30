@@ -217,7 +217,11 @@
 #endif
 
 #ifndef wxPG_USING_WXOWNERDRAWNCOMBOBOX
-    #define wxPG_USING_WXOWNERDRAWNCOMBOBOX 1
+    #if wxCHECK_VERSION(2,8,0)
+        #define wxPG_USING_WXOWNERDRAWNCOMBOBOX 1
+    #else
+        #define wxPG_USING_WXOWNERDRAWNCOMBOBOX 0
+    #endif
 #endif
 
 #if wxPG_USING_WXOWNERDRAWNCOMBOBOX
@@ -232,19 +236,39 @@
     #define wxPGComboCtrl                   wxPGComboControl
 #endif
 
-#define wxPGRectContains    Contains
+// wxRect: Inside(<=2.7.0) or Contains(>2.7.0)?
+#if !wxCHECK_VERSION(2,7,1)
+    #define wxPGRectContains    Inside
+#else
+    #define wxPGRectContains    Contains
+#endif
 
-#define wxPGIndex           unsigned int
+#if wxCHECK_VERSION(2,7,0)
+    #define wxPGIndex           unsigned int
+#else
+    #define wxPGIndex           int
+#endif
 
 #ifdef __WXMSW__
-  #if wxCHECK_VERSION(3, 0, 0)
+  #if wxCHECK_VERSION(2,9,0)
     #define wxPG_GetHDCOf(DC) ((HDC)((const wxMSWDCImpl *)DC.GetImpl())->GetHDC())
   #else
     #define wxPG_GetHDCOf(DC) ((HDC)DC.GetHDC())
   #endif
 #endif
 
-#define wxGDI_IS_OK(OBJ) ((OBJ).IsOk())
+// Define wxBORDER_THEME if it is missing
+#if !wxCHECK_VERSION(2,8,0)
+  #ifndef wxBORDER_THEME
+    #define wxBORDER_THEME  wxSIMPLE_BORDER
+  #endif
+#endif
+
+#if wxCHECK_VERSION(2,8,0)
+    #define wxGDI_IS_OK(OBJ) ((OBJ).IsOk())
+#else
+    #define wxGDI_IS_OK(OBJ) ((OBJ).Ok())
+#endif
 
 // -----------------------------------------------------------------------
 
@@ -282,7 +306,7 @@
 #endif
 
 #ifndef SWIG
-    #if !wxCHECK_VERSION(3, 0, 0)
+    #if !wxCHECK_VERSION(2,9,0)
         #if !defined(wxUniChar)
             #define wxUniChar   wxChar
         #endif
@@ -418,20 +442,18 @@ public:
 // -----------------------------------------------------------------------
 // C::B patch: define DLLIMPORT to be used to define WXDLLIMPEXP_PG later.
 #if defined(__WXMSW__)
-    #ifndef DLLIMPORT_PG
+    #ifndef DLLIMPORT
         #if EXPORT_LIB
-            #define DLLIMPORT_PG __declspec (dllexport)
+            #define DLLIMPORT __declspec (dllexport)
         #else
-            #define DLLIMPORT_PG __declspec (dllimport)
+            #define DLLIMPORT __declspec (dllimport)
         #endif // EXPORT_LIB
-    #endif // DLLIMPORT_PG
+    #endif // DLLIMPORT
 #else
-    #ifndef DLLIMPORT_PG
-        #define DLLIMPORT_PG __attribute__ ((visibility ("default")))
-    #endif // DLLIMPORT_PG
+    #define DLLIMPORT
 #endif
 
-#define WXDLLIMPEXP_PG DLLIMPORT_PG
+#define WXDLLIMPEXP_PG DLLIMPORT
 // C::B patch: Add define of WXDLLIMPEXP_PG_FWD to reduce warnings
 #define WXDLLIMPEXP_PG_FWD
 
@@ -678,8 +700,7 @@ protected:
 #define wxPG_EMPTY_ARRAYSTRING  wxArrayString()
 
 #if !defined(SWIG)
-    extern wxString WXDLLIMPEXP_PG wxString_wxPG_LABEL;
-    #define wxPG_LABEL              wxString_wxPG_LABEL
+    #define wxPG_LABEL              (*((wxString*)NULL))  // Used to tell wxPGProperty to use label as name as well.
     #define wxPG_NULL_BITMAP        wxNullBitmap
     #define wxPG_COLOUR_BLACK       (*wxBLACK)
 #else
@@ -1556,7 +1577,12 @@ WX_PG_DECLARE_EDITOR_WITH_DECL(ChoiceAndButton,WXDLLIMPEXP_PG)
 //
 // For compability with wxWidgets 2.6 patched with refcounted wxVariant
 #ifndef wxVARIANT_REFCOUNTED
-  #define wxVARIANT_REFCOUNTED 1
+  #if wxCHECK_VERSION(2,8,0)
+    #define wxVARIANT_REFCOUNTED 1
+  #else
+    #define wxVARIANT_REFCOUNTED 0
+    #error "Only supports wxWidgets 2.6 that has been patched with refcounted wxVariant"
+  #endif
 #endif
 
 
@@ -1593,7 +1619,7 @@ WX_PG_DECLARE_EDITOR_WITH_DECL(ChoiceAndButton,WXDLLIMPEXP_PG)
 */
 class WXDLLIMPEXP_PG wxPGVariantData : public wxVariantData
 {
-#if !wxCHECK_VERSION(3, 0, 0)
+#if !wxCHECK_VERSION(2,9,0)
     DECLARE_ABSTRACT_CLASS(wxPGVariantData)
 #endif
 public:
@@ -1605,7 +1631,7 @@ protected:
 
 //
 // With wxWidgets 2.9 and later we demand native C++ RTTI support
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2,9,0)
     #ifdef wxNO_RTTI
         #error "You need to enable compiler RTTI support when using wxWidgets 2.9.0 or later"
     #endif
@@ -1676,7 +1702,7 @@ template<> inline wxVariant WXVARIANT( const long& value ) { return wxVariant(va
 template<> inline wxVariant WXVARIANT( const bool& value ) { return wxVariant(value); }
 template<> inline wxVariant WXVARIANT( const double& value ) { return wxVariant(value); }
 //template<> inline wxVariant WXVARIANT( const wxChar* value ) { return wxVariant(wxString(value)); }
-//#if wxCHECK_VERSION(3, 0, 0)
+//#if wxCHECK_VERSION(2,9,0)
 //    template<> inline wxVariant WXVARIANT( const char* value ) { return wxVariant(wxString(value)); }
 //#endif
 template<> inline wxVariant WXVARIANT( const wxArrayString& value ) { return wxVariant(value); }
@@ -1685,7 +1711,7 @@ template<> inline wxVariant WXVARIANT( const wxString& value ) { return wxVarian
     template<> inline wxVariant WXVARIANT( const wxDateTime& value ) { return wxVariant(value); }
 #endif
 
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2,9,0)
     #define _WX_PG_VARIANT_DATA_CLASSINFO_CONTAINER_DECL(CLASSNAME) \
         extern int CLASSNAME##_d_;
     #define _WX_PG_VARIANT_DATA_CLASSINFO_CONTAINER(CLASSNAME) \
@@ -1820,12 +1846,16 @@ WX_PG_DECLARE_VARIANT_DATA(wxPGVariantDataULongLong, wxULongLong, WXDLLIMPEXP_PG
 #endif
 
 WX_PG_DECLARE_WXOBJECT_VARIANT_DATA(wxPGVariantDataFont, wxFont, WXDLLIMPEXP_PG)
+#if !wxCHECK_VERSION(2,8,0)
+    WX_PG_DECLARE_WXOBJECT_VARIANT_DATA(wxPGVariantDataColour, wxColour, WXDLLIMPEXP_PG)
+#else
     template<> inline wxVariant WXVARIANT( const wxColour& value )
     {
         wxVariant variant;
         variant << value;
         return variant;
     }
+#endif
 
 #endif // !SWIG
 
@@ -3809,7 +3839,10 @@ public:
     void Set( const wxArrayString& labels, const wxArrayInt& values = wxPG_EMPTY_ARRAYINT )
     {
         Free();
-        Add(labels,values);
+        if ( &values )
+            Add(labels,values);
+        else
+            Add(labels);
     }
 
     // Creates exclusive copy of current choices
@@ -7675,7 +7708,7 @@ public:
     void IncFrozen() { m_frozen++; }
     void DecFrozen() { m_frozen--; }
 
-    void OnComboItemPaint( wxPGCustomComboControl* pCb,int item,wxDC* pDc,
+    void OnComboItemPaint( wxPGCustomComboControl* pCb,int item,wxDC& dc,
                            wxRect& rect,int flags );
 
     // Used by simple check box for keyboard navigation

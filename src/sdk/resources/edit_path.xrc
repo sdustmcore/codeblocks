@@ -3,7 +3,6 @@
 	<object class="wxScrollingDialog" name="dlgEditPath">
 		<title>Edit path</title>
 		<centered>1</centered>
-		<style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
 		<object class="wxBoxSizer">
 			<orient>wxVERTICAL</orient>
 			<object class="sizeritem">
@@ -12,32 +11,33 @@
 						<object class="wxStaticText" name="lblText">
 							<label>Directory:</label>
 						</object>
-						<flag>wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
+						<flag>wxTOP</flag>
+						<border>4</border>
 					</object>
 					<object class="sizeritem">
 						<object class="wxTextCtrl" name="txtPath" />
-						<flag>wxLEFT|wxRIGHT|wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
+						<flag>wxLEFT|wxRIGHT|wxEXPAND</flag>
+						<border>8</border>
+						<minsize>240,-1</minsize>
 						<option>1</option>
 					</object>
 					<object class="sizeritem">
-						<object class="wxBitmapButton" name="btnBrowse">
-							<bitmap stock_id="wxART_FILE_OPEN" stock_client="wxART_BUTTON" />
+						<object class="wxButton" name="btnBrowse">
+							<label>...</label>
+							<tooltip>Browse</tooltip>
 						</object>
-						<flag>wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
-					</object>
-					<object class="sizeritem">
-						<object class="wxBitmapButton" name="btnOther">
-							<bitmap stock_id="wxART_EXECUTABLE_FILE" stock_client="wxART_BUTTON" />
-						</object>
-						<flag>wxALIGN_CENTER_VERTICAL</flag>
-						<border>5</border>
+						<flag>wxALIGN_LEFT</flag>
+						<minsize>24,24</minsize>
 					</object>
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
-				<border>5</border>
+				<border>8</border>
+				<option>1</option>
+			</object>
+			<object class="sizeritem">
+				<object class="wxStaticLine" name="ID_STATICLINE1" />
+				<flag>wxLEFT|wxRIGHT|wxEXPAND</flag>
+				<border>8</border>
 			</object>
 			<object class="sizeritem">
 				<object class="wxStdDialogButtonSizer">
@@ -52,8 +52,8 @@
 						</object>
 					</object>
 				</object>
-				<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL</flag>
+				<border>8</border>
 			</object>
 		</object>
 	</object>

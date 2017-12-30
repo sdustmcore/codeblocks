@@ -15,7 +15,6 @@
     #include <wx/menu.h>
     #include <wx/settings.h>
     #include <wx/toolbar.h>
-    #include <wx/textctrl.h>
     #include <wx/xrc/xmlres.h>
 
     #include <configmanager.h>
@@ -136,10 +135,11 @@ BEGIN_EVENT_TABLE(IncrementalSearch, cbPlugin)
     EVT_TOOL(XRCID("idIncSearchSelectOnly"), IncrementalSearch::OnToggleSelectedOnly)
     EVT_TOOL(XRCID("idIncSearchMatchCase"), IncrementalSearch::OnToggleMatchCase)
     EVT_TOOL(XRCID("idIncSearchUseRegex"), IncrementalSearch::OnToggleUseRegex)
+    EVT_TEXT(idIncSearchCombo, IncrementalSearch::OnTextChanged)
+    EVT_TEXT_ENTER(idIncSearchCombo, IncrementalSearch::OnSearchNext)
 #ifndef __WXMSW__
     EVT_MENU(XRCID("idEditPaste"), IncrementalSearch::OnMenuEditPaste)
 #endif
-
 END_EVENT_TABLE()
 
 // constructor
@@ -274,7 +274,12 @@ void IncrementalSearch::BuildMenu(wxMenuBar* menuBar)
         size_t i = 0;
         for (i = 0; i < items.GetCount(); ++i)
         {
+#if wxCHECK_VERSION(2,8,5)
             if (items[i]->GetLabelText(items[i]->GetItemLabelText()) == _("Find previous"))
+#else
+            if (items[i]->GetLabelFromText(items[i]->GetLabel()) == _("Find previous"))
+#endif
+
             {
                 ++i;
                 break;
@@ -339,12 +344,12 @@ bool IncrementalSearch::BuildToolBar(wxToolBar* toolBar)
     m_pToolbar->EnableTool(XRCID("idIncSearchNext"), false);
     m_pToolbar->SetInitialSize();
 
-    m_pComboCtrl = new wxComboCtrl(toolBar, idIncSearchCombo, wxEmptyString, wxDefaultPosition, wxSize(160,-1),wxTE_PROCESS_ENTER);
+    m_pComboCtrl = new wxComboCtrl(toolBar, idIncSearchCombo, wxEmptyString, wxDefaultPosition, wxSize(160,-1));
     if (m_pComboCtrl)
     {
-#if !wxCHECK_VERSION(3, 0, 0) || WXWIN_COMPATIBILITY_2_8
+#if !wxCHECK_VERSION(3,0,0) || WXWIN_COMPATIBILITY_2_8
         m_pComboCtrl->SetTextIndent(0);
-#endif // !wxCHECK_VERSION(3, 0, 0) || WXWIN_COMPATIBILITY_2_8
+#endif // !wxCHECK_VERSION(3,0,0) || WXWIN_COMPATIBILITY_2_8
         m_pToolbar->InsertControl(1, m_pComboCtrl);
         m_pToolbar->Realize();
         m_pTextCtrl = m_pComboCtrl->GetTextCtrl();
@@ -357,16 +362,8 @@ bool IncrementalSearch::BuildToolBar(wxToolBar* toolBar)
                                  (wxObjectEventFunction) (wxEventFunction) (wxCharEventFunction)
                                  &IncrementalSearch::OnKeyDown , 0, this);
             m_pTextCtrl->Connect(wxEVT_KILL_FOCUS ,
-                                 (wxObjectEventFunction)(wxEventFunction)(wxFocusEventFunction)
-                                 &IncrementalSearch::OnKillFocus, 0, this);
-            //using the old wx2.8 versions of the constants, to avoid #ifdef'S
-            m_pTextCtrl->Connect(wxEVT_COMMAND_TEXT_UPDATED,
-                                 (wxObjectEventFunction)(wxEventFunction)(wxCommandEventFunction)
-                                 &IncrementalSearch::OnTextChanged, 0, this);
-            m_pTextCtrl->Connect(wxEVT_COMMAND_TEXT_ENTER,
-                                 (wxObjectEventFunction)(wxEventFunction)(wxCommandEventFunction)
-                                 &IncrementalSearch::OnSearchNext, 0, this);
-
+                                   (wxObjectEventFunction)(wxEventFunction)(wxFocusEventFunction)
+                                   &IncrementalSearch::OnKillFocus, 0, this);
             m_textCtrlBG_Default = m_pTextCtrl->GetBackgroundColour();
             m_pComboCtrl->Enable(m_pEditor && m_pEditor->GetControl());
             m_pToolbar->ToggleTool(XRCID("idIncSearchHighlight"),m_Highlight);
@@ -666,21 +663,6 @@ void IncrementalSearch::DoSearchNext()
     HighlightText();
 }
 
-static void SetupIndicator(cbStyledTextCtrl *control, int indicator, const wxColor &colour)
-{
-    control->IndicatorSetForeground(indicator, colour);
-    control->IndicatorSetStyle(indicator, wxSCI_INDIC_ROUNDBOX);
-    control->IndicatorSetAlpha(indicator, 100);
-    control->IndicatorSetOutlineAlpha(indicator, 255);
-#ifndef wxHAVE_RAW_BITMAP
-    // If wxWidgets is build without rawbitmap-support, the indicators become opaque
-    // and hide the text, so we show them under the text.
-    // Not enabled as default, because the readability is a little bit worse.
-    control->IndicatorSetUnder(indicator, true);
-#endif
-    control->SetIndicatorCurrent(indicator);
-}
-
 void IncrementalSearch::HighlightText()
 {
     if (!m_pEditor || !m_pEditor->GetControl())
@@ -719,19 +701,41 @@ void IncrementalSearch::HighlightText()
         control->SearchAnchor();
         // and highlight it
         cbStyledTextCtrl* ctrlLeft = m_pEditor->GetLeftSplitViewControl();
-        SetupIndicator(ctrlLeft, m_IndicFound, colourTextFound);
-        cbStyledTextCtrl* ctrlRight = m_pEditor->GetRightSplitViewControl();
+        ctrlLeft->IndicatorSetForeground(m_IndicFound, colourTextFound);
+        ctrlLeft->IndicatorSetStyle(m_IndicFound, wxSCI_INDIC_HIGHLIGHT);
+#ifndef wxHAVE_RAW_BITMAP
+        // If wxWidgets is build without rawbitmap-support, the indicators become opaque
+        // and hide the text, so we show them under the text.
+        // Not enabled as default, because the readability is a little bit worse.
+        ctrlLeft->IndicatorSetUnder(m_IndicFound,true);
+#endif
+        ctrlLeft->SetIndicatorCurrent(m_IndicFound);
+
+         cbStyledTextCtrl* ctrlRight = m_pEditor->GetRightSplitViewControl();
         if(ctrlRight)
-            SetupIndicator(ctrlRight, m_IndicFound, colourTextFound);
+        {
+            ctrlRight->IndicatorSetForeground(m_IndicFound, colourTextFound);
+            ctrlRight->IndicatorSetStyle(m_IndicFound, wxSCI_INDIC_HIGHLIGHT);
+#ifndef wxHAVE_RAW_BITMAP
+            ctrlRight->IndicatorSetUnder(m_IndicFound,true);
+#endif
+            ctrlRight->SetIndicatorCurrent(m_IndicFound);
+        }
         control->IndicatorFillRange(m_NewPos, m_LengthFound);
 
         if (m_Highlight)
         {
             // highlight all occurrences of the found phrase if wanted
             wxColour colourTextHighlight(cfg->ReadColour(_T("/incremental_search/highlight_colour"), wxColour(255, 165, 0)));
-            SetupIndicator(ctrlLeft, m_IndicHighlight, colourTextHighlight);
+            ctrlLeft->IndicatorSetForeground(m_IndicHighlight, colourTextHighlight);
+            ctrlLeft->IndicatorSetStyle(m_IndicHighlight, wxSCI_INDIC_HIGHLIGHT);
+            ctrlLeft->SetIndicatorCurrent(m_IndicHighlight);
             if(ctrlRight)
-                SetupIndicator(ctrlRight, m_IndicHighlight, colourTextHighlight);
+            {
+                ctrlRight->IndicatorSetForeground(m_IndicHighlight, colourTextHighlight);
+                ctrlRight->IndicatorSetStyle(m_IndicHighlight, wxSCI_INDIC_HIGHLIGHT);
+                ctrlRight->SetIndicatorCurrent(m_IndicHighlight);
+            }
             int actualLength=0; // needed for regex-search, because the length of found text can vary
             for ( int pos = control->FindText(m_MinPos, m_MaxPos, m_SearchText, m_flags, &actualLength);
                     pos != wxSCI_INVALID_POSITION && actualLength > 0;

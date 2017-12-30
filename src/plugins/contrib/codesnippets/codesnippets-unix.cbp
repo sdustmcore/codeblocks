@@ -22,6 +22,7 @@
 		</VirtualTargets>
 		<Compiler>
 			<Add option="-Wall" />
+			<Add option="-ansi" />
 			<Add option="$(#CB_RELEASE_TYPE)" />
 			<Add option="`wx-config --version=2.8 --cflags`" />
 			<Add option="-fexceptions" />
@@ -29,9 +30,7 @@
 			<Add option="-fPIC" />
 			<Add option="-DcbDEBUG" />
 			<Add option="-DCB_PRECOMP" />
-			<Add option="-std=c++11" />
 			<Add directory="../../../include" />
-			<Add directory="../../../include/tinyxml" />
 			<Add directory="../../../sdk/wxscintilla/include" />
 			<Add directory="." />
 			<Add directory="../../../include/mozilla_chardet" />
@@ -45,6 +44,7 @@
 			<Add option="`wx-config --version=2.8 --libs`" />
 			<Add option="-Wl,--no-undefined" />
 			<Add library="codeblocks" />
+			<Add library="wxpropgrid" />
 			<Add directory="../../../devel" />
 			<Add directory="../../../base/tinyxml" />
 		</Linker>

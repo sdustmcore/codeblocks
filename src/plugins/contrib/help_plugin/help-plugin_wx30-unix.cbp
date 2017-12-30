@@ -42,6 +42,7 @@
 				<Option createDefFile="1" />
 				<Compiler>
 					<Add option="-Wall" />
+					<Add option="-ansi" />
 					<Add option="$(#CB_RELEASE_TYPE)" />
 				</Compiler>
 				<Linker>
@@ -59,15 +60,14 @@
 		<Compiler>
 			<Add option="-Wextra" />
 			<Add option="-Wall" />
-			<Add option="-std=c++11" />
-			<Add option="-fPIC" />
+			<Add option="-ansi" />
 			<Add option="`$(WX_CONFIG) --cflags`" />
 			<Add option="-Winvalid-pch" />
 			<Add option="-fexceptions" />
+			<Add option="-fPIC" />
 			<Add option="-DCB_PRECOMP" />
 			<Add option="-DcbDEBUG" />
 			<Add directory="../../../include" />
-			<Add directory="../../../include/tinyxml" />
 			<Add directory="../../../sdk/wxscintilla/include" />
 			<Add directory="../../../include/scripting/bindings" />
 			<Add directory="../../../include/scripting/include" />

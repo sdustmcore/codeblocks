@@ -17,16 +17,16 @@
 				</Compiler>
 			</Target>
 			<Target title="AutoRevision">
-				<Option output="build_tools/autorevision/autorevision" prefix_auto="1" extension_auto="1" />
+				<Option output="build_tools/autorevision/autorevision30" prefix_auto="1" extension_auto="1" />
 				<Option object_output=".objs30" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="+wx +int +t .. include/autorevision.h" />
 				<Option projectLinkerOptionsRelation="1" />
 				<Compiler>
 					<Add directory="include" />
 				</Compiler>
 				<Linker>
+					<Add option="-s" />
 					<Add option="-Wl,--no-undefined" />
 					<Add library="txml" />
 					<Add directory="base/tinyxml" />
@@ -141,7 +141,7 @@
 					<Add directory="sdk/scripting/lib" />
 				</Linker>
 				<ExtraCommands>
-					<Add before="build_tools/autorevision/autorevision +wx +int +t .. include/autorevision.h" />
+					<Add before="build_tools/autorevision/autorevision30 +wx +int +t . include/autorevision.h" />
 					<Mode after="always" />
 				</ExtraCommands>
 			</Target>
@@ -197,7 +197,7 @@
 				</Linker>
 			</Target>
 			<Target title="AStyle">
-				<Option output="devel30/share/codeblocks/plugins/Astyle" prefix_auto="1" extension_auto="1" />
+				<Option output="devel30/share/codeblocks/plugins/astyle" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="devel30" />
 				<Option object_output=".objs30" />
 				<Option type="3" />
@@ -286,6 +286,8 @@
 				<Option projectLinkerOptionsRelation="1" />
 				<Compiler>
 					<Add directory="include" />
+					<Add directory="include/scripting/include" />
+					<Add directory="include/scripting/sqplus" />
 				</Compiler>
 				<Linker>
 					<Add option="`$(WX_CONFIG) --libs`" />
@@ -512,12 +514,12 @@
 		</Build>
 		<VirtualTargets>
 			<Add alias="All" targets="tinyXML;AutoRevision;ConsoleRunner;Squirrel;Squirrel std lib;SqPlus;scintilla;sdk;src;Abbreviations;AStyle;Autosave;Compiler depslib;Compiler;Debugger;Code-completion;Class wizard;Default MIME handler;Occurrences Highlighting;Open files list;Projects-workspaces importer;Scripted wizard;To-do;" />
-			<Add alias="Core app &amp; plugins" targets="sdk;src;Abbreviations;AStyle;Autosave;Compiler depslib;Compiler;Debugger;Code-completion;Class wizard;Default MIME handler;Occurrences Highlighting;Open files list;Projects-workspaces importer;Scripted wizard;To-do;" />
+			<Add alias="Core app &amp; plugins" targets="sdk;src;AStyle;Autosave;Compiler depslib;Compiler;Debugger;Code-completion;Class wizard;Default MIME handler;Occurrences Highlighting;Open files list;Projects-workspaces importer;Scripted wizard;To-do;" />
 			<Add alias="Third-party libs" targets="tinyXML;AutoRevision;ConsoleRunner;Squirrel;Squirrel std lib;SqPlus;scintilla;Compiler depslib;" />
 		</VirtualTargets>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add option="-std=c90" />
+			<Add option="-ansi" />
 			<Add option="$(#CB_RELEASE_TYPE)" />
 			<Add option="-fmessage-length=0" />
 			<Add option="-fexceptions" />
@@ -526,7 +528,6 @@
 			<Add option="`$(WX_CONFIG) --cflags`" />
 			<Add option="-DcbDEBUG" />
 			<Add option="-DCB_PRECOMP" />
-			<Add option="-std=c++11" />
 			<Add directory="sdk/wxscintilla/include" />
 			<Add directory="include/tinyxml" />
 		</Compiler>
@@ -537,6 +538,9 @@
 		</Linker>
 		<Unit filename="base/tinyxml/tinystr.cpp">
 			<Option target="tinyXML" />
+		</Unit>
+		<Unit filename="base/tinyxml/tinywxuni.cpp">
+			<Option target="sdk" />
 		</Unit>
 		<Unit filename="base/tinyxml/tinyxml.cpp">
 			<Option target="tinyXML" />
@@ -724,7 +728,7 @@
 		<Unit filename="include/importers_globals.h">
 			<Option target="sdk" />
 		</Unit>
-		<Unit filename="include/incremental_select_helper.h">
+		<Unit filename="include/incrementalselectlistdlg.h">
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="include/infowindow.h">
@@ -743,6 +747,9 @@
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="include/macrosmanager.h">
+			<Option target="sdk" />
+		</Unit>
+		<Unit filename="include/managedthread.h">
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="include/manager.h">
@@ -1082,11 +1089,11 @@
 		<Unit filename="include/templatemanager.h">
 			<Option target="sdk" />
 		</Unit>
-		<Unit filename="include/tinywxuni.h">
-			<Option target="sdk" />
-		</Unit>
 		<Unit filename="include/tinyxml/tinystr.h">
 			<Option target="tinyXML" />
+		</Unit>
+		<Unit filename="include/tinyxml/tinywxuni.h">
+			<Option target="sdk" />
 		</Unit>
 		<Unit filename="include/tinyxml/tinyxml.h">
 			<Option target="tinyXML" />
@@ -1258,12 +1265,6 @@
 		<Unit filename="plugins/codecompletion/doxygen_parser.h">
 			<Option target="Code-completion" />
 		</Unit>
-		<Unit filename="plugins/codecompletion/gotofunctiondlg.cpp">
-			<Option target="Code-completion" />
-		</Unit>
-		<Unit filename="plugins/codecompletion/gotofunctiondlg.h">
-			<Option target="Code-completion" />
-		</Unit>
 		<Unit filename="plugins/codecompletion/insertclassmethoddlg.cpp">
 			<Option target="Code-completion" />
 		</Unit>
@@ -1385,9 +1386,6 @@
 			<Option target="Code-completion" />
 		</Unit>
 		<Unit filename="plugins/codecompletion/systemheadersthread.h">
-			<Option target="Code-completion" />
-		</Unit>
-		<Unit filename="plugins/codecompletion/wxsmith/goto_function.wxs">
 			<Option target="Code-completion" />
 		</Unit>
 		<Unit filename="plugins/compilergcc/advancedcompileroptionsdlg.cpp">
@@ -2458,7 +2456,7 @@
 		<Unit filename="sdk/importers_globals.cpp">
 			<Option target="sdk" />
 		</Unit>
-		<Unit filename="sdk/incremental_select_helper.cpp">
+		<Unit filename="sdk/incrementalselectlistdlg.cpp">
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="sdk/infowindow.cpp">
@@ -2471,6 +2469,9 @@
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="sdk/macrosmanager.cpp">
+			<Option target="sdk" />
+		</Unit>
+		<Unit filename="sdk/managedthread.cpp">
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="sdk/manager.cpp">
@@ -2662,10 +2663,10 @@
 		<Unit filename="sdk/resources/generic_multiline_notes.xrc">
 			<Option target="sdk" />
 		</Unit>
-		<Unit filename="sdk/resources/get_global_uservar.xrc">
+		<Unit filename="sdk/resources/global_uservars.xrc">
 			<Option target="sdk" />
 		</Unit>
-		<Unit filename="sdk/resources/global_uservars.xrc">
+		<Unit filename="sdk/resources/incremental_select_list.xrc">
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="sdk/resources/lexers/lexer_OgreCompositor.sample">
@@ -3088,9 +3089,6 @@
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="sdk/templatemanager.cpp">
-			<Option target="sdk" />
-		</Unit>
-		<Unit filename="sdk/tinywxuni.cpp">
 			<Option target="sdk" />
 		</Unit>
 		<Unit filename="sdk/toolsmanager.cpp">
@@ -3818,12 +3816,6 @@
 		<Unit filename="src/find_replace.h">
 			<Option target="src" />
 		</Unit>
-		<Unit filename="src/goto_file.cpp">
-			<Option target="src" />
-		</Unit>
-		<Unit filename="src/goto_file.h">
-			<Option target="src" />
-		</Unit>
 		<Unit filename="src/infopane.cpp">
 			<Option target="src" />
 		</Unit>
@@ -4049,14 +4041,10 @@
 		<Unit filename="wxsmith/debuggersettingspanel.wxs">
 			<Option target="src" />
 		</Unit>
-		<Unit filename="wxsmith/goto_file.wxs">
-			<Option target="src" />
-		</Unit>
 		<Extensions>
 			<code_completion />
 			<envvars />
 			<wxsmith version="1">
-				<gui name="wxWidgets" src="" main="" init_handlers="necessary" language="CPP" />
 				<resources>
 					<wxScrollingDialog wxs="wxsmith/VirtualBuildTargetsDlg.wxs" src="src/virtualbuildtargetsdlg.cpp" hdr="src/virtualbuildtargetsdlg.h" xrc="src/resources/virtualbuildtargetsdlg.xrc" fwddecl="0" i18n="1" name="VirtualBuildTargetsDlg" language="CPP" />
 					<wxScrollingDialog wxs="wxsmith/databreakpointdlg.wxs" src="plugins/debuggergdb/databreakpointdlg.cpp" hdr="plugins/debuggergdb/databreakpointdlg.h" fwddecl="0" i18n="1" name="DataBreakpointDlg" language="CPP" />
@@ -4073,8 +4061,6 @@
 					<wxScrollingDialog wxs="wxsmith/debuggersettingsdlg.wxs" src="src/debuggersettingsdlg.cpp" hdr="src/debuggersettingsdlg.h" fwddecl="0" i18n="1" name="DebuggerSettingsDlg" language="CPP" />
 					<wxPanel wxs="wxsmith/debuggersettingspanel.wxs" src="src/debuggersettingspanel.cpp" hdr="src/debuggersettingspanel.h" fwddecl="0" i18n="1" name="DebuggerSettingsPanel" language="CPP" />
 					<wxPanel wxs="wxsmith/debuggersettingscommonpanel.wxs" src="src/debuggersettingscommonpanel.cpp" hdr="src/debuggersettingscommonpanel.h" fwddecl="0" i18n="1" name="DebuggerSettingsCommonPanel" language="CPP" />
-					<wxDialog wxs="wxsmith/goto_file.wxs" src="src/goto_file.cpp" hdr="src/goto_file.h" fwddecl="1" i18n="1" name="GotoFile" language="CPP" />
-					<wxDialog wxs="plugins/codecompletion/wxsmith/goto_function.wxs" src="plugins/codecompletion/gotofunctiondlg.cpp" hdr="plugins/codecompletion/gotofunctiondlg.h" fwddecl="1" i18n="1" name="GotoFunctionDlg" language="CPP" />
 				</resources>
 			</wxsmith>
 			<debugger />

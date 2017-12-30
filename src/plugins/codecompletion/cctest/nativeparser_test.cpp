@@ -66,8 +66,6 @@ namespace CCTestAppGlobal
 
 NativeParserTest::NativeParserTest()
 {
-    m_Parser.Options().wantPreprocessor = true; // Default
-    m_Parser.Options().storeDocumentation = true; // Default
 }
 
 NativeParserTest::~NativeParserTest()
@@ -178,11 +176,11 @@ void NativeParserTest::Init()
 
 bool NativeParserTest::ParseAndCodeCompletion(wxString filename, bool isLocalFile)
 {
-    Clear(); //clear the tree
+    Clear();//clear the tree
 
     bool parseResult = false;
     parseResult = Parse(filename, isLocalFile);
-    if (!parseResult)
+    if(!parseResult)
         return false;
 
     int passCount = 0;
@@ -197,7 +195,7 @@ bool NativeParserTest::ParseAndCodeCompletion(wxString filename, bool isLocalFil
         message = wxString::Format(_T("********************************************************\n  Testing file in edit control\n********************************************************"));
 
     wxLogMessage(message);
-    testResult << message << wxT("\n");
+    testResult<<message<<wxT("\n");
 
     // reading the test cases, first we read all the lines of the file
     // handling local files and wxScintilla control differently
@@ -209,8 +207,8 @@ bool NativeParserTest::ParseAndCodeCompletion(wxString filename, bool isLocalFil
         source.Open(filename);
         wxString str;
         for ( str = source.GetFirstLine();
-              source.GetCurrentLine() < source.GetLineCount();
-              str = source.GetNextLine() )
+          source.GetCurrentLine() < source.GetLineCount();
+          str = source.GetNextLine() )
         {
             allLines.push_back(str);
         }
@@ -225,57 +223,41 @@ bool NativeParserTest::ParseAndCodeCompletion(wxString filename, bool isLocalFil
         }
     }
 
-    // the test cases are list as the last line of the file, so we loop backwards, and stop if an
+    // the test cases are list as the last line of the file, so we loop backword, and stop if an
     // empty line is found
-    for (size_t l = allLines.size() - 1; l >= 0; l--)
+    for (size_t i = allLines.size() - 1; i >= 0; i--)
     {
-        wxString str = allLines[l];
+
+        wxString str = allLines[i];
         // a test case should be put in a line, and start with the double slash
         if (str.StartsWith(_T("//")))
         {
             // do tests here, example of line is below
             // tc.St    //StaticVoid
             // remove the beginning "//"
-            str.Remove(0, 2);
-
-            int pos;
-            wxString expression;
-            wxString match;
-            wxString match_doc;
-
-            // find the optional "///<" for Doxygen comment tests
-            pos = str.Find(_T("///<"));
-            if (pos != wxNOT_FOUND)
-            {
-                match_doc = str.Mid(pos + 4);
-                str = str.Mid(0, pos);
-            }
+            str.Remove(0,2);
 
             // find the second "//", the string after the second double slash are the
             // the result should be listed
-            pos = str.Find(_T("//"));
-            if (pos != wxNOT_FOUND)
-            {
-                expression = str.Mid(0, pos);
-                match = str.Mid(pos + 2);// the remaining string
-            }
-            else
-            {
-                expression = str;
-                if (!match_doc.IsEmpty())
-                    match = _T("* @doxygen");
-            }
+            wxString expression;
+            wxString match;
+            int pos = str.Find(_T("//"));
+            if (pos == wxNOT_FOUND)
+                break;
+            expression = str.Mid(0,pos);
+            match = str.Mid(pos+2);// the remaining string
 
-            expression.Trim(true).Trim(false);
-            match.Trim(true).Trim(false);
-            match_doc.Trim(true).Trim(false);
+            expression.Trim();
+            expression.Trim(true);
+            match.Trim();
+            match.Trim(true);
 
             wxArrayString suggestList;
             // the match can have many items, like: AAA,BBBB
             wxStringTokenizer tkz(match, wxT(","));
             while ( tkz.HasMoreTokens() )
             {
-                wxString token = tkz.GetNextToken().Trim(true).Trim(false);
+                wxString token = tkz.GetNextToken();
                 suggestList.Add(token);
             }
 
@@ -285,9 +267,9 @@ bool NativeParserTest::ParseAndCodeCompletion(wxString filename, bool isLocalFil
             TestExpression(expression,searchScope,result);
 
             // loop the suggestList to see it is in the result Tokens
-            for (size_t s=0; s<suggestList.GetCount(); s++)
+            for (size_t i=0;i<suggestList.GetCount();i++)
             {
-                wxString element = suggestList[s];
+                wxString element = suggestList[i];
                 bool pass = false; // pass the test?
                 for (TokenIdxSet::const_iterator it = result.begin();
                      it != result.end();
@@ -296,52 +278,20 @@ bool NativeParserTest::ParseAndCodeCompletion(wxString filename, bool isLocalFil
                     const Token* token = m_Parser.GetTokenTree()->at(*it);
                     if (!token || token->m_Name.IsEmpty())
                         continue;
-
-                    if (element.IsSameAs(token->m_Name) || element[0] == '*')
+                    if (element.IsSameAs(token->m_Name))
                     {
-                        // no doxygen documents, only matches the suggestion list
-                        if (match_doc.IsEmpty())
-                        {
-                            message = wxString::Format(_T("+ PASS: %s  %s"), expression.wx_str(), element.wx_str());
-                            testResult << message << wxT("\n");
-                            wxLogMessage(message);
-                            pass = true;
-                            ++passCount;
-                        }
-                        else
-                        {
-                            // check whether doxygen documents are matched
-                            if (token->m_Doc.Contains(match_doc)
-                            || (match_doc[0] == '*' && match_doc.Len() == 1 && !token->m_Doc.IsEmpty())
-                            || (match_doc[0] == '-' && match_doc.Len() == 1 && token->m_Doc.IsEmpty()))
-                            {
-                                message = wxString::Format(_T("+ PASS: %s  %s  \"%s\""), expression.wx_str(), token->m_Name.wx_str(), match_doc.wx_str());
-                                testResult << message << wxT("\n");
-                                wxLogMessage(message);
-                                if (!pass)
-                                {
-                                    pass = true;
-                                    ++passCount;
-                                }
-                            }
-                            else
-                            {
-                                if (pass)
-                                    --passCount;
-                                pass = false;
-                                element = wxString::Format(_T("%s  \"%s\""), token->m_Name.wx_str(), match_doc.wx_str());
-                                break;
-                            }
-                        }
-                        if (element[0] != '*')
-                            break;
+                        message = wxString::Format(_T("-PASS: %s  %s"),expression.wx_str(),element.wx_str());
+                        testResult<<message<<wxT("\n");
+                        wxLogMessage(message);
+                        pass = true;
+                        passCount++;
                     }
 
                 }
                 if (pass == false)
                 {
-                    message = wxString::Format(_T("- FAIL: %s  %s"), expression.wx_str(), element.wx_str());
-                    testResult << message << wxT("\n");
+                    message = wxString::Format(_T("*FAIL: %s  %s"),expression.wx_str(),element.wx_str());
+                    testResult<<message<<wxT("\n");
                     wxLogMessage(message);
                     failCount++;
                 }

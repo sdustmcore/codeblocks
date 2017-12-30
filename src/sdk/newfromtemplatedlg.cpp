@@ -195,7 +195,7 @@ void NewFromTemplateDlg::BuildCategoriesFor(TemplateOutputType otype, wxChoice* 
     cat->SetSelection(0);
 }
 
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2, 9, 1)
 inline int wxCALLBACK SortTemplates(wxIntPtr item1, wxIntPtr item2, cb_unused wxIntPtr sortData)
 #else
 inline int wxCALLBACK SortTemplates(long item1, long item2, cb_unused long sortData)
@@ -248,15 +248,10 @@ void NewFromTemplateDlg::BuildListFor(TemplateOutputType otype, wxListCtrl* list
 
             if (all || plugin->GetCategory(w).Matches(cat->GetStringSelection()))
             {
-                int iconIndex;
+                int idx = plugin->GetBitmap(w).Ok() ? list->GetImageList(wxIMAGE_LIST_NORMAL)->Add(plugin->GetBitmap(w)) : -2;
                 if (plugin->GetBitmap(w).Ok())
-                {
-                    iconIndex = list->GetImageList(wxIMAGE_LIST_NORMAL)->Add(plugin->GetBitmap(w));
                     list->GetImageList(wxIMAGE_LIST_SMALL)->Add(plugin->GetBitmap(w));
-                }
-                else
-                    iconIndex = -2;
-                int index = list->InsertItem(0, plugin->GetTitle(w), iconIndex);
+                int index = list->InsertItem(0, plugin->GetTitle(w), idx);
                 if (index != -1)
                 {
                     list->SetItemData(index, (wxIntPtr)(new ListItemData(nullptr, plugin, w)));

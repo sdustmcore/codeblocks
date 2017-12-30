@@ -39,7 +39,6 @@
 #include <cbstyledtextctrl.h>
 #include <compilercommandgenerator.h>
 #include <projectloader_hooks.h>
-#include <tinyxml.h>
 
 #include "nativeparser.h"
 #include "classbrowser.h"
@@ -1904,6 +1903,8 @@ bool NativeParser::AddCompilerDirs(cbProject* project, ParserBase* parser)
     // ...so we can access post-processed project's search dirs
     Compiler* compiler = CompilerFactory::GetCompiler(project->GetCompilerID());
     cb::shared_ptr<CompilerCommandGenerator> generator(compiler ? compiler->GetCommandGenerator(project) : nullptr);
+    if (compiler && generator)
+        generator->Init(project);
 
     // get project include dirs
     if (   !parser->Options().platformCheck
@@ -2760,7 +2761,7 @@ bool NativeParser::AddProjectToParser(cbProject* project)
         for (FilesList::const_iterator fl_it = project->GetFilesList().begin(); fl_it != project->GetFilesList().end(); ++fl_it)
         {
             ProjectFile* pf = *fl_it;
-            if (pf && (FileTypeOf(pf->relativeFilename) == ftSource || FileTypeOf(pf->relativeFilename) == ftTemplateSource) )
+            if (pf && FileTypeOf(pf->relativeFilename) == ftSource)
             {
                 if ( AddFileToParser(project, pf->file.GetFullPath(), parser) )
                     fileCount++;

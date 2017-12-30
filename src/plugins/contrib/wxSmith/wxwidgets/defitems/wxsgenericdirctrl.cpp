@@ -34,7 +34,7 @@ namespace
         WXS_ST(wxDIRCTRL_DIR_ONLY)
         WXS_ST(wxDIRCTRL_3D_INTERNAL)
         WXS_ST(wxDIRCTRL_SELECT_FIRST)
-#if !wxCHECK_VERSION(3, 0, 0)
+#if !wxCHECK_VERSION(2, 9, 0)
         WXS_ST(wxDIRCTRL_SHOW_FILTERS)
 #endif
         WXS_ST(wxDIRCTRL_EDIT_LABELS)
@@ -42,8 +42,6 @@ namespace
     WXS_ST_END()
 
     WXS_EV_BEGIN(wxsGenericDirCtrlEvents)
-        WXS_EVI(EVT_CMD_DIRCTRL_SELECTIONCHANGED,wxEVT_DIRCTRL_SELECTIONCHANGED,wxTreeEvent,SelectionChanged)  // added in 3.0
-        WXS_EVI(EVT_CMD_DIRCTRL_FILEACTIVATED,wxEVT_DIRCTRL_FILEACTIVATED,wxTreeEvent,FileActivated)           // added in 3.0
     WXS_EV_END()
 }
 
@@ -69,7 +67,6 @@ void wxsGenericDirCtrl::OnBuildCreatingCode()
             return;
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsGenericDirCtrl::OnBuildCreatingCode"),GetLanguage());
@@ -83,7 +80,7 @@ wxObject* wxsGenericDirCtrl::OnBuildPreview(wxWindow* Parent,long Flags)
     return SetupWindow(Preview,Flags);
 }
 
-void wxsGenericDirCtrl::OnEnumWidgetProperties(cb_unused long Flags)
+void wxsGenericDirCtrl::OnEnumWidgetProperties(long Flags)
 {
     WXS_SHORT_STRING(wxsGenericDirCtrl,DefaultFolder,_("Default Folder"),_T("defaultfolder"),_T(""),true)
     WXS_SHORT_STRING(wxsGenericDirCtrl,Filter,_("Filter"),_T("filter"),_T(""),true)

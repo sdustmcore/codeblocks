@@ -28,6 +28,7 @@
 #include <wx/filefn.h>
 #include <wx/xml/xml.h>
 
+WX_DEFINE_OBJARRAY(RegExArray);
 
 // static
 wxArrayString Compiler::m_CompilerIDs; // map to guarantee unique IDs
@@ -104,7 +105,7 @@ Compiler::Compiler(const wxString& name, const wxString& ID, const wxString& par
     m_Switches.forceFwdSlashes = false;
     m_VersionString = wxEmptyString;
     m_Weight = weight;
-    m_RegExes.reserve(100);
+
     Manager::Get()->GetLogManager()->DebugLog(F(_T("Added compiler \"%s\""), m_Name.wx_str()));
 }
 
@@ -182,11 +183,10 @@ void Compiler::ReloadOptions()
 
 void Compiler::LoadDefaultRegExArray(bool globalPrecedence)
 {
-    m_RegExes.clear();
+    m_RegExes.Clear();
     LoadRegExArray(GetID(), globalPrecedence);
 }
 
-// Keep in sync with the MakeInvalidCompilerMessages method.
 bool Compiler::IsValid()
 {
     if (!m_NeedValidityCheck)
@@ -204,14 +204,12 @@ bool Compiler::IsValid()
     }
 
     wxString tmp = m_MasterPath + _T("/bin/") + m_Programs.C;
-    MacrosManager *macros = Manager::Get()->GetMacrosManager();
-    macros->ReplaceMacros(tmp);
+    Manager::Get()->GetMacrosManager()->ReplaceMacros(tmp);
     m_Valid = wxFileExists(tmp);
     if (!m_Valid)
-    {
-        // and try without appending the 'bin'
+    {   // and try without appending the 'bin'
         tmp = m_MasterPath + _T("/") + m_Programs.C;
-        macros->ReplaceMacros(tmp);
+        Manager::Get()->GetMacrosManager()->ReplaceMacros(tmp);
         m_Valid = wxFileExists(tmp);
     }
     if (!m_Valid)
@@ -220,42 +218,13 @@ bool Compiler::IsValid()
         for (size_t i = 0; i < m_ExtraPaths.GetCount(); ++i)
         {
             tmp = m_ExtraPaths[i] + _T("/") + m_Programs.C;
-            macros->ReplaceMacros(tmp);
+            Manager::Get()->GetMacrosManager()->ReplaceMacros(tmp);
             m_Valid = wxFileExists(tmp);
             if (m_Valid)
                 break;
         }
     }
     return m_Valid;
-}
-
-// Keep in sync with the IsValid method.
-wxString Compiler::MakeInvalidCompilerMessages() const
-{
-    if (!SupportsCurrentPlatform())
-        return _("Compiler doesn't support this platform!\n");
-
-    MacrosManager *macros = Manager::Get()->GetMacrosManager();
-
-    wxString triedPathsMsgs;
-    wxString tmp = m_MasterPath + _T("/bin/") + m_Programs.C;
-    macros->ReplaceMacros(tmp);
-    triedPathsMsgs += F(_T("Tried to run compiler executable '%s', but failed!\n"), tmp.wx_str());
-
-    // and try without appending the 'bin'
-    tmp = m_MasterPath + _T("/") + m_Programs.C;
-    macros->ReplaceMacros(tmp);
-
-    // look in extra paths too
-    for (size_t i = 0; i < m_ExtraPaths.GetCount(); ++i)
-    {
-        triedPathsMsgs += F(_T("Tried to run compiler executable '%s', but failed!\n"), tmp.wx_str());
-
-        tmp = m_ExtraPaths[i] + _T("/") + m_Programs.C;
-        macros->ReplaceMacros(tmp);
-    }
-
-    return triedPathsMsgs;
 }
 
 void Compiler::MakeValidID()
@@ -392,6 +361,13 @@ void Compiler::MirrorCurrentSettings()
     m_Mirrored                = true;
 }
 
+void Compiler::CompileRegExArray()
+{
+    size_t count = m_RegExes.Count();
+    for (size_t ii = 0; ii < count; ++ii)
+        m_RegExes[ii].CompileRegEx();
+}
+
 void Compiler::SaveSettings(const wxString& baseKey)
 {
     ConfigManager* cfg = Manager::Get()->GetConfigManager(_T("compiler"));
@@ -414,11 +390,6 @@ void Compiler::SaveSettings(const wxString& baseKey)
     {
         wxString key = GetStringFromArray(m_CompilerOptions);
         cfg->Write(tmp + _T("/compiler_options"), key, false);
-    }
-    if (m_Mirror.ResourceCompilerOptions != m_ResourceCompilerOptions)
-    {
-        wxString key = GetStringFromArray(m_ResourceCompilerOptions);
-        cfg->Write(tmp + _T("/resource_compiler_options"), key, false);
     }
     if (m_Mirror.LinkerOptions != m_LinkerOptions)
     {
@@ -544,9 +515,9 @@ void Compiler::SaveSettings(const wxString& baseKey)
     // regexes
     cfg->DeleteSubPath(tmp + _T("/regex"));
     wxString group;
-    for (size_t i = 0; i < m_RegExes.size(); ++i)
+    for (size_t i = 0; i < m_RegExes.Count(); ++i)
     {
-        if (i < m_Mirror.RegExes.size() && m_Mirror.RegExes[i] == m_RegExes[i])
+        if (i < m_Mirror.RegExes.GetCount() && m_Mirror.RegExes[i] == m_RegExes[i])
             continue;
 
         group.Printf(_T("%s/regex/re%3.3lu"), tmp.c_str(), static_cast<unsigned long>(i + 1));
@@ -554,7 +525,7 @@ void Compiler::SaveSettings(const wxString& baseKey)
         cfg->Write(group + _T("/description"),  rs.desc,  true);
         if (rs.lt != 0)
             cfg->Write(group + _T("/type"),     rs.lt);
-        cfg->Write(group + _T("/regex"),        rs.GetRegExString(), true);
+        cfg->Write(group + _T("/regex"),        rs.regex, true);
         if (rs.msg[0] != 0)
             cfg->Write(group + _T("/msg1"),     rs.msg[0]);
         if (rs.msg[1] != 0)
@@ -641,7 +612,6 @@ void Compiler::LoadSettings(const wxString& baseKey)
     SetVersionString();
 
     SetCompilerOptions    (GetArrayFromString(cfg->Read(tmp + _T("/compiler_options"), wxEmptyString)));
-    SetResourceCompilerOptions(GetArrayFromString(cfg->Read(tmp + _T("/resource_compiler_options"), wxEmptyString)));
     SetLinkerOptions      (GetArrayFromString(cfg->Read(tmp + _T("/linker_options"),   wxEmptyString)));
     SetIncludeDirs        (GetArrayFromString(cfg->Read(tmp + _T("/include_dirs"),     wxEmptyString)));
     SetResourceIncludeDirs(GetArrayFromString(cfg->Read(tmp + _T("/res_include_dirs"), wxEmptyString)));
@@ -724,19 +694,21 @@ void Compiler::LoadSettings(const wxString& baseKey)
         if (!cfg->Exists(group+_T("/description")))
             continue;
 
-        RegExStruct rs(cfg->Read(group + _T("/description")),
-                       (CompilerLineType)cfg->ReadInt(group + _T("/type"), 0),
-                       cfg->Read(group + _T("/regex")),
-                       cfg->ReadInt(group + _T("/msg1"), 0),
-                       cfg->ReadInt(group + _T("/filename"), 0),
-                       cfg->ReadInt(group + _T("/line"), 0),
-                       cfg->ReadInt(group + _T("/msg2"), 0),
-                       cfg->ReadInt(group + _T("/msg3"), 0));
+        RegExStruct rs;
+        rs.desc     = cfg->Read(group + _T("/description"));
+        rs.lt       = (CompilerLineType)cfg->ReadInt(group + _T("/type"), 0);
+        rs.regex    = cfg->Read(group + _T("/regex"));
+        rs.msg[0]   = cfg->ReadInt(group + _T("/msg1"), 0);
+        rs.msg[1]   = cfg->ReadInt(group + _T("/msg2"), 0);
+        rs.msg[2]   = cfg->ReadInt(group + _T("/msg3"), 0);
+        rs.filename = cfg->ReadInt(group + _T("/filename"), 0);
+        rs.line     = cfg->ReadInt(group + _T("/line"), 0);
+        rs.CompileRegEx();
 
-        if (index <= (long)m_RegExes.size())
+        if (index <= (long)m_RegExes.GetCount())
             m_RegExes[index - 1] = rs;
         else
-            m_RegExes.push_back(rs);
+            m_RegExes.Add(rs);
     }
 
     // sorted flags
@@ -779,10 +751,10 @@ CompilerLineType Compiler::CheckForWarningsAndErrors(const wxString& line)
         m_Error.Clear();
     }
 
-    for (size_t i = 0; i < m_RegExes.size(); ++i)
+    for (size_t i = 0; i < m_RegExes.Count(); ++i)
     {
         RegExStruct& rs = m_RegExes[i];
-        if (!rs.HasRegEx())
+        if (rs.regex.IsEmpty())
             continue;
         const wxRegEx &regex = rs.GetRegEx();
         if (regex.Matches(line))
@@ -1156,7 +1128,7 @@ void Compiler::LoadRegExArray(const wxString& name, bool globalPrecedence, int r
             else if (tp == wxT("info"))
                 clt = cltInfo;
             wxArrayString msg = GetArrayFromString(node->GetAttribute(wxT("msg"), wxEmptyString) + wxT(";0;0"));
-            m_RegExes.push_back(RegExStruct(wxGetTranslation(node->GetAttribute(wxT("name"), wxEmptyString)), clt,
+            m_RegExes.Add(RegExStruct(wxGetTranslation(node->GetAttribute(wxT("name"), wxEmptyString)), clt,
                                       node->GetNodeContent().Trim().Trim(false), wxAtoi(msg[0]),
                                       wxAtoi(node->GetAttribute(wxT("file"), wxT("0"))),
                                       wxAtoi(node->GetAttribute(wxT("line"), wxT("0"))),
@@ -1174,6 +1146,8 @@ void Compiler::LoadRegExArray(const wxString& name, bool globalPrecedence, int r
         }
         node = node->GetNext();
     }
+
+    CompileRegExArray();
 }
 
 bool Compiler::EvalXMLCondition(const wxXmlNode* node)
@@ -1187,7 +1161,7 @@ bool Compiler::EvalXMLCondition(const wxXmlNode* node)
         else if (test == wxT("macosx"))
             val = platform::macosx;
         else if (test == wxT("linux"))
-            val = platform::Linux;
+            val = platform::linux;
         else if (test == wxT("freebsd"))
             val = platform::freebsd;
         else if (test == wxT("netbsd"))
@@ -1199,7 +1173,7 @@ bool Compiler::EvalXMLCondition(const wxXmlNode* node)
         else if (test == wxT("solaris"))
             val = platform::solaris;
         else if (test == wxT("unix"))
-            val = platform::Unix;
+            val = platform::unix;
     }
     else if (node->GetAttribute(wxT("exec"), &test))
     {
@@ -1231,9 +1205,9 @@ bool Compiler::EvalXMLCondition(const wxXmlNode* node)
         if ( !cmd[0].IsEmpty() ) // should never be empty
         {
             int flags = wxEXEC_SYNC;
-            #if wxCHECK_VERSION(3, 0, 0)
+            #if wxCHECK_VERSION(2, 9, 0)
                 // Stop event-loop while wxExecute runs, to avoid a deadlock on startup,
-                // that occurs from time to time on wx3
+                // that occurs from time to time on wx2.9
                 flags |= wxEXEC_NOEVENTS;
             #else
                 flags |= wxEXEC_NODISABLE;

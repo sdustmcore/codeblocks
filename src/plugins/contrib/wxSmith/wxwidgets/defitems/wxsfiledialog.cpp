@@ -75,7 +75,6 @@ void wxsFileDialog::OnBuildCreatingCode()
             return;
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsFileDialog::OnBuildCreatingCode"),GetLanguage());
@@ -83,7 +82,7 @@ void wxsFileDialog::OnBuildCreatingCode()
     }
 }
 
-void wxsFileDialog::OnEnumToolProperties(cb_unused long Flags)
+void wxsFileDialog::OnEnumToolProperties(long Flags)
 {
     WXS_SHORT_STRING(wxsFileDialog,m_Message,_("Message"),_T("message"),_T(""),false);
     WXS_SHORT_STRING(wxsFileDialog,m_DefaultDir,_("Default directory"),_T("default_dir"),_T(""),false);

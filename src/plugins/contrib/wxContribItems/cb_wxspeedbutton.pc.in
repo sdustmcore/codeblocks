@@ -9,5 +9,5 @@ Name: wxSpeedButton
 Description: SpeedButton also used for the wxSmith Contrib Items
 Version: @VERSION@
 Libs: -L${libdir} -lwxspeedbutton
-Cflags: -I${includedir}/wxSpeedButton
+Cflags: -fPIC -I${includedir}/wxSpeedButton
 

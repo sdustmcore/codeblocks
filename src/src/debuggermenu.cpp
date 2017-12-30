@@ -10,6 +10,7 @@
 
 #ifndef CB_PRECOMP
     #include <wx/menu.h>
+    #include <wx/textdlg.h>
     #include <wx/toolbar.h>
     #include <wx/xrc/xmlres.h>
 
@@ -336,7 +337,7 @@ void DebuggerMenuHandler::MarkActiveTargetAsValid(bool valid)
         return;
     wxMenuItem *item = menu->FindItem(idMenuDebugActiveTargetsDefault);
     if (item)
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2, 9, 0)
         item->SetItemLabel(valid ? _("Target's default") : _("Target's default (invalid)"));
 #else
         item->SetText(valid ? _("Target's default") : _("Target's default (invalid)"));
@@ -683,7 +684,7 @@ void DebuggerMenuHandler::OnAddDataBreakpoint(cb_unused wxCommandEvent& event)
 void DebuggerMenuHandler::OnAttachToProcess(cb_unused wxCommandEvent& event)
 {
     cbAssert(m_activeDebugger);
-    wxString pidStr = cbGetTextFromUser(_("PID to attach to:"));
+    wxString pidStr = wxGetTextFromUser(_("PID to attach to:"));
     if (!pidStr.empty())
     {
         m_activeDebugger->AttachToProcess(pidStr);
@@ -699,7 +700,7 @@ void DebuggerMenuHandler::OnDetachFromProcess(cb_unused wxCommandEvent& event)
 void DebuggerMenuHandler::OnSendCommand(cb_unused wxCommandEvent& event)
 {
     cbAssert(m_activeDebugger);
-    wxString cmd = cbGetTextFromUser(_("Enter command for Debugger:"), _("Send command to Debugger:"), m_lastCommand);
+    wxString cmd = wxGetTextFromUser(_("Enter command for Debugger:"), _("Send command to Debugger:"), m_lastCommand);
     if (cmd.IsEmpty())
         return;
 

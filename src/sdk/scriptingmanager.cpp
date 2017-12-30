@@ -40,32 +40,14 @@ template<> bool  Mgr<ScriptingManager>::isShutdown = false;
 static wxString s_ScriptErrors;
 static wxString capture;
 
-void PrintSquirrelToWxString(wxString& msg, const SQChar* s, va_list& vl)
-{
-    int buffer_size = 2048;
-    SQChar* tmp_buffer;
-    for (;;buffer_size*=2)
-    {
-        tmp_buffer = new SQChar [buffer_size];
-        int retvalue = vsnprintf(tmp_buffer, buffer_size, s, vl);
-        if (retvalue < buffer_size)
-        {
-            // Buffersize was large enough
-            msg = cbC2U(tmp_buffer);
-            delete[] tmp_buffer;
-            break;
-        }
-        // Buffer size was not enough
-        delete[] tmp_buffer;
-    }
-}
-
 static void ScriptsPrintFunc(HSQUIRRELVM /*v*/, const SQChar * s, ...)
 {
+    static SQChar temp[2048];
     va_list vl;
     va_start(vl,s);
-    wxString msg;
-    PrintSquirrelToWxString(msg,s,vl);
+    scvsprintf( temp,s,vl);
+    wxString msg = cbC2U(temp);
+    Manager::Get()->GetLogManager()->DebugLog(msg);
     va_end(vl);
 
     s_ScriptErrors << msg;
@@ -73,11 +55,11 @@ static void ScriptsPrintFunc(HSQUIRRELVM /*v*/, const SQChar * s, ...)
 
 static void CaptureScriptOutput(HSQUIRRELVM /*v*/, const SQChar * s, ...)
 {
+    static SQChar temp[2048];
     va_list vl;
     va_start(vl,s);
-    wxString msg;
-    PrintSquirrelToWxString(msg,s,vl);
-    ::capture.append(msg);
+    scvsprintf(temp,s,vl);
+    ::capture.append(cbC2U(temp));
     va_end(vl);
 }
 
@@ -313,7 +295,7 @@ bool ScriptingManager::RegisterScriptMenu(const wxString& menuPath, const wxStri
         mbs.scriptOrFunc = scriptOrFunc;
         mbs.isFunc = isFunction;
         m_MenuIDToScript.insert(m_MenuIDToScript.end(), std::make_pair(id, mbs));
-        #if wxCHECK_VERSION(3, 0, 0)
+        #if wxCHECK_VERSION(2, 9, 0)
         Manager::Get()->GetLogManager()->Log(F(_("Script/function '%s' registered under menu '%s'"), scriptOrFunc.wx_str(), menuPath.wx_str()));
         #else
         Manager::Get()->GetLogManager()->Log(F(_("Script/function '%s' registered under menu '%s'"), scriptOrFunc.c_str(), menuPath.c_str()));

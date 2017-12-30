@@ -1,10 +1,9 @@
 #include <sdk.h>
 #include <prep.h>
 #ifndef CB_PRECOMP
-    #include <wx/button.h>
-    #include <wx/combobox.h>
     #include <wx/xrc/xmlres.h>
     #include <wx/textctrl.h>
+    #include <wx/combobox.h>
 #endif
 #include <wx/tglbtn.h>
 
@@ -15,7 +14,6 @@ CompilerFlagDlg::CompilerFlagDlg(wxWindow* parent, CompOption* opt, wxArrayStrin
                                  const wxString &selectedCategory)
 {
     wxXmlResource::Get()->LoadObject(this, parent, wxT("CompilerFlagDlg"), wxT("wxDialog"));
-    XRCCTRL(*this, "wxID_OK", wxButton)->SetDefault();
     NameText = (wxTextCtrl*)FindWindow(XRCID("ID_Name"));
     CompilerText = (wxTextCtrl*)FindWindow(XRCID("ID_Compiler"));
     LinkerText = (wxTextCtrl*)FindWindow(XRCID("ID_Linker"));
@@ -56,7 +54,7 @@ CompilerFlagDlg::CompilerFlagDlg(wxWindow* parent, CompOption* opt, wxArrayStrin
         CategoryCombo->SetStringSelection(selectedCategory);
     MessageText->Enable(!AgainstText->GetValue().Trim().Trim(false).IsEmpty());
 
-    // Limit vertical resizing.
+    SetSize(GetPosition().x - 57, wxDefaultCoord, GetMinWidth() + 114, GetMinHeight());
     SetMaxSize(wxSize(-1, GetMinHeight()));
 }
 

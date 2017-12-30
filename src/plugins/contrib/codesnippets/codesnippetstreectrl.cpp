@@ -44,6 +44,7 @@
 //-#else
 //-#endif
 
+#include <tinyxml/tinyxml.h>
 #include "cbstyledtextctrl.h"
 #include "snippetitemdata.h"
 #include "codesnippetstreectrl.h"
@@ -1717,7 +1718,7 @@ void CodeSnippetsTreeCtrl::EditSnippetWithMIME()
     if ( not ::wxFileExists(fileName) ) return;
 
     wxString fileNameExt;
-    #if wxCHECK_VERSION(3, 0, 0)
+    #if wxCHECK_VERSION(2, 9, 0)
     wxFileName::SplitPath( fileName, /*volume*/0, /*path*/0, /*name*/0, &fileNameExt);
     #else
     ::wxSplitPath( fileName, /*path*/0, /*name*/0, &fileNameExt);
@@ -1786,7 +1787,7 @@ void CodeSnippetsTreeCtrl::EditSnippetWithMIME()
            #endif
 
             delete filetype;
-            #if wxCHECK_VERSION(3, 0, 0)
+            #if wxCHECK_VERSION(2, 9, 0)
             if ( !open.IsEmpty() )
             #else
             if ( open )

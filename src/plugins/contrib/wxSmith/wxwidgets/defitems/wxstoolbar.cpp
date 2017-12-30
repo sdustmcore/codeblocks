@@ -48,7 +48,7 @@ namespace
                 PlaceWindow(this,pdlCentre,true);
             }
 
-            void OnOK(cb_unused wxCommandEvent& event)
+            void OnOK(wxCommandEvent& event)
             {
                 Editor->ApplyChanges();
                 EndModal(wxID_OK);
@@ -67,16 +67,20 @@ namespace
         WXS_ST(wxTB_DOCKABLE)
         WXS_ST(wxTB_VERTICAL)
         WXS_ST(wxTB_HORIZONTAL)
+        WXS_ST(wxTB_3DBUTTONS)
         WXS_ST(wxTB_TEXT)
         WXS_ST(wxTB_NOICONS)
         WXS_ST(wxTB_NODIVIDER)
         WXS_ST(wxTB_NOALIGN)
         WXS_ST(wxTB_HORZ_LAYOUT)
         WXS_ST(wxTB_HORZ_TEXT)
-        WXS_ST(wxTB_TOP)
-        WXS_ST(wxTB_LEFT)
-        WXS_ST(wxTB_RIGHT)
-        WXS_ST(wxTB_BOTTOM)
+        // TODO: Get rid of this guard after switching to strict 2.8
+        #if wxCHECK_VERSION(2,8,0)
+            WXS_ST(wxTB_TOP)
+            WXS_ST(wxTB_LEFT)
+            WXS_ST(wxTB_RIGHT)
+            WXS_ST(wxTB_BOTTOM)
+        #endif
         WXS_ST_DEFAULTS()
     WXS_ST_END()
 }
@@ -156,13 +160,12 @@ void wxsToolBar::OnBuildCreatingCode()
             }
             break;
 
-        case wxsUnknownLanguage: // fall-through
         default:
             wxsCodeMarks::Unknown(_T("wxsToolBar::OnBuildCreatingCode"),GetLanguage());
     }
 }
 
-void wxsToolBar::OnEnumToolProperties(cb_unused long Flags)
+void wxsToolBar::OnEnumToolProperties(long Flags)
 {
     WXS_SIZE(wxsToolBar,m_BitmapSize,_("Use Bitmap size"),_("  Bitmapwidth"),_("  Bitmapheight"),_("  Bmp in Dialog Units"),_T("bitmapsize"));
     WXS_SIZE(wxsToolBar,m_Margins,_("Use Margins"),_("  Marginwidth"),_("  MarginhHeight"),_("  Margin in Dialog Units "),_T("margins"));
@@ -246,7 +249,7 @@ bool wxsToolBar::OnCanAddChild(wxsItem* Item,bool ShowMessage)
     return true;
 }
 
-bool wxsToolBar::OnMouseDClick(cb_unused wxWindow* Preview,cb_unused int PosX,cb_unused int PosY)
+bool wxsToolBar::OnMouseDClick(wxWindow* Preview,int PosX,int PosY)
 {
     ToolBarEditorDialog Dlg(this);
     Dlg.ShowModal();

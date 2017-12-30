@@ -22,7 +22,6 @@
 					<Add option="-DNO_LOGGING" />
 					<Add option="-DCB_PRECOMP" />
 					<Add directory="../../../include" />
-					<Add directory="../../../include/tinyxml" />
 					<Add directory="../../../sdk/wxscintilla/include" />
 				</Compiler>
 				<Linker>
@@ -48,7 +47,7 @@
 		<Compiler>
 			<Add option="-Wextra" />
 			<Add option="-Wall" />
-			<Add option="-std=c++11" />
+			<Add option="-ansi" />
 		</Compiler>
 		<Unit filename="BrowseMarks.cpp" />
 		<Unit filename="BrowseMarks.h" />
@@ -75,16 +74,10 @@
 		<Unit filename="Version.cpp" />
 		<Unit filename="Version.h" />
 		<Unit filename="manifest.xml" />
-		<Unit filename="wxsmith/ConfigPanel.wxs" />
 		<Extensions>
 			<code_completion />
 			<envvars />
 			<debugger />
-			<wxsmith version="1">
-				<resources>
-					<wxPanel wxs="wxsmith/ConfigPanel.wxs" src="ConfigPanel.cpp" hdr="ConfigPanel.h" fwddecl="0" i18n="1" name="ConfigPanel" language="CPP" />
-				</resources>
-			</wxsmith>
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

@@ -42,7 +42,7 @@
 #include <wx/txtstrm.h>
 
 #include "filefilters.h"
-#include <tinyxml.h>
+#include "tinyxml/tinyxml.h"
 
 #include "annoyingdialog.h"
 #include "pluginsconfigurationdlg.h"
@@ -942,7 +942,20 @@ int PluginManager::ScanForPlugins(const wxString& path)
     bool batch = Manager::IsBatchBuild();
     wxArrayString bbplugins;
     if (batch)
-        bbplugins = cbReadBatchBuildPlugins();
+    {
+        ConfigManager *bbcfg = Manager::Get()->GetConfigManager(_T("plugins"));
+        bbplugins = bbcfg->ReadArrayString(_T("/batch_build_plugins"));
+        if (!bbplugins.GetCount())
+        {
+            // defaults
+            if      (platform::windows)
+                bbplugins.Add(_T("compiler.dll"));
+            else if (platform::darwin || platform::macosx)
+                bbplugins.Add(_T("libcompiler.dylib"));
+            else
+                bbplugins.Add(_T("libcompiler.so"));
+        }
+    }
 
     wxString filename;
     wxString failed;
@@ -1044,8 +1057,6 @@ bool PluginManager::LoadPlugin(const wxString& pluginName)
         plugElem->freeProc = pr.freeProc;
         plugElem->plugin = plug;
         m_Plugins.Add(plugElem);
-        if (plug->GetType() == ptCompiler)
-            m_CompilerPlugins.push_back(static_cast<cbCompilerPlugin*>(plug));
 
         SetupLocaleDomain(pr.name);
 
@@ -1130,7 +1141,6 @@ void PluginManager::UnloadAllPlugins()
     {
         UnloadPlugin(m_Plugins[0]->plugin);
     }
-    m_CompilerPlugins.clear();
     m_Plugins.Clear();
     LibLoader::Cleanup();
 }
@@ -1149,13 +1159,6 @@ void PluginManager::UnloadPlugin(cbPlugin* plugin)
         PluginElement* plugElem = m_Plugins[i];
         if (plugElem->plugin == plugin)
         {
-            if (plugin->GetType() == ptCompiler)
-            {
-                auto removeIter = std::remove(m_CompilerPlugins.begin(), m_CompilerPlugins.end(), plugin);
-                if (removeIter != m_CompilerPlugins.end())
-                    m_CompilerPlugins.erase(removeIter);
-            }
-
             // found
             // free plugin
             if (plugElem->freeProc)
@@ -1304,13 +1307,6 @@ void PluginManager::GetProjectConfigurationPanels(wxWindow* parent, cbProject* p
     }
 }
 
-cbCompilerPlugin* PluginManager::GetFirstCompiler() const
-{
-    if (m_CompilerPlugins.empty())
-        return nullptr;
-    return m_CompilerPlugins.front();
-}
-
 PluginsArray PluginManager::GetToolOffers()
 {
     return GetOffersFor(ptTool);
@@ -1319,6 +1315,11 @@ PluginsArray PluginManager::GetToolOffers()
 PluginsArray PluginManager::GetMimeOffers()
 {
     return GetOffersFor(ptMime);
+}
+
+PluginsArray PluginManager::GetCompilerOffers()
+{
+    return GetOffersFor(ptCompiler);
 }
 
 PluginsArray PluginManager::GetDebuggerOffers()
@@ -1457,29 +1458,4 @@ void PluginManager::NotifyPlugins(CodeBlocksDockEvent& event)
 void PluginManager::NotifyPlugins(CodeBlocksLayoutEvent& event)
 {
     Manager::Get()->ProcessEvent(event);
-}
-
-bool cbHasRunningCompilers(const PluginManager *manager)
-{
-    for (const cbCompilerPlugin *p : manager->GetCompilerPlugins())
-    {
-        if (p && p->IsRunning())
-            return true;
-    }
-    return false;
-}
-
-void cbStopRunningCompilers(PluginManager *manager)
-{
-    for (cbCompilerPlugin *compiler : manager->GetCompilerPlugins())
-    {
-        if (!compiler || !compiler->IsRunning())
-            continue;
-        compiler->KillProcess();
-        while (compiler->IsRunning())
-        {
-            wxMilliSleep(100);
-            Manager::Yield();
-        }
-    }
 }

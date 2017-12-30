@@ -57,6 +57,7 @@ wxPdfFontDataCore::wxPdfFontDataCore(const wxString& family, const wxString& ali
   if (kpArray != NULL)
   {
     m_kp = new wxPdfKernPairMap();
+    wxPdfKernPairMap::iterator kp;
     wxPdfKernWidthMap* kwMap = NULL;
     wxPdfKernWidthMap::iterator kw;
     wxUint32 u1, u2;

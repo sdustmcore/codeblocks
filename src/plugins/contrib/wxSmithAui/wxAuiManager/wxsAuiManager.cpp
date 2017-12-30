@@ -93,7 +93,6 @@ namespace
     WXS_ST_END()
 
     WXS_EV_BEGIN(wxsAuiManagerEvents)
-        WXS_EV(EVT_AUI_PANE_ACTIVATED,wxEVT_AUI_PANE_ACTIVATED,wxAuiManagerEvent,Activated)  // added in 3.0
         WXS_EV(EVT_AUI_PANE_BUTTON,wxEVT_AUI_PANE_BUTTON,wxAuiManagerEvent,PaneButton)
         WXS_EV(EVT_AUI_PANE_CLOSE,wxEVT_AUI_PANE_CLOSE,wxAuiManagerEvent,PaneClose)
         WXS_EV(EVT_AUI_PANE_MAXIMIZE,wxEVT_AUI_PANE_MAXIMIZE,wxAuiManagerEvent,PaneMaximize)
@@ -576,8 +575,10 @@ wxObject* wxsAuiManager::OnBuildPreview(wxWindow* Parent,long Flags)
             if (APIExtra)
                 PaneInfo = APIExtra->GetPaneInfoFlags(NewParent, Child, Flags & pfExact);
 
+            #if wxCHECK_VERSION(2,8,9)
             wxAuiToolBar* ChildAsToolBar = wxDynamicCast(ChildAsWindow, wxAuiToolBar);
             if ( ChildAsToolBar ) ( (wxsAuiToolBar*)Child )->m_GripperSize = AuiManager->GetArtProvider()->GetMetric(wxAUI_DOCKART_GRIPPER_SIZE);
+            #endif // wxCHECK_VERSION(2,8,9)
 
             AuiManager->AddPane(ChildAsWindow, PaneInfo);
         }
@@ -665,6 +666,7 @@ void wxsAuiManager::OnAddChildQPP(wxsItem* Child,wxsAdvQPP* QPP)
     if ( ChildExtra->m_FirstAdd )
     {
         ChildExtra->m_FirstAdd = false;
+        #if wxCHECK_VERSION(2,8,9)
         if ( wxDynamicCast(Child->BuildPreview(new wxFrame(0,-1,wxEmptyString),0),wxAuiToolBar) )
         {
             ChildExtra->m_StandardPane = wxsAuiPaneInfoExtra::ToolbarPane;
@@ -680,6 +682,7 @@ void wxsAuiManager::OnAddChildQPP(wxsItem* Child,wxsAdvQPP* QPP)
             if ( ChildExtra->m_Layer == 0 ) ChildExtra->m_Layer = 10;
             NotifyPropertyChange();
         }
+        #endif // wxCHECK_VERSION(2,8,9)
     }
 }
 

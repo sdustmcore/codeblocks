@@ -60,7 +60,6 @@ enum FileType
     ftXcode2Project,
     ftSource,
     ftHeader,
-    ftTemplateSource,
     ftObject,
     ftXRCResource,
     ftResource,
@@ -170,7 +169,6 @@ extern DLLIMPORT const wxString DEFAULT_WORKSPACE;
 extern DLLIMPORT const wxString DEFAULT_ARRAY_SEP;
 extern DLLIMPORT const wxString DEFAULT_CONSOLE_TERM;
 extern DLLIMPORT const wxString DEFAULT_CONSOLE_SHELL;
-extern DLLIMPORT const wxString cbDEFAULT_OPEN_FOLDER_CMD;
 
 // global helper funcs
 /// Reads a wxString from a non-unicode file. File must be open. File is closed automatically.
@@ -234,18 +232,6 @@ extern DLLIMPORT wxString ChooseDirectory(wxWindow* parent,
 
 extern DLLIMPORT bool NormalizePath(wxFileName& f,const wxString& base);
 extern DLLIMPORT bool IsSuffixOfPath(wxFileName const & suffix, wxFileName const & path);
-
-/// If path is pointing to a symlink then the function will set dirpath parameter to the path
-/// the symlink points to.
-/// @note Does nothing on Windows.
-/// @note Should be used only for paths pointing to directories.
-/// @return true when the symlink is resolved correctly, else false.
-extern DLLIMPORT bool cbResolveSymLinkedDirPath(wxString& dirpath);
-/// Call cbResolveSymLinkedPath until the path is not a symlink.
-/// @note Does nothing on Windows.
-/// @note Should be used only for paths pointing to directories.
-/// @return The resolved path or the same path if not a symlink.
-extern DLLIMPORT wxString cbResolveSymLinkedDirPathRecursive(wxString dirpath);
 
 /** Reads settings if eolMode is -1
   * Expected input (defined in sdk/wxscintilla/include/wx/wxscintilla.h) is:
@@ -338,31 +324,6 @@ extern DLLIMPORT void PlaceWindow(wxTopLevelWindow *w, cbPlaceDialogMode mode = 
   * So, read wxMessageDialog 's documentation, *not* wxMessageBox 's...
   */
 extern DLLIMPORT int cbMessageBox(const wxString& message, const wxString& caption = wxEmptyString, int style = wxOK, wxWindow *parent = NULL, int x = -1, int y = -1);
-
-extern DLLIMPORT int cbGetSingleChoiceIndex(const wxString& message, const wxString& caption,
-                                            const wxArrayString& choices, wxWindow *parent = NULL,
-                                            const wxSize &size = wxSize(300, 300),
-                                            int initialSelection = 0);
-
-/** wxMultiChoiceDialog wrapper.
-  *
-  * Use this instead of wxMessageBox(), as this uses PlaceWindow() to show it in the correct monitor.
-  */
-extern DLLIMPORT wxArrayInt cbGetMultiChoiceDialog(const wxString& message, const wxString& caption,
-                                     const wxArrayString& choices, wxWindow *parent = nullptr,
-                                     const wxSize& size = wxSize(300, 300),
-                                     const wxArrayInt& initialSelection = wxArrayInt());
-
-#if wxCHECK_VERSION(3, 0, 0)
-extern DLLIMPORT const char *cbGetTextFromUserPromptStr;
-#else
-extern DLLIMPORT const wxChar *cbGetTextFromUserPromptStr;
-#endif // wxCHECK_VERSION
-
-extern DLLIMPORT wxString cbGetTextFromUser(const wxString &message,
-                                            const wxString &caption = cbGetTextFromUserPromptStr,
-                                            const wxString &default_value = wxEmptyString, wxWindow *parent = NULL,
-                                            int x = wxDefaultCoord, int y = wxDefaultCoord, bool centre = true);
 
 inline void NotifyMissingFile(const wxString &name)
 {

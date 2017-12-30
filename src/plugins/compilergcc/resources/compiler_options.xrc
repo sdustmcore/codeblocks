@@ -263,30 +263,13 @@
 																			<object class="wxListBox" name="lstLibs">
 																				<style>wxLB_EXTENDED</style>
 																			</object>
-																			<flag>wxRIGHT|wxEXPAND</flag>
-																			<border>5</border>
+																			<flag>wxEXPAND</flag>
 																			<option>1</option>
 																		</object>
 																		<object class="sizeritem">
-																			<object class="wxBoxSizer">
-																				<orient>wxVERTICAL</orient>
-																				<object class="sizeritem">
-																					<object class="wxBitmapButton" name="btnMoveLibUp">
-																						<bitmap stock_id="wxART_GO_UP" stock_client="wxART_MENU" />
-																					</object>
-																					<flag>wxALIGN_LEFT</flag>
-																					<border>5</border>
-																				</object>
-																				<object class="sizeritem">
-																					<object class="wxBitmapButton" name="btnMoveLibDown">
-																						<bitmap stock_id="wxART_GO_DOWN" stock_client="wxART_MENU" />
-																					</object>
-																					<flag>wxALIGN_LEFT</flag>
-																					<border>5</border>
-																				</object>
-																			</object>
-																			<flag>wxALIGN_CENTER_VERTICAL</flag>
-																			<border>5</border>
+																			<object class="wxSpinButton" name="spnLibs" />
+																			<flag>wxLEFT|wxALIGN_CENTER_VERTICAL</flag>
+																			<border>8</border>
 																		</object>
 																	</object>
 																	<flag>wxALL|wxEXPAND</flag>
@@ -531,25 +514,11 @@
 															<option>1</option>
 														</object>
 														<object class="sizeritem">
-															<object class="wxBoxSizer">
-																<orient>wxVERTICAL</orient>
-																<object class="sizeritem">
-																	<object class="wxBitmapButton" name="btnMoveDirUp">
-																		<bitmap stock_id="wxART_GO_UP" stock_client="wxART_MENU" />
-																	</object>
-																	<flag>wxALIGN_LEFT</flag>
-																	<border>5</border>
-																</object>
-																<object class="sizeritem">
-																	<object class="wxBitmapButton" name="btnMoveDirDown">
-																		<bitmap stock_id="wxART_GO_DOWN" stock_client="wxART_MENU" />
-																	</object>
-																	<flag>wxALIGN_LEFT</flag>
-																	<border>5</border>
-																</object>
+															<object class="wxSpinButton" name="spnDirs">
+																<tooltip>Re-order directories</tooltip>
 															</object>
 															<flag>wxLEFT|wxALIGN_CENTER_VERTICAL</flag>
-															<border>5</border>
+															<border>8</border>
 														</object>
 													</object>
 													<flag>wxALL|wxEXPAND</flag>
@@ -1129,8 +1098,9 @@
 														</object>
 														<object class="sizeritem">
 															<object class="wxSpinCtrl" name="spnParallelProcesses">
-																<value>0</value>
-																<max>65535</max>
+																<value>1</value>
+																<min>1</min>
+																<max>16</max>
 															</object>
 															<flag>wxALIGN_TOP</flag>
 														</object>

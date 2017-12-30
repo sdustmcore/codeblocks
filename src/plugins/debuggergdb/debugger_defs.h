@@ -224,9 +224,6 @@ class GDBWatch : public cbWatch
         virtual void SetType(const wxString &type);
 
         virtual wxString const & GetDebugString() const;
-
-        wxString MakeSymbolToAddress() const override;
-        bool IsPointerType() const override;
     public:
         void SetDebugValue(wxString const &value);
         void SetSymbol(const wxString& symbol);

@@ -27,6 +27,9 @@ namespace
 
     const int idOnFindFunctionsCallingThisFunction = wxNewId();
     const int idOnFindFunctionsCalledByThisFuncion = wxNewId();
+//    const int idOnFindGlobalDefinition             = wxNewId();
+//    const int idOnFindSymbol                       = wxNewId();
+    const int idOnCscopeReturned                   = wxNewId();
 }
 
 
@@ -158,7 +161,7 @@ void CscopePlugin::BuildModuleMenu(const ModuleType type, wxMenu* menu, const Fi
     int idxocc=-1;
     for (int idx = 0; idx < (int)ItemsList.GetCount(); ++idx)
     {
-        #if wxCHECK_VERSION(3, 0, 0)
+        #if wxCHECK_VERSION(2, 9, 0)
         if (ItemsList[idx]->GetItemLabelText().StartsWith(_("Find implementation of:")) )
         #else
         if (ItemsList[idx]->GetLabel().StartsWith(_("Find implementation of:")) )
@@ -166,7 +169,7 @@ void CscopePlugin::BuildModuleMenu(const ModuleType type, wxMenu* menu, const Fi
         {
             idximp = idx;
         }
-        #if wxCHECK_VERSION(3, 0, 0)
+        #if wxCHECK_VERSION(2, 9, 0)
         if (ItemsList[idx]->GetItemLabelText().StartsWith(_("Find occurrences of:")) )
         #else
         if (ItemsList[idx]->GetLabel().StartsWith(_("Find occurrences of:")) )
@@ -214,16 +217,12 @@ bool CscopePlugin::CreateListFile(wxString &list_file)
     if (! prj) return false;
 
     std::vector< wxFileName > files;
-    m_view->GetWindow()->SetMessage(_("Creating file list..."), 5);
+	m_view->GetWindow()->SetMessage(_("Creating file list..."), 5);
 
     for (FilesList::iterator it = prj->GetFilesList().begin(); it != prj->GetFilesList().end(); ++it)
     {
         wxFileName fn( (*it)->file.GetFullPath() );
-
-        // To prevent cscope from going into an infinite loop while parsing the file list,
-        // only keep track of existing files (in case it was removed with an external tool like git).
-        if (fn.IsFileReadable())
-            files.push_back(fn);
+        files.push_back(fn);
     }
 
 	//create temporary file and save the file-list there

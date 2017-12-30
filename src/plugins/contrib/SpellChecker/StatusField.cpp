@@ -16,19 +16,18 @@
 
 namespace
 {
-const int idCommand[LANGS]  = {static_cast<int>(wxNewId()),static_cast<int>(wxNewId()),static_cast<int>(wxNewId()),static_cast<int>(wxNewId()),static_cast<int>(wxNewId()),
-                               static_cast<int>(wxNewId()),static_cast<int>(wxNewId()),static_cast<int>(wxNewId()),static_cast<int>(wxNewId()),static_cast<int>(wxNewId())
-                              };
-const int idEnableSpellCheck = wxNewId();
-const int idEditPersonalDictionary = wxNewId();
+    const int idCommand[LANGS]  = {static_cast<int>(wxNewId()),static_cast<int>(wxNewId()),static_cast<int>(wxNewId()),static_cast<int>(wxNewId()),static_cast<int>(wxNewId()),
+                                   static_cast<int>(wxNewId()),static_cast<int>(wxNewId()),static_cast<int>(wxNewId()),static_cast<int>(wxNewId()),static_cast<int>(wxNewId())};
+    const int idEnableSpellCheck = wxNewId();
+    const int idEditPersonalDictionary = wxNewId();
 };
 
 SpellCheckerStatusField::SpellCheckerStatusField(wxWindow* parent, SpellCheckerPlugin *plugin, SpellCheckerConfig *sccfg)
     :wxPanel(parent, wxID_ANY),
-     m_bitmap(NULL),
-     m_text(NULL),
-     m_sccfg(sccfg),
-     m_plugin(plugin)
+    m_text(NULL),
+    m_bitmap(NULL),
+    m_sccfg(sccfg),
+    m_plugin(plugin)
 {
     //ctor
     m_text = new wxStaticText(this, wxID_ANY, m_sccfg->GetDictionaryName());
@@ -71,7 +70,6 @@ SpellCheckerStatusField::~SpellCheckerStatusField()
         m_bitmap->Disconnect(wxEVT_RIGHT_UP, wxMouseEventHandler(SpellCheckerStatusField::OnRightUp));
     Disconnect(wxEVT_RIGHT_UP, wxMouseEventHandler(SpellCheckerStatusField::OnRightUp));
 }
-
 //void SpellCheckerStatusField::SetLanguage(const wxString &language)
 void SpellCheckerStatusField::Update()
 {
@@ -118,7 +116,6 @@ void SpellCheckerStatusField::OnSize(wxSizeEvent &event)
 {
     DoSize();
 }
-
 void SpellCheckerStatusField::DoSize()
 {
     wxSize msize = this->GetSize();
@@ -148,7 +145,6 @@ void SpellCheckerStatusField::OnRightUp(wxMouseEvent &event)
     PopupMenu(popup);
     delete popup;
 }
-
 void SpellCheckerStatusField::OnSelect(wxCommandEvent &event)
 {
     unsigned int idx;
@@ -168,15 +164,15 @@ void SpellCheckerStatusField::OnSelect(wxCommandEvent &event)
     {
         m_sccfg->SetEnableOnlineChecker(!m_sccfg->GetEnableOnlineChecker()); // toggle
         if (   m_sccfg->GetEnableOnlineChecker()
-                && std::find(dicts.begin(), dicts.end(), m_sccfg->GetDictionaryName()) == dicts.end() )
+            && std::find(dicts.begin(), dicts.end(), m_sccfg->GetDictionaryName()) == dicts.end() )
         {
             // insure there always is a valid dictionary selected when enabled
             m_sccfg->SetDictionaryName(dicts[0]);
         }
         m_sccfg->Save();
     }
-}
 
+}
 void SpellCheckerStatusField::OnEditPersonalDictionary(wxCommandEvent &event)
 {
     m_plugin->EditPersonalDictionary();

@@ -23,7 +23,7 @@
 
 #include <wx/choicdlg.h>
 
-#include <tinyxml.h>
+#include <tinyxml/tinyxml.h>
 
 #include "prep.h"
 #include "msvc7loader.h"
@@ -39,7 +39,7 @@ MSVC7Loader::MSVC7Loader(cbProject* project)
     //ctor
     if (platform::windows)
         m_PlatformName = _T("Win32");
-    else if (platform::Linux)
+    else if (platform::linux)
         m_PlatformName = _T("Linux");
     else if (platform::macosx)
         m_PlatformName = _T("MacOSX");
@@ -150,14 +150,15 @@ bool MSVC7Loader::DoSelectConfiguration(TiXmlElement* root)
     // build an array of all configurations
     wxArrayString configurations;
     wxString ConfigName;
-    for (; confs; confs=confs->NextSiblingElement("Configuration"))
+    while (confs)
     {
-        /*Replace all '|' with ' ' so that compilation does not fail.
+        /*Replace all '|' with '_' so that compilation does not fail.
         * This is vital as object directory names will be derived from target names
         */
         ConfigName = cbC2U(confs->Attribute("Name"));
         ConfigName.Replace(_T("|"), _T(" "), true);
         configurations.Add(ConfigName);
+        confs = confs->NextSiblingElement();
     }
 
     wxArrayInt selected_indices;
@@ -187,7 +188,7 @@ bool MSVC7Loader::DoSelectConfiguration(TiXmlElement* root)
     {
         // re-iterate configurations to find each selected one
         while (confs && current_sel++ < selected_indices[i])
-            confs = confs->NextSiblingElement("Configuration");
+            confs = confs->NextSiblingElement();
         if (!confs)
         {
             Manager::Get()->GetLogManager()->DebugLog(F(_T("Cannot find configuration nr %d..."), selected_indices[i]));
@@ -208,7 +209,7 @@ bool MSVC7Loader::DoSelectConfiguration(TiXmlElement* root)
 
         // parse the selected configuration
         success = success && DoImport(confs);
-        confs = confs->NextSiblingElement("Configuration");
+        confs = confs->NextSiblingElement();
     }
     return success && DoImportFiles(root, selected_indices.GetCount());
 }
@@ -253,7 +254,7 @@ bool MSVC7Loader::DoImport(TiXmlElement* conf)
         return false;
     }
 
-    for (; tool; tool=tool->NextSiblingElement("Tool"))
+    while (tool)
     {
         if (strcmp(tool->Attribute("Name"), "VCLinkerTool") == 0 ||
             strcmp(tool->Attribute("Name"), "VCLibrarianTool") == 0)
@@ -557,6 +558,7 @@ bool MSVC7Loader::DoImport(TiXmlElement* conf)
             if (!cmd.IsEmpty())
                 bt->AddCommandsAfterBuild(cmd);
         }
+        tool = tool->NextSiblingElement();
     }
     return true;
 }
@@ -577,7 +579,7 @@ bool MSVC7Loader::DoImportFiles(TiXmlElement* root, int numConfigurations)
             wxString fname = ReplaceMSVCMacros(cbC2U(file->Attribute("RelativePath")));
 
             TiXmlElement* conf = file->FirstChildElement("FileConfiguration");
-            for (; conf; conf=conf->NextSiblingElement("FileConfiguration"))
+            while (conf)
             {
                 // find the target to which it applies
                 wxString sTargetName = cbC2U(conf->Attribute("Name"));
@@ -585,7 +587,7 @@ bool MSVC7Loader::DoImportFiles(TiXmlElement* root, int numConfigurations)
                 ProjectBuildTarget* bt = m_pProject->GetBuildTarget(sTargetName);
 
                 TiXmlElement* tool = conf->FirstChildElement("Tool");
-                for (; tool; tool=tool->NextSiblingElement("Tool"))
+                while (tool)
                 {
                     // get additional include directories
                     wxString sAdditionalInclude;
@@ -620,7 +622,11 @@ bool MSVC7Loader::DoImportFiles(TiXmlElement* root, int numConfigurations)
                         }
                         while (sAdditionalInclude.Len() > 0);
                     }
+
+                    tool = tool->NextSiblingElement();
                 }
+
+                conf = conf->NextSiblingElement("FileConfiguration");
             }
 
             if ((!fname.IsEmpty()) && (fname != _T(".\\")))
@@ -675,7 +681,9 @@ void MSVC7Loader::HandleFileConfiguration(TiXmlElement* file, ProjectFile* pf)
     {
         if (const char* s = fconf->Attribute("ExcludedFromBuild"))
         {
-            if (cbC2U(s).IsSameAs(_T("true"), false)) // can you initialize wxString from NULL?
+            wxString exclude = cbC2U(s); // can you initialize wxString from NULL?
+            exclude = exclude.MakeUpper();
+            if (exclude.IsSameAs(_T("TRUE")))
             {
                 wxString name = cbC2U(fconf->Attribute("Name"));
                 name.Replace(_T("|"), _T(" "), true); // Replace '|' to ensure proper check

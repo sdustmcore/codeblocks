@@ -68,32 +68,31 @@ void wxsSimpleHtmlListBox::OnBuildCreatingCode()
     switch(GetLanguage())
     {
         case wxsCPP:
-        {
-            AddHeader(_T("<wx/htmllbox.h>"), GetInfo().ClassName, hfInPCH);
-            Codef(_T("%C(%W, %I, %P, %S, 0, 0, %T, %V, %N);\n"));
-            for(size_t i = 0; i <  ArrayChoices.GetCount(); ++i)
             {
-                if(DefaultSelection == (int)i)
+                AddHeader(_T("<wx/htmllbox.h>"), GetInfo().ClassName, hfInPCH);
+                Codef(_T("%C(%W, %I, %P, %S, 0, 0, %T, %V, %N);\n"));
+                for(size_t i = 0; i <  ArrayChoices.GetCount(); ++i)
                 {
-                    Codef(_T("%ASetSelection( "));
+                    if(DefaultSelection == (int)i)
+                    {
+                        Codef(_T("%ASetSelection( "));
+                    }
+                    Codef(_T("%AAppend(%t)"), ArrayChoices[i].wx_str());
+                    if(DefaultSelection == (int)i)
+                    {
+                        Codef(_T(" )"));
+                    }
+                    Codef(_T(";\n"));
                 }
-                Codef(_T("%AAppend(%t)"), ArrayChoices[i].wx_str());
-                if(DefaultSelection == (int)i)
-                {
-                    Codef(_T(" )"));
-                }
-                Codef(_T(";\n"));
+
+                BuildSetupWindowCode();
+                return;
             }
 
-            BuildSetupWindowCode();
-            return;
-        }
-
-        case wxsUnknownLanguage: // fall-through
         default:
-        {
-            wxsCodeMarks::Unknown(_T("wxsSimpleHtmlListBox::OnBuildCreatingCode"), GetLanguage());
-        }
+            {
+                wxsCodeMarks::Unknown(_T("wxsSimpleHtmlListBox::OnBuildCreatingCode"), GetLanguage());
+            }
     }
 }
 
@@ -125,7 +124,7 @@ wxObject *wxsSimpleHtmlListBox::OnBuildPreview(wxWindow *Parent, long Flags)
  * \return void
  *
  */
-void wxsSimpleHtmlListBox::OnEnumWidgetProperties(cb_unused long Flags)
+void wxsSimpleHtmlListBox::OnEnumWidgetProperties(long Flags)
 {
     WXS_ARRAYSTRING(wxsSimpleHtmlListBox, ArrayChoices, _("Choices"), _T("content"), _T("item"))
     WXS_LONG(wxsSimpleHtmlListBox, DefaultSelection, _("Default"), _T("default"), 0)

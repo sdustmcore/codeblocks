@@ -35,7 +35,7 @@
 
 #include <prep.h>
 
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2, 9, 0)
 #define wxPGId wxPGProperty*
 #endif
 
@@ -62,7 +62,7 @@ class wxsPropertyGridManager: public wxPropertyGridManager
             const wxPoint& pos = wxDefaultPosition,
             const wxSize& size = wxDefaultSize,
             long style = wxPGMAN_DEFAULT_STYLE|wxPG_SPLITTER_AUTO_CENTER,
-            #if wxCHECK_VERSION(3, 0, 0)
+            #if wxCHECK_VERSION(2, 9, 0)
             const char* name = wxPropertyGridManagerNameStr);
             #else
             const wxChar* name = wxPropertyGridManagerNameStr);
@@ -110,9 +110,6 @@ class wxsPropertyGridManager: public wxPropertyGridManager
          *         will always be updated, no matter if it's shown in grid
          */
         void Update(wxsPropertyContainer* PC);
-
-        // prevent warning for overloaded virtual that is hiding the method in the base class.
-        using wxPropertyGridManager::Update;
 
         /** \brief Function used when adding new property to grid
          *

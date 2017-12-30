@@ -5,6 +5,7 @@
 
 #ifndef CB_PRECOMP
     #include <wx/menu.h>
+    #include <wx/textdlg.h>
     #include <wx/toolbar.h>
 #endif
 
@@ -257,13 +258,13 @@ void EditorTweaks::BuildMenu(wxMenuBar* menuBar)
     for (i = 0; i < static_cast<int>(menu->GetMenuItemCount()); ++i)
     {
         wxMenuItem *mm=menu->FindItemByPosition(i);
-        #if wxCHECK_VERSION(3, 0, 0)
+        #if wxCHECK_VERSION(2, 9, 0)
         if (mm->GetItemLabel()==_("End-of-line mode"))
         #else
         if (mm->GetLabel()==_("End-of-line mode"))
         #endif
             menu->Remove(mm);
-        #if wxCHECK_VERSION(3, 0, 0)
+        #if wxCHECK_VERSION(2, 9, 0)
         if (mm->GetItemLabel()==_("Special commands"))
         #else
         if (mm->GetLabel()==_("Special commands"))
@@ -319,7 +320,7 @@ void EditorTweaks::BuildMenu(wxMenuBar* menuBar)
     for (i = 0; i < static_cast<int>(menu->GetMenuItemCount()); ++i)
     {
         wxMenuItem *mm = menu->FindItemByPosition(i);
-        #if wxCHECK_VERSION(3, 0, 0)
+        #if wxCHECK_VERSION(2, 9, 0)
         if (mm->GetItemLabel()==_("Folding"))
         #else
         if (mm->GetLabel()==_("Folding"))
@@ -1087,7 +1088,7 @@ void EditorTweaks::OnAlignOthers(wxCommandEvent& /*event*/)
     // create the name and call the first DialogBox
     const wxString MessageArgumentString = _("Insert a new character");
     const wxString CaptionArgumentString = _("New character");
-    NewAlignmentString = cbGetTextFromUser( MessageArgumentString, CaptionArgumentString );
+    NewAlignmentString = wxGetTextFromUser( MessageArgumentString, CaptionArgumentString );
     if (NewAlignmentString !=_T(""))
     {
         // check if the new character is equal as an exist
@@ -1114,7 +1115,7 @@ void EditorTweaks::OnAlignOthers(wxCommandEvent& /*event*/)
         // create the name and call the second DialogBox
         const wxString MessageName = _("Insert a name for the (new) character");
         const wxString CaptionName = NewAlignmentString;
-        NewAlignmentStringName = cbGetTextFromUser( MessageName, CaptionName , AlignerMenuEntries[i].MenuName);
+        NewAlignmentStringName = wxGetTextFromUser( MessageName, CaptionName , AlignerMenuEntries[i].MenuName);
         if (NewAlignmentStringName != _T(""))
             AlignerMenuEntries[i].MenuName = NewAlignmentStringName;
 

@@ -35,7 +35,6 @@ EditPairDlg::EditPairDlg(wxWindow* parent, wxString& key, wxString& value, const
 {
     //ctor
     wxXmlResource::Get()->LoadObject(this, parent, _T("dlgEditPair"),_T("wxScrollingDialog"));
-    XRCCTRL(*this, "wxID_OK", wxButton)->SetDefault();
     SetTitle(title);
     XRCCTRL(*this, "btnBrowse", wxButton)->Enable(m_BrowseMode != bmDisable);
     XRCCTRL(*this, "txtKey", wxTextCtrl)->SetValue(key);

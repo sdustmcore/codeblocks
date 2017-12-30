@@ -49,9 +49,11 @@ wxString CompilerMINGWGenerator::SetupIncludeDirs(Compiler* compiler, ProjectBui
         wxArrayString includedDirs; // avoid adding duplicate dirs...
         wxString sep = wxFILE_SEP_PATH;
         // find all PCH in project
-        for (ProjectFile *f : target->GetParentProject()->GetFilesList())
+        for (FilesList::iterator it = target->GetParentProject()->GetFilesList().begin(); it != target->GetParentProject()->GetFilesList().end(); ++it)
         {
-            if (f->compile && FileTypeOf(f->relativeFilename) == ftHeader)
+            ProjectFile* f = *it;
+            if (FileTypeOf(f->relativeFilename) == ftHeader &&
+                f->compile)
             {
                 // it is a PCH; add it's object dir to includes
                 wxFileName fn(f->GetObjName());

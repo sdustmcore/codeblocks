@@ -75,14 +75,16 @@ enum CompilerLineType
 struct RegExStruct
 {
     RegExStruct()
-        : desc(_("Unknown")), lt(cltError), filename(0), line(0), regex(_T("")), regexCompiled(false)
+        : desc(_("Unknown")), lt(cltError), regex(_T("")), filename(0), line(0)
     {
         memset(msg, 0, sizeof(msg));
+        CompileRegEx();
     }
     RegExStruct(const RegExStruct& rhs)
-        : desc(rhs.desc), lt(rhs.lt), filename(rhs.filename), line(rhs.line), regex(rhs.regex), regexCompiled(false)
+        : desc(rhs.desc), lt(rhs.lt), regex(rhs.regex), filename(rhs.filename), line(rhs.line)
     {
         memcpy(msg, rhs.msg, sizeof(msg));
+        CompileRegEx();
     }
     RegExStruct(const wxString&  _desc,
                 CompilerLineType _lt,
@@ -92,22 +94,23 @@ struct RegExStruct
                 int              _line     = 0,
                 int              _msg2     = 0,
                 int              _msg3     = 0)
-        : desc(_desc), lt(_lt), filename(_filename), line(_line), regex(_regex), regexCompiled(false)
+        : desc(_desc), lt(_lt), regex(_regex), filename(_filename), line(_line)
     {
         msg[0] = _msg;
         msg[1] = _msg2;
         msg[2] = _msg3;
+        CompileRegEx();
     }
-    RegExStruct& operator=(const RegExStruct &obj)
+    RegExStruct& operator=(RegExStruct &obj)
     {
         desc=obj.desc;
         lt=obj.lt;
         regex=obj.regex;
-        regexCompiled=false;
         filename=obj.filename;
         line=obj.line;
         memcpy(msg, obj.msg, sizeof(msg));
 
+        CompileRegEx();
         return *this;
     }
 
@@ -127,20 +130,17 @@ struct RegExStruct
                 && line     == other.line );
     }
 
-    wxString GetRegExString() const { return regex; }
-    void SetRegExString(const wxString &str)
+    void CompileRegEx()
     {
-        if (regex != str)
-        {
-            regex = str;
-            regexCompiled = false;
-        }
+        if (!regex.empty())
+            regexObject.Compile(regex);
     }
-    bool HasRegEx() const { return !regex.empty(); }
-    const wxRegEx& GetRegEx() const { CompileRegEx(); return regexObject; }
+
+    const wxRegEx& GetRegEx() const { return regexObject; }
 
     wxString         desc;     // title of this regex
     CompilerLineType lt;       // classify the line, if regex matches
+    wxString         regex;    // the regex to match
     int              msg[3];   // up-to 3 sub-expression nr for warning/error message
     int              filename; // sub-expression nr for filename
     int              line;     // sub-expression nr for line number
@@ -148,19 +148,9 @@ struct RegExStruct
     // they are appended to each other, with one space in between.
     // Appending takes place in the same order...
 private:
-    void CompileRegEx() const
-    {
-        if (!regex.empty() && !regexCompiled)
-        {
-            regexObject.Compile(regex);
-            regexCompiled=true;
-        }
-    }
-    wxString        regex;    // the regex to match
-    mutable wxRegEx regexObject;
-    mutable bool    regexCompiled;
+    wxRegEx regexObject;
 };
-typedef std::vector<RegExStruct> RegExArray;
+WX_DECLARE_OBJARRAY(RegExStruct, RegExArray);
 
 /// Helper enum to retrieve compiler commands
 enum CommandType
@@ -328,7 +318,7 @@ class DLLIMPORT Compiler : public CompileOptionsBase
         /** @brief Set the compiler's options */
         virtual void SetOptions(const CompilerOptions& options){ m_Options = options; }
         /** @brief Set the array of regexes used in errors/warnings recognition */
-        virtual void SetRegExArray(const RegExArray& regexes) { m_RegExes = regexes; }
+        virtual void SetRegExArray(const RegExArray& regexes) { m_RegExes = regexes; CompileRegExArray(); }
 
 
         /** @brief Save settings */
@@ -378,9 +368,6 @@ class DLLIMPORT Compiler : public CompileOptionsBase
         /** @brief Do compiler writes multi-line messages? */
         bool WithMultiLineMsg() { return m_MultiLineMessages; };
 
-        /// @brief Returns messages which might be useful to the use for debugging why the
-        /// compiler is invalid. Call only after IsValid returns false.
-        wxString MakeInvalidCompilerMessages() const;
     protected:
         friend class CompilerFactory;
         Compiler(const Compiler& other); // copy ctor to copy everything but update m_ID
@@ -403,6 +390,8 @@ class DLLIMPORT Compiler : public CompileOptionsBase
 
         // keeps a copy of current settings (works only the first time it's called)
         void MirrorCurrentSettings();
+
+        void CompileRegExArray();
 
         // set the following members in your class
         wxString            m_Name;
@@ -438,7 +427,6 @@ class DLLIMPORT Compiler : public CompileOptionsBase
 
             // these are the CompileOptionsBase settings that each compiler keeps on a global level
             wxArrayString CompilerOptions_;
-            wxArrayString ResourceCompilerOptions;
             wxArrayString LinkerOptions;
             wxArrayString IncludeDirs;
             wxArrayString ResIncludeDirs;

@@ -117,7 +117,6 @@ void wxsRichTextStyleOrganiserDialog::OnBuildCreatingCode()
             BuildSetupWindowCode();
             break;
 
-        case wxsUnknownLanguage: // fall-through
         default:
             wxsCodeMarks::Unknown(_T("wxsRichTextStyleOrganiserDialog::OnBuildCreatingCode"), GetLanguage());
     }
@@ -129,7 +128,7 @@ void wxsRichTextStyleOrganiserDialog::OnBuildCreatingCode()
  * \return void
  *
  */
-void wxsRichTextStyleOrganiserDialog::OnEnumToolProperties(cb_unused long Flags)
+void wxsRichTextStyleOrganiserDialog::OnEnumToolProperties(long Flags)
 {
     // Default to wxRICHTEXT_ORGANISER_ORGANISE.
     WXS_FLAGS(wxsRichTextStyleOrganiserDialog, m_iFlags, _("Style Flags"), _T("style_flags"), arrStyleValues, arrStyleValueNames,

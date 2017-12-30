@@ -21,8 +21,8 @@
 * $HeadURL$
 */
 
-#include <tinyxml.h>
-#include <tinywxuni.h>
+#include <tinyxml/tinyxml.h>
+#include <tinyxml/tinywxuni.h>
 
 #include <wx/arrstr.h>
 #include <wx/dir.h>

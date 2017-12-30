@@ -31,15 +31,13 @@
 #include <shlobj.h>
 #endif
 
-#include "annoyingdialog.h"
-
 #if defined(__APPLE__) && defined(__MACH__)
 #include <sys/param.h>
 #include <mach-o/dyld.h>
 #endif
 
 #ifdef __WXMAC__
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2,9,0)
 #include "wx/osx/core/cfstring.h"
 #else
 #include "wx/mac/corefoundation/cfstring.h"
@@ -50,7 +48,7 @@
 #include <CoreFoundation/CFURL.h>
 #endif
 
-#include "tinywxuni.h"
+#include "tinyxml/tinywxuni.h"
 #include <stdlib.h>
 
 #ifdef __linux__
@@ -124,7 +122,7 @@ namespace
             CFRelease(resourcesURL);
             CFStringRef cfStrPath = CFURLCopyFileSystemPath(absoluteURL,kCFURLPOSIXPathStyle);
             CFRelease(absoluteURL);
-            #if wxCHECK_VERSION(3, 0, 0)
+            #if wxCHECK_VERSION(2,9,0)
               wxString str = wxCFStringRef(cfStrPath).AsString(wxLocale::GetSystemEncoding());
             #else
               wxString str = wxMacCFStringHolder(cfStrPath).AsString(wxLocale::GetSystemEncoding());
@@ -222,34 +220,6 @@ wxString CfgMgrBldr::FindConfigFile(const wxString& filename)
     return wxEmptyString;
 }
 
-/// Print error message an allow the user to either discard the old config or close the application.
-/// Call this function when you've detected an error while reading the config.
-static void handleConfigError(TiXmlDocument &doc, const wxString &fileName, const wxString &additionalMessage)
-{
-    wxString message;
-    if (doc.ErrorId())
-    {
-        message = wxString::Format(_("TinyXML error: %s\nIn file: %s\nAt row %d, column: %d.\n\n"),
-                                   cbC2U(doc.ErrorDesc()).c_str(), fileName.wx_str(),
-                                   doc.ErrorRow(), doc.ErrorCol());
-    }
-    message += additionalMessage;
-
-    // Show a message box and ask the user to either abort or discard the old config.
-    wxMessageDialog dlg(Manager::Get()->GetAppWindow(),
-                        message + _("\n\nDiscard old config file?"), _("Config file read error"),
-                        wxSTAY_ON_TOP|wxCENTRE|wxYES|wxNO|wxNO_DEFAULT|wxICON_ERROR);
-#if wxCHECK_VERSION(3, 0, 0)
-    dlg.SetYesNoLabels(_("&Discard"), _("&Close"));
-#endif
-    if (dlg.ShowModal() != wxID_YES)
-        cbThrow(message);
-
-    doc.ClearError();
-    doc.InsertEndChild(TiXmlDeclaration("1.0", "UTF-8", "yes"));
-    doc.InsertEndChild(TiXmlElement("CodeBlocksConfig"));
-    doc.FirstChildElement("CodeBlocksConfig")->SetAttribute("version", CfgMgrConsts::version);
-}
 
 void CfgMgrBldr::SwitchTo(const wxString& fileName)
 {
@@ -257,22 +227,18 @@ void CfgMgrBldr::SwitchTo(const wxString& fileName)
 
     if (!TinyXML::LoadDocument(fileName, doc))
     {
-        const wxString message = wxString::Format(_("Error reading config file: %s"),
-                                                  fileName.wx_str());
-        handleConfigError(*doc, fileName, message);
+        doc->InsertEndChild(TiXmlDeclaration("1.0", "UTF-8", "yes"));
+        doc->InsertEndChild(TiXmlElement("CodeBlocksConfig"));
+        doc->FirstChildElement("CodeBlocksConfig")->SetAttribute("version", CfgMgrConsts::version);
     }
+
+    if (doc->ErrorId())
+        cbThrow(wxString::Format(_T("TinyXML error: %s\nIn file: %s\nAt row %d, column: %d."), cbC2U(doc->ErrorDesc()).c_str(), fileName.c_str(), doc->ErrorRow(), doc->ErrorCol()));
 
     TiXmlElement* docroot = doc->FirstChildElement("CodeBlocksConfig");
-    if (!docroot)
-    {
-        const wxString message = wxString::Format(wxT("Cannot find docroot in config file '%s'"),
-                                                  fileName.wx_str());
-        handleConfigError(*doc, fileName, message);
-        docroot = doc->FirstChildElement("CodeBlocksConfig");
 
-        if (!docroot)
-            cbThrow(wxT("Something really bad happened while reading the config file. Aborting!"));
-    }
+    if (doc->ErrorId())
+        cbThrow(wxString::Format(_T("TinyXML error: %s\nIn file: %s\nAt row %d, column: %d."), cbC2U(doc->ErrorDesc()).c_str(), fileName.c_str(), doc->ErrorRow(), doc->ErrorCol()));
 
     const char *vers = docroot->Attribute("version");
     if (!vers || atoi(vers) != 1)
@@ -295,11 +261,11 @@ void CfgMgrBldr::SwitchTo(const wxString& fileName)
 
     if (platform::windows)
         info.append(_T("\n\t Windows "));
-    if (platform::Linux)
+    if (platform::linux)
         info.append(_T("\n\t Linux "));
     if (platform::macosx)
         info.append(_T("\n\t Mac OS X "));
-    if (platform::Unix)
+    if (platform::unix)
         info.append(_T("\n\t Unix "));
 
     info.append(platform::unicode ? _T("Unicode ") : _T("ANSI "));
@@ -338,13 +304,13 @@ void CfgMgrBldr::SwitchToR(const wxString& absFileName)
         {
             size_t size = is->GetSize();
             wxString str;
-            #if wxCHECK_VERSION(3, 0, 0)
+            #if wxCHECK_VERSION(2, 9, 0)
             wxChar* c = wxStringBuffer(str, size);
             #else
             wxChar* c = str.GetWriteBuf(size);
             #endif
             is->Read(c, size);
-            #if !wxCHECK_VERSION(3, 0, 0)
+            #if !wxCHECK_VERSION(2, 9, 0)
             str.UngetWriteBuf(size);
             #endif
 
@@ -386,29 +352,9 @@ void CfgMgrBldr::Flush()
     {
         if (!cfg.StartsWith(_T("http://")))
         {
-            bool done = false;
-            do
-            {
-                if (TinyXML::SaveDocument(cfg, doc))
-                    done = true;
-                else
-                {
-                    AnnoyingDialog dlg(_("Error"),
-                                       F(_T("Could not save config file '%s'!"), cfg.wx_str()),
-                                       wxART_ERROR, AnnoyingDialog::TWO_BUTTONS,
-                                       AnnoyingDialog::rtTWO, _("&Retry"), _("&Close"));
-                    PlaceWindow(&dlg);
-                    switch (dlg.ShowModal())
-                    {
-                        case AnnoyingDialog::rtONE:
-                            done = false;
-                            break;
-                        case AnnoyingDialog::rtTWO:
-                        default:
-                            done = true;
-                    }
-                }
-            } while (!done);
+            if (!TinyXML::SaveDocument(cfg, doc))
+                // TODO (thomas#1#): add "retry" option
+                wxSafeShowMessage(_("Warning"), _T("Could not save config file..."));
         }
         else
         {
@@ -490,7 +436,7 @@ ConfigManager* CfgMgrBldr::Build(const wxString& name_space)
 */
 inline void to_upper(wxString& s)
 {
-    #if wxCHECK_VERSION(3, 0, 0)
+    #if wxCHECK_VERSION(2, 9, 0)
     wxStringCharType *p = const_cast<wxStringCharType*>(s.wx_str());
     wxStringCharType q;
     #else
@@ -508,7 +454,7 @@ inline void to_upper(wxString& s)
 
 inline void to_lower(wxString& s)
 {
-    #if wxCHECK_VERSION(3, 0, 0)
+    #if wxCHECK_VERSION(2, 9, 0)
     wxStringCharType *p = const_cast<wxStringCharType*>(s.wx_str());
     wxStringCharType q;
     #else
@@ -790,7 +736,7 @@ void ConfigManager::Clear()
 void ConfigManager::Delete()
 {
     CfgMgrBldr * bld = CfgMgrBldr::Get();
-    const wxString ns(cbC2U(root->Value()));
+    wxString ns(cbC2U(root->Value()));
 
     root->Clear();
     doc->RootElement()->RemoveChild(root);
@@ -1233,7 +1179,7 @@ wxArrayString ConfigManager::EnumerateSubPaths(const wxString& path)
     {
         while (e->IterateChildren(curr) && (curr = e->IterateChildren(curr)->ToElement()))
         {
-            #if wxCHECK_VERSION(3, 0, 0)
+            #if wxCHECK_VERSION(2, 9, 0)
             wxUniChar c = cbC2U(curr->Value())[0];
             #else
             wxChar c = *(cbC2U(curr->Value()));
@@ -1319,7 +1265,7 @@ wxArrayString ConfigManager::EnumerateKeys(const wxString& path)
     {
         while (e->IterateChildren(curr) && (curr = e->IterateChildren(curr)->ToElement()))
         {
-            #if wxCHECK_VERSION(3, 0, 0)
+            #if wxCHECK_VERSION(2, 9, 0)
             wxUniChar c = cbC2U(curr->Value())[0];
             #else
             wxChar c = *(cbC2U(curr->Value()));
@@ -1557,13 +1503,10 @@ void ConfigManager::InitPaths()
 #ifdef CB_AUTOCONF
     if (plugin_path_global.IsEmpty())
     {
-        if (platform::windows)
+        if (platform::windows || platform::macosx)
             ConfigManager::plugin_path_global = data_path_global;
-        else if (platform::macosx)
-            ConfigManager::plugin_path_global = data_path_global + _T("/plugins");
         else
         {
-#ifdef __WXGTK__
             // It seems we can not longer rely on wxStandardPathsBase::Get().GetPluginsDir(),
             // because its behaviour has changed on some systems (at least Fedora 14 64-bit).
             // So we create the pathname manually
@@ -1574,7 +1517,6 @@ void ConfigManager::InitPaths()
                 // if standard-path does not exist and we are on 64-bit system, use lib64 instead
                 ConfigManager::plugin_path_global = ((const wxStandardPaths&)wxStandardPaths::Get()).GetInstallPrefix() + _T("/lib64/codeblocks/plugins");
             }
-#endif // __WXGTK__
         }
     }
 #endif
@@ -1607,7 +1549,7 @@ void ConfigManager::MigrateFolders()
         return;
 
     // ConfigManager::config_folder might be the portable-path but we want to migrate the standard-conform folder,
-    // but only if it not already exists
+    // but only if it not aöready exists
     wxString newConfigFolder = wxString::FromUTF8(g_build_filename (g_get_user_config_dir(), "codeblocks", NULL));
     // if the new config folder already exist, we step out immediately
     if (wxDirExists(newConfigFolder))
@@ -1757,40 +1699,4 @@ double ConfigManagerWrapper::ReadDouble(const wxString& name, double defaultVal)
         return defaultVal;
     ConfigManager *c = Manager::Get()->GetConfigManager(m_namespace);
     return c->ReadDouble(m_basepath + name, defaultVal);
-}
-
-static wxString getCompilerPluginFilename()
-{
-    if (platform::windows)
-        return wxT("compiler.dll");
-    else if (platform::darwin || platform::macosx)
-        return wxT("libcompiler.dylib");
-    else
-        return wxT("libcompiler.so");
-}
-
-wxArrayString cbReadBatchBuildPlugins()
-{
-    ConfigManager *bbcfg = Manager::Get()->GetConfigManager(_T("plugins"));
-    wxArrayString bbplugins = bbcfg->ReadArrayString(_T("/batch_build_plugins"));
-
-    if (!bbplugins.GetCount())
-        bbplugins.Add(getCompilerPluginFilename());
-
-    return bbplugins;
-}
-
-void cbWriteBatchBuildPlugins(wxArrayString bbplugins, wxWindow *messageBoxParent)
-{
-    const wxString &compiler = getCompilerPluginFilename();
-
-    if (bbplugins.Index(compiler) == wxNOT_FOUND)
-    {
-        bbplugins.Add(compiler);
-        cbMessageBox(_("The compiler plugin must always be loaded for batch builds!\n"
-                    "Automatically re-enabled."),
-                    _("Warning"), wxICON_WARNING, messageBoxParent);
-    }
-    ConfigManager *bbcfg = Manager::Get()->GetConfigManager(_T("plugins"));
-    bbcfg->Write(_T("/batch_build_plugins"), bbplugins);
 }

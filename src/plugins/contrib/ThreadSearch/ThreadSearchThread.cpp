@@ -204,7 +204,7 @@ void ThreadSearchThread::OnExit()
 }
 
 
-wxDirTraverseResult ThreadSearchThread::OnDir(const wxString& dirName)
+wxDirTraverseResult ThreadSearchThread::OnDir(const wxString& WXUNUSED(dirName))
 {
     // Method is just used to test thread termination (user cancelled) and
     // stop recursive dir traversing if it is not required.
@@ -212,12 +212,6 @@ wxDirTraverseResult ThreadSearchThread::OnDir(const wxString& dirName)
     {
         return wxDIR_STOP;
     }
-
-    wxString path = cbResolveSymLinkedDirPathRecursive(dirName);
-    if (m_VisitedDirs.find(path) != m_VisitedDirs.end())
-        return wxDIR_IGNORE;
-    m_VisitedDirs.insert(path);
-
     return m_DefaultDirResult;
 }
 

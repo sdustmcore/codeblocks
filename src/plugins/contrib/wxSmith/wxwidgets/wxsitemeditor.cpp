@@ -216,11 +216,11 @@ void wxsItemEditor::RebuildPreview()
         BackgroundSizer->Fit(m_PreviewBackground);
         wxSizer* NewSizer = new wxGridSizer(1);
         NewSizer->Add(m_PreviewBackground,0,wxALL,10);
-#if !wxCHECK_VERSION(3, 0, 0)
+#if !wxCHECK_VERSION(2, 9, 0)
         m_Content->SetVirtualSizeHints(1,1);
 #endif
         m_Content->SetSizer(NewSizer);
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2, 9, 0)
         NewSizer->FitInside(m_Content);
 #else
         NewSizer->SetVirtualSizeHints(m_Content);
@@ -380,9 +380,6 @@ void wxsItemEditor::Paste()
         case itInto:
             Parent = Reference->ConvertToParent();
             RefIndex = Parent ? Parent->GetChildCount() : 0;
-            break;
-
-        default:
             break;
     }
 
@@ -722,7 +719,7 @@ void wxsItemEditor::BuildPalette(wxNotebook* Palette)
             }
         }
         CurrentPanel->SetSizer(RowSizer);
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2, 9, 0)
         RowSizer->FitInside(CurrentPanel);
 #else
         RowSizer->SetVirtualSizeHints(CurrentPanel);
@@ -730,27 +727,27 @@ void wxsItemEditor::BuildPalette(wxNotebook* Palette)
     }
 }
 
-void wxsItemEditor::OnInsPoint(cb_unused wxCommandEvent& event)
+void wxsItemEditor::OnInsPoint(wxCommandEvent& event)
 {
     SetInsertionType(itPoint);
 }
 
-void wxsItemEditor::OnInsInto(cb_unused wxCommandEvent& event)
+void wxsItemEditor::OnInsInto(wxCommandEvent& event)
 {
     SetInsertionType(itInto);
 }
 
-void wxsItemEditor::OnInsAfter(cb_unused wxCommandEvent& event)
+void wxsItemEditor::OnInsAfter(wxCommandEvent& event)
 {
     SetInsertionType(itAfter);
 }
 
-void wxsItemEditor::OnInsBefore(cb_unused wxCommandEvent& event)
+void wxsItemEditor::OnInsBefore(wxCommandEvent& event)
 {
     SetInsertionType(itBefore);
 }
 
-void wxsItemEditor::OnDelete(cb_unused wxCommandEvent& event)
+void wxsItemEditor::OnDelete(wxCommandEvent& event)
 {
     if ( !m_Data ) return;
     m_Data->BeginChange();
@@ -758,7 +755,7 @@ void wxsItemEditor::OnDelete(cb_unused wxCommandEvent& event)
     m_Data->EndChange();
 }
 
-void wxsItemEditor::OnPreview(cb_unused wxCommandEvent& event)
+void wxsItemEditor::OnPreview(wxCommandEvent& event)
 {
     if ( !m_Data ) return;
 
@@ -776,7 +773,7 @@ void wxsItemEditor::OnPreview(cb_unused wxCommandEvent& event)
     m_Content->BlockFetch(false);
 }
 
-void wxsItemEditor::OnQuickProps(cb_unused wxCommandEvent& event)
+void wxsItemEditor::OnQuickProps(wxCommandEvent& event)
 {
     m_QuickPropsOpen = !m_QuickPropsOpen;
     RebuildQuickPropsIcon();
@@ -847,9 +844,6 @@ void wxsItemEditor::OnKeyDown(wxKeyEvent& event)
             m_Data->BeginChange();
             m_Data->DeleteSelected();
             m_Data->EndChange();
-            break;
-
-        default:
             break;
     }
 }

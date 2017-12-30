@@ -21,7 +21,6 @@ class wxListEvent;
 class wxComboBox;
 class wxButton;
 class wxPanel;
-class wxStaticText;
 
 // an item is one record in the file, such as a fixme, it can have several properties, such as
 // the type (todo, note, fixme..), the user (who wrote the item) and the date, all its properties
@@ -60,9 +59,9 @@ class CheckListDialog : public wxDialog
         void AddItem(const wxArrayString& items) { m_checkList->InsertItems(items, 0); }
         void Clear()                             { m_checkList->Clear();               }
 
-        bool          IsChecked(const wxString& item) const;
-        wxArrayString GetChecked() const;
-        void          SetChecked(const wxArrayString& items);
+        bool          IsChecked(wxString item);
+        wxArrayString GetChecked();
+        void          SetChecked(wxArrayString items);
 
     protected:
         wxCheckListBox* m_checkList;
@@ -106,8 +105,12 @@ class ToDoListView : public wxEvtHandler, public ListCtrlLogger
         void ParseFile(const wxString& filename);
         // this actually parse the buffer, and fill the items map
         void ParseBuffer(const wxString& buffer, const wxString& filename);
+        // only be called in ParseBuffer
+        int CalculateLineNumber(const wxString& buffer, int upTo, int &oldline, int &oldlinepos );
         // ensure the ith element of the list control is shown
         void FocusEntry(size_t index);
+        // only be called in ParseBuffer
+        void SkipSpaces(const wxString& buffer, size_t &pos);
 
 
         // GUI event handler
@@ -136,7 +139,6 @@ class ToDoListView : public wxEvtHandler, public ListCtrlLogger
         wxComboBox*          m_pSource;
         // user filter, we can show only the specified todo items belongs to a single user
         wxComboBox*          m_pUser;
-        wxStaticText*        m_pTotal;
 
         // type string array: such as  todo, readme, note, fixme, and so on
         const wxArrayString& m_Types;

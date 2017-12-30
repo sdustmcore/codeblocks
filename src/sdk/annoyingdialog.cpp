@@ -52,7 +52,8 @@ void AnnoyingDialog::Init(const wxString &caption, const wxString &id, const wxS
     m_DontAnnoy = false;
     m_Id = id;
 
-    static_assert(wxMinimumVersion<2,8,12>::eval, "wxWidgets 2.8.12 is required");
+    // Code::Blocks needs wxWidgets 2.8
+    CompileTimeAssertion<wxMinimumVersion<2,8>::eval>::Assert();
 
     ConfigManagerContainer::StringSet disabled;
     ConfigManager* cfg = Manager::Get()->GetConfigManager(wxT("an_dlg"));

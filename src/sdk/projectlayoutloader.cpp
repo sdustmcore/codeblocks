@@ -24,8 +24,8 @@
 
 #include "projectlayoutloader.h"
 #include "annoyingdialog.h"
-#include <tinyxml.h>
-#include "tinywxuni.h"
+#include "tinyxml/tinyxml.h"
+#include "tinyxml/tinywxuni.h"
 
 ProjectLayoutLoader::ProjectLayoutLoader(cbProject* project)
     : m_pProject(project),

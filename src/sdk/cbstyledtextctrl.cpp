@@ -100,10 +100,6 @@ void cbStyledTextCtrl::OnContextMenu(wxContextMenuEvent& event)
     {
         if ( EditorBase* pParent = dynamic_cast<EditorBase*>(m_pParent) )
         {
-            // To prevent generating EVT_MOUSE_CAPTURE_LOST.
-            if (HaveMouseCapture())
-                SetMouseCapture(false);
-
             const bool is_right_click = event.GetPosition() != wxDefaultPosition;
             const wxPoint mp(is_right_click ? event.GetPosition() : wxDefaultPosition);
             pParent->DisplayContextMenu(mp, mtEditorManager);
@@ -147,7 +143,6 @@ void cbStyledTextCtrl::OnKeyDown(wxKeyEvent& event)
     {
         case _T('I'):
         {
-            // todo: this feature is undocumented and unexpected, remove?
             if (event.GetModifiers() == wxMOD_ALT)
                 m_braceShortcutState = true;
             break;
@@ -454,7 +449,7 @@ void cbStyledTextCtrl::HighlightRightBrace()
                 SetCaretWidth(caretWidth + 1);
 
                 IndicatorSetForeground(s_indicHighlight, wxColour(80, 236, 120));
-                IndicatorSetStyle(s_indicHighlight, wxSCI_INDIC_ROUNDBOX);
+                IndicatorSetStyle(s_indicHighlight, wxSCI_INDIC_HIGHLIGHT);
 #ifndef wxHAVE_RAW_BITMAP
                 IndicatorSetUnder(s_indicHighlight, true);
 #endif

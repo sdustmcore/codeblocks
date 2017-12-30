@@ -16,6 +16,7 @@
 #include <wx/choicdlg.h>
 #include <wx/filedlg.h>
 #include <wx/filename.h>
+#include <wx/textdlg.h>
 
 #ifndef CB_PRECOMP
     #include <wx/dir.h>
@@ -318,10 +319,11 @@ void cbProject::CalculateCommonTopLevelPath()
     // for simple projects, this might be the path to the project file
     // for projects where the project file is in a subdir, files will
     // have ".." in their paths
-    const wxString sep       = wxFileName::GetPathSeparator();
+    wxString   sep            = wxFileName::GetPathSeparator();
     wxFileName base           = GetBasePath() + sep;
     wxString   vol            = base.GetVolume();
     bool       prjHasUNCName  = base.GetFullPath().StartsWith(_T("\\\\"));
+    bool       fileHasUNCName = false;
 
     Manager::Get()->GetLogManager()->DebugLog(_T("Project's base path: ") + base.GetFullPath());
 
@@ -340,7 +342,7 @@ void cbProject::CalculateCommonTopLevelPath()
         if ( !vol.IsSameAs(f->file.GetVolume()) )
             continue;
 
-        bool fileHasUNCName = f->file.GetFullPath().StartsWith(_T("\\\\"));
+        fileHasUNCName = f->file.GetFullPath().StartsWith(_T("\\\\"));
 
         if (   (!prjHasUNCName &&  fileHasUNCName)
             || ( prjHasUNCName && !fileHasUNCName) )
@@ -376,8 +378,6 @@ void cbProject::CalculateCommonTopLevelPath()
     m_CommonTopLevelPath = base.GetFullPath();
     Manager::Get()->GetLogManager()->DebugLog(_T("Project's common toplevel path: ") + m_CommonTopLevelPath);
 
-    const wxString &projectBasePath = GetBasePath();
-
     for (FilesList::iterator it = m_Files.begin(); it != m_Files.end(); ++it)
     {
         ProjectFile* f = (*it);
@@ -385,7 +385,7 @@ void cbProject::CalculateCommonTopLevelPath()
             continue;
 
         wxString fileName = f->file.GetFullPath();
-        bool fileHasUNCName = fileName.StartsWith(_T("\\\\"));
+        fileHasUNCName = fileName.StartsWith(_T("\\\\"));
 
         if (   (prjHasUNCName && fileHasUNCName)
             || (   !prjHasUNCName
@@ -395,7 +395,7 @@ void cbProject::CalculateCommonTopLevelPath()
             wxFileName relFileCTLP(f->file);
             relFileCTLP.MakeRelativeTo( m_CommonTopLevelPath );
             wxFileName relFileBase(f->file);
-            relFileBase.MakeRelativeTo(projectBasePath);
+            relFileBase.MakeRelativeTo( GetBasePath() );
 
             // The commented (old) method to obtain the relativeToCommonTopLevelPath is fast, but does *not* work, if you save
             // the project on a different drive in a sub-folder of an existing source file on that (different) drive:
@@ -658,9 +658,12 @@ ProjectFile* cbProject::AddFile(int targetIndex, const wxString& filename, bool 
     pf = new ProjectFile(this);
     bool localCompile, localLink;
     wxFileName fname(filename);
+    wxString ext;
 
-    const wxString &ext = fname.GetExt();
-    if (ext.IsSameAs(FileFilters::C_EXT, false))
+    FileType ft = FileTypeOf(filename);
+
+    ext = filename.AfterLast(_T('.')).Lower();
+    if (ext.IsSameAs(FileFilters::C_EXT))
         pf->compilerVar = _T("CC");
     else if (platform::windows && ext.IsSameAs(FileFilters::RESOURCE_EXT))
         pf->compilerVar = _T("WINDRES");
@@ -678,8 +681,7 @@ ProjectFile* cbProject::AddFile(int targetIndex, const wxString& filename, bool 
         }
     }
 
-    const FileType ft = FileTypeOf(filename);
-    const bool isResource = (ft == ftResource);
+    bool isResource = FileTypeOf(filename) == ftResource;
 
 // NOTE (mandrav#1#): targetIndex == -1 means "don't add file to any targets"
 // This case gives us problems though because then we don't know the compiler
@@ -748,7 +750,6 @@ ProjectFile* cbProject::AddFile(int targetIndex, const wxString& filename, bool 
     pf->link    = localLink;
 
     wxString local_filename = filename;
-    const wxString &projectBasePath = GetBasePath();
 
 #ifdef __WXMSW__
     // for Windows, make sure the filename is not on another drive...
@@ -769,15 +770,15 @@ ProjectFile* cbProject::AddFile(int targetIndex, const wxString& filename, bool 
         // make sure the filename is relative to the project's base path
         if (fname.IsAbsolute())
         {
-            fname.MakeRelativeTo(projectBasePath);
+            fname.MakeRelativeTo( GetBasePath() );
             local_filename = fname.GetFullPath();
         }
         // this call is costly (wxFileName ctor):
-        fname.Assign(projectBasePath + wxFILE_SEP_PATH + local_filename);
+        fname.Assign(GetBasePath() + wxFILE_SEP_PATH + local_filename);
     }
-    fname.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_TILDE, projectBasePath);
+    fname.Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_TILDE, GetBasePath());
 
-    const wxString &fullFilename = realpath(fname.GetFullPath());
+    wxString fullFilename = realpath(fname.GetFullPath());
     pf->file              = fullFilename;
     pf->relativeFilename  = UnixFilename(local_filename);
 
@@ -811,7 +812,7 @@ ProjectFile* cbProject::AddFile(int targetIndex, const wxString& filename, bool 
         }
     }
     SetModified(true);
-    m_ProjectFilesMap[pf->relativeFilename] = pf; // add to hashmap
+    m_ProjectFilesMap[UnixFilename(pf->relativeFilename)] = pf; // add to hashmap
 
     if (!wxFileExists(fullFilename))
         pf->SetFileState(fvsMissing);
@@ -1254,7 +1255,7 @@ bool cbProject::ExportTargetAsProject(const wxString& targetName)
         return false;
 
     // ask for the new project's name
-    wxString newName = cbGetTextFromUser(_("Please enter the new project's name (no path, no extension)."),
+    wxString newName = wxGetTextFromUser(_("Please enter the new project's name (no path, no extension)."),
                                         _("Export target as new project"),
                                         target->GetTitle());
     if (newName.IsEmpty())
@@ -1732,7 +1733,7 @@ void cbProject::ProjectFileRenamed(ProjectFile* pf)
         {
             // got it
             m_ProjectFilesMap.erase(it);
-            m_ProjectFilesMap[UnixFilename(pf->relativeFilename)] = pf;
+            m_ProjectFilesMap[UnixFilename(pf->file.GetFullPath())] = pf;
             break;
         }
     }

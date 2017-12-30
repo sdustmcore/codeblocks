@@ -20,7 +20,6 @@
 					<Add option="-fPIC" />
 					<Add option="-DPIC" />
 					<Add directory="../../../include" />
-					<Add directory="../../../include/tinyxml" />
 				</Compiler>
 				<Linker>
 					<Add option="`$(WX_CONFIG) --libs`" />
@@ -43,7 +42,7 @@
 		<Compiler>
 			<Add option="-Wextra" />
 			<Add option="-Wall" />
-			<Add option="-std=c++11" />
+			<Add option="-ansi" />
 		</Compiler>
 		<Unit filename="AutoVersioning.cpp" />
 		<Unit filename="AutoVersioning.h" />

@@ -74,6 +74,12 @@
         <bitmap>images\16x16\filesaveas.png</bitmap>
         <help>Save the active file under a different name</help>
       </object>
+      <object class="wxMenuItem" name="idFileSaveAllFiles">
+        <label>Save a&amp;ll files</label>
+        <bitmap>images\16x16\filesaveall.png</bitmap>
+        <accel>Ctrl-Shift-S</accel>
+        <help>Save all modified files</help>
+      </object>
       <object class="separator"/>
       <object class="wxMenuItem" name="idFileSaveProject">
         <label>Save project</label>
@@ -86,6 +92,10 @@
       <object class="wxMenuItem" name="idFileSaveProjectTemplate">
         <label>Save project as template...</label>
         <help>Keep this project as a template to base new projects on</help>
+      </object>
+      <object class="wxMenuItem" name="idFileSaveProjectAllProjects">
+        <label>Save all projects</label>
+        <help>Save all modified projects</help>
       </object>
       <object class="separator"/>
       <object class="wxMenuItem" name="idFileSaveWorkspace">
@@ -100,8 +110,8 @@
       <object class="wxMenuItem" name="idFileSaveAll">
         <label>Save everything</label>
         <bitmap>images\16x16\filesaveall.png</bitmap>
-        <accel>Ctrl-Shift-S</accel>
-        <help>Save all source files, projects and the workspace, if there are changes to them. Save the configuration</help>
+        <accel>Alt-Shift-S</accel>
+        <help>Save all files, projects and the workspace</help>
       </object>
       <object class="separator"/>
       <object class="wxMenuItem" name="idFileClose">
@@ -118,6 +128,10 @@
       <object class="wxMenuItem" name="idFileCloseProject">
         <label>Close project</label>
         <help>Close active project</help>
+      </object>
+      <object class="wxMenuItem" name="idFileCloseAllProjects">
+        <label>Close all projects</label>
+        <help>Close all opened projects</help>
       </object>
       <object class="wxMenuItem" name="idFileCloseWorkspace">
         <label>Close workspace</label>
@@ -206,11 +220,6 @@
           <label>Goto &amp;next bookmark</label>
           <accel>Alt-PgDn</accel>
           <help>Goto next bookmark</help>
-        </object>
-        <object class="wxMenuItem" name="idEditBookmarksClearAll">
-          <label>Clear &amp;all bookmarks</label>
-          <accel></accel>
-          <help>Clear all bookmarks</help>
         </object>
       </object>
       <object class="wxMenu" name="idEditFolding">
@@ -440,14 +449,6 @@
             <label>Goto line end</label>
             <accel>Ctrl+Return</accel>
             <help>Goto current line end</help>
-          </object>
-          <object class="wxMenuItem" name="idEditInsertNewLineBelow">
-            <label>Insert unindented line below current line</label>
-            <help>Insert line below current line without indentation</help>
-          </object>
-          <object class="wxMenuItem" name="idEditInsertNewLineAbove">
-            <label>Insert unindented line above current line</label>
-            <help>Insert line above current line without indentation</help>
           </object>
         </object>
       </object>

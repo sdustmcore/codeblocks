@@ -27,15 +27,11 @@
 				<border>10</border>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStdDialogButtonSizer">
-					<object class="button">
-						<object class="wxButton" name="wxID_OK">
-							<label></label>
-						</object>
-					</object>
+				<object class="wxButton" name="wxID_OK">
+					<label>OK</label>
 				</object>
-				<flag>wxALL|wxEXPAND</flag>
-				<border>8</border>
+				<flag>wxALL|wxALIGN_RIGHT</flag>
+				<border>10</border>
 			</object>
 		</object>
 	</object>

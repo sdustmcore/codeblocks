@@ -3,10 +3,11 @@ DIST_SUBDIRS = scripting wxscintilla  wxpropgrid resources
 
 AM_CPPFLAGS = $(WX_CXXFLAGS) \
 			$(CB_GLIB2_CFLAGS) \
-			$(CB_SQUIRREL_CFLAGS) \
 			-I$(top_srcdir)/src/include \
 			-I$(top_srcdir)/src/sdk/wxscintilla/include \
 			 $(WXPROPGRID_INCLUDE) \
+			-I$(top_srcdir)/src/include/tinyxml \
+			-I$(top_srcdir)/src/include/scripting/include \
 			-I$(top_srcdir)/src/include/scripting/bindings \
  			-I$(top_srcdir)/src/include/scripting/sqplus \
  			-I$(top_srcdir)/src/include/mozilla_chardet \
@@ -22,13 +23,14 @@ libcodeblocks_la_LDFLAGS = -version-info @CODEBLOCKS_VERSION_INFO@
 
 libcodeblocks_la_LIBADD = scripting/bindings/libsqbindings.la \
 			scripting/sqplus/libsqplus.la \
+			scripting/sqstdlib/libsqstdlib.la \
+			scripting/squirrel/libsquirrel.la \
+			../base/tinyxml/libtinyxml.la \
 			wxscintilla/libwxscintilla.la \
 			$(WX_LIBS) \
 			$(SCINTILLA_GTK_LIBS) \
 			$(CB_GLIB2_LIBS) \
-			$(WXPROPGRID_LIB) \
-			$(CB_TINYXML_LIBS) \
-			$(CB_SQUIRREL_LIBS)
+			$(WXPROPGRID_LIB)
 
 libcodeblocks_la_SOURCES = annoyingdialog.cpp \
 						autodetectcompilers.cpp \
@@ -81,11 +83,12 @@ libcodeblocks_la_SOURCES = annoyingdialog.cpp \
 						genericmultilinenotesdlg.cpp \
 						globals.cpp \
 						importers_globals.cpp \
-						incremental_select_helper.cpp \
+						incrementalselectlistdlg.cpp \
 						infowindow.cpp \
 						loggers.cpp \
 						logmanager.cpp \
 						macrosmanager.cpp \
+						managedthread.cpp \
 						manager.cpp \
 						menuitemsmanager.cpp \
 						multiselectdlg.cpp \
@@ -111,7 +114,6 @@ libcodeblocks_la_SOURCES = annoyingdialog.cpp \
 						searchresultslog.cpp \
 						selecttargetdlg.cpp \
 						templatemanager.cpp \
-						tinywxuni.cpp \
 						toolsmanager.cpp \
 						uservarmanager.cpp \
 						workspaceloader.cpp \

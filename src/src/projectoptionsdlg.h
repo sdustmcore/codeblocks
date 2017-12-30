@@ -53,8 +53,6 @@ class ProjectOptionsDlg : public wxScrollingDialog
         void OnCreateDefFileClick(wxCommandEvent& event);
         void OnCreateImportFileClick(wxCommandEvent& event);
 
-        void OnKeyDown(wxKeyEvent& event);
-
         void OnScriptsOverviewSelChanged(wxTreeEvent& event);
         void OnCheckScripts(wxCommandEvent& event);
         void OnAddScript(wxCommandEvent& event);

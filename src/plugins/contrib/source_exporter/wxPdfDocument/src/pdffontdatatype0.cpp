@@ -250,10 +250,11 @@ wxPdfFontDataType0::GetStringWidth(const wxString& s, const wxPdfEncoding* encod
   wxString t = ConvertToValid(s);
   // Get width of a string in the current font
   double w = 0;
+  wxPdfGlyphWidthMap::iterator charIter;
   wxString::const_iterator ch;
   for (ch = t.begin(); ch != t.end(); ++ch)
   {
-    const int c = *ch;
+    wxChar c = *ch;
     if (c >= 0 && c < 128)
     {
       wxPdfGlyphWidthMap::iterator charIter = (*m_cw).find(c);

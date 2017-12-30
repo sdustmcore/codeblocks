@@ -60,7 +60,7 @@
 											<object class="wxStaticText" name="ID_STATICTEXT1">
 												<label>Name:</label>
 											</object>
-											<flag>wxALIGN_LEFT</flag>
+											<flag></flag>
 										</object>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="lblName">
@@ -72,7 +72,7 @@
 											<object class="wxStaticText" name="ID_STATICTEXT2">
 												<label>Version:</label>
 											</object>
-											<flag>wxALIGN_LEFT</flag>
+											<flag></flag>
 										</object>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="lblVersion">
@@ -84,7 +84,7 @@
 											<object class="wxStaticText" name="ID_STATICTEXT3">
 												<label>Author:</label>
 											</object>
-											<flag>wxALIGN_LEFT</flag>
+											<flag></flag>
 										</object>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="lblAuthor">
@@ -96,7 +96,7 @@
 											<object class="wxStaticText" name="ID_STATICTEXT4">
 												<label>E-mail:</label>
 											</object>
-											<flag>wxALIGN_LEFT</flag>
+											<flag></flag>
 										</object>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="lblEmail">
@@ -108,7 +108,7 @@
 											<object class="wxStaticText" name="ID_STATICTEXT5">
 												<label>Website:</label>
 											</object>
-											<flag>wxALIGN_LEFT</flag>
+											<flag></flag>
 										</object>
 										<object class="sizeritem">
 											<object class="wxStaticText" name="lblWebsite">
@@ -177,14 +177,11 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStdDialogButtonSizer">
-					<object class="button">
-						<object class="wxButton" name="wxID_CANCEL">
-							<label>&amp;Close</label>
-						</object>
-					</object>
+				<object class="wxButton" name="wxID_CANCEL">
+					<label>Close</label>
+					<default>1</default>
 				</object>
-				<flag>wxALL|wxEXPAND</flag>
+				<flag>wxBOTTOM|wxLEFT|wxRIGHT|wxALIGN_CENTER_HORIZONTAL</flag>
 				<border>8</border>
 			</object>
 		</object>

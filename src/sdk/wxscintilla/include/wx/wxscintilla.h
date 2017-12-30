@@ -31,7 +31,7 @@
 #include <wx/timer.h>
 /* C::B begin */
 #include <wx/scrolbar.h>
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2,9,2)
 #include <wx/versioninfo.h>
 #endif
 /* C::B end */
@@ -2771,7 +2771,7 @@ class  WXDLLIMPEXP_SCI wxScintillaEvent;
 //----------------------------------------------------------------------
 
 /* C::B begin */
-#if !wxCHECK_VERSION(3, 0, 0) && !defined(_WIN64)
+#if !wxCHECK_VERSION(2, 9, 0) && !defined(_WIN64)
 typedef long wxIntPtr;
 #endif
 typedef wxIntPtr (* wxSciFnDirect) (wxIntPtr ptr, unsigned int iMessage,
@@ -5135,13 +5135,8 @@ public:
     virtual bool IsEditable() const { return !GetReadOnly(); }
     virtual void SetEditable(bool editable) { SetReadOnly(!editable); }
 
-/* C::B begin capture mouse assert fix */
-    void SetMouseCapture(bool on);
-    bool HaveMouseCapture() const;
-/* C::B end */
-
 /* C::B begin */
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2, 9, 2)
     static wxVersionInfo GetLibraryVersionInfo();
 #endif
 /* C::B end */
@@ -5454,7 +5449,7 @@ END_DECLARE_EVENT_TYPES()
 typedef void (wxEvtHandler::*wxScintillaEventFunction)(wxScintillaEvent&);
 
 /* C::B begin */
-#if !wxCHECK_VERSION(3, 0, 0)
+#if !wxCHECK_VERSION(2,9,0)
   #define wxEVENT_HANDLER_CAST( functype, func ) \
       ( wxObjectEventFunction )( wxEventFunction )wxStaticCastEvent( functype, &func )
 #endif

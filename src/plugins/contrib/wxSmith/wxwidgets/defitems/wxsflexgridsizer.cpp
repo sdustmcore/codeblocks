@@ -81,16 +81,16 @@ wxSizer* wxsFlexGridSizer::OnBuildSizerPreview(wxWindow* Parent)
     wxFlexGridSizer* Sizer = new wxFlexGridSizer(Rows,Cols,
         VGap.GetPixels(Parent),HGap.GetPixels(Parent));
 
-    wxArrayInt _Cols = GetArray(GrowableCols);
-    for ( size_t i=0; i<_Cols.Count(); i++ )
+    wxArrayInt Cols = GetArray(GrowableCols);
+    for ( size_t i=0; i<Cols.Count(); i++ )
     {
-        Sizer->AddGrowableCol(_Cols[i]);
+        Sizer->AddGrowableCol(Cols[i]);
     }
 
-    wxArrayInt _Rows = GetArray(GrowableRows);
-    for ( size_t i=0; i<_Rows.Count(); i++ )
+    wxArrayInt Rows = GetArray(GrowableRows);
+    for ( size_t i=0; i<Rows.Count(); i++ )
     {
-        Sizer->AddGrowableRow(_Rows[i]);
+        Sizer->AddGrowableRow(Rows[i]);
     }
     return Sizer;
 }
@@ -106,22 +106,21 @@ void wxsFlexGridSizer::OnBuildSizerCreatingCode()
                   VGap.GetPixelsCode(GetCoderContext()).wx_str(),
                   HGap.GetPixelsCode(GetCoderContext()).wx_str());
 
-            wxArrayInt _Cols = GetArray(GrowableCols);
-            for ( size_t i=0; i<_Cols.Count(); i++ )
+            wxArrayInt Cols = GetArray(GrowableCols);
+            for ( size_t i=0; i<Cols.Count(); i++ )
             {
-                Codef(_T("%AAddGrowableCol(%d);\n"),_Cols[i]);
+                Codef(_T("%AAddGrowableCol(%d);\n"),Cols[i]);
             }
 
-            wxArrayInt _Rows = GetArray(GrowableRows);
-            for ( size_t i=0; i<_Rows.Count(); i++ )
+            wxArrayInt Rows = GetArray(GrowableRows);
+            for ( size_t i=0; i<Rows.Count(); i++ )
             {
-                Codef(_T("%AAddGrowableRow(%d);\n"),_Rows[i]);
+                Codef(_T("%AAddGrowableRow(%d);\n"),Rows[i]);
             }
 
             return;
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsFlexGridSizer::OnBuildSizerCreatingCode"),GetLanguage());
@@ -129,7 +128,7 @@ void wxsFlexGridSizer::OnBuildSizerCreatingCode()
     }
 }
 
-void wxsFlexGridSizer::OnEnumSizerProperties(cb_unused long Flags)
+void wxsFlexGridSizer::OnEnumSizerProperties(long Flags)
 {
     FixupList(GrowableCols);
     FixupList(GrowableRows);

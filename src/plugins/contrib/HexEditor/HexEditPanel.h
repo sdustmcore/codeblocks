@@ -45,7 +45,6 @@
 #include "HexEditViewBase.h"
 
 class DigitView;
-class wxClientDC;
 
 class HexEditPanel: public EditorBase
 {
@@ -306,10 +305,10 @@ class HexEditPanel: public EditorBase
         unsigned int             m_Cols;                        ///< \brief Number of available characters in row in the editor
         unsigned int             m_Lines;                       ///< \brief Number of available lines of characters in the editor
         unsigned int             m_LineBytes;                   ///< \brief Number of bytes shown in a line
-        /// \brief True when we need to recalculate the drawing params.
-        bool                     m_NeedRecalc;
 
         OffsetT                  m_Current;                     ///< \brief Offset of current character
+        OffsetT                  m_CurrentBlockStart;           ///< \brief Offset of start of current character block
+        OffsetT                  m_CurrentBlockEnd;             ///< \brief Offset of end of current character block
 
         wxString                 m_ExpressionError;             ///< \brief Last error reported while compiling user-defined expression in preview bar
         Expression::Preprocessed m_ExpressionCode;              ///< \brief Bytecode of user-defined expression in preview bar
@@ -339,8 +338,8 @@ class HexEditPanel: public EditorBase
         /** \brief Set font of given size as used font, does not recalculate coefficients nor font size */
         void SetFontSize( int size );
 
-        /** \brief Recalculate all coefficients (width, height, block sizes etc) */
-        void RecalculateCoefs(wxDC &dc);
+        /** \brief Recalculate all coefficients (width, height, block sizes eetc) */
+        void RecalculateCoefs();
 
         /** \brief Returns offset of first byte displayed on the screen from the scroll bar */
         FileContentBase::OffsetT DetectStartOffset();

@@ -34,7 +34,7 @@ wxsPropertyGridManager::wxsPropertyGridManager(
     const wxPoint& pos,
     const wxSize& size,
     long style,
-    #if wxCHECK_VERSION(3, 0, 0)
+    #if wxCHECK_VERSION(2, 9, 0)
     const char* name):
     #else
     const wxChar* name):
@@ -171,11 +171,7 @@ void wxsPropertyGridManager::UnbindPropertyContainer(wxsPropertyContainer* PC, b
     {
         if ( PGContainers[i] == PC )
         {
-            // before deleting the property, make sure all children are hidden or we can get a crash
-            // we do this by recursively hiding the property and it's children
-            // should fix http://forums.codeblocks.org/index.php/topic,21893.0.html
-            PGIDs[i]->Hide(true);
-            #if wxCHECK_VERSION(3, 0, 0) || wxCHECK_PROPGRID_VERSION(1, 4, 0)
+            #if wxCHECK_VERSION(2, 9, 0) || wxCHECK_PROPGRID_VERSION(1, 4, 0)
             DeleteProperty(PGIDs[i]);
             #else
             Delete(PGIDs[i]);
@@ -247,7 +243,7 @@ void wxsPropertyGridManager::NewPropertyContainerAddProperty(wxsProperty* Proper
 
 void wxsPropertyGridManager::NewPropertyContainerFinish(wxsPropertyContainer* Container)
 {
-    #if wxCHECK_VERSION(3, 0, 0) || wxCHECK_PROPGRID_VERSION(1, 4, 0)
+    #if wxCHECK_VERSION(2, 9, 0) || wxCHECK_PROPGRID_VERSION(1, 4, 0)
     SelectPage(0);
     #else
     SetTargetPage(0);
@@ -256,7 +252,7 @@ void wxsPropertyGridManager::NewPropertyContainerFinish(wxsPropertyContainer* Co
     while ( PropertiesList )
     {
         TemporaryPropertiesList* Next = PropertiesList->Next;
-        #if wxCHECK_VERSION(3, 0, 0) || wxCHECK_PROPGRID_VERSION(1, 4, 0)
+        #if wxCHECK_VERSION(2, 9, 0) || wxCHECK_PROPGRID_VERSION(1, 4, 0)
         PropertiesList->Property->PGCreate(PropertiesList->Container,this,GetGrid()->GetRoot());
         #else
         PropertiesList->Property->PGCreate(PropertiesList->Container,this,GetRoot());
@@ -293,7 +289,7 @@ void wxsPropertyGridManager::StoreSelected(SelectionData* Data)
 
     Data->m_PageIndex = GetSelectedPage();
 
-    #if wxCHECK_VERSION(3, 0, 0)
+    #if wxCHECK_VERSION(2, 9, 0)
     wxPGId Selected = GetSelection();
     #else
     wxPGId Selected = GetSelectedProperty();

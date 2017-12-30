@@ -52,7 +52,6 @@ void wxsLedNumber::OnBuildCreatingCode()
     switch ( GetLanguage() )
     {
         case wxsCPP:
-        {
             AddHeader(_T("<wx/gizmos/ledctrl.h>"),GetInfo().ClassName);
             Codef( _T("%C(%W,%I,%P,%S,%d|wxFULL_REPAINT_ON_RESIZE %s);\n"), Align, (Faded ? "| wxLED_DRAW_FADED" : ""));
             Codef( _T( "%ASetMinSize( %S);\n"));
@@ -63,15 +62,13 @@ void wxsLedNumber::OnBuildCreatingCode()
             if( Content.Len() > 0)
                 Codef( _T( "%ASetValue( _T(\"%s\"));\n"), Content.wx_str());
             break;
-        }
 
-        case wxsUnknownLanguage: // fall-through
         default:
             wxsCodeMarks::Unknown(_T("wxsLedNumber::OnBuildCreatingCode"),GetLanguage());
     }
 }
 
-wxObject* wxsLedNumber::OnBuildPreview(wxWindow* Parent,cb_unused long Flags)
+wxObject* wxsLedNumber::OnBuildPreview(wxWindow* Parent,long Flags)
 {
     wxLEDNumberCtrl* test = new wxLEDNumberCtrl(Parent,GetId(),Pos(Parent),Size(Parent), Align|wxFULL_REPAINT_ON_RESIZE);
     test->SetMinSize( Size( Parent));
@@ -87,7 +84,7 @@ wxObject* wxsLedNumber::OnBuildPreview(wxWindow* Parent,cb_unused long Flags)
     return test;
 }
 
-void wxsLedNumber::OnEnumWidgetProperties(cb_unused long Flags)
+void wxsLedNumber::OnEnumWidgetProperties(long Flags)
 {
 
     WXS_SHORT_STRING(

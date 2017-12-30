@@ -26,7 +26,11 @@
 
 static bool InsideRect(const wxRect &rect, const wxPoint &pt)
 {
+#if wxCHECK_VERSION(2, 8, 0)
 	return rect.Contains(pt);
+#else
+	return rect.Inside(pt);
+#endif
 }
 
 #ifdef DEVELOPMENT
@@ -484,7 +488,7 @@ void wxFlatNotebook::OnNavigationKey(wxNavigationKeyEvent& event)
 		if ( GetParent() )
 		{
 			event.SetCurrentFocus(this);
-			#if wxCHECK_VERSION(3, 0, 0)
+			#if wxCHECK_VERSION(2, 9, 0)
 			GetParent()->GetEventHandler()->ProcessEvent(event);
 			#else
 			GetParent()->ProcessEvent(event);

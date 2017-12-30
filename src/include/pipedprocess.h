@@ -19,8 +19,7 @@ class DLLIMPORT PipedProcess : public wxProcess
 {
     public:
         // class constructor
-        PipedProcess(PipedProcess** pvThis, wxEvtHandler* parent, int id = wxID_ANY,
-                     bool pipe = true, const wxString& dir = wxEmptyString, int index = -1);
+        PipedProcess(PipedProcess** pvThis, wxEvtHandler* parent, int id = wxID_ANY, bool pipe = true, const wxString& dir = wxEmptyString);
         // class destructor
         ~PipedProcess();
         virtual int Launch(const wxString& cmd, unsigned int pollingInterval = 100);
@@ -32,18 +31,10 @@ class DLLIMPORT PipedProcess : public wxProcess
         virtual void OnTerminate(int pid, int status);
         virtual void OnTimer(wxTimerEvent& event);
         virtual void OnIdle(wxIdleEvent& event);
-    protected:
         wxEvtHandler* m_Parent;
-        wxTimer m_timerPollProcess;
         int m_Id;
         int m_Pid;
-
-        /// When there are multiple processes started you could use this to distinguish between
-        /// different processes. You could also use the id, but then you must preallocate too many
-        /// ids and with the growing number of threads available in contemporary machines, this
-        /// becomes unfeasible.
-        /// It is sent back in the X variable of the CodeBlocksEvent.
-        int m_Index;
+        wxTimer m_timerPollProcess;
     private:
         PipedProcess** m_pvThis;
         DECLARE_EVENT_TABLE()

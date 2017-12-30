@@ -20,7 +20,6 @@ function WarningsOn(base, compilerID)
     }
     else if (   GetCompilerFactory().CompilerInheritsFrom(compilerID, _T("arm*"))
              || GetCompilerFactory().CompilerInheritsFrom(compilerID, _T("avr*"))
-             || GetCompilerFactory().CompilerInheritsFrom(compilerID, _T("msp430*"))
              || GetCompilerFactory().CompilerInheritsFrom(compilerID, _T("cygwin"))
              || GetCompilerFactory().CompilerInheritsFrom(compilerID, _T("gcc"))
              || GetCompilerFactory().CompilerInheritsFrom(compilerID, _T("gdc"))
@@ -86,7 +85,6 @@ function DebugSymbolsOn(base, compilerID)
     }
     else if (   GetCompilerFactory().CompilerInheritsFrom(compilerID, _T("arm*"))
              || GetCompilerFactory().CompilerInheritsFrom(compilerID, _T("avr*"))
-             || GetCompilerFactory().CompilerInheritsFrom(compilerID, _T("msp430*"))
              || GetCompilerFactory().CompilerInheritsFrom(compilerID, _T("clang"))
              || GetCompilerFactory().CompilerInheritsFrom(compilerID, _T("cygwin"))
              || GetCompilerFactory().CompilerInheritsFrom(compilerID, _T("dmc"))
@@ -181,8 +179,7 @@ function OptimizationsOn(base, compilerID)
             base.AddLinkerOption(_T("-s"));
         }
     }
-    else if (   GetCompilerFactory().CompilerInheritsFrom(compilerID, _T("avr*"))
-             || GetCompilerFactory().CompilerInheritsFrom(compilerID, _T("msp430*")) )
+    else if (   GetCompilerFactory().CompilerInheritsFrom(compilerID, _T("avr*")) )
     {
         base.AddCompilerOption(_T("-Os"));
     }
@@ -549,11 +546,9 @@ function SilentVerifyLibFile(dir, file)
 {
     return (   IO.FileExists(dir + wxFILE_SEP_PATH + file)
             || IO.FileExists(dir + wxFILE_SEP_PATH + file + _T(".a"))
-            || IO.FileExists(dir + wxFILE_SEP_PATH + file + _T(".dll.a"))
             || IO.FileExists(dir + wxFILE_SEP_PATH + file + _T(".lib"))
             || IO.FileExists(dir + wxFILE_SEP_PATH + _T("lib") + file)
             || IO.FileExists(dir + wxFILE_SEP_PATH + _T("lib") + file + _T(".a"))
-            || IO.FileExists(dir + wxFILE_SEP_PATH + _T("lib") + file + _T(".dll.a"))
             || IO.FileExists(dir + wxFILE_SEP_PATH + _T("lib") + file + _T(".lib"))
             || IO.FileExists(dir + wxFILE_SEP_PATH + _T("lib") + file + _T(".la"))
             || IO.FileExists(dir + wxFILE_SEP_PATH + _T("lib") + file + _T(".so")) );

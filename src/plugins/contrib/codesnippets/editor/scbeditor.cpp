@@ -18,6 +18,7 @@
 #ifndef CB_PRECOMP
     #include <wx/filename.h>
     #include <wx/filedlg.h>
+    #include <wx/textdlg.h> // wxGetTextFromUser
     #include <wx/menu.h>
     #include <wx/notebook.h>
     #include <wx/wfstream.h>
@@ -529,7 +530,7 @@ void ScbEditor::NotifyPlugins(wxEventType type, int intArg, const wxString& strA
     event.SetY(yArg);
     //-wxPostEvent(Manager::Get()->GetAppWindow(), event);
     //-Manager::Get()->GetPluginManager()->NotifyPlugins(event);
-    #if wxCHECK_VERSION(3, 0, 0)
+    #if wxCHECK_VERSION(2, 9, 0)
     parent->GetEventHandler()->ProcessEvent(event);
     #else
     parent->ProcessEvent(event);
@@ -1519,7 +1520,7 @@ void ScbEditor::AutoComplete()
 
                 wxString macroName = code.SubString(macroPos + 2, macroPosEnd - 1);
                 msgMan->DebugLog(_T("Found macro: ") + macroName);
-                wxString macro = cbGetTextFromUser(_("Please enter the text for \"") + macroName + _T("\":"), _("Macro substitution"));
+                wxString macro = wxGetTextFromUser(_("Please enter the text for \"") + macroName + _T("\":"), _("Macro substitution"));
                 if (macro.IsEmpty())
                 {
                     canceled = true;

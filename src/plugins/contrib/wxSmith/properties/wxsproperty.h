@@ -34,18 +34,18 @@
 #include <wx/propgrid/propgrid.h>
 #include <wx/propgrid/manager.h>
 
-#include <tinyxml.h>
+#include <tinyxml/tinyxml.h>
 #include <prep.h>
 
 #include "wxspropertystream.h"
 
 class wxsPropertyContainer;
 
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2, 9, 0)
 #define wxCHECK_PROPGRID_VERSION(major,minor,release) (0)
 #endif
 
-#if wxCHECK_VERSION(3, 0, 0) || wxCHECK_PROPGRID_VERSION(1, 4, 0)
+#if wxCHECK_VERSION(2, 9, 0) || wxCHECK_PROPGRID_VERSION(1, 4, 0)
 #define wxPGVariant                     wxVariant
 #define wxPGId                          wxPGProperty*
 #define wxParentProperty                wxPGProperty
@@ -63,7 +63,7 @@ class wxsPropertyContainer;
 /** \brief Class representing one property
  *
  * Property is object around real variable(s) which is responsible
- * for streaming it. Currently there are three streamings supported:
+ * for streaming it. Currently there are thre streamings supported:
  * - Streaming to/from PropertyGrid - this will be used in
  *   property editor
  * - Streaming to/from Xml structure - this kind of streaming will be

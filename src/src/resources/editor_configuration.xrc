@@ -143,6 +143,7 @@
 																							<value>4</value>
 																							<min>1</min>
 																							<max>16</max>
+																							<size>71,21</size>
 																						</object>
 																						<flag>wxLEFT|wxALIGN_TOP</flag>
 																						<border>16</border>
@@ -337,6 +338,7 @@
 																							<value>3</value>
 																							<min>1</min>
 																							<max>8</max>
+																							<size>71,21</size>
 																						</object>
 																						<flag>wxLEFT|wxEXPAND</flag>
 																						<border>4</border>
@@ -521,6 +523,7 @@
 																						<item>Always</item>
 																						<item>Only after indent</item>
 																					</content>
+																					<size>95,24</size>
 																				</object>
 																				<flag>wxLEFT|wxEXPAND</flag>
 																				<border>5</border>
@@ -549,6 +552,29 @@
 																</object>
 																<flag>wxEXPAND</flag>
 																<border>4</border>
+															</object>
+														</object>
+														<flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND</flag>
+														<border>4</border>
+													</object>
+													<object class="sizeritem">
+														<object class="wxStaticBoxSizer">
+															<label>Browser option</label>
+															<object class="sizeritem">
+																<object class="wxStaticText" name="wxID_ANY">
+																	<label>Open containing folder:</label>
+																</object>
+																<flag>wxALIGN_CENTER_VERTICAL</flag>
+																<border>5</border>
+															</object>
+															<object class="sizeritem">
+																<object class="wxTextCtrl" name="txtOpenFolder">
+																	<fg>#8000FF</fg>
+																	<tooltip>Enter system command to open the folder where the file resides in</tooltip>
+																</object>
+																<flag>wxLEFT|wxEXPAND</flag>
+																<border>5</border>
+																<option>1</option>
 															</object>
 														</object>
 														<flag>wxTOP|wxLEFT|wxRIGHT|wxEXPAND</flag>
@@ -1327,7 +1353,6 @@
 				</object>
 				<flag>wxALL|wxEXPAND</flag>
 				<border>8</border>
-				<option>1</option>
 			</object>
 			<object class="sizeritem">
 				<object class="wxStaticLine" name="ID_STATICLINE3" />
@@ -1347,7 +1372,7 @@
 						</object>
 					</object>
 				</object>
-				<flag>wxALL|wxEXPAND</flag>
+				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL</flag>
 				<border>4</border>
 			</object>
 		</object>

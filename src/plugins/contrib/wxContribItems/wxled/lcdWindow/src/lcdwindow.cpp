@@ -30,9 +30,8 @@ wxLCDWindow::~wxLCDWindow()
 }
 
 
-void wxLCDWindow::OnPaint(wxPaintEvent &event)
+void wxLCDWindow::OnPaint( wxPaintEvent &event )
 {
-	(void)event;
 	wxPaintDC dc( this );
 
 	int dw = GetClientSize().GetWidth();
@@ -325,9 +324,8 @@ int wxLCDWindow::DigitX( int digit )
 }
 
 
-int wxLCDWindow::DigitY(int digit)
+int wxLCDWindow::DigitY( int digit )
 {
-	(void)digit;
 	return mSpace;
 }
 

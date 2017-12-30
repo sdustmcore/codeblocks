@@ -20,9 +20,8 @@
 #include "SpellCheckerPlugin.h"
 #include <sdk.h> // Code::Blocks SDK
 #ifndef CB_PRECOMP
-#include <wx/dir.h>
-#include <logmanager.h>
-#include <macrosmanager.h>
+    #include <wx/dir.h>
+    #include <macrosmanager.h>
 #endif
 
 #include <configmanager.h>
@@ -37,8 +36,8 @@
 
 SpellCheckerConfig::SpellCheckerConfig(SpellCheckerPlugin *plugin)
     ://m_DictionaryPath(plugin->GetDic),
-     selectedDictionary(-1),
-     m_pPlugin(plugin)
+    selectedDictionary(-1),
+    m_pPlugin(plugin)
 {
     Load();
     ScanForDictionaries();
@@ -54,52 +53,42 @@ bool SpellCheckerConfig::GetEnableOnlineChecker()
 {
     return m_EnableOnlineChecker;
 }
-
 void SpellCheckerConfig::SetEnableOnlineChecker(bool val)
 {
     m_EnableOnlineChecker = val;
 }
-
 bool SpellCheckerConfig::GetEnableSpellTooltips()
 {
     return m_EnableSpellTooltips;
 }
-
 void SpellCheckerConfig::SetEnableSpellTooltips(bool val)
 {
     m_EnableSpellTooltips = val;
 }
-
 bool SpellCheckerConfig::GetEnableThesaurusTooltips()
 {
     return m_EnableThesaurusTooltips;
 }
-
 void SpellCheckerConfig::SetEnableThesaurusTooltips(bool val)
 {
     m_EnableThesaurusTooltips = val;
 }
-
 const wxString SpellCheckerConfig::GetDictionaryName()const
 {
     return m_strDictionaryName;
 }
-
 void SpellCheckerConfig::SetDictionaryName(wxString val)
 {
     m_strDictionaryName = val;
 }
-
 int SpellCheckerConfig::GetSelectedDictionaryNumber()const
 {
     return selectedDictionary;
 }
-
 void SpellCheckerConfig::ScanForDictionaries()
 {
     ScanForDictionaries(GetDictionaryPath());
 }
-
 void SpellCheckerConfig::ScanForDictionaries(const wxString &path)
 {
     m_dictionaries.clear();
@@ -111,7 +100,7 @@ void SpellCheckerConfig::ScanForDictionaries(const wxString &path)
     if ( dir.Open(path) )
     {
         wxString strfilename;
-        bool cont = dir.GetFirst(&strfilename, filespec, wxDIR_FILES);
+        bool cont = dir.GetFirst(&strfilename, filespec, wxDIR_FILES );
         while ( cont )
         {
             wxFileName fname(strfilename);
@@ -119,57 +108,41 @@ void SpellCheckerConfig::ScanForDictionaries(const wxString &path)
             if ( wxFileName::FileExists(afffilename) )
             {
                 if ( fname.GetName() == m_strDictionaryName )
-                {
-                    Manager::Get()->GetLogManager()->DebugLog(_T("Selected dictionary: ") + fname.GetName());
                     selectedDictionary = m_dictionaries.size();
-                }
-                Manager::Get()->GetLogManager()->DebugLog(_T("Found dictionary: ") + fname.GetName());
                 m_dictionaries.push_back(fname.GetName());
 
             }
             cont = dir.GetNext(&strfilename);
         }
     }
-    else
-        Manager::Get()->GetLogManager()->DebugLog(_T("Could not open path to dictionaries: ") + path);
-
     // disable online checker if there are no dictionaries found
     if (selectedDictionary == wxNOT_FOUND)
     {
         m_EnableOnlineChecker = false;
     }
 }
-
 const std::vector<wxString> &SpellCheckerConfig::GetPossibleDictionaries()const
 {
     return m_dictionaries;
 }
-
 const wxString SpellCheckerConfig::GetDictionaryPath()const
 {
     wxString dictPath = m_DictPath;
     Manager::Get()->GetMacrosManager()->ReplaceEnvVars(dictPath);
     return dictPath;
 }
-
 const wxString SpellCheckerConfig::GetThesaurusPath()const
 {
     wxString thesPath = m_ThesPath;
     Manager::Get()->GetMacrosManager()->ReplaceEnvVars(thesPath);
     return thesPath;
 }
-
 const wxString SpellCheckerConfig::GetBitmapPath()const
 {
     wxString bitmPath = m_BitmPath;
     Manager::Get()->GetMacrosManager()->ReplaceEnvVars(bitmPath);
-    if (    wxDirExists(bitmPath)
-            && !wxFindFirstFile(bitmPath + wxFILE_SEP_PATH + wxT("*.png"), wxFILE).IsEmpty() )
-    {
-        Manager::Get()->GetLogManager()->DebugLog(_T("Detected bitmap path: ") + bitmPath);
+    if (wxDirExists(bitmPath) && !wxFindFirstFile(bitmPath + wxFILE_SEP_PATH + wxT("*.png"), wxFILE).IsEmpty())
         return bitmPath;
-    }
-    Manager::Get()->GetLogManager()->DebugLog(_T("Current bitmap path: ") + m_pPlugin->GetOnlineCheckerConfigPath());
     return m_pPlugin->GetOnlineCheckerConfigPath();
 }
 
@@ -201,17 +174,14 @@ void SpellCheckerConfig::DetectDictionaryPath()
     {
         dictPaths.Add(wxT("/usr/share/hunspell"));
         dictPaths.Add(wxT("/usr/share/myspell/dicts"));
-        dictPaths.Add(wxT("/usr/share/myspell"));
     }
     dictPaths.Add(m_pPlugin->GetOnlineCheckerConfigPath());
     for (size_t i = 0; i < dictPaths.GetCount(); ++i)
     {
-        if (    wxDirExists(dictPaths[i])
-                && !wxFindFirstFile(dictPaths[i] + wxFILE_SEP_PATH + wxT("*.dic"), wxFILE).IsEmpty() )
+        if (wxDirExists(dictPaths[i]) && !wxFindFirstFile(dictPaths[i] + wxFILE_SEP_PATH + wxT("*.dic"), wxFILE).IsEmpty())
         {
             if (i != 0)
                 m_DictPath = dictPaths[i];
-            Manager::Get()->GetLogManager()->DebugLog(_T("Detected dict path: ") + m_DictPath);
             break;
         }
     }
@@ -245,46 +215,21 @@ void SpellCheckerConfig::DetectThesaurusPath()
     thesPaths.Add(m_pPlugin->GetOnlineCheckerConfigPath());
     for (size_t i = 0; i < thesPaths.GetCount(); ++i)
     {
-        if (    wxDirExists(thesPaths[i])
-                && !wxFindFirstFile(thesPaths[i] + wxFILE_SEP_PATH + wxT("th*.dat"), wxFILE).IsEmpty() )
+        if (wxDirExists(thesPaths[i]) && !wxFindFirstFile(thesPaths[i] + wxFILE_SEP_PATH + wxT("th*.dat"), wxFILE).IsEmpty())
         {
             if (i != 0)
                 m_ThesPath = thesPaths[i];
-            Manager::Get()->GetLogManager()->DebugLog(_T("Detected thes path: ") + m_ThesPath);
             break;
         }
     }
 }
 
-const wxString SpellCheckerConfig::GetRawDictionaryPath()const
-{
-    return m_DictPath;
-}
-
-const wxString SpellCheckerConfig::GetRawThesaurusPath()const
-{
-    return m_ThesPath;
-}
-
-const wxString SpellCheckerConfig::GetRawBitmapPath()const
-{
-    return m_BitmPath;
-}
-
-void SpellCheckerConfig::SetDictionaryPath(const wxString &path)
-{
-    m_DictPath = path;
-}
-
-void SpellCheckerConfig::SetThesaurusPath(const wxString &path)
-{
-    m_ThesPath = path;
-}
-
-void SpellCheckerConfig::SetBitmapPath(const wxString &path)
-{
-    m_BitmPath = path;
-}
+const wxString SpellCheckerConfig::GetRawDictionaryPath()const{return m_DictPath;}
+const wxString SpellCheckerConfig::GetRawThesaurusPath()const{return m_ThesPath;}
+const wxString SpellCheckerConfig::GetRawBitmapPath()const{return m_BitmPath;}
+void SpellCheckerConfig::SetDictionaryPath(const wxString &path){m_DictPath = path;}
+void SpellCheckerConfig::SetThesaurusPath(const wxString &path){m_ThesPath = path;}
+void SpellCheckerConfig::SetBitmapPath(const wxString &path){m_BitmPath = path;}
 
 const wxString SpellCheckerConfig::GetPersonalDictionaryFilename()const
 {
@@ -293,7 +238,6 @@ const wxString SpellCheckerConfig::GetPersonalDictionaryFilename()const
         dfile = ConfigManager::GetFolder(sdConfig) + wxFILE_SEP_PATH + GetDictionaryName() + _T("_personaldictionary.dic");
     return dfile;
 }
-
 void SpellCheckerConfig::Load()
 {
     m_EnableOnlineChecker = true;
@@ -318,7 +262,6 @@ void SpellCheckerConfig::Load()
     DetectDictionaryPath();
     DetectThesaurusPath();
 }
-
 void SpellCheckerConfig::Save()
 {
     if(ConfigManager* cfg = Manager::Get()->GetConfigManager(_T("editor")))
@@ -397,7 +340,6 @@ void SpellCheckerConfig::PopulateLanguageNamesMap()
     m_LanguageNamesMap[_T("uk_UA")] = _T("Ukrainian (Ukraine)");
     m_LanguageNamesMap[_T("zu_ZA")] = _T("Zulu (South Africa)");
 }
-
 wxString SpellCheckerConfig::GetLanguageName(const wxString& language_id)
 {
     if(language_id.empty())

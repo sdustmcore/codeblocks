@@ -44,7 +44,6 @@ namespace
     const long idMenuDelete = wxNewId();
     const long idMenuDeleteAll = wxNewId();
     const long idMenuAddDataBreak = wxNewId();
-    const long idMenuExamineMemory = wxNewId();
     const long idMenuAutoUpdate = wxNewId();
     const long idMenuUpdate = wxNewId();
 }
@@ -65,12 +64,11 @@ BEGIN_EVENT_TABLE(WatchesDlg, wxPanel)
     EVT_MENU(idMenuDelete, WatchesDlg::OnMenuDelete)
     EVT_MENU(idMenuDeleteAll, WatchesDlg::OnMenuDeleteAll)
     EVT_MENU(idMenuAddDataBreak, WatchesDlg::OnMenuAddDataBreak)
-    EVT_MENU(idMenuExamineMemory, WatchesDlg::OnMenuExamineMemory)
     EVT_MENU(idMenuAutoUpdate, WatchesDlg::OnMenuAutoUpdate)
     EVT_MENU(idMenuUpdate, WatchesDlg::OnMenuUpdate)
 END_EVENT_TABLE()
 
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2,9,0)
 typedef wxString wxPG_CONST_WXCHAR_PTR;
 #endif
 
@@ -86,39 +84,33 @@ private:
     cb::shared_ptr<cbWatch> m_watch;
 };
 
+#if wxCHECK_VERSION(2, 9, 0)
 class cbDummyEditor : public wxPGEditor
 {
     DECLARE_DYNAMIC_CLASS(cbDummyEditor)
 public:
     cbDummyEditor() {}
-    wxPG_CONST_WXCHAR_PTR GetName() const override
+    virtual wxPG_CONST_WXCHAR_PTR GetName() const
     {
         return wxT("cbDummyEditor");
     }
 
-    wxPGWindowList CreateControls(wxPropertyGrid* propgrid, wxPGProperty* property,
-                                  const wxPoint& pos, const wxSize& sz) const override
+    virtual wxPGWindowList CreateControls(wxPropertyGrid* propgrid, wxPGProperty* property,
+                                          const wxPoint& pos, const wxSize& sz) const
     {
         wxPGWindowList const list;
         return list;
     }
-    void UpdateControl(wxPGProperty* property, wxWindow* ctrl) const override {}
-    bool OnEvent(wxPropertyGrid* propgrid, wxPGProperty* property, wxWindow* wnd_primary, wxEvent& event) const override
-    {
-        return false;
-    }
+    virtual void UpdateControl( wxPGProperty* property,
+                                wxWindow* ctrl ) const {}
+    virtual bool OnEvent( wxPropertyGrid* propgrid, wxPGProperty* property,
+        wxWindow* wnd_primary, wxEvent& event ) const {return false;};
 
-    bool GetValueFromControl( wxVariant& variant, wxPGProperty* property, wxWindow* ctrl ) const override
-    {
-        return false;
-    }
-    void SetValueToUnspecified( wxPGProperty* property, wxWindow* ctrl ) const override {}
 };
 
 IMPLEMENT_DYNAMIC_CLASS(cbDummyEditor, wxPGEditor);
-
+#endif // wxCHECK_VERSION
 static wxPGEditor *watchesDummyEditor = nullptr;
-
 class cbTextCtrlAndButtonTooltipEditor : public wxPGTextCtrlAndButtonEditor
 {
     DECLARE_DYNAMIC_CLASS(cbTextCtrlAndButtonTooltipEditor)
@@ -373,7 +365,7 @@ WatchesDlg::WatchesDlg() :
     m_grid = new wxPropertyGrid(this, idGrid, wxDefaultPosition, wxDefaultSize,
                                 wxPG_SPLITTER_AUTO_CENTER | wxTAB_TRAVERSAL /*| wxWANTS_CHARS*/);
 
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2, 9, 0)
     #define wxPG_EX_DISABLE_TLP_TRACKING 0x00000000
 #endif
     m_grid->SetExtraStyle(wxPG_EX_DISABLE_TLP_TRACKING | wxPG_EX_HELP_AS_TOOLTIPS);
@@ -386,7 +378,7 @@ WatchesDlg::WatchesDlg() :
 
     if (!watchesPropertyEditor)
     {
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2, 9, 0)
         watchesPropertyEditor = wxPropertyGrid::RegisterEditorClass(new cbTextCtrlAndButtonTooltipEditor, true);
 #else
         watchesPropertyEditor = wxPropertyGrid::RegisterEditorClass(new cbTextCtrlAndButtonTooltipEditor,
@@ -395,14 +387,12 @@ WatchesDlg::WatchesDlg() :
 #endif
     }
 
+#if wxCHECK_VERSION(2, 9, 0)
     if (!watchesDummyEditor)
     {
-#if wxCHECK_VERSION(3, 0, 0)
         watchesDummyEditor = wxPropertyGrid::RegisterEditorClass(new cbDummyEditor, true);
-#else
-        watchesDummyEditor = wxPropertyGrid::RegisterEditorClass(new cbDummyEditor, wxT("cbDummyEditor"), true);
-#endif
     }
+#endif
 
     m_grid->SetColumnProportion(0, 40);
     m_grid->SetColumnProportion(1, 40);
@@ -447,7 +437,7 @@ inline void AppendChildren(wxPropertyGrid &grid, wxPGProperty &property, cbWatch
         }
         else
         {
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2, 9, 0)
             grid.SetPropertyColoursToDefault(prop);
 #else
             grid.SetPropertyColourToDefault(prop);
@@ -475,7 +465,7 @@ inline void UpdateWatch(wxPropertyGrid *grid, wxPGProperty *property, cb::shared
         grid->SetPropertyTextColour(property, changedColour);
     else
     {
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2, 9, 0)
         grid->SetPropertyColoursToDefault(property);
 #else
         grid->SetPropertyColourToDefault(property);
@@ -485,14 +475,7 @@ inline void UpdateWatch(wxPropertyGrid *grid, wxPGProperty *property, cb::shared
     if (value.empty())
         grid->SetPropertyHelpString(property, wxEmptyString);
     else
-    {
-        wxString valueTruncated;
-        if (value.length() > 128)
-            valueTruncated = value.Left(128) + wxT("...");
-        else
-            valueTruncated=value;
-        grid->SetPropertyHelpString(property, symbol + wxT("=") + valueTruncated);
-    }
+        grid->SetPropertyHelpString(property, symbol + wxT("=") + value);
 
     property->DeleteChildren();
 
@@ -790,8 +773,7 @@ void WatchesDlg::OnPropertyRightClick(wxPropertyGridEvent &event)
                 disabled = cbDebuggerPlugin::WatchesDisabledMenuItems::Rename |
                            cbDebuggerPlugin::WatchesDisabledMenuItems::Properties |
                            cbDebuggerPlugin::WatchesDisabledMenuItems::Delete |
-                           cbDebuggerPlugin::WatchesDisabledMenuItems::AddDataBreak |
-                           cbDebuggerPlugin::WatchesDisabledMenuItems::ExamineMemory;
+                           cbDebuggerPlugin::WatchesDisabledMenuItems::AddDataBreak;
             }
             else
             {
@@ -830,20 +812,6 @@ void WatchesDlg::OnPropertyRightClick(wxPropertyGridEvent &event)
                 m.Check(idMenuAutoUpdate, watch->IsAutoUpdateEnabled());
                 if (plugin != dbgManager->GetActiveDebugger())
                     m.Enable(idMenuUpdate, false);
-            }
-
-            // Add the Examine memory only if the plugin supports the ExamineMemory dialog.
-            if (plugin && plugin->SupportsFeature(cbDebuggerFeature::ExamineMemory) == true)
-            {
-                size_t position;
-                if (m.FindChildItem(idMenuAddDataBreak, &position))
-                    position++;
-                else
-                    position = 0;
-                m.Insert(position, idMenuExamineMemory, _("Examine memory"),
-                         _("Opens the Examine memory window and shows the raw data for this variable"));
-                if (disabled & cbDebuggerPlugin::WatchesDisabledMenuItems::ExamineMemory)
-                    m.Enable(idMenuExamineMemory, false);
             }
         }
         PopupMenu(&m);
@@ -927,33 +895,6 @@ void WatchesDlg::OnMenuAddDataBreak(cb_unused wxCommandEvent &event)
         if (plugin->AddDataBreakpoint(expression))
             Manager::Get()->GetDebuggerManager()->GetBreakpointDialog()->Reload();
     }
-}
-
-void WatchesDlg::OnMenuExamineMemory(cb_unused wxCommandEvent &event)
-{
-    wxPGProperty *selected = m_grid->GetSelection();
-    if (!selected)
-        return;
-    WatchesProperty *prop = static_cast<WatchesProperty*>(selected);
-
-    wxString expression;
-    cb::shared_ptr<cbWatch> watch = prop->GetWatch();
-    if (watch->IsPointerType())
-        watch->GetSymbol(expression);
-    else
-        expression = watch->MakeSymbolToAddress();
-
-    cbExamineMemoryDlg* dlg = Manager::Get()->GetDebuggerManager()->GetExamineMemoryDialog();
-    if (!dlg)
-        return;
-    if (!IsWindowReallyShown(dlg->GetWindow()))
-    {
-        CodeBlocksDockEvent evt(cbEVT_SHOW_DOCK_WINDOW);
-        evt.pWindow = dlg->GetWindow();
-        Manager::Get()->ProcessEvent(evt);
-    }
-
-    dlg->SetBaseAddress(expression);
 }
 
 void WatchesDlg::OnMenuAutoUpdate(cb_unused wxCommandEvent &event)
@@ -1074,7 +1015,7 @@ inline wxPGProperty* GetRealRoot(wxPropertyGrid *grid)
 
 inline void GetColumnWidths(wxClientDC &dc, wxPropertyGrid *grid, wxPGProperty *root, int width[3])
 {
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2, 9, 0)
     wxPropertyGridPageState *state = grid->GetState();
 #else
     wxPropertyGridState *state = grid->GetState();
@@ -1138,7 +1079,7 @@ inline void SetMinSize(wxPropertyGrid *grid)
     int minWidth = (wxSystemSettings::GetMetric(wxSYS_SCREEN_X, grid->GetParent())*3)/2;
     int minHeight = (wxSystemSettings::GetMetric(wxSYS_SCREEN_Y, grid->GetParent())*3)/2;
 
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2, 9, 0)
     wxSize size(std::min(minWidth, rect.width), std::min(minHeight, height));
 #else
     wxSize size(std::min(minWidth, rect.width + grid->GetMarginWidth()), std::min(minHeight, height));

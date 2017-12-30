@@ -468,13 +468,9 @@ void ThreadSearchLoggerList::OnSearchEnd()
         InfoWindow::Display(_("Search finished"), message);
     else if (m_TotalLinesFound <= static_cast<size_t>(std::max(m_pListLog->GetCountPerPage()-2, 0)))
         m_pListLog->EnsureVisible(index);
-
-    if (m_ThreadSearchPlugin.GetAutosizeLogColumns())
-    {
-        int columns = m_pListLog->GetColumnCount();
-        for (int ii = 0; ii < columns; ++ii)
-            m_pListLog->SetColumnWidth(ii, wxLIST_AUTOSIZE);
-    }
+    int columns = m_pListLog->GetColumnCount();
+    for (int ii = 0; ii < columns; ++ii)
+        m_pListLog->SetColumnWidth(ii, wxLIST_AUTOSIZE);
 }
 
 inline int Compare(long a, long b)
@@ -532,7 +528,7 @@ struct Item
         int c = directory.compare(item.directory);
         if (c)
             return c;
-        c = filename.compare(item.filename);
+            c = filename.compare(item.filename);
 
         if (c)
             return c;

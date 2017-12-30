@@ -19,25 +19,6 @@
 * $Id$
 * $HeadURL$
 */
-#include <sdk.h>
-
-#ifndef CB_PRECOMP
-    #include <wx/dcclient.h>
-    #include <wx/filedlg.h>
-    #include <wx/filename.h>
-    #include <wx/sizer.h>
-    #include <wx/choicdlg.h>
-
-    #include <manager.h>
-    #include <editormanager.h>
-    #include <configmanager.h>
-    #include <logmanager.h>
-    #include <globals.h>
-    #include "prep.h"
-#endif // CB_PRECOMP
-
-#include <wx/dcbuffer.h>
-#include <wx/numdlg.h>
 
 #include "HexEditPanel.h"
 #include "ExpressionTester.h"
@@ -58,6 +39,20 @@
 #include <wx/intl.h>
 //*)
 
+#include <wx/dcbuffer.h>
+#include <wx/dcclient.h>
+#include <wx/filedlg.h>
+#include <wx/filename.h>
+#include <wx/numdlg.h>
+#include <wx/sizer.h>
+#include <wx/textdlg.h>
+#include <wx/choicdlg.h>
+
+#include <manager.h>
+#include <editormanager.h>
+#include <configmanager.h>
+#include <logmanager.h>
+#include "prep.h"
 
 namespace
 {
@@ -154,6 +149,8 @@ HexEditPanel::HexEditPanel( const wxString& fileName, const wxString& title )
     , m_Content( 0 )
     , m_DrawFont( 0 )
     , m_Current( 0 )
+    , m_CurrentBlockStart( 0 )
+    , m_CurrentBlockEnd( 0 )
     , m_MouseDown( false )
     , m_ColsMode( CM_ANY )
 {
@@ -396,7 +393,7 @@ HexEditPanel::HexEditPanel( const wxString& fileName, const wxString& title )
     m_LastScrollUnits = 0;
     m_LinesPerScrollUnit = 1;
     CreateViews();
-    m_NeedRecalc = true;
+    RecalculateCoefs();
 
     ReparseExpression();
     SetFontSize( 8 );
@@ -497,11 +494,10 @@ void HexEditPanel::ReadContent()
     }
 }
 
-void HexEditPanel::RecalculateCoefs(wxDC &dc)
+void HexEditPanel::RecalculateCoefs()
 {
-    if (!m_NeedRecalc)
-        return;
-    m_NeedRecalc = false;
+    // Calculate size of the font
+    wxClientDC dc( this );
     dc.GetTextExtent( _T("0123456789ABCDEF"), &m_FontX, &m_FontY, NULL, NULL, m_DrawFont );
     m_FontX /= 16;
 
@@ -536,7 +532,7 @@ void HexEditPanel::RecalculateCoefs(wxDC &dc)
     // Now we need to find such number of bytes to be multiple of cumulativeBlockSize
     // and try not to cross maxByteInLine
 
-    // Additionally we try to match required columns count,
+    // Additionally we try to mach required columns count,
     // this is a little bit naive approach but will work in generic way
     int maxColumns = std::max( (int)(maxByteInLine / cumulativeBlockSize), 1 );
     for ( int i=maxColumns;; i-- )
@@ -591,7 +587,6 @@ void HexEditPanel::RecalculateCoefs(wxDC &dc)
 void HexEditPanel::OnContentPaint( wxPaintEvent& /*event*/ )
 {
     wxAutoBufferedPaintDC dc( m_DrawArea );
-    RecalculateCoefs( dc );
     dc.SetBrush( GetBackgroundColour() );
     dc.SetPen  ( GetBackgroundColour() );
     dc.DrawRectangle( GetClientRect() );
@@ -713,7 +708,7 @@ void HexEditPanel::OnContentScrollBottom(wxScrollEvent& event)
 
 void HexEditPanel::OnContentSize( wxSizeEvent& event )
 {
-    m_NeedRecalc = true;
+    RecalculateCoefs();
     EnsureCarretVisible();
     RefreshStatus();
     event.Skip();
@@ -908,10 +903,12 @@ void HexEditPanel::RefreshStatus()
             default: m_DigitBits->SetLabel( wxString::Format( _("%d bits") , m_DigitView->GetDigitBits() ) );
         }
 
-        if ( m_DigitView->GetLittleEndian() )
-            m_Endianess->SetLabel( _("LE") );
-        else
-            m_Endianess->SetLabel( _("BE") );
+        switch ( m_DigitView->GetLittleEndian() )
+        {
+            case true:  m_Endianess->SetLabel( _("LE") ); break;
+            case false: m_Endianess->SetLabel( _("BE") ); break;
+            default: break;
+        }
 
         m_BlockSize->SetLabel( wxString::Format( _("%dB"), m_DigitView->GetBlockBytes() ) );
 
@@ -1418,7 +1415,7 @@ void HexEditPanel::ProcessGoto()
     wxString str = wxString::Format( _T("%lld"), m_Current );
     for ( ;; )
     {
-        str = cbGetTextFromUser(
+        str = wxGetTextFromUser(
             _("Enter offset\n"
               "\n"
               "Available forms are:\n"
@@ -1602,7 +1599,7 @@ void HexEditPanel::OnSetBaseBin(wxCommandEvent& /*event*/)
 
 void HexEditPanel::DisplayChanged()
 {
-    m_NeedRecalc = true;
+    RecalculateCoefs();
     RefreshStatus();
     EnsureCarretVisible();
     m_DrawArea->Refresh();
@@ -1811,11 +1808,13 @@ bool HexEditPanel::MatchColumnsCount(int colsCount)
 
 void HexEditPanel::OnButton4Click1(wxCommandEvent& /*event*/)
 {
-    wxArrayString tests;
-    tests.Add(_("Expression parser"));
-    tests.Add(_("On-Disk file edition"));
+    wxString tests[] =
+    {
+        _("Expression parser"),
+        _("On-Disk file edition")
+    };
 
-    int index = cbGetSingleChoiceIndex( _("Select tests to perform"), _("Self tests"), tests, this);
+    int index = wxGetSingleChoiceIndex( _("Select tests to perform"), _("Self tests"), sizeof( tests ) / sizeof( tests[0] ), tests, this );
     TestCasesBase* test = 0;
 
     switch ( index )

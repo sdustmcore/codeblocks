@@ -14,4 +14,7 @@
     <Program name="MAKE"      value="make.exe"/>
 
     <Switch name="forceFwdSlashes" value="true"/>
+
+    <Option name="Do not use cygwin specific functionality"
+            option="-mno-cygwin"/>
 </CodeBlocks_compiler_options>

@@ -153,9 +153,10 @@ int idFileImportProjectMSVS             = XRCID("idFileImportProjectMSVS");
 int idFileImportProjectMSVSWksp         = XRCID("idFileImportProjectMSVSWksp");
 int idFileSave                          = XRCID("idFileSave");
 int idFileSaveAs                        = XRCID("idFileSaveAs");
-int idFileReopenProject                 = XRCID("idFileReopenProject");
+int idFileSaveAllFiles                  = XRCID("idFileSaveAllFiles");
 int idFileSaveProject                   = XRCID("idFileSaveProject");
 int idFileSaveProjectAs                 = XRCID("idFileSaveProjectAs");
+int idFileSaveProjectAllProjects        = XRCID("idFileSaveProjectAllProjects");
 int idFileSaveProjectTemplate           = XRCID("idFileSaveProjectTemplate");
 int idFileOpenDefWorkspace              = XRCID("idFileOpenDefWorkspace");
 int idFileSaveWorkspace                 = XRCID("idFileSaveWorkspace");
@@ -165,6 +166,7 @@ int idFileCloseWorkspace                = XRCID("idFileCloseWorkspace");
 int idFileClose                         = XRCID("idFileClose");
 int idFileCloseAll                      = XRCID("idFileCloseAll");
 int idFileCloseProject                  = XRCID("idFileCloseProject");
+int idFileCloseAllProjects              = XRCID("idFileCloseAllProjects");
 int idFilePrintSetup                    = XRCID("idFilePrintSetup");
 int idFilePrint                         = XRCID("idFilePrint");
 int idFileExit                          = XRCID("idFileExit");
@@ -183,7 +185,6 @@ int idEditBookmarks               = XRCID("idEditBookmarks");
 int idEditBookmarksToggle         = XRCID("idEditBookmarksToggle");
 int idEditBookmarksPrevious       = XRCID("idEditBookmarksPrevious");
 int idEditBookmarksNext           = XRCID("idEditBookmarksNext");
-int idEditBookmarksClearAll       = XRCID("idEditBookmarksClearAll");
 int idEditFolding                 = XRCID("idEditFolding");
 int idEditFoldAll                 = XRCID("idEditFoldAll");
 int idEditUnfoldAll               = XRCID("idEditUnfoldAll");
@@ -237,8 +238,6 @@ int idEditLowerCase               = XRCID("idEditLowerCase");
 int idEditSpecialCommandsOther    = XRCID("idEditSpecialCommandsOther");
 int idEditInsertNewLine           = XRCID("idEditInsertNewLine");
 int idEditGotoLineEnd             = XRCID("idEditGotoLineEnd");
-int idEditInsertNewLineBelow      = XRCID("idEditInsertNewLineBelow");
-int idEditInsertNewLineAbove      = XRCID("idEditInsertNewLineAbove");
 int idEditSelectAll               = XRCID("idEditSelectAll");
 int idEditSelectNext              = XRCID("idEditSelectNext");
 int idEditSelectNextSkip          = XRCID("idEditSelectNextSkip");
@@ -301,18 +300,17 @@ int idFilePrev              = wxNewId();
 int idShiftTab              = wxNewId();
 int idCtrlAltTab            = wxNewId();
 int idStartHerePageLink     = wxNewId();
-int idHighlightButton       = wxNewId();
 
 BEGIN_EVENT_TABLE(MainFrame, wxFrame)
     EVT_ERASE_BACKGROUND(MainFrame::OnEraseBackground)
     EVT_SIZE(MainFrame::OnSize)
     EVT_CLOSE(MainFrame::OnApplicationClose)
 
-    EVT_UPDATE_UI(idFileOpen,                          MainFrame::OnFileMenuUpdateUI)
     EVT_UPDATE_UI(idFileOpenRecentFileClearHistory,    MainFrame::OnFileMenuUpdateUI)
     EVT_UPDATE_UI(idFileOpenRecentProjectClearHistory, MainFrame::OnFileMenuUpdateUI)
     EVT_UPDATE_UI(idFileSave,                          MainFrame::OnFileMenuUpdateUI)
     EVT_UPDATE_UI(idFileSaveAs,                        MainFrame::OnFileMenuUpdateUI)
+    EVT_UPDATE_UI(idFileSaveAllFiles,                  MainFrame::OnFileMenuUpdateUI)
     EVT_UPDATE_UI(idFileOpenDefWorkspace,              MainFrame::OnFileMenuUpdateUI)
     EVT_UPDATE_UI(idFileSaveWorkspace,                 MainFrame::OnFileMenuUpdateUI)
     EVT_UPDATE_UI(idFileSaveWorkspaceAs,               MainFrame::OnFileMenuUpdateUI)
@@ -322,12 +320,13 @@ BEGIN_EVENT_TABLE(MainFrame, wxFrame)
     EVT_UPDATE_UI(idFilePrintSetup,                    MainFrame::OnFileMenuUpdateUI)
     EVT_UPDATE_UI(idFilePrint,                         MainFrame::OnFileMenuUpdateUI)
 
-    EVT_UPDATE_UI(idFileReopenProject,          MainFrame::OnFileMenuUpdateUI)
-    EVT_UPDATE_UI(idFileSaveProject,            MainFrame::OnFileMenuUpdateUI)
-    EVT_UPDATE_UI(idFileSaveProjectAs,          MainFrame::OnFileMenuUpdateUI)
-    EVT_UPDATE_UI(idFileSaveProjectTemplate,    MainFrame::OnFileMenuUpdateUI)
-    EVT_UPDATE_UI(idFileSaveAll,                MainFrame::OnFileMenuUpdateUI)
-    EVT_UPDATE_UI(idFileCloseProject,           MainFrame::OnFileMenuUpdateUI)
+    EVT_UPDATE_UI(idFileSaveProject,            MainFrame::OnProjectMenuUpdateUI)
+    EVT_UPDATE_UI(idFileSaveProjectAs,          MainFrame::OnProjectMenuUpdateUI)
+    EVT_UPDATE_UI(idFileSaveProjectAllProjects, MainFrame::OnProjectMenuUpdateUI)
+    EVT_UPDATE_UI(idFileSaveProjectTemplate,    MainFrame::OnProjectMenuUpdateUI)
+    EVT_UPDATE_UI(idFileSaveAll,                MainFrame::OnProjectMenuUpdateUI)
+    EVT_UPDATE_UI(idFileCloseProject,           MainFrame::OnProjectMenuUpdateUI)
+    EVT_UPDATE_UI(idFileCloseAllProjects,       MainFrame::OnProjectMenuUpdateUI)
 
     EVT_UPDATE_UI(idEditUndo,                  MainFrame::OnEditMenuUpdateUI)
     EVT_UPDATE_UI(idEditRedo,                  MainFrame::OnEditMenuUpdateUI)
@@ -353,7 +352,6 @@ BEGIN_EVENT_TABLE(MainFrame, wxFrame)
     EVT_UPDATE_UI(idEditBookmarksToggle,       MainFrame::OnEditMenuUpdateUI)
     EVT_UPDATE_UI(idEditBookmarksNext,         MainFrame::OnEditMenuUpdateUI)
     EVT_UPDATE_UI(idEditBookmarksPrevious,     MainFrame::OnEditMenuUpdateUI)
-    EVT_UPDATE_UI(idEditBookmarksClearAll,     MainFrame::OnEditMenuUpdateUI)
     EVT_UPDATE_UI(idEditCommentSelected,       MainFrame::OnEditMenuUpdateUI)
     EVT_UPDATE_UI(idEditUncommentSelected,     MainFrame::OnEditMenuUpdateUI)
     EVT_UPDATE_UI(idEditToggleCommentSelected, MainFrame::OnEditMenuUpdateUI)
@@ -406,9 +404,11 @@ BEGIN_EVENT_TABLE(MainFrame, wxFrame)
     EVT_MENU(idFileImportProjectMSVSWksp,         MainFrame::OnFileImportProjectMSVSWksp)
     EVT_MENU(idFileSave,                          MainFrame::OnFileSave)
     EVT_MENU(idFileSaveAs,                        MainFrame::OnFileSaveAs)
+    EVT_MENU(idFileSaveAllFiles,                  MainFrame::OnFileSaveAllFiles)
     EVT_MENU(idFileSaveProject,                   MainFrame::OnFileSaveProject)
     EVT_MENU(idFileSaveProjectAs,                 MainFrame::OnFileSaveProjectAs)
     EVT_MENU(idFileSaveProjectTemplate,           MainFrame::OnFileSaveProjectTemplate)
+    EVT_MENU(idFileSaveProjectAllProjects,        MainFrame::OnFileSaveProjectAllProjects)
     EVT_MENU(idFileOpenDefWorkspace,              MainFrame::OnFileOpenDefWorkspace)
     EVT_MENU(idFileSaveWorkspace,                 MainFrame::OnFileSaveWorkspace)
     EVT_MENU(idFileSaveWorkspaceAs,               MainFrame::OnFileSaveWorkspaceAs)
@@ -417,6 +417,7 @@ BEGIN_EVENT_TABLE(MainFrame, wxFrame)
     EVT_MENU(idFileClose,                         MainFrame::OnFileClose)
     EVT_MENU(idFileCloseAll,                      MainFrame::OnFileCloseAll)
     EVT_MENU(idFileCloseProject,                  MainFrame::OnFileCloseProject)
+    EVT_MENU(idFileCloseAllProjects,              MainFrame::OnFileCloseAllProjects)
     EVT_MENU(idFilePrint,                         MainFrame::OnFilePrint)
     EVT_MENU(idFileExit,                          MainFrame::OnFileQuit)
     EVT_MENU(idFileNext,                          MainFrame::OnFileNext)
@@ -475,15 +476,12 @@ BEGIN_EVENT_TABLE(MainFrame, wxFrame)
     EVT_MENU(idEditLowerCase,             MainFrame::OnEditLowerCase)
     EVT_MENU(idEditInsertNewLine,         MainFrame::OnEditInsertNewLine)
     EVT_MENU(idEditGotoLineEnd,           MainFrame::OnEditGotoLineEnd)
-    EVT_MENU(idEditInsertNewLineBelow,    MainFrame::OnEditInsertNewLineBelow)
-    EVT_MENU(idEditInsertNewLineAbove,    MainFrame::OnEditInsertNewLineAbove)
     EVT_MENU(idEditSelectAll,             MainFrame::OnEditSelectAll)
     EVT_MENU(idEditSelectNext,            MainFrame::OnEditSelectNext)
     EVT_MENU(idEditSelectNextSkip,        MainFrame::OnEditSelectNextSkip)
     EVT_MENU(idEditBookmarksToggle,       MainFrame::OnEditBookmarksToggle)
     EVT_MENU(idEditBookmarksNext,         MainFrame::OnEditBookmarksNext)
     EVT_MENU(idEditBookmarksPrevious,     MainFrame::OnEditBookmarksPrevious)
-    EVT_MENU(idEditBookmarksClearAll,     MainFrame::OnEditBookmarksClearAll)
     EVT_MENU(idEditCommentSelected,       MainFrame::OnEditCommentSelected)
     EVT_MENU(idEditUncommentSelected,     MainFrame::OnEditUncommentSelected)
     EVT_MENU(idEditToggleCommentSelected, MainFrame::OnEditToggleCommentSelected)
@@ -538,8 +536,6 @@ BEGIN_EVENT_TABLE(MainFrame, wxFrame)
     EVT_CBAUIBOOK_LEFT_DCLICK(ID_NBEditorManager, MainFrame::OnNotebookDoubleClick)
     EVT_NOTEBOOK_PAGE_CHANGED(ID_NBEditorManager, MainFrame::OnPageChanged)
 
-    // Highlightbutton
-    EVT_BUTTON(idHighlightButton, MainFrame::OnHighlightMenu)
     /// CloseFullScreen event handling
     EVT_BUTTON(idCloseFullScreen, MainFrame::OnToggleFullScreen)
 
@@ -574,9 +570,7 @@ MainFrame::MainFrame(wxWindow* parent)
        m_LastCtrlAltTabWindow(0),
        m_LastLayoutIsTemp(false),
        m_pScriptConsole(nullptr),
-       m_pBatchBuildDialog(nullptr),
-       // Highlightbutton
-       m_pHighlightButton(nullptr)
+       m_pBatchBuildDialog(nullptr)
 {
     Manager::Get(this); // provide manager with handle to MainFrame (this)
 
@@ -738,17 +732,12 @@ void MainFrame::CreateIDE()
 
     // management panel
     m_pPrjMan = Manager::Get()->GetProjectManager();
-    if (!Manager::IsBatchBuild())
-    {
-        m_pPrjManUI = new ProjectManagerUI;
-        m_LayoutManager.AddPane( m_pPrjManUI->GetNotebook(),
-                                 wxAuiPaneInfo().Name(wxT("ManagementPane")).Caption(_("Management")).
-                                     BestSize(wxSize(leftW, clientsize.GetHeight())).
-                                     MinSize(wxSize(100,100)).Left().Layer(1) );
-    }
-    else
-        m_pPrjManUI = new BatchProjectManagerUI;
+    m_pPrjManUI = new ProjectManagerUI;
     m_pPrjMan->SetUI(m_pPrjManUI);
+    m_LayoutManager.AddPane( m_pPrjManUI->GetNotebook(),
+                             wxAuiPaneInfo().Name(wxT("ManagementPane")).Caption(_("Management")).
+                                 BestSize(wxSize(leftW, clientsize.GetHeight())).
+                                 MinSize(wxSize(100,100)).Left().Layer(1) );
 
     // logs manager
     SetupGUILogging();
@@ -773,8 +762,7 @@ void MainFrame::CreateIDE()
     DoUpdateEditorStyle();
 
     m_pEdMan->GetNotebook()->SetDropTarget(new cbFileDropTarget(this));
-    if (m_pPrjManUI->GetNotebook())
-        m_pPrjManUI->GetNotebook()->SetDropTarget(new cbFileDropTarget(this));
+    m_pPrjManUI->GetNotebook()->SetDropTarget(new cbFileDropTarget(this));
 
     Manager::Get()->GetColourManager()->Load();
 }
@@ -800,7 +788,7 @@ void MainFrame::SetupGUILogging()
 
         wxWindow* log;
 
-        for (size_t i = LogManager::app_log; i < LogManager::max_logs; ++i)
+        for(size_t i = LogManager::app_log; i < LogManager::max_logs; ++i)
         {
             if ((log = mgr->Slot(i).GetLogger()->CreateControl(m_pInfoPane)))
                 m_pInfoPane->AddLogger(mgr->Slot(i).GetLogger(), log, mgr->Slot(i).title, mgr->Slot(i).icon);
@@ -840,11 +828,8 @@ void MainFrame::SetupDebuggerUI()
     m_debuggerMenuHandler->SetEvtHandlerEnabled(true);
     m_debuggerToolbarHandler->SetEvtHandlerEnabled(true);
 
-    if (!Manager::IsBatchBuild())
-    {
-        Manager::Get()->GetDebuggerManager()->SetInterfaceFactory(new DebugInterfaceFactory);
-        m_debuggerMenuHandler->RegisterDefaultWindowItems();
-    }
+    Manager::Get()->GetDebuggerManager()->SetInterfaceFactory(new DebugInterfaceFactory);
+    m_debuggerMenuHandler->RegisterDefaultWindowItems();
 }
 
 DECLARE_INSTANCE_TYPE(MainFrame);
@@ -1033,8 +1018,7 @@ void MainFrame::CreateMenubar()
     m_HelpPluginsMenu = pluginsM ? pluginsM : new wxMenu();
 
     // core modules: create menus
-    if (!Manager::IsBatchBuild())
-        static_cast<ProjectManagerUI*>(m_pPrjManUI)->CreateMenu(mbar);
+    m_pPrjManUI->CreateMenu(mbar);
     Manager::Get()->GetDebuggerManager()->SetMenuHandler(m_debuggerMenuHandler);
 
     // ask all plugins to rebuild their menus
@@ -1237,11 +1221,11 @@ wxMenuItem* MainFrame::AddPluginInMenus(wxMenu* menu, cbPlugin* plugin, wxObject
 
     while(!item)
     {
-#if wxCHECK_VERSION(3, 0, 0)
+        #if wxCHECK_VERSION(2, 9, 0)
         if (!pos || title.CmpNoCase(menu->FindItemByPosition(pos - 1)->GetItemLabelText()) > 0)
-#else
+        #else
         if (!pos || title.CmpNoCase(menu->FindItemByPosition(pos - 1)->GetLabel()) > 0)
-#endif
+        #endif
             item = menu->Insert(pos, id, title, wxEmptyString, checkable ? wxITEM_CHECK : wxITEM_NORMAL);
 
         --pos;
@@ -1286,8 +1270,7 @@ void MainFrame::LoadWindowState()
     LoadViewLayout(deflayout);
 
     // load manager and messages selected page
-    if (m_pPrjManUI->GetNotebook())
-        m_pPrjManUI->GetNotebook()->SetSelection(Manager::Get()->GetConfigManager(_T("app"))->ReadInt(_T("/main_frame/layout/left_block_selection"), 0));
+    m_pPrjManUI->GetNotebook()->SetSelection(Manager::Get()->GetConfigManager(_T("app"))->ReadInt(_T("/main_frame/layout/left_block_selection"), 0));
     m_pInfoPane->SetSelection(Manager::Get()->GetConfigManager(_T("app"))->ReadInt(_T("/main_frame/layout/bottom_block_selection"), 0));
 
     // Cryogen 23/3/10 wxAuiNotebook can't set it's own tab position once instantiated, for some reason. This code fails in InfoPane::InfoPane().
@@ -1376,11 +1359,8 @@ void MainFrame::SaveWindowState()
     }
 
     // save manager and messages selected page
-    if (m_pPrjManUI->GetNotebook())
-    {
-        int selection = m_pPrjManUI->GetNotebook()->GetSelection();
-        Manager::Get()->GetConfigManager(_T("app"))->Write(_T("/main_frame/layout/left_block_selection"), selection);
-    }
+    Manager::Get()->GetConfigManager(_T("app"))->Write(_T("/main_frame/layout/left_block_selection"),
+                                                       m_pPrjManUI->GetNotebook()->GetSelection());
     Manager::Get()->GetConfigManager(_T("app"))->Write(_T("/main_frame/layout/bottom_block_selection"), m_pInfoPane->GetSelection());
 
     // save display, window size and position
@@ -1588,11 +1568,11 @@ void MainFrame::DoSelectLayout(const wxString& name)
         {
             if (!items[i]->IsCheckable())
                 continue;
-#if wxCHECK_VERSION(3, 0, 0)
+            #if wxCHECK_VERSION(2, 9, 0)
             items[i]->Check(items[i]->GetItemLabel().IsSameAs(name));
-#else
+            #else
             items[i]->Check(items[i]->GetText().IsSameAs(name));
-#endif
+            #endif
         }
 
         if (!m_LastLayoutIsTemp)
@@ -1611,7 +1591,40 @@ void MainFrame::DoAddPluginStatusField(cbPlugin* plugin)
 
 inline void InitToolbar(wxToolBar *tb)
 {
+#if defined __WXMSW__ && !wxCHECK_VERSION(2, 8, 9)
+    // HACK: for all windows versions (including XP *without* using a manifest file),
+    //       the best size for a toolbar is not correctly calculated by wxWidgets/wxAUI/whatever.
+    //       so we try to help the situation a little. It's not perfect, but it works.
+    // not needed for versions >= 2.8.9: fixed in upstream, toolbars with standard-controls
+    // are much too large with it (at least on w2k).
+    if (!UsesCommonControls6()) // all windows versions, including XP without a manifest file
+    {
+        // calculate the total width of all wxWindow* in the toolbar (if any)
+        int w = 0;
+        int ccount = 0;
+        for (wxWindowList::compatibility_iterator node = tb->GetChildren().GetFirst(); node; node = node->GetNext())
+        {
+            wxWindow *win = (wxWindow *)node->GetData();
+            if (win)
+            {
+                w += win->GetSize().GetWidth();
+                ++ccount;
+            }
+        }
+        #if wxCHECK_VERSION(2, 8, 0)
+        wxSize s(w + tb->GetEffectiveMinSize().GetWidth() - (ccount * (tb->GetToolSize().GetWidth() / 3)), 0);
+        tb->SetInitialSize(s);
+        #else
+        wxSize s(w + tb->GetBestFittingSize().GetWidth() - (ccount * (tb->GetToolSize().GetWidth() / 3)), 0);
+        tb->SetBestFittingSize(s);
+        #endif
+    }
+    else
+        tb->SetInitialSize();
+    // end of HACK
+#else
     tb->SetInitialSize();
+#endif
 }
 
 ToolbarInfo MainFrame::DoAddPluginToolbar(cbPlugin* plugin)
@@ -1809,8 +1822,6 @@ bool MainFrame::OpenGeneric(const wxString& filename, bool addToHistory)
             // fallthrough
         case ftSource:
             // fallthrough
-        case ftTemplateSource:
-            // fallthrough
         case ftResource:
             return DoOpenFile(filename, addToHistory);
         //
@@ -1883,44 +1894,20 @@ void MainFrame::DoCreateStatusBar()
     int h;
     size_t num = 0;
 
-    wxCoord widths[16]; // 16 max
-    widths[num++] = -1; // main field
-
-    dc.GetTextExtent(_(" Highlight Button "), &widths[num++], &h);
-    dc.GetTextExtent(_(" Windows (CR+LF) "), &widths[num++], &h);
-    dc.GetTextExtent(_(" WINDOWS-1252 "), &widths[num++], &h);
-    dc.GetTextExtent(_(" Line 12345, Col 123, Pos 123456 "), &widths[num++], &h);
-    dc.GetTextExtent(_(" Overwrite "), &widths[num++], &h);
-    dc.GetTextExtent(_(" Modified "), &widths[num++], &h);
-    dc.GetTextExtent(_(" Read/Write "), &widths[num++], &h);
-    dc.GetTextExtent(_(" name_of_profile "), &widths[num++], &h);
+    wxCoord width[16]; // 16 max
+    width[num++] = -1; // main field
+    dc.GetTextExtent(_(" Windows (CR+LF) "),        &width[num++], &h);
+    dc.GetTextExtent(_(" WINDOWS-1252 "),           &width[num++], &h);
+    dc.GetTextExtent(_(" Line 12345, Column 123 "), &width[num++], &h);
+    dc.GetTextExtent(_(" Overwrite "),              &width[num++], &h);
+    dc.GetTextExtent(_(" Modified "),               &width[num++], &h);
+    dc.GetTextExtent(_(" Read/Write "),             &width[num++], &h);
+    dc.GetTextExtent(_(" name_of_profile "),        &width[num++], &h);
 
     wxStatusBar* sb = CreateStatusBar(num);
-    if (!sb)
-        return;
+    if (!sb) return;
 
-    SetStatusWidths(num, widths);
-
-    // Highlightbutton
-    wxRect rect;
-    if (sb->GetFieldRect(1, rect))
-    {
-        m_pHighlightButton = new wxButton(sb, idHighlightButton, wxT("bla"), wxDefaultPosition, wxDefaultSize,
-                                          wxBORDER_NONE|wxBU_LEFT|wxBU_EXACTFIT);
-        // Adjust status bar height to fit the button.
-        // This affects wx3.x build more than wx2.8 builds. At least on wxGTK.
-        const int height = std::max(sb->GetMinHeight(), m_pHighlightButton->GetClientSize().GetHeight());
-        sb->SetMinHeight(height);
-    }
-}
-
-/// Change the label of a button only if it has really changed. This is used for status bar button,
-/// because if we always set the label there is flickering while scrolling in the editor.
-/// I've observed the flickering on wxGTK and I don't know if it is present on the other ports.
-static void changeButtonLabel(wxButton &button, const wxString &text)
-{
-    if (text != button.GetLabel())
-        button.SetLabel(text);
+    SetStatusWidths(num, width);
 }
 
 void MainFrame::DoUpdateStatusBar()
@@ -1932,25 +1919,11 @@ void MainFrame::DoUpdateStatusBar()
     wxString personality(Manager::Get()->GetPersonalityManager()->GetPersonality());
     if (ed)
     {
-        cbStyledTextCtrl * const control = ed->GetControl();
-
         int panel = 0;
-        int pos = control->GetCurrentPos();
+        int pos = ed->GetControl()->GetCurrentPos();
         wxString msg;
         SetStatusText(ed->GetFilename(), panel++);
-
-        // Highlightbutton
-        if (m_pHighlightButton)
-        {
-            EditorColourSet* colour_set = Manager::Get()->GetEditorManager()->GetColourSet();
-            if (colour_set)
-                changeButtonLabel(*m_pHighlightButton, colour_set->GetLanguageName(ed->GetLanguage()));
-            else
-                changeButtonLabel(*m_pHighlightButton, wxEmptyString);
-        }
-        // EOL mode
-        panel++;
-        switch (control->GetEOLMode())
+        switch (ed->GetControl()->GetEOLMode())
         {
             case wxSCI_EOL_CRLF: msg = _T("Windows (CR+LF)"); break;
             case wxSCI_EOL_CR:   msg = _T("Mac (CR)");        break;
@@ -1959,15 +1932,15 @@ void MainFrame::DoUpdateStatusBar()
         }
         SetStatusText(msg, panel++);
         SetStatusText(ed->GetEncodingName(), panel++);
-        msg.Printf(_("Line %d, Col %d, Pos %d"), control->GetCurrentLine() + 1, control->GetColumn(pos) + 1, pos);
+        msg.Printf(_("Line %d, Column %d"), ed->GetControl()->GetCurrentLine() + 1, ed->GetControl()->GetColumn(pos) + 1);
         SetStatusText(msg, panel++);
-        SetStatusText(control->GetOvertype() ? _("Overwrite") : _("Insert"), panel++);
-#if wxCHECK_VERSION(3, 0, 0)
+        SetStatusText(ed->GetControl()->GetOvertype() ? _("Overwrite") : _("Insert"), panel++);
+        #if wxCHECK_VERSION(2, 9, 0)
         SetStatusText(ed->GetModified() ? _("Modified") : _T(""), panel++);
-#else
+        #else
         SetStatusText(ed->GetModified() ? _("Modified") : wxEmptyString, panel++);
-#endif
-        SetStatusText(control->GetReadOnly() ? _("Read only") : _("Read/Write"), panel++);
+        #endif
+        SetStatusText(ed->GetControl()->GetReadOnly() ? _("Read only") : _("Read/Write"), panel++);
         SetStatusText(personality, panel++);
     }
     else
@@ -1978,12 +1951,6 @@ void MainFrame::DoUpdateStatusBar()
             SetStatusText(eb->GetFilename(), panel++);
         else
             SetStatusText(_("Welcome to ") + appglobals::AppName + _T("!"), panel++);
-
-        // Highlightbutton
-        if (m_pHighlightButton)
-            changeButtonLabel(*m_pHighlightButton, wxEmptyString);
-        panel++;
-
         SetStatusText(wxEmptyString, panel++);
         SetStatusText(wxEmptyString, panel++);
         SetStatusText(wxEmptyString, panel++);
@@ -2018,11 +1985,11 @@ void MainFrame::DoUpdateEditorStyle(cbAuiNotebook* target, const wxString& prefi
             break;
 
         default: // default style
-            #if defined(__WXGTK__) && (USE_GTK_NOTEBOOK) && !wxCHECK_VERSION(3, 0, 0)
+#if defined(__WXGTK__) && (USE_GTK_NOTEBOOK) && !wxCHECK_VERSION(2, 9, 4)
             target->SetArtProvider(new NbStyleGTK());
-            #else
+#else
             target->SetArtProvider(new wxAuiDefaultTabArt());
-            #endif
+#endif
             break;
     }
 
@@ -2413,8 +2380,14 @@ bool MainFrame::OnDropFiles(wxCoord /*x*/, wxCoord /*y*/, const wxArrayString& f
         wxBusyCursor useless;
         wxPaintEvent e;
         ProcessEvent(e);
+#if !wxCHECK_VERSION(2, 8, 11)
+        Freeze();
+#endif
         for (unsigned int i = 0; i < files.GetCount(); ++i)
           success &= OpenGeneric(files[i]);
+#if !wxCHECK_VERSION(2, 8, 11)
+        Thaw();
+#endif
     }
     return success;
 }
@@ -2540,6 +2513,12 @@ void MainFrame::OnFileSaveAs(cb_unused wxCommandEvent& event)
     DoUpdateStatusBar();
 }
 
+void MainFrame::OnFileSaveAllFiles(cb_unused wxCommandEvent& event)
+{
+    Manager::Get()->GetEditorManager()->SaveAll();
+    DoUpdateStatusBar();
+}
+
 void MainFrame::OnFileSaveProject(cb_unused wxCommandEvent& event)
 {
     // no need to call SaveActiveProjectAs(), because this is handled in cbProject::Save()
@@ -2555,6 +2534,13 @@ void MainFrame::OnFileSaveProjectAs(cb_unused wxCommandEvent& event)
     ProjectManager *prjManager = Manager::Get()->GetProjectManager();
     if (prjManager->SaveActiveProjectAs())
         m_projectsHistory.AddToHistory(prjManager->GetActiveProject()->GetFilename());
+    DoUpdateStatusBar();
+    DoUpdateAppTitle();
+}
+
+void MainFrame::OnFileSaveProjectAllProjects(cb_unused wxCommandEvent& event)
+{
+    Manager::Get()->GetProjectManager()->SaveAllProjects();
     DoUpdateStatusBar();
     DoUpdateAppTitle();
 }
@@ -2591,6 +2577,17 @@ void MainFrame::OnFileCloseProject(cb_unused wxCommandEvent& event)
         return;
     }
     Manager::Get()->GetProjectManager()->CloseActiveProject();
+    DoUpdateStatusBar();
+}
+
+void MainFrame::OnFileCloseAllProjects(cb_unused wxCommandEvent& event)
+{
+    if (!ProjectManager::CanShutdown() || !EditorManager::CanShutdown())
+    {
+        wxBell();
+        return;
+    }
+    DoCloseCurrentWorkspace();
     DoUpdateStatusBar();
 }
 
@@ -2684,7 +2681,7 @@ void MainFrame::OnFilePrint(cb_unused wxCommandEvent& event)
 
 void MainFrame::OnFileQuit(cb_unused wxCommandEvent& event)
 {
-    Close(false);
+    Close(true);
 }
 
 void MainFrame::OnEraseBackground(wxEraseEvent& event)
@@ -2695,16 +2692,6 @@ void MainFrame::OnEraseBackground(wxEraseEvent& event)
 
 void MainFrame::OnSize(wxSizeEvent& event)
 {
-    // Highlightbutton
-    if (m_pHighlightButton)
-    {
-        wxRect rect;
-        if ( GetStatusBar()->GetFieldRect(1, rect) )
-        {
-            m_pHighlightButton->SetPosition(rect.GetPosition());
-            m_pHighlightButton->SetSize(rect.GetSize());
-        }
-    }
 
     // for flicker-free display
     event.Skip();
@@ -2722,27 +2709,19 @@ void MainFrame::OnApplicationClose(wxCloseEvent& event)
     m_InitiatedShutdown = true;
     Manager::BlockYields(true);
 
+    ProjectManager* prjman = Manager::Get()->GetProjectManager();
+    if (prjman)
     {
-        // Check if any compiler plugin is building and ask the user if he/she wants to stop it.
-        bool hasRunning = cbHasRunningCompilers(Manager::Get()->GetPluginManager());
-        if (hasRunning)
+        cbProject* prj = prjman->GetActiveProject();
+        if (prj && prj->GetCurrentlyCompilingTarget())
         {
-            int result = cbMessageBox(_("Currently compiling. Stop compilation and exit?"),
-                                      _("Question"), wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION,
-                                      this);
-            if (result == wxID_YES)
-                cbStopRunningCompilers(Manager::Get()->GetPluginManager());
-            else
-            {
-                event.Veto();
-                wxBell();
-                m_InitiatedShutdown = false;
-                Manager::BlockYields(false);
-                return;
-            }
+            event.Veto();
+            wxBell();
+            m_InitiatedShutdown = false;
+            Manager::BlockYields(false);
+            return;
         }
     }
-
     if (!ProjectManager::CanShutdown() || !EditorManager::CanShutdown())
     {
         event.Veto();
@@ -2770,8 +2749,7 @@ void MainFrame::OnApplicationClose(wxCloseEvent& event)
     if (!Manager::IsBatchBuild())
         SaveWindowState();
 
-    if (m_pPrjManUI->GetNotebook())
-        m_LayoutManager.DetachPane(m_pPrjManUI->GetNotebook());
+    m_LayoutManager.DetachPane(m_pPrjManUI->GetNotebook());
     m_LayoutManager.DetachPane(m_pInfoPane);
     m_LayoutManager.DetachPane(Manager::Get()->GetEditorManager()->GetNotebook());
 
@@ -2826,29 +2804,22 @@ void MainFrame::OnEditGotoMatchingBrace(cb_unused wxCommandEvent& event)
 void MainFrame::OnEditBookmarksToggle(cb_unused wxCommandEvent& event)
 {
     EditorBase* ed = Manager::Get()->GetEditorManager()->GetActiveEditor();
-    if (ed && ed->IsBuiltinEditor())
-        static_cast<cbEditor*>(ed)->ToggleBookmark();
+    if (ed)
+        ed->ToggleBookmark();
 }
 
 void MainFrame::OnEditBookmarksNext(cb_unused wxCommandEvent& event)
 {
     EditorBase* ed = Manager::Get()->GetEditorManager()->GetActiveEditor();
-    if (ed && ed->IsBuiltinEditor())
-        static_cast<cbEditor*>(ed)->GotoNextBookmark();
+    if (ed)
+        ed->GotoNextBookmark();
 }
 
 void MainFrame::OnEditBookmarksPrevious(cb_unused wxCommandEvent& event)
 {
     EditorBase* ed = Manager::Get()->GetEditorManager()->GetActiveEditor();
-    if (ed && ed->IsBuiltinEditor())
-        static_cast<cbEditor*>(ed)->GotoPreviousBookmark();
-}
-
-void MainFrame::OnEditBookmarksClearAll(wxCommandEvent& event)
-{
-    EditorBase* ed = Manager::Get()->GetEditorManager()->GetActiveEditor();
-    if (ed && ed->IsBuiltinEditor())
-        static_cast<cbEditor*>(ed)->ClearAllBookmarks();
+    if (ed)
+        ed->GotoPreviousBookmark();
 }
 
 void MainFrame::OnEditUndo(cb_unused wxCommandEvent& event)
@@ -3135,44 +3106,6 @@ void MainFrame::OnEditGotoLineEnd(cb_unused wxCommandEvent& event)
     }
 }
 
-static void InsertNewLine(bool below)
-{
-    cbEditor* ed = Manager::Get()->GetEditorManager()->GetBuiltinActiveEditor();
-    if (ed)
-    {
-        cbStyledTextCtrl* stc = ed->GetControl();
-        stc->BeginUndoAction();
-        if (stc->AutoCompActive())
-            stc->AutoCompCancel();
-
-        if (below)
-        {
-            stc->LineEndDisplay();
-            int pos = stc->GetCurrentPos();
-            stc->InsertText(pos, GetEOLStr(stc->GetEOLMode()));
-            stc->LineDown();
-        }
-        else
-        {
-            stc->HomeDisplay();
-            int pos = stc->GetCurrentPos();
-            stc->InsertText(pos, GetEOLStr(stc->GetEOLMode()));
-            stc->EndUndoAction();
-        }
-        stc->EndUndoAction();
-    }
-}
-
-void MainFrame::OnEditInsertNewLineBelow(wxCommandEvent& event)
-{
-    InsertNewLine(true);
-}
-
-void MainFrame::OnEditInsertNewLineAbove(wxCommandEvent& event)
-{
-    InsertNewLine(false);
-}
-
 void MainFrame::OnEditSelectAll(cb_unused wxCommandEvent& event)
 {
     EditorBase* eb = Manager::Get()->GetEditorManager()->GetActiveEditor();
@@ -3199,7 +3132,7 @@ struct EditorSelection
     }
 };
 
-bool SelectNext(cbStyledTextCtrl *control, const wxString &selectedText, long selectionEnd, bool reversed)
+void SelectNext(cbStyledTextCtrl *control, const wxString &selectedText, long selectionEnd, bool reversed)
 {
     // always match case and try to match whole words if they have no special characters
     int flag = wxSCI_FIND_MATCHCASE;
@@ -3218,13 +3151,9 @@ bool SelectNext(cbStyledTextCtrl *control, const wxString &selectedText, long se
         else
             control->AddSelection(pos + lengthFound, pos);
         control->MakeNearbyLinesVisible(control->LineFromPosition(pos));
-        return true;
     }
     else
-    {
         InfoWindow::Display(_("Select Next Occurrence"), _("No more available"));
-        return false;
-    }
 }
 
 bool GetSelectionInEditor(EditorSelection &selection, cbStyledTextCtrl *control)
@@ -3251,20 +3180,10 @@ void MainFrame::OnEditSelectNext(cb_unused wxCommandEvent& event)
     cbStyledTextCtrl *control = static_cast<cbEditor*>(eb)->GetControl();
 
     EditorSelection selection;
-    if (!GetSelectionInEditor(selection, control))
-        return;
-
-    if (!selection.Empty())
+    if (GetSelectionInEditor(selection, control) && !selection.Empty())
     {
         const wxString &selectedText(control->GetTextRange(selection.GetStart(), selection.GetEnd()));
         SelectNext(control, selectedText, selection.GetEnd(), selection.IsReversed());
-    }
-    else
-    {
-        // Select word at the cursor position if there is nothing selected.
-        const int start = control->WordStartPosition(selection.caret, true);
-        const int end = control->WordEndPosition(selection.caret, true);
-        control->SetSelection(start, end);
     }
 }
 
@@ -3281,14 +3200,6 @@ void MainFrame::OnEditSelectNextSkip(cb_unused wxCommandEvent& event)
 
     ConfigManager *cfgEditor = Manager::Get()->GetConfigManager(wxT("editor"));
     bool highlightOccurrences = cfgEditor->ReadBool(wxT("/highlight_occurrence/enabled"), true);
-
-    // Select the next occurrence first. This prevents a cursor created at the beginning of the
-    // file when the user uses the command when there is a single selection. Scintilla always makes
-    // sure that there is at least one selection/cursor. So if we clear all selections it creates a
-    // cursor at the beginning of the file.
-    const wxString &selectedText(control->GetTextRange(selection.GetStart(), selection.GetEnd()));
-    if (!SelectNext(control, selectedText, selection.GetEnd(), selection.IsReversed()))
-        return; // If there is no new selection don't deselect the current one.
 
     // store the selections in a vector except for the current one
     typedef std::vector<EditorSelection> Selections;
@@ -3324,6 +3235,9 @@ void MainFrame::OnEditSelectNextSkip(cb_unused wxCommandEvent& event)
         control->AddSelection(it->caret, it->anchor);
         ++index;
     }
+
+    const wxString &selectedText(control->GetTextRange(selection.GetStart(), selection.GetEnd()));
+    SelectNext(control, selectedText, selection.GetEnd(), selection.IsReversed());
 }
 
 /* This is a shameless rip-off of the original OnEditCommentSelected function,
@@ -3732,16 +3646,13 @@ void MainFrame::OnEditHighlightMode(wxCommandEvent& event)
         {
             wxMenuItem* item = hl->FindItem(event.GetId());
             if (item)
-#if wxCHECK_VERSION(3, 0, 0)
+            #if wxCHECK_VERSION(2, 9, 0)
                 lang = colour_set->GetHighlightLanguage(item->GetItemLabelText());
-#else
+            #else
                 lang = colour_set->GetHighlightLanguage(item->GetLabel());
-#endif
+            #endif
         }
     }
-    // Highlightbutton
-    if (m_pHighlightButton)
-        changeButtonLabel(*m_pHighlightButton, colour_set->GetLanguageName(lang));
     ed->SetLanguage(lang);
     Manager::Get()->GetCCManager()->NotifyPluginStatus();
 }
@@ -3862,7 +3773,7 @@ void MainFrame::OnViewLayoutSave(cb_unused wxCommandEvent& event)
     wxString def = m_LastLayoutName;
     if ( def.empty() )
         def = Manager::Get()->GetConfigManager(_T("app"))->Read(_T("/main_frame/layout/default"));
-    wxString name = cbGetTextFromUser(_("Enter the name for this perspective"), _("Save current perspective"), def);
+    wxString name = wxGetTextFromUser(_("Enter the name for this perspective"), _("Save current perspective"), def);
     if (!name.IsEmpty())
     {
         DoFixToolbarsLayout();
@@ -4016,7 +3927,7 @@ void MainFrame::OnSearchGotoLine(cb_unused wxCommandEvent& event)
     However, this is just a temporary hack, because the default dialog used isn't
     that suitable either.
     */
-    wxString strLine = cbGetTextFromUser( wxString::Format(_("Line (1 - %d): "), max),
+    wxString strLine = wxGetTextFromUser( wxString::Format(_("Line (1 - %d): "), max),
                                         _("Goto line"),
                                         _T( "" ),
                                         this );
@@ -4063,59 +3974,46 @@ void MainFrame::OnFileMenuUpdateUI(wxUpdateUIEvent& event)
         return;
     }
 
-    if (!ProjectManager::CanShutdown() || !EditorManager::CanShutdown())
+    EditorBase*  ed   = Manager::Get()->GetEditorManager() ? Manager::Get()->GetEditorManager()->GetActiveEditor() : nullptr;
+    cbProject*   prj  = Manager::Get()->GetProjectManager() ? Manager::Get()->GetProjectManager()->GetActiveProject() : nullptr;
+    EditorBase*  sh   = Manager::Get()->GetEditorManager()->GetEditor(g_StartHereTitle);
+    cbWorkspace* wksp = Manager::Get()->GetProjectManager()->GetWorkspace();
+    wxMenuBar*   mbar = GetMenuBar();
+
+    bool canCloseProject = (ProjectManager::CanShutdown() && EditorManager::CanShutdown())
+                            && prj && !prj->GetCurrentlyCompilingTarget();
+    bool canClose        = ed && !(sh && Manager::Get()->GetEditorManager()->GetEditorsCount() == 1);
+    bool canSaveFiles    = ed && !(sh && Manager::Get()->GetEditorManager()->GetEditorsCount() == 1);
+    bool canSaveAll      =     (prj && prj->GetModified())
+                            || (wksp && !wksp->IsDefault() && wksp->GetModified())
+                            || canSaveFiles;
+
+    mbar->Enable(idFileCloseProject,                  canCloseProject);
+    mbar->Enable(idFileOpenRecentFileClearHistory,    !m_filesHistory.Empty());
+    mbar->Enable(idFileOpenRecentProjectClearHistory, !m_projectsHistory.Empty());
+    mbar->Enable(idFileClose,                         canClose);
+    mbar->Enable(idFileCloseAll,                      canClose);
+    mbar->Enable(idFileSave,                          ed && ed->GetModified());
+    mbar->Enable(idFileSaveAs,                        canSaveFiles);
+    mbar->Enable(idFileSaveAllFiles,                  canSaveFiles);
+    mbar->Enable(idFileSaveProject,                   prj && prj->GetModified() && canCloseProject);
+    mbar->Enable(idFileSaveProjectAs,                 prj && canCloseProject);
+    mbar->Enable(idFileOpenDefWorkspace,              canCloseProject);
+    mbar->Enable(idFileSaveWorkspace,                 Manager::Get()->GetProjectManager() && canCloseProject);
+    mbar->Enable(idFileSaveWorkspaceAs,               Manager::Get()->GetProjectManager() && canCloseProject);
+    mbar->Enable(idFileCloseWorkspace,                Manager::Get()->GetProjectManager() && canCloseProject);
+    mbar->Enable(idFileSaveAll,                       canSaveAll);
+    mbar->Enable(idFilePrint,                         Manager::Get()->GetEditorManager() && Manager::Get()->GetEditorManager()->GetBuiltinActiveEditor());
+
+    if (m_pToolbar)
     {
-        event.Enable(false);
-        return;
+        m_pToolbar->EnableTool(idFileSave,         ed && ed->GetModified());
+        m_pToolbar->EnableTool(idFileSaveAllFiles, canSaveFiles);
+        m_pToolbar->EnableTool(idFileSaveAll,      canSaveAll);
+        m_pToolbar->EnableTool(idFilePrint,        Manager::Get()->GetEditorManager() && Manager::Get()->GetEditorManager()->GetBuiltinActiveEditor());
     }
 
-    EditorManager *editorManager = Manager::Get()->GetEditorManager();
-    EditorBase *ed = (editorManager ? editorManager->GetActiveEditor() : nullptr);
-    EditorBase *sh = (editorManager ? editorManager->GetEditor(g_StartHereTitle) : nullptr);
-
-    const int id = event.GetId();
-
-    // Single file related menu items
-    if (id == idFileClose || id == idFileCloseAll || id == idFileSaveAs)
-        event.Enable(ed && ed != sh);
-    else if (id == idFileSave)
-        event.Enable(ed && ed->GetModified());
-    else if (id == idFilePrint)
-        event.Enable(editorManager && editorManager->GetBuiltinActiveEditor());
-    else if (id == idFileOpen)
-        event.Enable(true);
-    else
-    {
-        ProjectManager *projectManager = Manager::Get()->GetProjectManager();
-        cbProject *project = (projectManager ? projectManager->GetActiveProject() : nullptr);
-        if (project && project->GetCurrentlyCompilingTarget())
-        {
-            event.Enable(false);
-            return;
-        }
-
-        // Project related menu items
-        if (id == idFileReopenProject)
-            event.Enable(true);
-        else if (id == idFileCloseProject || id == idFileSaveProjectAs || id == idFileSaveProjectTemplate)
-            event.Enable(project != nullptr);
-        else if (id == idFileSaveProject)
-            event.Enable(project && project->GetModified());
-        else if (id == idFileOpenDefWorkspace || id == idFileSaveWorkspaceAs || id == idFileSaveAll)
-            event.Enable(true);
-        else
-        {
-            // Workspace related menu items
-            const cbWorkspace *workspace = Manager::Get()->GetProjectManager()->GetWorkspace();
-
-            if (id == idFileSaveWorkspace)
-                event.Enable(workspace && workspace->GetModified());
-            else if (id == idFileCloseWorkspace)
-                event.Enable(workspace != nullptr);
-            else
-                event.Skip();
-        }
-    }
+    event.Skip();
 }
 
 void MainFrame::OnEditMenuUpdateUI(wxUpdateUIEvent& event)
@@ -4163,8 +4061,7 @@ void MainFrame::OnEditMenuUpdateUI(wxUpdateUIEvent& event)
     mbar->Enable(idEditGotoMatchingBrace,     ed);
     mbar->Enable(idEditHighlightMode,         ed);
     mbar->Enable(idEditSelectAll,             canSelAll);
-    mbar->Enable(idEditSelectNext,            ed);
-    mbar->Enable(idEditSelectNextSkip,        hasSel);
+    mbar->Enable(idEditSelectNext,            hasSel);
     mbar->Enable(idEditBookmarks,             ed);
     mbar->Enable(idEditFolding,               ed &&
                                               Manager::Get()->GetConfigManager(_T("editor"))->ReadBool(_T("/folding/show_folds"), false));
@@ -4311,6 +4208,28 @@ void MainFrame::OnSearchMenuUpdateUI(wxUpdateUIEvent& event)
     event.Skip();
 }
 
+void MainFrame::OnProjectMenuUpdateUI(wxUpdateUIEvent& event)
+{
+    if (Manager::IsAppShuttingDown())
+    {
+        event.Skip();
+        return;
+    }
+
+    cbProject* prj = Manager::Get()->GetProjectManager() ? Manager::Get()->GetProjectManager()->GetActiveProject() : nullptr;
+    wxMenuBar* mbar = GetMenuBar();
+
+    bool canCloseProject = (ProjectManager::CanShutdown() && EditorManager::CanShutdown());
+
+    mbar->Enable(idFileCloseProject,           prj && canCloseProject);
+    mbar->Enable(idFileCloseAllProjects,       prj && canCloseProject);
+    mbar->Enable(idFileSaveProject,            prj && prj->GetModified() && canCloseProject);
+    mbar->Enable(idFileSaveProjectAs,          prj && canCloseProject);
+    mbar->Enable(idFileSaveProjectAllProjects, prj && canCloseProject);
+    mbar->Enable(idFileSaveProjectTemplate,    prj && canCloseProject);
+
+    event.Skip();
+}
 
 void MainFrame::OnEditorUpdateUI(CodeBlocksEvent& event)
 {
@@ -4712,7 +4631,6 @@ void MainFrame::OnSettingsEnvironment(cb_unused wxCommandEvent& event)
         needRestart = m_SmallToolBar != tbarsmall;
         Manager::Get()->GetLogManager()->NotifyUpdate();
         Manager::Get()->GetEditorManager()->RecreateOpenEditorStyles();
-        Manager::Get()->GetCCManager()->UpdateEnvSettings();
         m_pPrjManUI->RebuildTree();
         ShowHideStartPage();
 
@@ -5074,45 +4992,6 @@ void MainFrame::OnUnlockLogManager(cb_unused CodeBlocksLogEvent& event)
         m_LayoutManager.GetPane(m_pInfoPane).Show(false);
         DoUpdateLayout();
     }
-}
-
-// Highlight Button
-void MainFrame::OnHighlightMenu(cb_unused wxCommandEvent& event)
-{
-    cbEditor* ed = Manager::Get()->GetEditorManager()->GetBuiltinActiveEditor();
-    if (!ed) return;
-
-    EditorColourSet* colour_set = Manager::Get()->GetEditorManager()->GetColourSet();
-    if (!colour_set) return;
-
-    wxMenu* hl = nullptr;
-    GetMenuBar()->FindItem(idEditHighlightModeText, &hl);
-    wxArrayString langs = colour_set->GetAllHighlightLanguages();
-
-    wxMenu mm;
-    mm.AppendRadioItem(idEditHighlightModeText, _("Plain text"),
-                       _("Switch highlighting mode for current document to \"Plain text\""));
-    Connect(hl->FindItem(_("Plain text")), -1, wxEVT_COMMAND_MENU_SELECTED,
-                (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction)
-                &MainFrame::OnEditHighlightMode);
-    for (size_t i = 0; i < langs.GetCount(); ++i)
-    {
-        if (i > 0 && !(i % 20))
-            mm.Break(); // break into columns every 20 items
-        mm.AppendRadioItem(hl->FindItem(langs[i]), langs[i],
-                    wxString::Format(_("Switch highlighting mode for current document to \"%s\""), langs[i].wx_str()));
-        Connect(hl->FindItem(langs[i]), -1, wxEVT_COMMAND_MENU_SELECTED,
-                (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction)
-                &MainFrame::OnEditHighlightMode);
-    }
-    int checkeditem = -1;
-    checkeditem = hl->FindItem(colour_set->GetLanguageName(ed->GetLanguage()));
-    if (checkeditem!=wxNOT_FOUND)
-        mm.Check(checkeditem,true);
-
-    wxRect rect;
-    GetStatusBar()->GetFieldRect(1, rect);
-    PopupMenu(&mm, GetStatusBar()->GetPosition() + rect.GetPosition());
 }
 
 void MainFrame::StartupDone()

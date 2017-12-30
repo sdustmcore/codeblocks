@@ -64,7 +64,6 @@ const long idGoogle        = wxNewId();
 const long idMsdn          = wxNewId();
 const long idStackOverflow = wxNewId();
 const long idCodeProject   = wxNewId();
-const long idCPlusPlusCom  = wxNewId();
 
 BEGIN_EVENT_TABLE(EditorBase, wxPanel)
     EVT_MENU_RANGE(idSwitchFile1, idSwitchFileMax, EditorBase::OnContextMenuEntry)
@@ -78,7 +77,6 @@ BEGIN_EVENT_TABLE(EditorBase, wxPanel)
     EVT_MENU(idMsdn,              EditorBase::OnContextMenuEntry)
     EVT_MENU(idStackOverflow,     EditorBase::OnContextMenuEntry)
     EVT_MENU(idCodeProject,       EditorBase::OnContextMenuEntry)
-    EVT_MENU(idCPlusPlusCom,      EditorBase::OnContextMenuEntry)
 END_EVENT_TABLE()
 
 void EditorBase::InitFilename(const wxString& filename)
@@ -128,16 +126,18 @@ EditorBase::EditorBase(wxWindow* parent, const wxString& filename)
 
 EditorBase::~EditorBase()
 {
-    if (!Manager::Get()->IsAppShuttingDown())
-    {
+    if (Manager::Get()->GetEditorManager()) // sanity check
         Manager::Get()->GetEditorManager()->RemoveCustomEditor(this);
 
+    if (Manager::Get()->GetPluginManager())
+    {
         CodeBlocksEvent event(cbEVT_EDITOR_CLOSE);
         event.SetEditor(this);
         event.SetString(m_Filename);
 
         Manager::Get()->GetPluginManager()->NotifyPlugins(event);
     }
+
     delete m_pData;
 }
 
@@ -291,13 +291,12 @@ void EditorBase::DisplayContextMenu(const wxPoint& position, ModuleType type)
             text = control->GetTextRange(control->WordStartPosition(pos, true), control->WordEndPosition(pos, true));
         }
 
-        if (!text.IsEmpty())
+        if (wxMinimumVersion<2,6,1>::eval && !text.IsEmpty())
         {
             popup->Append(idGoogle,        _("Search the Internet for \"")  + text + _T("\""));
             popup->Append(idMsdn,          _("Search MSDN for \"")          + text + _T("\""));
             popup->Append(idStackOverflow, _("Search StackOverflow for \"") + text + _T("\""));
             popup->Append(idCodeProject,   _("Search CodeProject for \"")   + text + _T("\""));
-            popup->Append(idCPlusPlusCom,  _("Search CplusPlus.com for \"") + text + _T("\""));
         }
         lastWord = text;
 
@@ -405,7 +404,7 @@ void EditorBase::OnContextMenuEntry(wxCommandEvent& event)
 
         m_SwitchTo.clear();
     }
-    else
+    else if (wxMinimumVersion<2,6,1>::eval)
     {
         if      (id == idGoogle)
             wxLaunchDefaultBrowser(wxString(_T("http://www.google.com/search?q="))                       << URLEncode(lastWord));
@@ -415,8 +414,10 @@ void EditorBase::OnContextMenuEntry(wxCommandEvent& event)
             wxLaunchDefaultBrowser(wxString(_T("http://stackoverflow.com/search?q="))                    << URLEncode(lastWord));
         else if (id == idCodeProject)
             wxLaunchDefaultBrowser(wxString(_T("http://www.codeproject.com/search.aspx?q="))             << URLEncode(lastWord));
-        else if (id == idCPlusPlusCom)
-            wxLaunchDefaultBrowser(wxString(_T("http://www.cplusplus.com/search.do?q="))                 << URLEncode(lastWord));
+    }
+    else
+    {
+        event.Skip();
     }
 }
 

@@ -57,7 +57,6 @@ void wxsStaticBox::OnBuildCreatingCode()
             return;
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsStaticBox::OnBuildCreatingCode"),GetLanguage());
@@ -71,7 +70,7 @@ wxObject* wxsStaticBox::OnBuildPreview(wxWindow* Parent,long Flags)
     return SetupWindow(Preview,Flags);
 }
 
-void wxsStaticBox::OnEnumWidgetProperties(cb_unused long Flags)
+void wxsStaticBox::OnEnumWidgetProperties(long Flags)
 {
     WXS_SHORT_STRING(wxsStaticBox,Label,_("Label"),_T("label"),_T(""),false)
 }

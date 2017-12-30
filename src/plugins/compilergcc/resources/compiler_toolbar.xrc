@@ -33,11 +33,5 @@
       <tooltip>Build target</tooltip>
       <longhelp>Select the current build target</longhelp>
     </object>
-    <object class="tool" name="idMenuSelectTargetDialog">
-      <tooltip>Show the Select target dialog</tooltip>
-      <longhelp>Show the Select target dialog</longhelp>
-      <bitmap>images/select_target.png</bitmap>
-      <disabled>1</disabled>
-    </object>
   </object>
 </resource>

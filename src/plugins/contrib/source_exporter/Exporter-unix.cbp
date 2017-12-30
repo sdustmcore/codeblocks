@@ -53,6 +53,7 @@
 		<Compiler>
 			<Add option="-Wextra" />
 			<Add option="-Wall" />
+			<Add option="-ansi" />
 			<Add option="$(#CB_RELEASE_TYPE)" />
 			<Add option="`wx-config --version=2.8 --cflags`" />
 			<Add option="`pkg-config --cflags fontconfig`" />
@@ -62,9 +63,7 @@
 			<Add option="-DCB_PRECOMP" />
 			<Add option="-DcbDEBUG" />
 			<Add option="-DwxPDF_USE_WXMODULE=0" />
-			<Add option="-std=c++11" />
 			<Add directory="../../../include" />
-			<Add directory="../../../include/tinyxml" />
 			<Add directory="../../../sdk/wxscintilla/include" />
 			<Add directory="wxPdfDocument/include" />
 		</Compiler>

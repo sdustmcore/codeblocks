@@ -37,8 +37,8 @@
 #include <projectfile.h>
 
 //(*InternalHeaders(wxsNewWindowDlg)
-#include <wx/intl.h>
 #include <wx/string.h>
+#include <wx/intl.h>
 //*)
 
 namespace
@@ -118,23 +118,23 @@ wxsNewWindowDlg::wxsNewWindowDlg(wxWindow* parent,const wxString& ResType,wxsPro
     m_Project(Project)
 {
     //(*Initialize(wxsNewWindowDlg)
-    wxStaticText* StaticText10;
-    wxStaticText* StaticText9;
-    wxFlexGridSizer* FlexGridSizer4;
-    wxStaticText* StaticText2;
-    wxFlexGridSizer* FlexGridSizer3;
-    wxStaticText* StaticText6;
-    wxStaticText* StaticText8;
-    wxStaticText* StaticText11;
-    wxFlexGridSizer* FlexGridSizer2;
-    wxStaticText* StaticText1;
-    wxStaticText* StaticText3;
-    wxStaticBoxSizer* StaticBoxSizer3;
-    wxStaticText* StaticText5;
-    wxStaticText* StaticText7;
     wxFlexGridSizer* FlexGridSizer1;
+    wxFlexGridSizer* FlexGridSizer2;
+    wxFlexGridSizer* FlexGridSizer4;
+    wxStaticText* StaticText1;
+    wxStaticText* StaticText10;
+    wxStaticBoxSizer* StaticBoxSizer3;
+    wxStaticText* StaticText3;
+    wxFlexGridSizer* FlexGridSizer3;
+    wxStaticText* StaticText8;
+    wxStaticText* StaticText7;
     wxStaticText* StaticText4;
+    wxStaticText* StaticText5;
+    wxStaticText* StaticText2;
+    wxStaticText* StaticText6;
+    wxStaticText* StaticText9;
     wxStdDialogButtonSizer* StdDialogButtonSizer1;
+    wxStaticText* StaticText11;
 
     Create(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE, _T("wxID_ANY"));
     m_RootSizer = new wxBoxSizer(wxVERTICAL);
@@ -268,25 +268,25 @@ wxsNewWindowDlg::wxsNewWindowDlg(wxWindow* parent,const wxString& ResType,wxsPro
     m_RootSizer->SetSizeHints(this);
     Center();
 
-    Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,wxCommandEventHandler(wxsNewWindowDlg::OnClassChanged));
-    Connect(ID_TEXTCTRL2,wxEVT_COMMAND_TEXT_UPDATED,wxCommandEventHandler(wxsNewWindowDlg::OnHeaderChanged));
-    Connect(ID_TEXTCTRL3,wxEVT_COMMAND_TEXT_UPDATED,wxCommandEventHandler(wxsNewWindowDlg::OnSourceChanged));
-    Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,wxCommandEventHandler(wxsNewWindowDlg::OnUseXrcChange));
-    Connect(ID_TEXTCTRL4,wxEVT_COMMAND_TEXT_UPDATED,wxCommandEventHandler(wxsNewWindowDlg::OnXrcChanged));
-    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,wxCommandEventHandler(wxsNewWindowDlg::OnAdvOpsClick));
-    Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,wxCommandEventHandler(wxsNewWindowDlg::OnUsePCHClick));
-    Connect(ID_CHECKBOX4,wxEVT_COMMAND_CHECKBOX_CLICKED,wxCommandEventHandler(wxsNewWindowDlg::OnUseInitFuncClick));
-    Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,wxCommandEventHandler(wxsNewWindowDlg::OnScopeIdsClick));
-    Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,wxCommandEventHandler(wxsNewWindowDlg::OnScopeMembersClick));
-    Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,wxCommandEventHandler(wxsNewWindowDlg::OnScopeHandlersClick));
-    Connect(ID_CHECKBOX5,wxEVT_COMMAND_CHECKBOX_CLICKED,wxCommandEventHandler(wxsNewWindowDlg::OnCtorParentClick));
-    Connect(ID_CHECKBOX9,wxEVT_COMMAND_CHECKBOX_CLICKED,wxCommandEventHandler(wxsNewWindowDlg::OnCtorParentDefClick));
-    Connect(ID_CHECKBOX6,wxEVT_COMMAND_CHECKBOX_CLICKED,wxCommandEventHandler(wxsNewWindowDlg::OnCtorIdClick));
-    Connect(ID_CHECKBOX10,wxEVT_COMMAND_CHECKBOX_CLICKED,wxCommandEventHandler(wxsNewWindowDlg::OnCtorIdDefClick));
-    Connect(ID_CHECKBOX7,wxEVT_COMMAND_CHECKBOX_CLICKED,wxCommandEventHandler(wxsNewWindowDlg::OnCtorPosClick));
-    Connect(ID_CHECKBOX11,wxEVT_COMMAND_CHECKBOX_CLICKED,wxCommandEventHandler(wxsNewWindowDlg::OnCtorPosDefClick));
-    Connect(ID_CHECKBOX8,wxEVT_COMMAND_CHECKBOX_CLICKED,wxCommandEventHandler(wxsNewWindowDlg::OnCtorSizeClick));
-    Connect(ID_CHECKBOX12,wxEVT_COMMAND_CHECKBOX_CLICKED,wxCommandEventHandler(wxsNewWindowDlg::OnCtorSizeDefClick));
+    Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&wxsNewWindowDlg::OnClassChanged);
+    Connect(ID_TEXTCTRL2,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&wxsNewWindowDlg::OnHeaderChanged);
+    Connect(ID_TEXTCTRL3,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&wxsNewWindowDlg::OnSourceChanged);
+    Connect(ID_CHECKBOX1,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&wxsNewWindowDlg::OnUseXrcChange);
+    Connect(ID_TEXTCTRL4,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&wxsNewWindowDlg::OnXrcChanged);
+    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&wxsNewWindowDlg::OnAdvOpsClick);
+    Connect(ID_CHECKBOX2,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&wxsNewWindowDlg::OnUsePCHClick);
+    Connect(ID_CHECKBOX4,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&wxsNewWindowDlg::OnUseInitFuncClick);
+    Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&wxsNewWindowDlg::OnScopeIdsClick);
+    Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&wxsNewWindowDlg::OnScopeMembersClick);
+    Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&wxsNewWindowDlg::OnScopeHandlersClick);
+    Connect(ID_CHECKBOX5,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&wxsNewWindowDlg::OnCtorParentClick);
+    Connect(ID_CHECKBOX9,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&wxsNewWindowDlg::OnCtorParentDefClick);
+    Connect(ID_CHECKBOX6,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&wxsNewWindowDlg::OnCtorIdClick);
+    Connect(ID_CHECKBOX10,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&wxsNewWindowDlg::OnCtorIdDefClick);
+    Connect(ID_CHECKBOX7,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&wxsNewWindowDlg::OnCtorPosClick);
+    Connect(ID_CHECKBOX11,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&wxsNewWindowDlg::OnCtorPosDefClick);
+    Connect(ID_CHECKBOX8,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&wxsNewWindowDlg::OnCtorSizeClick);
+    Connect(ID_CHECKBOX12,wxEVT_COMMAND_CHECKBOX_CLICKED,(wxObjectEventFunction)&wxsNewWindowDlg::OnCtorSizeDefClick);
     //*)
 
     ConfigManager* Cfg = Manager::Get()->GetConfigManager(_T("wxsmith"));
@@ -351,12 +351,12 @@ wxsNewWindowDlg::~wxsNewWindowDlg()
     //*)
 }
 
-void wxsNewWindowDlg::OnCancel(cb_unused wxCommandEvent& event)
+void wxsNewWindowDlg::OnCancel(wxCommandEvent& event)
 {
     EndModal(wxID_CANCEL);
 }
 
-void wxsNewWindowDlg::OnCreate(cb_unused wxCommandEvent& event)
+void wxsNewWindowDlg::OnCreate(wxCommandEvent& event)
 {
     bool CreateXrc = m_UseXrc->GetValue();
     cbProject* cbProj = m_Project->GetCBProject();
@@ -437,7 +437,6 @@ void wxsNewWindowDlg::OnCreate(cb_unused wxCommandEvent& event)
         {
             case wxCANCEL: return;
             case wxNO: Params.GenHdr = false; break;
-            default: return; // Should never come here
         }
     }
 
@@ -450,7 +449,6 @@ void wxsNewWindowDlg::OnCreate(cb_unused wxCommandEvent& event)
         {
             case wxCANCEL: return;
             case wxNO: Params.GenSrc = false; break;
-            default: return; // Should never come here
         }
     }
 
@@ -590,7 +588,7 @@ void wxsNewWindowDlg::OnCreate(cb_unused wxCommandEvent& event)
     EndModal(wxID_OK);
 }
 
-void wxsNewWindowDlg::OnClassChanged(cb_unused wxCommandEvent& event)
+void wxsNewWindowDlg::OnClassChanged(wxCommandEvent& event)
 {
     if ( m_BlockText ) return;
     m_BlockText = true;
@@ -600,7 +598,7 @@ void wxsNewWindowDlg::OnClassChanged(cb_unused wxCommandEvent& event)
     m_BlockText = false;
 }
 
-void wxsNewWindowDlg::OnSourceChanged(cb_unused wxCommandEvent& event)
+void wxsNewWindowDlg::OnSourceChanged(wxCommandEvent& event)
 {
     if ( m_BlockText ) return;
     m_BlockText = true;
@@ -608,7 +606,7 @@ void wxsNewWindowDlg::OnSourceChanged(cb_unused wxCommandEvent& event)
     m_BlockText = false;
 }
 
-void wxsNewWindowDlg::OnHeaderChanged(cb_unused wxCommandEvent& event)
+void wxsNewWindowDlg::OnHeaderChanged(wxCommandEvent& event)
 {
     if ( m_BlockText ) return;
     m_BlockText = true;
@@ -626,7 +624,7 @@ void wxsNewWindowDlg::OnHeaderChanged(cb_unused wxCommandEvent& event)
     m_BlockText = false;
 }
 
-void wxsNewWindowDlg::OnUseXrcChange(cb_unused wxCommandEvent& event)
+void wxsNewWindowDlg::OnUseXrcChange(wxCommandEvent& event)
 {
     m_Xrc->Enable(m_UseXrc->GetValue());
     m_XRCAutoload->Enable(m_UseXrc->GetValue() && m_AppManaged);
@@ -655,7 +653,7 @@ void wxsNewWindowDlg::OnUseXrcChange(cb_unused wxCommandEvent& event)
     }
 }
 
-void wxsNewWindowDlg::OnXrcChanged(cb_unused wxCommandEvent& event)
+void wxsNewWindowDlg::OnXrcChanged(wxCommandEvent& event)
 {
     if ( m_BlockText ) return;
     m_BlockText = true;
@@ -700,33 +698,33 @@ wxString wxsNewWindowDlg::DetectPchFile()
     return m_Pch->GetStringSelection();
 }
 
-void wxsNewWindowDlg::OnUsePCHClick(cb_unused wxCommandEvent& event)
+void wxsNewWindowDlg::OnUsePCHClick(wxCommandEvent& event)
 {
     m_Pch->Enable(m_UsePCH->GetValue());
     m_PchGuard->Enable(m_UsePCH->GetValue());
 }
 
-void wxsNewWindowDlg::OnCtorParentClick(cb_unused wxCommandEvent& event)
+void wxsNewWindowDlg::OnCtorParentClick(wxCommandEvent& event)
 {
     m_CtorParentDef->Enable(m_CtorParent->GetValue());
 }
 
-void wxsNewWindowDlg::OnCtorIdClick(cb_unused wxCommandEvent& event)
+void wxsNewWindowDlg::OnCtorIdClick(wxCommandEvent& event)
 {
     m_CtorIdDef->Enable(m_CtorId->GetValue());
 }
 
-void wxsNewWindowDlg::OnCtorPosClick(cb_unused wxCommandEvent& event)
+void wxsNewWindowDlg::OnCtorPosClick(wxCommandEvent& event)
 {
     m_CtorPosDef->Enable(m_CtorPos->GetValue());
 }
 
-void wxsNewWindowDlg::OnCtorSizeClick(cb_unused wxCommandEvent& event)
+void wxsNewWindowDlg::OnCtorSizeClick(wxCommandEvent& event)
 {
     m_CtorSizeDef->Enable(m_CtorSize->GetValue());
 }
 
-void wxsNewWindowDlg::OnCtorParentDefClick(cb_unused wxCommandEvent& event)
+void wxsNewWindowDlg::OnCtorParentDefClick(wxCommandEvent& event)
 {
     if ( m_CtorParentDef->GetValue() )
     {
@@ -739,7 +737,7 @@ void wxsNewWindowDlg::OnCtorParentDefClick(cb_unused wxCommandEvent& event)
     }
 }
 
-void wxsNewWindowDlg::OnCtorIdDefClick(cb_unused wxCommandEvent& event)
+void wxsNewWindowDlg::OnCtorIdDefClick(wxCommandEvent& event)
 {
     if ( m_CtorIdDef->GetValue() )
     {
@@ -752,7 +750,7 @@ void wxsNewWindowDlg::OnCtorIdDefClick(cb_unused wxCommandEvent& event)
     }
 }
 
-void wxsNewWindowDlg::OnCtorPosDefClick(cb_unused wxCommandEvent& event)
+void wxsNewWindowDlg::OnCtorPosDefClick(wxCommandEvent& event)
 {
     if ( m_CtorPosDef->GetValue() )
     {
@@ -765,7 +763,7 @@ void wxsNewWindowDlg::OnCtorPosDefClick(cb_unused wxCommandEvent& event)
     }
 }
 
-void wxsNewWindowDlg::OnCtorSizeDefClick(cb_unused wxCommandEvent& event)
+void wxsNewWindowDlg::OnCtorSizeDefClick(wxCommandEvent& event)
 {
     if ( m_CtorSizeDef->GetValue() )
     {
@@ -778,12 +776,12 @@ void wxsNewWindowDlg::OnCtorSizeDefClick(cb_unused wxCommandEvent& event)
     }
 }
 
-void wxsNewWindowDlg::OnUseInitFuncClick(cb_unused wxCommandEvent& event)
+void wxsNewWindowDlg::OnUseInitFuncClick(wxCommandEvent& event)
 {
     m_InitFunc->Enable(m_UseInitFunc->GetValue());
 }
 
-void wxsNewWindowDlg::OnAdvOpsClick(cb_unused wxCommandEvent& event)
+void wxsNewWindowDlg::OnAdvOpsClick(wxCommandEvent& event)
 {
     Freeze();
     m_AdvOpsShown = !m_AdvOpsShown;
@@ -806,7 +804,7 @@ void wxsNewWindowDlg::OnAdvOpsClick(cb_unused wxCommandEvent& event)
     Thaw();
 }
 
-bool wxsNewWindowDlg::PrepareResource(cb_unused wxsItemRes* Res,wxsItemResData* Data)
+bool wxsNewWindowDlg::PrepareResource(wxsItemRes* Res,wxsItemResData* Data)
 {
     wxsBaseProperties* Props = Data->GetRootItem()->GetBaseProps();
 
@@ -818,37 +816,34 @@ bool wxsNewWindowDlg::PrepareResource(cb_unused wxsItemRes* Res,wxsItemResData* 
     return true;
 }
 
-void wxsNewWindowDlg::OnScopeIdsClick(cb_unused wxCommandEvent& event)
+void wxsNewWindowDlg::OnScopeIdsClick(wxCommandEvent& event)
 {
     switch ( m_ScopeIdsVal )
     {
         case wxsItemRes::NewResourceParams::Public:    m_ScopeIdsVal = wxsItemRes::NewResourceParams::Protected; break;
         case wxsItemRes::NewResourceParams::Protected: m_ScopeIdsVal = wxsItemRes::NewResourceParams::Private; break;
-        case wxsItemRes::NewResourceParams::Private: // fall-through
         default:                                       m_ScopeIdsVal = wxsItemRes::NewResourceParams::Public; break;
     }
     UpdateScopeButtons();
 }
 
-void wxsNewWindowDlg::OnScopeMembersClick(cb_unused wxCommandEvent& event)
+void wxsNewWindowDlg::OnScopeMembersClick(wxCommandEvent& event)
 {
     switch ( m_ScopeMembersVal )
     {
         case wxsItemRes::NewResourceParams::Public:    m_ScopeMembersVal = wxsItemRes::NewResourceParams::Protected; break;
         case wxsItemRes::NewResourceParams::Protected: m_ScopeMembersVal = wxsItemRes::NewResourceParams::Private; break;
-        case wxsItemRes::NewResourceParams::Private: // fall-through
         default:                                       m_ScopeMembersVal = wxsItemRes::NewResourceParams::Public; break;
     }
     UpdateScopeButtons();
 }
 
-void wxsNewWindowDlg::OnScopeHandlersClick(cb_unused wxCommandEvent& event)
+void wxsNewWindowDlg::OnScopeHandlersClick(wxCommandEvent& event)
 {
     switch ( m_ScopeHandlersVal )
     {
         case wxsItemRes::NewResourceParams::Public:    m_ScopeHandlersVal = wxsItemRes::NewResourceParams::Protected; break;
         case wxsItemRes::NewResourceParams::Protected: m_ScopeHandlersVal = wxsItemRes::NewResourceParams::Private; break;
-        case wxsItemRes::NewResourceParams::Private: // fall-through
         default:                                       m_ScopeHandlersVal = wxsItemRes::NewResourceParams::Public; break;
     }
     UpdateScopeButtons();
@@ -860,21 +855,18 @@ void wxsNewWindowDlg::UpdateScopeButtons()
     {
         case wxsItemRes::NewResourceParams::Public:    m_ScopeIds->SetLabel(_T("Public")); break;
         case wxsItemRes::NewResourceParams::Protected: m_ScopeIds->SetLabel(_T("Protected")); break;
-        case wxsItemRes::NewResourceParams::Private: // fall-through
         default:                                       m_ScopeIds->SetLabel(_T("Private")); break;
     }
     switch ( m_ScopeMembersVal )
     {
         case wxsItemRes::NewResourceParams::Public:    m_ScopeMembers->SetLabel(_T("Public")); break;
         case wxsItemRes::NewResourceParams::Protected: m_ScopeMembers->SetLabel(_T("Protected")); break;
-        case wxsItemRes::NewResourceParams::Private: // fall-through
         default:                                       m_ScopeMembers->SetLabel(_T("Private")); break;
     }
     switch ( m_ScopeHandlersVal )
     {
         case wxsItemRes::NewResourceParams::Public:    m_ScopeHandlers->SetLabel(_T("Public")); break;
         case wxsItemRes::NewResourceParams::Protected: m_ScopeHandlers->SetLabel(_T("Protected")); break;
-        case wxsItemRes::NewResourceParams::Private: // fall-through
         default:                                       m_ScopeHandlers->SetLabel(_T("Private")); break;
     }
 }

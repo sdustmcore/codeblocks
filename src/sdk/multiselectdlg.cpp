@@ -10,13 +10,14 @@
 #include "sdk_precomp.h"
 
 #ifndef CB_PRECOMP
-    #include <wx/button.h>
     #include <wx/checklst.h>
     #include <wx/msgdlg.h>
     #include <wx/stattext.h>
     #include <wx/xrc/xmlres.h>
     #include "globals.h"
 #endif
+
+#include <wx/textdlg.h>
 
 #include "multiselectdlg.h"
 
@@ -36,7 +37,6 @@ MultiSelectDlg::MultiSelectDlg(wxWindow* parent,
 {
     //ctor
     wxXmlResource::Get()->LoadObject(this, parent, _T("dlgGenericMultiSelect"),_T("wxScrollingDialog"));
-    XRCCTRL(*this, "wxID_OK", wxButton)->SetDefault();
 
     SetTitle(title);
     XRCCTRL(*this, "lblLabel", wxStaticText)->SetLabel(label);
@@ -51,7 +51,6 @@ MultiSelectDlg::MultiSelectDlg(wxWindow* parent,
 {
     //ctor
     wxXmlResource::Get()->LoadObject(this, parent, _T("dlgGenericMultiSelect"),_T("wxScrollingDialog"));
-    XRCCTRL(*this, "wxID_OK", wxButton)->SetDefault();
 
     SetTitle(title);
     XRCCTRL(*this, "lblLabel", wxStaticText)->SetLabel(label);
@@ -142,7 +141,7 @@ void MultiSelectDlg::SelectWildCard(const wxString& wild, bool select, bool clea
 
 void MultiSelectDlg::OnWildcard(cb_unused wxCommandEvent& event)
 {
-    wxString wild = cbGetTextFromUser(_("Enter a selection wildcard\n(e.g. \"dlg*.cpp\" "
+    wxString wild = wxGetTextFromUser(_("Enter a selection wildcard\n(e.g. \"dlg*.cpp\" "
                                         "would select all files starting with \"dlg\" and "
                                         "ending in \".cpp\")\nSeparate multiple masks with \";\":"),
                                         _("Wildcard selection"));

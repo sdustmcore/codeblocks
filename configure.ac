@@ -8,18 +8,7 @@ AC_CANONICAL_TARGET
 
 AC_CONFIG_MACRO_DIR([m4])
 
-AC_MSG_CHECKING([whether configure should try to set CFLAGS/CXXFLAGS/CPPFLAGS/LDFLAGS])
-AS_IF([test "x${CFLAGS+set}" = "xset" || test "x${CXXFLAGS+set}" = "xset" || test "x${CPPFLAGS+set}" = "xset" || test "x${LDFLAGS+set}" = "xset"],[enable_flags_setting=no],[enable_flags_setting=yes])
-AC_MSG_RESULT([${enable_flags_setting}])
-
-m4_include([m4/acinclude.m4])
-m4_include([m4/ax_cxx_compile_stdcxx.m4])
-m4_include([m4/ax_boost_base.m4])
-m4_include([m4/ax_boost_system.m4])
-
-CODEBLOCKS_CHECK_DEBUG
-
-AM_INIT_AUTOMAKE([foreign dist-bzip2 no-dist-gzip subdir-objects])
+AM_INIT_AUTOMAKE([dist-bzip2 no-dist-gzip subdir-objects])
 
 AC_DISABLE_STATIC
 
@@ -44,7 +33,12 @@ AC_PROG_AWK
 
 CODEBLOCKS_CHECK_LINK_FLAG([-Wl,--no-undefined],[LDFLAGS="-Wl,--no-undefined $LDFLAGS"])
 
+CODEBLOCKS_CHECK_DEBUG
+
 CODEBLOCKS_SETUP_FOR_TARGET
+
+AC_DISABLE_STATIC
+AC_PROG_LIBTOOL
 
 dnl Checks for header files.
 AC_HEADER_DIRENT
@@ -71,56 +65,14 @@ AC_CHECK_LIB(pthread, pthread_create)
 AC_CHECK_FUNC(snprintf, AC_DEFINE(HAVE_SNPRINTF,,snprintf))
 AC_CHECK_FUNC(vsnprintf, AC_DEFINE(HAVE_VSNPRINTF,,vsnprintf))
 
-PKG_CHECK_MODULES([zlib], [zlib], [HAVE_ZLIB=yes], [HAVE_ZLIB=no])
 save_LIBS=$LIBS
+AC_SEARCH_LIBS(gzopen, z, [HAVE_ZLIB=yes], [HAVE_ZLIB=no])
+LIBS=$save_LIBS
 AC_SEARCH_LIBS(BZ2_bzopen, bz2, [HAVE_BZIP2=yes], [HAVE_BZIP2=no])
 LIBS=$save_LIBS
 
-save_CC=$CC
-save_CPP=$CPP
-CC=$CXX
-CPP=$CXXCPP
-AC_CHECK_HEADER(astyle.h, [HAVE_ASTYLE=yes], [HAVE_ASTYLE=no])
-
-dnl check if system astyle is at least 3.0, otherwise use bundled astyle-library
-dnl ASPeekStream is declared since 3.0
-if test "$HAVE_ASTYLE" = "yes" ; then
-	AC_CHECK_TYPE([astyle::ASPeekStream], , [HAVE_ASTYLE=no], [#include "astyle.h"])
-else
-	HAVE_ASTYLE=no
-fi
-
-CC=$save_CC
-CPP=$save_CPP
-
 AM_CONDITIONAL([HAVE_ZLIB], [test "$HAVE_ZLIB" = yes])
 AM_CONDITIONAL([HAVE_BZIP2], [test "$HAVE_BZIP2" = yes])
-
-AM_CONDITIONAL([HAVE_ASTYLE], [test "$HAVE_ASTYLE" = yes])
-
-AC_CHECK_PROG(HAVE_PKG_CONFIG, pkg-config, yes, no)
-
-ifdef([PKG_CHECK_MODULES],[],[
-	define([PKG_CHECK_MODULES],
-	[ echo "You don't have pkg.m4 properly installed" >&2
-		exit 1
-	])
-])
-
-PKG_PROG_PKG_CONFIG
-PKG_CHECK_MODULES([SQUIRREL], [squirrel], [HAVE_SQUIRREL=yes], [HAVE_SQUIRREL=no])
-AM_CONDITIONAL([HAVE_SQUIRREL], [test "$HAVE_SQUIRREL" = yes])
-
-PKG_CHECK_MODULES([TINYXML], [tinyxml], [HAVE_TINYXML=yes], [HAVE_TINYXML=no])
-AM_CONDITIONAL([HAVE_TINYXML], [test "$HAVE_TINYXML" = yes])
-
-dnl Darwin -> .dylib  Linux -> .so
-if test "x$DARWIN_TRUE" = "x" ; then
-    MODULE_SHARED_LDFLAGS="-dynamiclib"
-else
-    MODULE_SHARED_LDFLAGS="-module -shared"
-fi
-AC_SUBST(MODULE_SHARED_LDFLAGS)
 
 dnl versioning info for libtool
 dnl Note this is the ABI version which is not the same as our actual library version
@@ -140,7 +92,7 @@ CODEBLOCKS_ENABLE_SETTINGS
 
 AM_OPTIONS_WXCONFIG
 AM_PATH_WXCONFIG(2.8.12, wxWin=1)
-    if test "$wxWin" != 1; then
+        if test "$wxWin" != 1; then
         AC_MSG_ERROR([
                 wxWidgets must be installed on your system.
 
@@ -159,7 +111,7 @@ AM_PATH_WXCONFIG(2.8.12, wxWin=1)
 		earlier) wxWidgets version...
 			])
 		fi
-    fi
+        fi
 
 dnl		CPPFLAGS="$CPPFLAGS $WX_CPPFLAGS"
 dnl		CXXFLAGS="$CXXFLAGS $WX_CXXFLAGS_ONLY"
@@ -171,8 +123,8 @@ AC_SUBST(CXXFLAGS)
 AC_SUBST(CFLAGS)
 AC_SUBST(LIBS)
 
-WX_GTK_CFLAGS=
-WX_GTK_LIBS=
+WX_GTK2_CFLAGS=
+WX_GTK2_LIBS=
 WX_X11_CFLAGS=
 WX_X11_LIBS=
 
@@ -199,6 +151,22 @@ case $WX_BASENAME in
 				"x$GTK_NOTEBOOK_TRUE" = "x" -o \
 				"x$LINUX_TRUE" = "x" ; then
 
+			AC_CHECK_PROG(HAVE_PKG_CONFIG, pkg-config, yes, no)
+
+			ifdef([PKG_CHECK_MODULES],[],[
+				define([PKG_CHECK_MODULES],
+				[ echo "You don't have pkg.m4 properly installed" >&2
+					exit 1
+				])
+			])
+
+            dnl acoording to pkg-config's manpage this call is absolutely needed:
+            dnl
+            dnl "Note that if there is a possibility the first call to
+            dnl PKG_CHECK_MODULES might not happen, you should be sure
+            dnl to include an explicit call to PKG_PROG_PKG_CONFIG"
+			PKG_PROG_PKG_CONFIG
+
 			if test "x$LINUX_TRUE" = "x" ; then
 				if test "x$HAVE_PKG_CONFIG" = "xyes"; then
 					PKG_CHECK_MODULES([GLIB2], [glib-2.0])
@@ -214,16 +182,7 @@ case $WX_BASENAME in
 			if test "x$BUILD_MOUSESAP_TRUE" = "x"  -o \
 					"x$GTK_NOTEBOOK_TRUE" = "x" ; then
 				if test "x$HAVE_PKG_CONFIG" = "xyes"; then
-					case $WX_BASENAME in
-						*wx_gtk3*)
-							AC_MSG_NOTICE([gtk3 used])
-							PKG_CHECK_MODULES([GTK], [gtk+-3.0 >= 3.0.0])
-						;;
-						*wx_gtk2*)
-							AC_MSG_NOTICE([gtk2 used])
-							PKG_CHECK_MODULES([GTK], [gtk+-2.0 >= 2.0.0])
-						;;
-					esac
+					PKG_CHECK_MODULES([GTK2], [gtk+-2.0 >= 2.0.0])
 				fi
 			fi
 
@@ -239,30 +198,36 @@ case $WX_BASENAME in
 				fi
 			fi
 
-		fi
+    	fi
 
+		dnl
+		dnl Check whether the necessary boost-headers are installed
+		dnl a little hacky, but it seems there is no common macro-library
+		dnl to check for boost
+		dnl If anybody knows a better way, feel free to change it
 		if test "x$BUILD_NASSISHNEIDERMAN_TRUE" = "x" ; then
-			dnl Check whether boost is installed
-			AX_BOOST_BASE
-			AX_BOOST_SYSTEM
-		fi
+			AC_LANG_PUSH([C++])
+            AC_CHECK_HEADER([boost/spirit/include/classic.hpp],[],[AC_MSG_ERROR([needed boost headers not found or not usable])])
+			AC_LANG_POP([C++])
+        fi
 
-		CB_GLIB2_CFLAGS="$GLIB2_CFLAGS"
-		CB_GLIB2_LIBS="$GLIB2_LIBS"
-		CB_GAMIN_CFLAGS="$GAMIN_CFLAGS"
-		CB_GAMIN_LIBS="$GAMIN_LIBS"
-		CB_HUNSPELL_CFLAGS="$HUNSPELL_CFLAGS"
-		CB_HUNSPELL_LIBS="$HUNSPELL_LIBS"
-		CB_FONTCONFIG_CFLAGS="$FONTCONFIG_CFLAGS"
-		CB_FONTCONFIG_LIBS="$FONTCONFIG_LIBS"
-		WX_GTK_CFLAGS="$GTK_CFLAGS"
-		WX_GTK_LIBS="$GTK_LIBS"
-		AC_PATH_XTRA
-		WX_X11_CFLAGS="`echo $X_CFLAGS | sed 's/ -INONE//'`"
-		WX_X11_LIBS="`echo $X_LIBS | sed 's/ -LNONE//' | sed 's/ -RNONE//'`"
-		if test "$no_x" != yes; then
-			WX_X11_LIBS="$WX_X11_LIBS -lX11 $X_EXTRA_LIBS"
-		fi
+
+	CB_GLIB2_CFLAGS="$GLIB2_CFLAGS"
+	CB_GLIB2_LIBS="$GLIB2_LIBS"
+	CB_GAMIN_CFLAGS="$GAMIN_CFLAGS"
+	CB_GAMIN_LIBS="$GAMIN_LIBS"
+	CB_HUNSPELL_CFLAGS="$HUNSPELL_CFLAGS"
+	CB_HUNSPELL_LIBS="$HUNSPELL_LIBS"
+	CB_FONTCONFIG_CFLAGS="$FONTCONFIG_CFLAGS"
+	CB_FONTCONFIG_LIBS="$FONTCONFIG_LIBS"
+        WX_GTK2_CFLAGS="$GTK2_CFLAGS"
+        WX_GTK2_LIBS="$GTK2_LIBS"
+        AC_PATH_XTRA
+        WX_X11_CFLAGS="`echo $X_CFLAGS | sed 's/ -INONE//'`"
+        WX_X11_LIBS="`echo $X_LIBS | sed 's/ -LNONE//' | sed 's/ -RNONE//'`"
+        if test "$no_x" != yes; then
+            WX_X11_LIBS="$WX_X11_LIBS -lX11 $X_EXTRA_LIBS"
+        fi
     ;;
     *wx_msw*)
         AC_MSG_RESULT(wxMSW)
@@ -326,32 +291,13 @@ else
         AC_MSG_NOTICE([setting additional flags for gcc $GCC_FULL_VERSION]: $gcc48_flags)
         CXXFLAGS="$gcc48_flags $CXXFLAGS"
     fi
-    SCINTILLA_GTK_CFLAGS="$WX_GTK_CFLAGS"
-    SCINTILLA_GTK_LIBS="$WX_GTK_LIBS"
+    SCINTILLA_GTK_CFLAGS="$WX_GTK2_CFLAGS"
+    SCINTILLA_GTK_LIBS="$WX_GTK2_LIBS"
 fi
 
-if test "x$HAVE_SQUIRREL_TRUE" = "x" ; then
-	CB_SQUIRREL_CFLAGS="$SQUIRREL_CFLAGS"
-	CB_SQUIRREL_LIBS="$SQUIRREL_LIBS"
-else
-	CB_SQUIRREL_CFLAGS="-I\$(top_srcdir)/src/include/scripting/include"
-	CB_SQUIRREL_LIBS="\$(top_builddir)/src/sdk/scripting/squirrel/libsquirrel.la \$(top_builddir)/src/sdk/scripting/sqstdlib/libsqstdlib.la"
-fi
 
-if test "x$HAVE_TINYXML_TRUE" = "x" ; then
-	CB_TINYXML_CFLAGS="$TINYXML_CFLAGS"
-	CB_TINYXML_LIBS="$TINYXML_LIBS"
-else
-	CB_TINYXML_CFLAGS="-I\$(top_srcdir)/src/include/tinyxml -DTIXML_USE_STL=YES"
-	CB_TINYXML_LIBS="\$(top_builddir)/src/base/tinyxml/libtinyxml.la"
-fi
-
-AC_SUBST(CB_SQUIRREL_CFLAGS)
-AC_SUBST(CB_SQUIRREL_LIBS)
-AC_SUBST(CB_TINYXML_CFLAGS)
-AC_SUBST(CB_TINYXML_LIBS)
-AC_SUBST(WX_GTK_CFLAGS)
-AC_SUBST(WX_GTK_LIBS)
+AC_SUBST(WX_GTK2_CFLAGS)
+AC_SUBST(WX_GTK2_LIBS)
 AC_SUBST(SCINTILLA_GTK_CFLAGS)
 AC_SUBST(SCINTILLA_GTK_LIBS)
 AC_SUBST(CB_GLIB2_CFLAGS)
@@ -378,23 +324,20 @@ AC_MSG_CHECKING(for PIC flags)
 case `uname` in
     Solaris)
         if test "$GCC" = yes; then
-            PIC_CFLAGS="-fPIC"
+            PIC_FLAGS="-fPIC -DPIC"
         else
-            PIC_CFLAGS="-KPIC"
+            PIC_FLAGS="-KPIC -DPIC"
         fi
     ;;
     *)
-        PIC_CFLAGS="-fPIC"
+        PIC_FLAGS="-fPIC -DPIC"
     ;;
 esac
-AC_MSG_RESULT("$PIC_CFLAGS -DPIC")
+AC_MSG_RESULT($PIC_FLAGS)
 
-CFLAGS="$CFLAGS $PIC_CFLAGS -std=c90"
-CPPFLAGS="$CPPFLAGS -DPIC $CB_TINYXML_CFLAGS"
-CXXFLAGS="$CXXFLAGS $PIC_CFLAGS -fexceptions"
+CPPFLAGS="$CPPFLAGS -ansi -DTIXML_USE_STL"
+CXXFLAGS="$CXXFLAGS $PCH_FLAGS $PIC_FLAGS -fexceptions"
 AC_SUBST(codeblocks_PCH_FLAGS, "$PCH_FLAGS")
-
-AX_CXX_COMPILE_STDCXX(11, noext)
 
 dnl AM_PATH_GTK(1.2.7, ,
 dnl             AC_MSG_ERROR(Cannot find GTK: Is gtk-config in path?),
@@ -404,11 +347,6 @@ AC_MSG_NOTICE([Configuring Code::Blocks...])
 AC_MSG_NOTICE(SVN revision SVN_REVISION (SVN_DATE))
 AC_SUBST(REVISION, SVN_REV)
 AC_SUBST(DATE, "SVN_DATE")
-
-if test "x${target_vendor}" = "xapple"; then
-    AC_CONFIG_FILES([bundle.sh], [chmod +x bundle.sh])
-    AC_CONFIG_FILES(codeblocks.plist)
-fi
 
 AC_CONFIG_FILES([Makefile
 	src/Makefile
@@ -464,7 +402,6 @@ AC_CONFIG_FILES([Makefile
 	src/plugins/projectsimporter/resources/Makefile
 	src/plugins/scriptedwizard/Makefile
 	src/plugins/scriptedwizard/resources/Makefile
-	src/plugins/scriptedwizard/resources/arduino/Makefile
 	src/plugins/scriptedwizard/resources/arm/Makefile
 	src/plugins/scriptedwizard/resources/avr/Makefile
 	src/plugins/scriptedwizard/resources/c_file/Makefile
@@ -472,7 +409,6 @@ AC_CONFIG_FILES([Makefile
 	src/plugins/scriptedwizard/resources/d/Makefile
 	src/plugins/scriptedwizard/resources/directx/Makefile
 	src/plugins/scriptedwizard/resources/dll/Makefile
-	src/plugins/scriptedwizard/resources/d_source/Makefile
 	src/plugins/scriptedwizard/resources/empty/Makefile
 	src/plugins/scriptedwizard/resources/empty_file/Makefile
 	src/plugins/scriptedwizard/resources/fltk/Makefile
@@ -482,26 +418,34 @@ AC_CONFIG_FILES([Makefile
 	src/plugins/scriptedwizard/resources/gtk/Makefile
 	src/plugins/scriptedwizard/resources/h_file/Makefile
 	src/plugins/scriptedwizard/resources/irrlicht/Makefile
-	src/plugins/scriptedwizard/resources/java/Makefile
 	src/plugins/scriptedwizard/resources/lf/Makefile
 	src/plugins/scriptedwizard/resources/matlab_csf/Makefile
+	src/plugins/scriptedwizard/resources/matlab_csf/files/Makefile
+	src/plugins/scriptedwizard/resources/matlab_csf/lccstub/Makefile
 	src/plugins/scriptedwizard/resources/mcs51/Makefile
-	src/plugins/scriptedwizard/resources/msp430/Makefile
 	src/plugins/scriptedwizard/resources/ogre/Makefile
+	src/plugins/scriptedwizard/resources/ogre/files/Makefile
 	src/plugins/scriptedwizard/resources/opencv/Makefile
 	src/plugins/scriptedwizard/resources/opengl/Makefile
+	src/plugins/scriptedwizard/resources/opengl/files_unix/Makefile
+	src/plugins/scriptedwizard/resources/opengl/files_win/Makefile
 	src/plugins/scriptedwizard/resources/plugins/Makefile
+	src/plugins/scriptedwizard/resources/plugins/templates/Makefile
 	src/plugins/scriptedwizard/resources/ppc/Makefile
 	src/plugins/scriptedwizard/resources/qt4/Makefile
-	src/plugins/scriptedwizard/resources/qt4dll/Makefile
-	src/plugins/scriptedwizard/resources/qt5/Makefile
+	src/plugins/scriptedwizard/resources/qt4/files/Makefile
 	src/plugins/scriptedwizard/resources/sdl/Makefile
-	src/plugins/scriptedwizard/resources/sdl2/Makefile
+	src/plugins/scriptedwizard/resources/sdl/files/Makefile
 	src/plugins/scriptedwizard/resources/sfml/Makefile
 	src/plugins/scriptedwizard/resources/sharedlib/Makefile
+	src/plugins/scriptedwizard/resources/sharedlib/c/Makefile
+	src/plugins/scriptedwizard/resources/sharedlib/cpp/Makefile
 	src/plugins/scriptedwizard/resources/smartwin/Makefile
+	src/plugins/scriptedwizard/resources/smartwin/files/Makefile
 	src/plugins/scriptedwizard/resources/staticlib/Makefile
+	src/plugins/scriptedwizard/resources/staticlib/files/Makefile
 	src/plugins/scriptedwizard/resources/stlport/Makefile
+	src/plugins/scriptedwizard/resources/stlport/files/Makefile
 	src/plugins/scriptedwizard/resources/sys/Makefile
 	src/plugins/scriptedwizard/resources/tricore/Makefile
 	src/plugins/scriptedwizard/resources/win32gui/Makefile
@@ -512,7 +456,6 @@ AC_CONFIG_FILES([Makefile
 	src/plugins/abbreviations/resources/Makefile
 	src/plugins/xpmanifest/Makefile
 	src/plugins/contrib/Makefile
-	src/plugins/contrib/appdata/Makefile
 	src/plugins/contrib/AutoVersioning/Makefile
 	src/plugins/contrib/BrowseTracker/Makefile
 	src/plugins/contrib/byogames/Makefile
@@ -603,6 +546,7 @@ AC_CONFIG_FILES([Makefile
 	src/plugins/contrib/wxSmithContribItems/Makefile
 	src/plugins/contrib/wxSmithAui/Makefile
 	src/plugins/contrib/wxSmithAui/wxsmithaui.pc
+	src/plugins/contrib/wxSmithDateTimePicker/Makefile
 	src/plugins/contrib/wxSmithDemo/Makefile
 	src/plugins/contrib/wxSmithIExplore/Makefile
 	src/plugins/contrib/wxSmithSTC/Makefile
@@ -623,8 +567,8 @@ AC_CONFIG_FILES([Makefile
 	src/templates/win32/Makefile
 	src/wxsmith/Makefile
 	codeblocks.pc
-	codeblocks.spec.fedora
 	codeblocks.spec
+	codeblocks.plist
 ])
 
 AC_OUTPUT
@@ -638,11 +582,4 @@ echo
 echo "You can now build Code::Blocks by issuing 'make'".
 echo "When the build is complete, become root and install"
 echo "it by issuing 'make install'".
-echo
-echo "   CFLAGS:     ${CFLAGS}"
-echo "   CXXFLAGS:   ${CXXFLAGS}"
-echo "   CPPFLAGS:   ${CPPFLAGS}"
-echo "   LDFLAGS:    ${LDFLAGS}"
-echo "   CXX:        ${CXX}"
-echo "   CC:         ${CC}"
 echo

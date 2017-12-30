@@ -131,7 +131,6 @@ namespace
     int idMenuClearAllBrowse_Marks  = wxNewId();
     int idMenuSortBrowse_Marks      = wxNewId();
     int idMenuConfigBrowse_Marks    = wxNewId();
-    int idMenuToggleBrowseMark      = wxNewId();
     #ifdef LOGGING
     int idMenuTrackerDump           = wxNewId();
     #endif
@@ -169,7 +168,6 @@ BEGIN_EVENT_TABLE(BrowseTracker, cbPlugin)
 	EVT_MENU(     idMenuClearAllBrowse_Marks,BrowseTracker::OnMenuClearAllBrowse_Marks)
 	EVT_MENU(     idMenuSortBrowse_Marks,    BrowseTracker::OnMenuSortBrowse_Marks)
 	EVT_MENU(     idMenuConfigBrowse_Marks,  BrowseTracker::OnMenuSettings)
-	EVT_MENU(     idMenuToggleBrowseMark,  BrowseTracker::OnMenuToggleBrowseMark)
    #ifdef LOGGING
 	EVT_MENU(     idMenuTrackerDump,        BrowseTracker::OnMenuTrackerDump)
    #endif
@@ -231,10 +229,6 @@ BrowseTracker::~BrowseTracker()
 void BrowseTracker::OnAttach()
 // ----------------------------------------------------------------------------
 {
-    // Do not re-enable if previously disabled, must restart CB first. //2017/12/7
-    if (m_bAppShutdown)
-        return;
-
     m_pJumpTracker = new JumpTracker();
     m_pJumpTracker->OnAttach();
     m_pJumpTracker->m_IsAttached = true;
@@ -402,8 +396,6 @@ void BrowseTracker::OnRelease(bool appShutDown)
         m_pJumpTracker = 0;
     }
 
-    CodeBlocksEvent evt;    //2017/11/23
-    AppShuttingDown(evt);   //2017/12/7
 }
 // ----------------------------------------------------------------------------
 void BrowseTracker::BuildMenu(wxMenuBar* menuBar)
@@ -430,7 +422,6 @@ void BrowseTracker::BuildMenu(wxMenuBar* menuBar)
         pforwardBackwardSubMenu->Append(idMenuBrowseMarkNext, _("Next Mark"), _("Browse Down"));
 
         pforwardBackwardSubMenu->AppendSeparator();
-        pforwardBackwardSubMenu->Append(idMenuToggleBrowseMark, _("Toggle BrowseMark"), _("Toggle Browse Mark"));
         pforwardBackwardSubMenu->Append(idMenuRecordBrowseMark, _("Set BrowseMark"), _("Record Browse Mark"));
         pforwardBackwardSubMenu->Append(idMenuClearBrowseMark,  _("Clear BrowseMark"), _("Unset Browse Mark"));
         pforwardBackwardSubMenu->Append(idMenuSortBrowse_Marks,  _("Sort BrowseMarks"), _("Sort Browse Marks"));
@@ -495,7 +486,7 @@ void BrowseTracker::BuildModuleMenu(const ModuleType type, wxMenu* popup, const 
     {
         wxMenuItem* item = pbtMenu->FindItemByPosition(i);
         int menuId = item->GetId();
-        #if wxCHECK_VERSION(3, 0, 0)
+        #if wxCHECK_VERSION(2, 9, 0)
         wxString menuLabel = item->GetItemLabelText();
         #else
         wxString menuLabel = item->GetLabel();
@@ -1697,34 +1688,24 @@ void BrowseTracker::OnIdle(wxIdleEvent& event)
     }
 }//OnIdle
 // ----------------------------------------------------------------------------
-void BrowseTracker::OnStartShutdown(CodeBlocksEvent& event) //2017/12/7
-// ----------------------------------------------------------------------------
-{
-        m_bAppShutdown = true;
-}
-// ----------------------------------------------------------------------------
-void BrowseTracker::AppShuttingDown(CodeBlocksEvent& event)
+void BrowseTracker::OnStartShutdown(CodeBlocksEvent& event)
 // ----------------------------------------------------------------------------
 {
     #if defined(LOGGING)
     //wxMessageBox(_T("BrowseTracker: CB initiated OnStartShutdown"));
-    //- dont log during shutdown
-    //-LOGIT( _T("BT BrowseTracker: CB initiated OnStartShutdown")); 2017/12/7
+    LOGIT( _T("BT BrowseTracker: CB initiated OnStartShutdown"));
     #endif
-    //Don't write to log when shutting down, causes crash 2017/11/23
-    //-Manager::Get()->GetLogManager()->Log(_T("BrowseTracker OnStartShutdown() initiated."));
+    Manager::Get()->GetLogManager()->Log(_T("BrowseTracker OnStartShutdown() initiated."));
     event.Skip();
 
     m_bAppShutdown = true;
-    // Crashes occur when logging during shutdown
-    //-#if defined(LOGGING)
-    //-InfoWindow::Display(_T("Browstracker"),_T("Browstracker OnStartShutdown"), 7000);
-    //-#endif
+    #if defined(LOGGING)
+    InfoWindow::Display(_T("Browstracker"),_T("Browstracker OnStartShutdown"), 7000);
+    #endif
 
     if ( m_InitDone )
     {
-        // Don't log during shutdown, causes crashes //2017/12/7
-        //-Manager::Get()->GetLogManager()->Log(_T("BrowseTracker Released"));
+        Manager::Get()->GetLogManager()->Log(_T("BrowseTracker Released"));
 
         //*SDK Gotcha* A cbEVT_PROJECT_CLOSE is issued, but only
         // after the plugin OnRelease() is called. So we

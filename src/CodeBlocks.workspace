@@ -2,15 +2,14 @@
 <CodeBlocks_workspace_file>
 	<Workspace title="CodeBlocks Workspace wx2.8.x">
 		<Project filename="CodeBlocks.cbp" active="1" />
-		<Project filename="tools/Addr2LineUI/Addr2LineUI.cbp" />
 		<Project filename="tools/cb_share_config/cb_share_config.cbp" />
 		<Project filename="tools/CBLauncher/CbLauncher.cbp" />
-		<Project filename="tools/cbp2make/cbp2make.cbp" />
+		<Project filename="tools/Addr2LineUI/Addr2LineUI.cbp" />
 		<Project filename="plugins/codecompletion/cctest.cbp" />
 		<Project filename="plugins/contrib/wxContribItems/wxContribItems.cbp" />
 		<Project filename="plugins/contrib/wxSmith/wxSmith.cbp" />
 		<Project filename="plugins/contrib/wxSmithContribItems/wxSmithContribItems.cbp">
-			<Depends filename="plugins/contrib/wxContribItems/wxContribItems.cbp" />
+			<Depends filename="plugins/contrib/lib_finder/lib_finder.cbp" />
 			<Depends filename="plugins/contrib/wxSmith/wxSmith.cbp" />
 		</Project>
 		<Project filename="plugins/contrib/wxSmithAui/wxSmithAui.cbp">

@@ -125,9 +125,12 @@ cbCompilerPlugin::cbCompilerPlugin()
 /////
 
 cbDebuggerPlugin::cbDebuggerPlugin(const wxString &guiName, const wxString &settingsName) :
+    m_toolbar(nullptr),
     m_pCompiler(nullptr),
     m_WaitingCompilerToFinish(false),
+    m_EditorHookId(-1),
     m_StartType(StartTypeUnknown),
+    m_DragInProgress(false),
     m_ActiveConfig(0),
     m_LogPageIndex(-1),
     m_lastLineWasNormal(true),
@@ -152,6 +155,9 @@ void cbDebuggerPlugin::OnAttach()
 
     Manager::Get()->RegisterEventSink(cbEVT_COMPILER_FINISHED, new Event(this, &cbDebuggerPlugin::OnCompilerFinished));
 
+    EditorHooks::HookFunctorBase *editor_hook;
+    editor_hook = new EditorHooks::HookFunctor<cbDebuggerPlugin>(this, &cbDebuggerPlugin::OnEditorHook);
+    m_EditorHookId = EditorHooks::RegisterHook(editor_hook);
     m_StartType = StartTypeUnknown;
 
     if (SupportsFeature(cbDebuggerFeature::ValueTooltips))
@@ -160,6 +166,7 @@ void cbDebuggerPlugin::OnAttach()
 
 void cbDebuggerPlugin::OnRelease(bool appShutDown)
 {
+    EditorHooks::UnregisterHook(m_EditorHookId, true);
     Manager::Get()->RemoveAllEventSinksFor(this);
 
     OnReleaseReal(appShutDown);
@@ -311,7 +318,7 @@ cbDebuggerPlugin::SyncEditorResult cbDebuggerPlugin::SyncEditor(const wxString& 
         }
     }
     FileType ft = FileTypeOf(filename);
-    if (ft != ftSource && ft != ftHeader && ft != ftResource && ft != ftTemplateSource)
+    if (ft != ftSource && ft != ftHeader && ft != ftResource)
     {
         // if the line is >= 0 and ft == ftOther assume, that we are in header without extension
         if (line < 0 || ft != ftOther)
@@ -428,10 +435,9 @@ void cbDebuggerPlugin::OnEditorOpened(CodeBlocksEvent& event)
     // when an editor opens, look if we have breakpoints for it
     // and notify it...
     EditorBase* ed = event.GetEditor();
-    if (ed && ed->IsBuiltinEditor())
+    if (ed)
     {
-        cbEditor *editor = static_cast<cbEditor*>(ed);
-        editor->RefreshBreakpointMarkers();
+        ed->RefreshBreakpointMarkers();
 
         if (IsRunning())
         {
@@ -446,7 +452,7 @@ void cbDebuggerPlugin::OnEditorOpened(CodeBlocksEvent& event)
             dbgFileName.Normalize();
             if (dbgFileName.GetFullPath().IsSameAs(edFileName.GetFullPath()) && line != -1)
             {
-                editor->SetDebugLine(line - 1);
+                ed->SetDebugLine(line - 1);
             }
         }
     }
@@ -509,7 +515,18 @@ void cbDebuggerPlugin::OnProjectClosed(CodeBlocksEvent& event)
     }
 }
 
+void cbDebuggerPlugin::OnEditorHook(cb_unused cbEditor* editor, wxScintillaEvent& event)
+{
+    if (event.GetEventType() == wxEVT_SCI_START_DRAG)
+        m_DragInProgress = true;
+    else if (event.GetEventType() == wxEVT_SCI_FINISHED_DRAG)
+        m_DragInProgress = false;
+}
 
+bool cbDebuggerPlugin::DragInProgress() const
+{
+    return m_DragInProgress;
+}
 
 void cbDebuggerPlugin::ShowLog(bool clear)
 {
@@ -684,11 +701,11 @@ bool cbDebuggerPlugin::EnsureBuildUpToDate(StartType startType)
         }
 
         // make sure the target is compiled
-        const std::vector<cbCompilerPlugin*> &compilers = Manager::Get()->GetPluginManager()->GetCompilerPlugins();
-        if (compilers.empty())
-            m_pCompiler = nullptr;
+        PluginsArray plugins = Manager::Get()->GetPluginManager()->GetCompilerOffers();
+        if (plugins.GetCount())
+            m_pCompiler = (cbCompilerPlugin*)plugins[0];
         else
-            m_pCompiler = compilers.front();
+            m_pCompiler = nullptr;
         if (m_pCompiler)
         {
             // is the compiler already running?

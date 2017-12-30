@@ -25,7 +25,6 @@
 					<Add option="-DCB_PRECOMP" />
 					<Add option="-DcbDEBUG" />
 					<Add directory="../../../include" />
-					<Add directory="../../../include/tinyxml" />
 					<Add directory="../../../sdk/wxscintilla/include" />
 				</Compiler>
 				<Linker>
@@ -51,7 +50,7 @@
 		<Compiler>
 			<Add option="-Wextra" />
 			<Add option="-Wall" />
-			<Add option="-std=c++11" />
+			<Add option="-ansi" />
 		</Compiler>
 		<Unit filename="AutoDoc.cpp" />
 		<Unit filename="ChangeLog.txt" />
@@ -69,7 +68,6 @@
 		<Unit filename="update30" />
 		<Unit filename="update30.bat" />
 		<Unit filename="version.h" />
-		<Unit filename="wxsmith/ConfigPanel.wxs" />
 		<Extensions>
 			<code_completion />
 			<envvars />
@@ -90,7 +88,6 @@
 				<general />
 			</DoxyBlocks>
 			<wxsmith version="1">
-				<gui name="wxWidgets" src="" main="" init_handlers="necessary" language="CPP" />
 				<resources>
 					<wxPanel wxs="wxsmith/ConfigPanel.wxs" src="ConfigPanel.cpp" hdr="ConfigPanel.h" fwddecl="0" i18n="1" name="ConfigPanel" language="CPP" />
 				</resources>

@@ -154,9 +154,6 @@ void wxsEvents::GenerateBindingCode(wxsCoderContext* Context,const wxString& IdS
                             }
                             break;
 
-                        case wxsEventDesc::IdRange:   // fall-through
-                        case wxsEventDesc::Category:  // fall-through
-                        case wxsEventDesc::EndOfList: // fall-through
                         default:
                             break;
                     }
@@ -165,7 +162,6 @@ void wxsEvents::GenerateBindingCode(wxsCoderContext* Context,const wxString& IdS
             return;
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsEvents::GenerateBindingCode"),Context->m_Language);

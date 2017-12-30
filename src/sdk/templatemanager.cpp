@@ -187,7 +187,7 @@ cbProject* TemplateManager::NewProjectFromUserTemplate(NewFromTemplateDlg& dlg, 
             ++count;
         }
         else
-            #if wxCHECK_VERSION(3, 0, 0)
+            #if wxCHECK_VERSION(2, 9, 0)
             Manager::Get()->GetLogManager()->DebugLog(F(_T("Failed copying %s to %s"), src.wx_str(), dst.wx_str()));
             #else
             Manager::Get()->GetLogManager()->DebugLog(F(_T("Failed copying %s to %s"), src.c_str(), dst.c_str()));
@@ -204,7 +204,7 @@ cbProject* TemplateManager::NewProjectFromUserTemplate(NewFromTemplateDlg& dlg, 
         {
             // ask to rename the project file, if need be
             wxFileName fname(project_filename);
-            wxString newname = cbGetTextFromUser(_("If you want, you can change the project's filename here (without extension):"), _("Change project's filename"), fname.GetName());
+            wxString newname = wxGetTextFromUser(_("If you want, you can change the project's filename here (without extension):"), _("Change project's filename"), fname.GetName());
             if (!newname.IsEmpty() && newname != fname.GetName())
             {
                 fname.SetName(newname);
@@ -263,16 +263,8 @@ void TemplateManager::SaveUserTemplate(cbProject* prj)
         return;
     }
 
-    // get default template title
-    wxString title = prj->GetTitle();
-
-    // filter title, removing all illegal filename characters
-    wxFileName titleFileName(title) ;
-    wxString forbidden = titleFileName.GetForbiddenChars();
-    for (size_t i=0; i<forbidden.Length(); ++i)
-        title.Replace(wxString(forbidden[i]), wxT(""), true);
-
     // check if it exists and ask a different title
+    wxString title = prj->GetTitle();
     while (true)
     {
         // ask for template title (unique)
@@ -304,7 +296,7 @@ void TemplateManager::SaveUserTemplate(cbProject* prj)
     {
         wxString src = (*it)->file.GetFullPath();
         wxString dst = templ + (*it)->relativeToCommonTopLevelPath;
-        #if wxCHECK_VERSION(3, 0, 0)
+        #if wxCHECK_VERSION(2, 9, 0)
         Manager::Get()->GetLogManager()->DebugLog(F(_T("Copying %s to %s"), src.wx_str(), dst.wx_str()));
         #else
         Manager::Get()->GetLogManager()->DebugLog(F(_T("Copying %s to %s"), src.c_str(), dst.c_str()));
@@ -314,7 +306,7 @@ void TemplateManager::SaveUserTemplate(cbProject* prj)
         if (wxCopyFile(src, dst, true))
             ++count;
         else
-            #if wxCHECK_VERSION(3, 0, 0)
+            #if wxCHECK_VERSION(2, 9, 0)
             Manager::Get()->GetLogManager()->DebugLog(F(_T("Failed copying %s to %s"), src.wx_str(), dst.wx_str()));
             #else
             Manager::Get()->GetLogManager()->DebugLog(F(_T("Failed copying %s to %s"), src.c_str(), dst.c_str()));

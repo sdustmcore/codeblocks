@@ -37,7 +37,7 @@
 // this is the plugins SDK version number
 // it will change when the SDK interface breaks
 #define PLUGIN_SDK_VERSION_MAJOR   1
-#define PLUGIN_SDK_VERSION_MINOR   32
+#define PLUGIN_SDK_VERSION_MINOR   29
 #define PLUGIN_SDK_VERSION_RELEASE 0
 
 // class decls
@@ -72,7 +72,6 @@ static const int cgContribPlugin    = 0x08; ///< One of the contrib plugins (or 
 static const int cgUnknown          = 0x10; ///< Unknown. This will be probably grouped with cgContribPlugin.
 
 /** @brief Base class for plugins
-  *
   * This is the most basic class a plugin must descend
   * from.
   * cbPlugin descends from wxEvtHandler, so it provides its methods as well...
@@ -530,8 +529,7 @@ class PLUGIN_EXPORT cbDebuggerPlugin: public cbPlugin
                 Properties   = 1 << 1,
                 Delete       = 1 << 2,
                 DeleteAll    = 1 << 3,
-                AddDataBreak = 1 << 4,
-                ExamineMemory = 1 << 5
+                AddDataBreak = 1 << 4
             };
         };
 
@@ -605,6 +603,7 @@ class PLUGIN_EXPORT cbDebuggerPlugin: public cbPlugin
 
         void BringCBToFront();
 
+        bool DragInProgress() const;
 
         void ShowLog(bool clear);
         void Log(const wxString& msg, Logger::level level = Logger::info);
@@ -634,12 +633,16 @@ class PLUGIN_EXPORT cbDebuggerPlugin: public cbPlugin
         void OnProjectActivated(CodeBlocksEvent& event);
         void OnProjectClosed(CodeBlocksEvent& event);
         void OnCompilerFinished(CodeBlocksEvent& event);
+        void OnEditorHook(cbEditor* editor, wxScintillaEvent& event);
     private:
+        wxToolBar *m_toolbar;
         wxString m_PreviousLayout;
         cbCompilerPlugin* m_pCompiler;
         bool m_WaitingCompilerToFinish;
 
+        int m_EditorHookId;
         StartType m_StartType;
+        bool m_DragInProgress;
 
         int m_ActiveConfig;
 

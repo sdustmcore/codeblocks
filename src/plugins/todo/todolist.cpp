@@ -55,6 +55,7 @@ namespace
 
 const int idViewTodo = wxNewId();
 const int idAddTodo = wxNewId();
+const int idStartParsing = wxNewId();
 
 BEGIN_EVENT_TABLE(ToDoList, cbPlugin)
     EVT_UPDATE_UI(idViewTodo, ToDoList::OnUpdateUI)

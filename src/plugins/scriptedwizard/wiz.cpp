@@ -14,7 +14,6 @@
     #include <wx/checklst.h>
     #include <wx/combobox.h>
     #include <wx/dir.h>
-    #include <wx/image.h>
     #include <wx/intl.h>
     #include <wx/listbox.h>
     #include <wx/panel.h>
@@ -277,12 +276,6 @@ CompileTargetBase* Wiz::Launch(int index, wxString* pFilename)
         InfoWindow::Display(_("Error"), _("Failed to load the wizard's script.\nPlease check the debug log for details..."));
         return nullptr;
     }
-
-    // Set wizard folder name for GetWizardScriptFolder() calls
-    m_WizardScriptFolder = wxEmptyString;
-    wxArrayString scriptDirs = wxFileName(script).GetDirs();
-    if (scriptDirs.GetCount())
-        m_WizardScriptFolder = scriptDirs[scriptDirs.GetCount()-1];
 
     // call BeginWizard()
     try
@@ -684,12 +677,8 @@ CompileTargetBase* Wiz::RunFilesWizard(wxString* pFilename)
             cbMessageBox(_("Wizard failed..."), _("Error"), wxICON_ERROR);
         else
         {
-            const wxString &filename = files.BeforeFirst(_T(';'));
             if (pFilename)
-                *pFilename = filename;
-            EditorBase *editor = Manager::Get()->GetEditorManager()->GetEditor(filename);
-            if (editor && editor->IsBuiltinEditor())
-                static_cast<cbEditor*>(editor)->SetEditorStyle();
+                *pFilename = files.BeforeFirst(_T(';'));
         }
     }
     catch (SquirrelError& e)
@@ -767,7 +756,7 @@ wxString Wiz::GenerateFile(const wxString& basePath, const wxString& filename, c
         wxString query_overwrite;
         query_overwrite.Printf(
           _T("Warning:\n")
-          _T("The wizard is about to OVERWRITE the following existing file:\n")+
+          _T("The wizard is about OVERWRITE the following existing file:\n")+
           fname.GetFullPath()+_T("\n\n") +
           _T("Are you sure that you want to OVERWRITE the file?\n\n")+
           _T("(If you answer 'No' the existing file will be kept.)"));
@@ -832,7 +821,7 @@ void Wiz::CopyFiles(cbProject* theproject, const wxString&  prjdir, const wxStri
             wxString query_overwrite;
             query_overwrite.Printf(
               _T("Warning:\n")
-              _T("The wizard is about to OVERWRITE the following existing file:\n")+
+              _T("The wizard is about OVERWRITE the following existing file:\n")+
               wxFileName(dstfile).GetFullPath()+_T("\n\n")+
               _T("Are you sure that you want to OVERWRITE the file?\n\n")+
               _T("(If you answer 'No' the existing file will be kept.)"));
@@ -900,84 +889,6 @@ void Wiz::FillContainerWithCompilers(const wxString& name, const wxString& compi
         if (win && win->GetCount() == 0)
         {
             Wizard::FillCompilerControl(win, compilerID, validCompilerIDs);
-        }
-    }
-}
-
-void Wiz::FillContainerWithSelectCompilers( const wxString& name, const wxString& validCompilerIDs )
-{
-    // Fill the named window with compilers matching a mask/filter
-    // Example: FillContainerWithSelectCompilers(_T("GenericChoiceList"), _T("*arm*;rx*;mips*"));
-
-    wxWizardPage* page = m_pWizard->GetCurrentPage();
-    if (page)
-    {
-        wxItemContainer* win = dynamic_cast<wxItemContainer*>( page->FindWindowByName( name.IsEmpty() ? _T("GenericChoiceList") : name , page ) );
-        if (win)
-        {
-            wxArrayString valids = GetArrayFromString(validCompilerIDs, _T(";"), true);
-            win->Clear();
-            for (size_t i = 0; i < CompilerFactory::GetCompilersCount(); ++i)
-            {
-                Compiler* compiler = CompilerFactory::GetCompiler(i);
-                if (compiler)
-                {
-                    for (size_t n = 0; n < valids.GetCount(); ++n)
-                    {
-                        // match not only if IDs match, but if ID inherits from it too
-                        if (CompilerFactory::CompilerInheritsFrom(compiler, valids[n]))
-                        {
-                            win->Append(compiler->GetName());
-                            break;
-                        }
-                    }
-                }
-            }
-            Compiler* compiler = CompilerFactory::GetDefaultCompiler();
-            if (compiler)
-                win->SetSelection(win->FindString(compiler->GetName()));
-        }
-    }
-}
-
-void Wiz::AppendContainerWithSelectCompilers( const wxString& name, const wxString& validCompilerIDs )
-{
-    // Add to the named window the compilers matching a mask/filter
-    // Example: AppendContainerWithSelectCompilers(_T("GenericChoiceList"), _T("*arm*;rx*;mips*"));
-
-    wxWizardPage* page = m_pWizard->GetCurrentPage();
-    if (page)
-    {
-        wxItemContainer* win = dynamic_cast<wxItemContainer*>( page->FindWindowByName( name.IsEmpty() ? _T("GenericChoiceList") : name , page ) );
-        if (win)
-        {
-            wxArrayString valids = GetArrayFromString(validCompilerIDs, _T(";"), true);
-            size_t iItemsCount = win->GetCount();
-            wxString nameInItems = _T(";");
-            for( size_t i = 0; i < iItemsCount; ++i )
-            {
-                nameInItems += win->GetString(i) + _T(";");
-            }
-            for (size_t i = 0; i < CompilerFactory::GetCompilersCount(); ++i)
-            {
-                Compiler* compiler = CompilerFactory::GetCompiler(i);
-                if (compiler)
-                {
-                    wxString compilerName = compiler->GetName();
-                    if( wxNOT_FOUND != nameInItems.Find( _T(";") + compilerName + _T(";") ) )
-                        continue;
-                    for (size_t n = 0; n < valids.GetCount(); ++n)
-                    {
-                        // match not only if IDs match, but if ID inherits from it too
-                        if (CompilerFactory::CompilerInheritsFrom(compiler, valids[n]))
-                        {
-                            win->Append( compilerName );
-                            nameInItems += compilerName + _T(";");
-                            break;
-                        }
-                    }
-                }
-            }
         }
     }
 }
@@ -1429,18 +1340,6 @@ void Wiz::AddWizard(TemplateOutputType otype,
     info.cat = cat;
     info.script = script;
     info.templatePNG = cbLoadBitmap(tpng, wxBITMAP_TYPE_PNG);
-
-    // wx3.0 asserts when the image is smaller than 32x32, so we need to resize it.
-    if (info.templatePNG.Ok() && (info.templatePNG.GetWidth() != 32 || info.templatePNG.GetHeight() != 32))
-    {
-        Manager::Get()->GetLogManager()->LogWarning(F(_("Resizing image '%s' to fit 32x32 (original size is %dx%d)"),
-                                                      tpng.wx_str(), info.templatePNG.GetWidth(),
-                                                      info.templatePNG.GetHeight()));
-        wxImage temp = info.templatePNG.ConvertToImage();
-        temp.Resize(wxSize(32, 32), wxPoint(0, 0), -1, -1, -1);
-        info.templatePNG = wxBitmap(temp);
-    }
-
     info.wizardPNG = cbLoadBitmap(wpng, wxBITMAP_TYPE_PNG);
     info.xrc = _xrc;
     m_Wizards.Add(info);
@@ -1651,74 +1550,6 @@ void Wiz::SetReleaseTargetDefaults(bool wantRelease,
     m_ReleaseObjOutputDir = releaseObjOut;
 }
 
-int Wiz::FillContainerWithChoices( const wxString& name, const wxString& choices )
-{
-    // Fill the named window with a semi-colon separated set of strings
-    // Eg: FillContainerWithChoices(_T("GenericChoiceList"), _T("this;that;another"));
-
-    wxWizardPage* page = m_pWizard->GetCurrentPage();
-    if (page)
-    {
-        wxItemContainer* win = dynamic_cast<wxItemContainer*>( page->FindWindowByName( name.IsEmpty() ? _T("GenericChoiceList") : name , page ) );
-        if (win)
-        {
-            win->Clear();
-            wxArrayString items = GetArrayFromString( choices, _T(";") );
-            unsigned int nItems = items.GetCount();
-            for ( unsigned int i = 0; i < nItems; i++ )
-            {
-                win->Append( items[i] );
-            }
-
-            return 0;
-        }
-    }
-    return -1;
-}
-
-int Wiz::AppendContainerWithChoices( const wxString& name, const wxString& choices )
-{
-    // Add to the named window, a semi-colon separated set of strings
-    // Eg: AppendContainerWithChoices(_T("GenericChoiceList"), _T("this;that;another"));
-
-    wxWizardPage* page = m_pWizard->GetCurrentPage();
-    if (page)
-    {
-        wxItemContainer* win = dynamic_cast<wxItemContainer*>( page->FindWindowByName( name.IsEmpty() ? _T("GenericChoiceList") : name , page ) );
-        if (win)
-        {
-            wxArrayString items = GetArrayFromString( choices, _T(";") );
-            size_t iItemsCount = win->GetCount();
-            wxString nameInItems = _T(";");
-            for( size_t i = 0; i < iItemsCount; ++i )
-            {
-                nameInItems += win->GetString(i) + _T(";");
-            }
-            unsigned int nItems = items.GetCount();
-            for ( unsigned int i = 0; i < nItems; i++ )
-            {
-                wxString tItemsName = items[i];
-                if( wxNOT_FOUND != nameInItems.Find( _T(";") + tItemsName + _T(";") ) )
-                    continue;
-                win->Append( tItemsName );
-                nameInItems += tItemsName + _T(";");
-            }
-
-            return 0;
-        }
-    }
-    return -1;
-}
-
-wxString Wiz::GetWizardScriptFolder(void)
-{
-    // Return the name only of the current wizard folder (this is not a path)
-    //ie., would return only _T("arm") for ...\trunk\src\output\share\CodeBlocks\templates\wizard\arm
-
-    return m_WizardScriptFolder;
-}
-
-
 void Wiz::RegisterWizard()
 {
     SqPlus::SQClassDef<Wiz>("Wiz").
@@ -1798,22 +1629,7 @@ void Wiz::RegisterWizard()
             func(&Wiz::GetFileHeaderGuard, "GetFileHeaderGuard").
             func(&Wiz::GetFileAddToProject, "GetFileAddToProject").
             func(&Wiz::GetFileTargetIndex, "GetFileTargetIndex").
-            func(&Wiz::SetFilePathSelectionFilter, "SetFilePathSelectionFilter").
-
-            // Fill the named window with compilers matching a mask/filter
-            func(&Wiz::FillContainerWithSelectCompilers, "FillContainerWithSelectCompilers").
-
-            // Add to the named window the compilers matching a mask/filter
-            func(&Wiz::AppendContainerWithSelectCompilers, "AppendContainerWithSelectCompilers").
-
-            // Fill the named window with a semi-colon separated set of strings
-            func(&Wiz::FillContainerWithChoices, "FillContainerWithChoices").
-
-            // Add to the named window, a semi-colon separated set of strings
-            func(&Wiz::AppendContainerWithChoices, "AppendContainerWithChoices").
-
-            // Return the name only of the current wizard folder (this is not a path)
-            func(&Wiz::GetWizardScriptFolder, "GetWizardScriptFolder");
+            func(&Wiz::SetFilePathSelectionFilter, "SetFilePathSelectionFilter");
 
     SqPlus::BindVariable(this, "Wizard", SqPlus::VAR_ACCESS_READ_ONLY);
 }

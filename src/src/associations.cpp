@@ -36,9 +36,6 @@ const Associations::Assoc knownTypes[] =
     { FileFilters::CXX_EXT,             _T("C++ source file"),               4 },
     { FileFilters::INL_EXT,             _T("C++ source file"),               4 },
 
-    { FileFilters::TPP_EXT,             _T("C++ template source file"),      4 },
-    { FileFilters::TCC_EXT,             _T("C++ template source file"),      4 },
-
     { FileFilters::H_EXT,               _T("Header file"),                   5 },
     { FileFilters::HH_EXT,              _T("Header file"),                   5 },
     { FileFilters::HPP_EXT,             _T("Header file"),                   5 },
@@ -208,7 +205,7 @@ void Associations::DoClearAssociation(const wxString& ext)
     if (key.Exists())
     {
         wxString s;
-        #if wxCHECK_VERSION(3, 0, 0)
+        #if wxCHECK_VERSION(2, 9, 0)
         if (key.QueryValue(wxEmptyString, s) && s.StartsWith(_T("CodeBlocks")))
         #else
         if (key.QueryValue(NULL, s) && s.StartsWith(_T("CodeBlocks")))

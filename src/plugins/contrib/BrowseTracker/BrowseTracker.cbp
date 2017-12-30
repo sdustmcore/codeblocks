@@ -32,7 +32,6 @@
 					<Add option="-DwxUSE_UNICODE" />
 					<Add option="-DNO_LOGGING" />
 					<Add directory="../../../include" />
-					<Add directory="../../../include/tinyxml" />
 					<Add directory="../../../sdk/wxscintilla/include" />
 					<Add directory="$(#WX.include)" />
 					<Add directory="$(#WX.lib)/gcc_dll$(WX_CFG)/msw$(WX_SUFFIX)" />
@@ -79,7 +78,6 @@
 					<Add option="-DwxUSE_UNICODE" />
 					<Add option="-DLOGGING" />
 					<Add directory="../../../include" />
-					<Add directory="../../../include/tinyxml" />
 					<Add directory="../../../sdk/wxscintilla/include" />
 					<Add directory="$(#WX.include)" />
 					<Add directory="$(#WX.lib)/gcc_dll$(WX_CFG)/msw$(WX_SUFFIX)" />
@@ -106,10 +104,6 @@
 		<VirtualTargets>
 			<Add alias="All" targets="default;" />
 		</VirtualTargets>
-		<Compiler>
-			<Add option="-std=gnu++11" />
-			<Add option='[[if (GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.8.0&quot;)) print(_T(&quot;-Wno-unused-local-typedefs&quot;));]]' />
-		</Compiler>
 		<Unit filename="BrowseMarks.cpp" />
 		<Unit filename="BrowseMarks.h" />
 		<Unit filename="BrowseSelector.cpp" />
@@ -135,16 +129,10 @@
 		<Unit filename="Version.cpp" />
 		<Unit filename="Version.h" />
 		<Unit filename="manifest.xml" />
-		<Unit filename="wxsmith/ConfigPanel.wxs" />
 		<Extensions>
 			<code_completion />
 			<envvars />
 			<debugger />
-			<wxsmith version="1">
-				<resources>
-					<wxPanel wxs="wxsmith/ConfigPanel.wxs" src="ConfigPanel.cpp" hdr="ConfigPanel.h" fwddecl="0" i18n="1" name="ConfigPanel" language="CPP" />
-				</resources>
-			</wxsmith>
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

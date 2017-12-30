@@ -71,23 +71,6 @@ page. Or you can send a mail to me
 \section version Version history
 
 <dl>
-<dt><b>0.9.5</b> - <i>December 2015</i></dt>
-<dd>
-wxPdfDocument is compatible with wxWidgets version 2.8.12 and version 3.0.2. 
-
-General changes:<br>
-- respect "join" and "cap" attributes of wxPen in wxPdfDC (2.9)
-- cleaned up the use of wxMemoryOutputStream instances
-- cleaned up dependencies on wxWidgets libraries for graphics formats GIF and JPEG
-
-Fixed bugs:<br>
-- fixed a bug in positioning rotated text
-- fixed a bug in determining line lengths in XML formatted output
-- fixed a bug in drawing a point in wxPdfDC (2.9)
-- fixed a bug in drawing elliptic arcs in wxPdfDC (2.9)
-
-</dd>
-
 <dt><b>0.9.4</b> - <i>August 2013</i></dt>
 <dd>
 wxPdfDocument is compatible with wxWidgets version 2.8.12 and version 2.9.5. 
@@ -421,10 +404,10 @@ found on the <a href="http://www.fpdf.org"><b>FPDF website</b></a> I would like 
 - Moritz Wagner (Transformation)
 - Andreas Wuermser (Clipping, Gradients, Transformation)
 
-The wxPdfDocument encryption methods use the MD5 Message Digest
-Algorithm implementation of Alexander Peslyak (Public Domain) and
-the Rijndael cipher implementation of Szymon Stefanek (Public Domain).
-For detailed license information \see files pdfencrypt.cpp and pdfrijndael.h.
+The wxPdfDocument encryption methods use the RSA Data Security, Inc. MD5 Message
+Digest Algorithm (RSA Data Security license) and the Rijndael cipher implementation
+of Szymon Stefanek (Public Domain). For detailed license information \see files
+pdfencrypt.cpp and pdfrijndael.h.
 
 */
 

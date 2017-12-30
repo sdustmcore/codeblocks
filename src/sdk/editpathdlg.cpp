@@ -19,7 +19,6 @@
     #include "globals.h"
     #include "manager.h"
     #include "macrosmanager.h"
-    #include "uservarmanager.h"
 #endif
 
 #include "editpathdlg.h"
@@ -32,7 +31,6 @@ static wxString s_LastPath;
 BEGIN_EVENT_TABLE(EditPathDlg, wxScrollingDialog)
     EVT_UPDATE_UI(-1, EditPathDlg::OnUpdateUI)
     EVT_BUTTON(XRCID("btnBrowse"), EditPathDlg::OnBrowse)
-    EVT_BUTTON(XRCID("btnOther"), EditPathDlg::OnOther)
 END_EVENT_TABLE()
 
 EditPathDlg::EditPathDlg(wxWindow* parent,
@@ -46,7 +44,6 @@ EditPathDlg::EditPathDlg(wxWindow* parent,
 {
     //ctor
     wxXmlResource::Get()->LoadObject(this, parent, _T("dlgEditPath"),_T("wxScrollingDialog"));
-    XRCCTRL(*this, "wxID_OK", wxButton)->SetDefault();
 
     XRCCTRL(*this, "txtPath", wxTextCtrl)->SetValue(path);
     XRCCTRL(*this, "dlgEditPath", wxScrollingDialog)->SetTitle(title);
@@ -64,21 +61,11 @@ EditPathDlg::EditPathDlg(wxWindow* parent,
     m_AskMakeRelative = true;
     m_ShowCreateDirButton = false;
     XRCCTRL(*this, "txtPath", wxTextCtrl)->SetFocus();
-
-    // Limit vertical resizing.
-    SetMaxSize(wxSize(-1, GetMinHeight()));
 }
 
 EditPathDlg::~EditPathDlg()
 {
     //dtor
-}
-
-void EditPathDlg::OnUpdateUI(cb_unused wxUpdateUIEvent& event)
-{
-    wxButton* btn = (wxButton*)FindWindow(wxID_OK);
-    if (btn)
-        btn->Enable(!XRCCTRL(*this, "txtPath", wxTextCtrl)->GetValue().IsEmpty());
 }
 
 void EditPathDlg::OnBrowse(cb_unused wxCommandEvent& event)
@@ -95,7 +82,7 @@ void EditPathDlg::OnBrowse(cb_unused wxCommandEvent& event)
     if (m_WantDir)
     {
         // try to "decode" custom var
-        wxString initial_val = val;
+        wxString bkp = val;
         Manager::Get()->GetMacrosManager()->ReplaceEnvVars(val);
         fname = val;
         fname.MakeAbsolute(m_Basepath);
@@ -108,10 +95,10 @@ void EditPathDlg::OnBrowse(cb_unused wxCommandEvent& event)
             return;
 
         // if it was a custom var, see if we can re-insert it
-        if (initial_val != val)
+        if (bkp != val)
         {
             wxString tmp = path.GetFullPath();
-            if (tmp.Replace(val, initial_val) != 0)
+            if (tmp.Replace(val, bkp) != 0)
             {
                 // done here
                 XRCCTRL(*this, "txtPath", wxTextCtrl)->SetValue(tmp);
@@ -185,22 +172,16 @@ void EditPathDlg::OnBrowse(cb_unused wxCommandEvent& event)
     XRCCTRL(*this, "txtPath", wxTextCtrl)->SetValue(result);
 }
 
-void EditPathDlg::OnOther(wxCommandEvent& event)
+void EditPathDlg::OnUpdateUI(cb_unused wxUpdateUIEvent& event)
 {
-    UserVariableManager *userMgr = Manager::Get()->GetUserVariableManager();
-    wxTextCtrl *txtPath = XRCCTRL(*this, "txtPath", wxTextCtrl);
-
-    const wxString &user_var = userMgr->GetVariable(this, txtPath->GetValue());
-    if ( !user_var.IsEmpty() )
-    {
-        txtPath->SetValue(user_var);
-        m_WantDir = true;
-    }
+    wxButton* btn = (wxButton*)FindWindow(wxID_OK);
+    if (btn)
+        btn->Enable(!XRCCTRL(*this, "txtPath", wxTextCtrl)->GetValue().IsEmpty());
 }
 
 void EditPathDlg::EndModal(int retCode)
 {
-    // update m_Path
+    // update m_Lib
     m_Path = XRCCTRL(*this, "txtPath", wxTextCtrl)->GetValue();
     wxScrollingDialog::EndModal(retCode);
 }

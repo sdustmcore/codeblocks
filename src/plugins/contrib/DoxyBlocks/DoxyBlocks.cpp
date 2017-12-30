@@ -40,7 +40,7 @@
 #include <cbstyledtextctrl.h>
 #include <configurationpanel.h>
 #include <projectloader_hooks.h>
-#include <tinywxuni.h>
+#include <tinyxml/tinywxuni.h>
 
 #include <wx/tokenzr.h>
 #include <wx/textfile.h>
@@ -54,27 +54,6 @@ namespace
 {
     PluginRegistrant<DoxyBlocks> reg(wxT("DoxyBlocks"));
 }
-
-/*! \brief Toolbar control IDs
- */
-const long ID_TB_WIZARD           = wxNewId();
-const long ID_TB_EXTRACTPROJECT   = wxNewId();
-const long ID_TB_BLOCKCOMMENT     = wxNewId();
-const long ID_TB_LINECOMMENT      = wxNewId();
-const long ID_TB_RUNHTML          = wxNewId();
-const long ID_TB_RUNCHM           = wxNewId();
-const long ID_TB_CONFIG           = wxNewId();
-
-const long ID_MENU_DOXYBLOCKS     = wxNewId();
-const long ID_MENU_DOXYWIZARD     = wxNewId();
-const long ID_MENU_EXTRACTPROJECT = wxNewId();
-const long ID_MENU_BLOCKCOMMENT   = wxNewId();
-const long ID_MENU_LINECOMMENT    = wxNewId();
-const long ID_MENU_RUNHTML        = wxNewId();
-const long ID_MENU_RUNCHM         = wxNewId();
-const long ID_MENU_CONFIG         = wxNewId();
-const long ID_MENU_SAVE_TEMPLATE  = wxNewId();
-const long ID_MENU_LOAD_TEMPLATE  = wxNewId();
 
 // events handling
 BEGIN_EVENT_TABLE(DoxyBlocks, cbPlugin)
@@ -644,7 +623,11 @@ bool DoxyBlocks::BuildToolBar(wxToolBar *toolBar)
     m_pToolbar->AddSeparator();
     m_pToolbar->AddTool(ID_TB_CONFIG, _("Open Preferences"), wxBitmap(prefix + wxT("configure.png"), wxBITMAP_TYPE_PNG), wxNullBitmap, wxITEM_NORMAL, _("Open DoxyBlocks' preferences"));
     m_pToolbar->Realize();
+#if wxCHECK_VERSION(2, 8, 0)
     m_pToolbar->SetInitialSize();
+#else
+    m_pToolbar->SetBestFittingSize();
+#endif
 
     Connect(ID_TB_WIZARD,         wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(DoxyBlocks::OnRunDoxywizard));
     Connect(ID_TB_EXTRACTPROJECT, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(DoxyBlocks::OnExtractProject));

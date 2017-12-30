@@ -105,7 +105,6 @@ EditorConfigurationDlg::EditorConfigurationDlg(wxWindow* parent)
     m_pImageList(nullptr)
 {
     wxXmlResource::Get()->LoadObject(this, parent, _T("dlgConfigureEditor"),_T("wxScrollingDialog"));
-    XRCCTRL(*this, "wxID_OK", wxButton)->SetDefault();
 
     XRCCTRL(*this, "lblEditorFont", wxStaticText)->SetLabel(_("This is sample text"));
     m_FontString = Manager::Get()->GetConfigManager(_T("editor"))->Read(_T("/font"), wxEmptyString);
@@ -152,6 +151,15 @@ EditorConfigurationDlg::EditorConfigurationDlg(wxWindow* parent)
     XRCCTRL(*this, "chkPlatDefines",              wxCheckBox)->SetValue(cfg->ReadBool(_T("/platform_defines"),           false));
     XRCCTRL(*this, "chkColoursWxSmith",           wxCheckBox)->SetValue(cfg->ReadBool(_T("/highlight_wxsmith"),          true));
     XRCCTRL(*this, "chkNoStlC",                   wxCheckBox)->SetValue(cfg->ReadBool(_T("/no_stl_in_c"),                true));
+
+#if defined __WXMSW__
+    const wxString openFolderCmds = _T("explorer.exe /select,");
+#elif defined __WXMAC__
+    const wxString openFolderCmds = _T("open -R");
+#else
+    const wxString openFolderCmds = _T("xdg-open");
+#endif
+    XRCCTRL(*this, "txtOpenFolder", wxTextCtrl)->SetValue(cfg->Read(_T("/open_containing_folder"), openFolderCmds));
 
     XRCCTRL(*this, "chkShowEOL",             wxCheckBox)->SetValue(cfg->ReadBool(_T("/show_eol"),                        false));
     XRCCTRL(*this, "chkStripTrailings",      wxCheckBox)->SetValue(cfg->ReadBool(_T("/eol/strip_trailing_spaces"),       true));
@@ -750,7 +758,7 @@ void EditorConfigurationDlg::OnEditFilemasks(cb_unused wxCommandEvent& event)
 {
     if (m_Theme && m_Lang != HL_NONE)
     {
-        wxString masks = cbGetTextFromUser(_("Edit filemasks (use commas to separate them - case insensitive):"),
+        wxString masks = wxGetTextFromUser(_("Edit filemasks (use commas to separate them - case insensitive):"),
                                         m_Theme->GetLanguageName(m_Lang),
                                         GetStringFromArray(m_Theme->GetFileMasks(m_Lang), _T(",")));
         if (!masks.IsEmpty())
@@ -1033,6 +1041,7 @@ void EditorConfigurationDlg::EndModal(int retCode)
 
         cfg->Write(_T("/tab_size"),                            XRCCTRL(*this, "spnTabSize",                           wxSpinCtrl)->GetValue());
         cfg->Write(_T("/view_whitespace"),                     XRCCTRL(*this, "cmbViewWS",                            wxChoice)->GetSelection());
+        cfg->Write(_T("/open_containing_folder"),              XRCCTRL(*this, "txtOpenFolder",                        wxTextCtrl)->GetValue());
         cfg->Write(_T("/tab_text_relative"),                   XRCCTRL(*this, "rbTabText",                            wxRadioBox)->GetSelection() ? true : false);
         // find & replace, regex searches
 

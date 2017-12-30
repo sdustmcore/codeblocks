@@ -12,17 +12,12 @@
 
 //namespace cb
 //{
-    /**
-     * @brief sprintf-like function
-     * @warning NOT thread safe within a single compilation unit due to use of
-     *          static @c temp_string.
-     */
     inline wxString F(const wxChar* msg, ...)
     {
         va_list arg_list;
         va_start(arg_list, msg);
-#if wxCHECK_VERSION(3, 0, 0) && wxUSE_UNICODE
-// in wx >=  3.0 unicode-build (default) we need the %ls here, or the strings get
+#if wxCHECK_VERSION(2,9,0) && wxUSE_UNICODE
+// in wx >=  2.9 unicode-build (default) we need the %ls here, or the strings get
 // cut after the first character
         ::temp_string = msg;
         ::temp_string.Replace(_T("%s"), _T("%ls"));

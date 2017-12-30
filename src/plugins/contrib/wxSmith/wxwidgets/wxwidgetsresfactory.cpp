@@ -31,7 +31,7 @@
 #include "../wxsmith.h"
 
 #include <wx/choicdlg.h>
-#include <tinywxuni.h>
+#include <tinyxml/tinywxuni.h>
 #include <sqplus.h>
 #include <sc_base_types.h>
 
@@ -243,7 +243,7 @@ wxsResource* wxWidgetsResFactory::OnBuildExternal(const wxString& FileName)
     int Choice = 0;
     if ( ResourcesFound.size() > 1 )
     {
-        Choice = ::cbGetSingleChoiceIndex(
+        Choice = ::wxGetSingleChoiceIndex(
             _("There's more than one resource in this file.\n"
               "Please select which one should be edited."),
             _("Choose resource to edit"),

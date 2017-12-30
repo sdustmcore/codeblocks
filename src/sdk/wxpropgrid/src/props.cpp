@@ -138,7 +138,7 @@ bool wxStringProperty::DoSetAttribute( const wxString& name, wxVariant& value )
 // -----------------------------------------------------------------------
 
 #ifndef wxHAS_STRTOLL
-    #if wxCHECK_VERSION(3, 0, 0)
+    #if wxCHECK_VERSION(2,9,0)
         #define wxHAS_STRTOLL
     #endif
 #endif
@@ -251,7 +251,6 @@ static wxULongLong_t wxStrtoullBase(const wxChar* nptr, wxChar** endptr, int bas
     return sum;
 }
 
-wxULongLong_t wxStrtoull(const wxChar* nptr, wxChar** endptr, int base);
 wxULongLong_t wxStrtoull(const wxChar* nptr, wxChar** endptr, int base)
 {
     wxChar sign;
@@ -266,7 +265,6 @@ wxULongLong_t wxStrtoull(const wxChar* nptr, wxChar** endptr, int base)
     return uval;
 }
 
-wxLongLong_t wxStrtoll(const wxChar* nptr, wxChar** endptr, int base);
 wxLongLong_t wxStrtoll(const wxChar* nptr, wxChar** endptr, int base)
 {
     wxChar sign;
@@ -429,11 +427,11 @@ wxString wxIntProperty::GetValueAsString( int ) const
     if ( wxPGIsVariantType(m_value, long) )
         return wxString::Format(wxT("%li"),m_value.GetLong());
 
-    wxLongLong* ll = &wxLongLongFromVariant(m_value);
-    if ( ll )
-        return ll->ToString();
+	wxLongLong* ll = &wxLongLongFromVariant(m_value);
+	if ( ll )
+		return ll->ToString();
 
-    return wxEmptyString;
+	return wxEmptyString;
 }
 
 bool wxIntProperty::StringToValue( wxVariant& variant, const wxString& text, int argFlags ) const
@@ -1395,7 +1393,7 @@ wxEnumProperty::wxEnumProperty( const wxString& label, const wxString& name,
 {
     SetIndex(0);
 
-    if ( labels.size() )
+    if ( &labels && labels.size() )
     {
         m_choices.Set(labels, values);
 
@@ -1602,7 +1600,7 @@ wxFlagsProperty::wxFlagsProperty( const wxString& label, const wxString& name,
 {
     m_oldChoicesData = (wxPGChoicesData*) NULL;
 
-    if ( labels.size() )
+    if ( &labels && labels.size() )
     {
         m_choices.Set(labels,values);
 

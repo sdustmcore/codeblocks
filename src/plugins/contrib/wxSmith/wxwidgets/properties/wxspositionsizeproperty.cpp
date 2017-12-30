@@ -55,7 +55,6 @@ wxString wxsPositionSizeData::GetPositionCode(wxsCoderContext* Context)
                     wxString::Format(_T("wxPoint(%ld,%ld)"),X,Y);
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsPositionSizeData::GetPositionCode"),Context->m_Language);
@@ -78,7 +77,6 @@ wxString wxsPositionSizeData::GetSizeCode(wxsCoderContext* Context)
                     wxString::Format(_T("wxSize(%ld,%ld)"),X,Y);
         }
 
-        case wxsUnknownLanguage: // fall-through
         default:
         {
             wxsCodeMarks::Unknown(_T("wxsPositionSizeData::GetSizeCode"),Context->m_Language);
@@ -94,10 +92,10 @@ wxsPositionSizeProperty::wxsPositionSizeProperty(
     const wxString& _PGXName,
     const wxString& _PGYName,
     const wxString& _PGDUName,
-    const wxString& _DataName,
+    const wxString& DataName,
     long _Offset,
-    int _Priority):
-        wxsProperty(PGUseDefName,_DataName,_Priority),
+    int Priority):
+        wxsProperty(PGUseDefName,DataName,Priority),
         PGXName(_PGXName),
         PGYName(_PGYName),
         PGDUName(_PGDUName),
@@ -147,9 +145,6 @@ bool wxsPositionSizeProperty::PGRead(wxsPropertyContainer* Object,wxPropertyGrid
         case DUIND:
             DUVALUE = Grid->GetPropertyValue(Id).GetBool();
             break;
-
-        default:
-            break;
     }
 
     return true;
@@ -197,9 +192,6 @@ bool wxsPositionSizeProperty::PGWrite(wxsPropertyContainer* Object,wxPropertyGri
                 Grid->EnableProperty(Id);
             }
             Grid->SetPropertyValue(Id,DUVALUE);
-            break;
-
-        default:
             break;
     }
     return true;

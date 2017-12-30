@@ -34,7 +34,7 @@ namespace
     {
         public:
 
-            wxsScrollingDialogResPreview(cb_unused wxWindow* Parent,wxsItemResData* Data): m_Data(Data)
+            wxsScrollingDialogResPreview(wxWindow* Parent,wxsItemResData* Data): m_Data(Data)
             {
                 m_Data->GetRootItem()->BuildPreview(this,pfExact);
                 wxAcceleratorEntry Acc[1];
@@ -48,12 +48,12 @@ namespace
                 m_Data->NotifyPreviewClosed();
             }
 
-            void OnEscape(cb_unused wxCommandEvent& event)
+            void OnEscape(wxCommandEvent& event)
             {
                 Close();
             }
 
-            void OnClose(cb_unused wxCloseEvent& event)
+            void OnClose(wxCloseEvent& event)
             {
                 Destroy();
             }

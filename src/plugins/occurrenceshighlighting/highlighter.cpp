@@ -21,6 +21,13 @@
 #include <cbstyledtextctrl.h>
 #include <cbcolourmanager.h>
 
+HighlightedEditorPositions::HighlightedEditorPositions():
+    linea(-1),
+    lineb(-1),
+    ed(NULL)
+{
+}
+
 Highlighter::Highlighter(std::set<wxString> &texts):
     m_Texts(texts),
     m_AlreadyChecked(false),
@@ -142,20 +149,6 @@ void Highlighter::TextsChanged()const
     }
 }
 
-static void SetupIndicator(cbStyledTextCtrl *control, int indicator, const wxColor &colour)
-{
-    control->IndicatorSetForeground(indicator, colour);
-    control->IndicatorSetStyle(indicator, wxSCI_INDIC_ROUNDBOX);
-    control->IndicatorSetAlpha(indicator, 100);
-    control->IndicatorSetOutlineAlpha(indicator, 255);
-#ifndef wxHAVE_RAW_BITMAP
-    // If wxWidgets is build without rawbitmap-support, the indicators become opaque
-    // and hide the text, so we show them under the text.
-    // Not enabled as default, because the readability is a little bit worse.
-    control->IndicatorSetUnder(indicator, true);
-#endif
-}
-
 void Highlighter::DoSetIndications(cbEditor* ctrl)const
 {
     cbStyledTextCtrl *stc = ctrl->GetLeftSplitViewControl();
@@ -185,14 +178,27 @@ void Highlighter::DoSetIndications(cbEditor* ctrl)const
     //if(stc->SelectionIsRectangle() || (stcr && stcr->SelectionIsRectangle())) return;
 
     if (m_OldCtrl != ctrl)
-        SetupIndicator(stc, GetIndicator(), GetIndicatorColor());
+    {
+        stc->IndicatorSetStyle(GetIndicator(), wxSCI_INDIC_HIGHLIGHT);
+        stc->IndicatorSetForeground(GetIndicator(), GetIndicatorColor() );
+#ifndef wxHAVE_RAW_BITMAP
+        // If wxWidgets is build without rawbitmap-support, the indicators become opaque
+        // and hide the text, so we show them under the text.
+        // Not enabled as default, because the readability is a little bit worse.
+        stc->IndicatorSetUnder(GetIndicator(),true);
+#endif
+    }
 
     if (stcr)
     {
         if (m_OldCtrl != ctrl)
         {
             stcr->SetIndicatorCurrent(GetIndicator());
-            SetupIndicator(stcr, GetIndicator(), GetIndicatorColor());
+            stcr->IndicatorSetStyle(GetIndicator(), wxSCI_INDIC_HIGHLIGHT);
+            stcr->IndicatorSetForeground(GetIndicator(), GetIndicatorColor() );
+#ifndef wxHAVE_RAW_BITMAP
+            stcr->IndicatorSetUnder(GetIndicator(),true);
+#endif
         }
     }
 
@@ -309,10 +315,25 @@ void Highlighter::HighlightOccurrencesOfSelection(cbEditor* ctrl)const
     {
         wxColour highlightColour(Manager::Get()->GetColourManager()->GetColour(wxT("editor_highlight_occurrence")));
 
-        if ( auto *stc = ctrl->GetLeftSplitViewControl() )
-            SetupIndicator(stc, theIndicator, highlightColour);
-        if ( auto stc = ctrl->GetRightSplitViewControl() )
-            SetupIndicator(stc, theIndicator, highlightColour);
+        if ( ctrl->GetLeftSplitViewControl() )
+        {
+            ctrl->GetLeftSplitViewControl()->IndicatorSetStyle(theIndicator, wxSCI_INDIC_HIGHLIGHT);
+            ctrl->GetLeftSplitViewControl()->IndicatorSetForeground(theIndicator, highlightColour );
+#ifndef wxHAVE_RAW_BITMAP
+            // If wxWidgets is build without rawbitmap-support, the indicators become opaque
+            // and hide the text, so we show them under the text.
+            // Not enabled as default, because the readability is a little bit worse.
+            ctrl->GetLeftSplitViewControl()->IndicatorSetUnder(theIndicator,true);
+#endif
+        }
+        if ( ctrl->GetRightSplitViewControl() )
+        {
+            ctrl->GetRightSplitViewControl()->IndicatorSetStyle(theIndicator, wxSCI_INDIC_HIGHLIGHT);
+            ctrl->GetRightSplitViewControl()->IndicatorSetForeground(theIndicator, highlightColour );
+#ifndef wxHAVE_RAW_BITMAP
+            ctrl->GetRightSplitViewControl()->IndicatorSetUnder(theIndicator,true);
+#endif
+        }
 
         int flag = 0;
         if (cfg->ReadBool(_T("/highlight_occurrence/case_sensitive"), true))

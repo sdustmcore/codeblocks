@@ -5,11 +5,11 @@ using namespace cv;
 
 int main(int argc, char *argv[])
 {
-    Mat img = imread("arnold_schwarzenegger.jpg", CV_LOAD_IMAGE_COLOR);
+    Mat img = imread("lena.jpg", CV_LOAD_IMAGE_COLOR);
     if(img.empty()) 
        return -1;
-    namedWindow("arnold_schwarzenegger", CV_WINDOW_AUTOSIZE );
-    imshow("arnold_schwarzenegger", img);
+    namedWindow( "lena", CV_WINDOW_AUTOSIZE );
+    imshow("lena", img);
     waitKey(0);
     return 0;
 }

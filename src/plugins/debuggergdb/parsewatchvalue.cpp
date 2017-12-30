@@ -74,16 +74,6 @@ wxRegEx regexRepeatedChars(wxT("^((\\\\'.{1,6}\\\\')|('.{1,6}'))[ \\t](<repeats[
                            wxRE_EXTENDED);
 #endif
 
-/// GDB can shorten the string. Such strings are printed as '"value"...'.
-/// This function moves position, so that the dot characters become part of the token.
-/// @return The new position if there are dots or the old position.
-inline int SkipShortenedString(wxString const &str, int pos)
-{
-    while (pos < static_cast<int>(str.length()) && str[pos]==wxT('.'))
-        ++pos;
-    return pos;
-}
-
 inline int DetectRepeatingSymbols(wxString const &str, int pos)
 {
     int newPos = -1, currPos = pos;
@@ -214,12 +204,12 @@ inline bool GetNextToken(wxString const &str, int pos, Token &token)
                         if (newPos != -1)
                         {
                             token.hasRepeatedChar = true;
-                            token.end = SkipShortenedString(str, newPos);
+                            token.end =  newPos;
                             return true;
                         }
                         else
                         {
-                            token.end = SkipShortenedString(str, pos + 1);
+                            token.end = pos + 1;
                             return true;
                         }
                     }
@@ -403,7 +393,7 @@ inline bool ParseGDBWatchValue(cb::shared_ptr<GDBWatch> watch, wxString const &v
                         token_real_end = expanded_token.end;
                     }
                 }
-                else if (expanded_token.end == static_cast<int>(value.length()) || value[expanded_token.end] == wxT('}'))
+                else if (expanded_token.end == static_cast<int>(value.length()))
                 {
                     token.end = expanded_token.end;
                     token_real_end = expanded_token.end;

@@ -18,6 +18,7 @@
     #include <wx/dataobj.h>
     #include "cbplugin.h"
     #include "configmanager.h"
+    #include "debuggermanager.h"
 #endif
 
 #include <wx/clipbrd.h>

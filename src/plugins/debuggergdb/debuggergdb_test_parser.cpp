@@ -398,23 +398,6 @@ TEST(RepeatingChars11_children_name)
     CHECK_EQUAL(wxT("[2]"), getName(*w->GetChild(2)));
 }
 
-TEST(RepeatingChars12)
-{
-    cb::shared_ptr<GDBWatch> w(new GDBWatch(wxT("t")));
-    CHECK(ParseGDBWatchValue(w, wxT("{m_pchData = 0x75225a4 L'/' <repeats 12 times>, '/' <repeats 43 times>}")));
-    CHECK_EQUAL(wxT("t= {m_pchData=0x75225a4 L'/' <repeats 12 times>, '/' <repeats 43 times>}"), *w);
-}
-
-TEST(RepeatingChars13)
-{
-    cb::shared_ptr<GDBWatch> w(new GDBWatch(wxT("t")));
-    CHECK(ParseGDBWatchValue(w, wxT("{<wxStringBase> = {static npos = 4294967295, m_pchData = 0x75225a4 L'/' ")
-                                wxT("<repeats 43 times>, \"\\n//\\n\", '/' <repeats 43 times>}, <No data fields>}")));
-    CHECK_EQUAL(wxT("t= {<wxStringBase>= {static npos=4294967295,m_pchData=0x75225a4 L'/' ")
-                wxT("<repeats 43 times>, \"\\n//\\n\", '/' <repeats 43 times>},[1]=<No data fields>}"),
-                *w);
-}
-
 TEST(StringWide)
 {
     cb::shared_ptr<GDBWatch> w(new GDBWatch(wxT("s")));
@@ -427,22 +410,6 @@ TEST(StringWideChar)
     cb::shared_ptr<GDBWatch> w(new GDBWatch(wxT("s")));
     CHECK(ParseGDBWatchValue(w, wxT("{m_impl = L's', m_test = {a = 5}")));
     CHECK_EQUAL(wxT("s= {m_impl=L's',m_test= {a=5}}"), *w);
-}
-
-TEST(ShortenedString)
-{
-    cb::shared_ptr<GDBWatch> w(new GDBWatch(wxT("s")));
-    CHECK(ParseGDBWatchValue(w, wxT("{m_impl = L\"Created:  \"...}")));
-    CHECK_EQUAL(1, w->GetChildCount());
-    CHECK_EQUAL(wxT("s= {m_impl=L\"Created:  \"...}"), *w);
-}
-
-TEST(ShortenedStringRepeatedChars)
-{
-    cb::shared_ptr<GDBWatch> w(new GDBWatch(wxT("s")));
-    CHECK(ParseGDBWatchValue(w, wxT("{m_impl = L\"/\", '*' <repeats 63 times>, \"Created: \"...}")));
-    CHECK_EQUAL(1, w->GetChildCount());
-    CHECK_EQUAL(wxT("s= {m_impl=L\"/\", '*' <repeats 63 times>, \"Created: \"...}"), *w);
 }
 
 TEST(ChangeType0)
@@ -571,7 +538,7 @@ TEST(PythonSTLVectorEmptyInStruct2)
 TEST(PythonSTLVectorEmptyInStruct2_count)
 {
     cb::shared_ptr<GDBWatch> w(new GDBWatch(wxT("s")));
-    CHECK(ParseGDBWatchValue(w, wxT("{vec1 = empty, vector, vec2 = empty, vector}")));
+    ParseGDBWatchValue(w, wxT("{vec1 = empty, vector, vec2 = empty, vector}"));
     CHECK_EQUAL(2, w->GetChildCount());
 }
 
@@ -587,16 +554,15 @@ TEST(PythonSTLVectorEmptyInStruct3)
 TEST(PythonSTLVectorEmptyInStruct3_count)
 {
     cb::shared_ptr<GDBWatch> w(new GDBWatch(wxT("s")));
-    CHECK(ParseGDBWatchValue(w, wxT("{vec1 = vector size 0, capacity 0, vec2 = vector size 0, capacity 1,")
-                          wxT("vec3 = vector size 0, capacity 2}")));
+    ParseGDBWatchValue(w, wxT("{vec1 = vector size 0, capacity 0, vec2 = vector size 0, capacity 1,")
+                          wxT("vec3 = vector size 0, capacity 2}"));
     CHECK_EQUAL(3, w->GetChildCount());
 }
 
 TEST(Python3dVectorInfiniteLoop)
 {
     cb::shared_ptr<GDBWatch> w(new GDBWatch(wxT("s")));
-    CHECK(ParseGDBWatchValue(w, wxT("{ double = -3.18, vector = (x=5.7, y=2.9, z=-8.4) = ")
-                                wxT("{x = 5.7, y = 2.9, z = -8.4}}")));
+    ParseGDBWatchValue(w, wxT("{ double = -3.18, vector = (x=5.7, y=2.9, z=-8.4) = {x = 5.7, y = 2.9, z = -8.4}}"));
     CHECK_EQUAL(2, w->GetChildCount());
     CHECK_EQUAL(wxT("s= {double=-3.18,vector=(x=5.7, y=2.9, z=-8.4) {x=5.7,y=2.9,z=-8.4}}"), *w);
 }

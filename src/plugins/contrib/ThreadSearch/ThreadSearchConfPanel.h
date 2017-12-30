@@ -90,7 +90,6 @@ protected:
     wxCheckBox* m_pChkShowCodePreview;
     wxCheckBox* m_pChkDisplayLogHeaders;
     wxCheckBox* m_pChkDrawLogLines;
-    wxCheckBox* m_pChkAutosizeLogColumns;
     wxRadioBox* m_pRadPanelManagement;
     wxRadioBox* m_pRadLoggerType;
     wxRadioBox* m_pRadSplitterWndMode;

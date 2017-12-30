@@ -25,7 +25,7 @@
     <Switch name="linkLibs"                value="-l"/>
     <Switch name="defines"                 value="-D"/>
     <Switch name="genericSwitch"           value="-"/>
-    <Switch name="objectExtension"         value="rel"/>
+    <Switch name="objectExtension"         value="o"/>
     <Switch name="needDependencies"        value="true"/>
     <Switch name="forceCompilerUseQuotes"  value="false"/>
     <Switch name="forceLinkerUseQuotes"    value="false"/>
@@ -35,13 +35,15 @@
     <Switch name="linkerNeedsLibPrefix"    value="false"/>
     <Switch name="linkerNeedsLibExtension" value="false"/>
 
+    <!-- Summary of SDCC options: http://sdcc.sourceforge.net -->
+
     <Option name="Produce debugging symbols"
             option="--debug"
-            category="Debugging"/>
+            category="Debugging"
+            checkAgainst="--opt-code-speed --opt-code-size"
+            checkMessage="You have optimizations enabled. This is Not A Good Thing(tm) when producing debugging symbols..."/>
 
-    <Option name="Make char signed by default"
-            option="--fsigned-char"/>
-    <Option name="Make all functions reentrant"
+    <Option name="All functions will be compiled as reentrant"
             option="--stack-auto"/>
     <Option name="Be verbose"
             option="--verbose"/>
@@ -50,44 +52,21 @@
     <Option name="Callee will always save registers used"
             option="--all-callee-saves"/>
     <Option name="Leave out the frame pointer"
-            option="--fomit-frame-pointer"/>
+            option="--fommit-frame-pointer"/>
+    <Option name="[MCS51/DS390] - use Bank1 for parameter passing"
+            option="--parms-in-bank1"/>
 
-    <Category name="Language"
+    <Category name="Optimization"
               exclusive="true">
-        <Option name="ISO C11 with SDCC extensions"
-                option="--std-sdcc11"/>
-        <Option name="ISO C11"
-                option="--std-c11"/>
-        <Option name="ISO C99 with SDCC extensions"
-                option="--std-sdcc99"/>
-        <Option name="ISO C99"
-                option="--std-c99"/>
-        <Option name="ISO C95 / ISO C94 with SDCC extensions"
-                option="--std-sdcc95"/>
-        <Option name="ISO C95 / ISO C94"
-                option="--std-c95"/>
-        <Option name="ISO C90 / ANSI C89 with SDCC extensions"
-                option="--std-sdcc89"/>
-        <Option name="ISO C90 / ANSI C89"
-                option="--std-c89"/>
+        <Option name="Optimize generated code (for speed)"
+                option="--opt-code-speed"/>
+        <Option name="Optimize generated code (for size)"
+                option="--opt-code-size"/>
     </Category>
 
-    <Category name="Optimization">
-        <Option name="Optimize for code speed rather than size"
-                option="--opt-code-speed"
-                supersedes="--opt-code-size"/>
-        <Option name="Optimize for code size rather than speed"
-                option="--opt-code-size"
-                supersedes="--opt-code-speed"/>
-        <Option name="Disable peephole optimizer"
-                option="--no-peep"/>
-        <Option name="Disable lifetime-optimal speculative partial redundancy elimination"
-                option="--nolospre"/>
-    </Category>
-
-    <Category name="CPU target architecture"
+    <Category name="CPU architecture"
               exclusive="true">
-        <Option name="[CPU] Intel MCS-51 (default)"
+        <Option name="[CPU] Intel MCS51 (default)"
                 option="-mmcs51"/>
         <Option name="[CPU] Dallas DS80C390"
                 option="-mds390"/>
@@ -95,23 +74,15 @@
                 option="-mds400"/>
         <Option name="[CPU] Freescale/Motorola HC08"
                 option="-mhc08"/>
-        <Option name="[CPU] Freescale/NXP S08"
-                option="-ms08"/>
         <Option name="[CPU] Zilog Z80"
                 option="-mz80"/>
-        <Option name="[CPU] Zilog Z180"
-                option="-mz180"/>
-        <Option name="[CPU] Rabbit 2000/3000"
-                option="-mr2k"/>
-        <Option name="[CPU] Toshiba TLCS-90"
-                option="-mz180"/>
-        <Option name="[CPU] GameBoy Z80"
+        <Option name="[CPU] GameBoy Z80 (Not actively maintained)."
                 option="-mgbz80"/>
-        <Option name="[CPU] STMicroelectronics STM8"
-                option="-mstm8"/>
-        <Option name="[CPU] Microchip PIC 14-bit (p16f84, etc. WIP)"
+        <Option name="[CPU] Atmel AVR (In development, not complete)"
+                option="-mavr"/>
+        <Option name="[CPU] Microchip PIC 14-bit (p16f84 and variants. In development, not complete)"
                 option="-mpic14"/>
-        <Option name="[CPU] Microchip PIC 16-bit (p18f452, etc. WIP)"
+        <Option name="[CPU] PIC 16-bit (p18f452 and variants. In development, not complete)"
                 option="-mpic16"/>
     </Category>
 
@@ -135,23 +106,20 @@
                 option="--use-accelerator"/>
     </Category>
 
-    <Category name="Z80/Z180/Rabbit/TLCS-90/GBZ80 Options">
-        <Option name="[Z80] When linking, skip the standard crt0.rel object file"
+    <Category name="Z80 Options">
+        <Option name="[Z80] Force a called function to always save BC"
+                option="--callee-saves-bc"/>
+        <Option name="[Z80] When linking, skip the standard crt0.o object file"
                 option="--no-std-crt0"/>
-    </Category>
-
-    <Category name="PIC Options">
-        <Option name="[PIC] Use headers and libraries with unclear copyright situation"
-                option="--use-non-free"/>
     </Category>
 
     <Category name="Linker output format"
               exclusive="true">
-        <Option name="Intel Hex (default)"
+        <Option name="Output Intel Hex (default)"
                 option="--out-fmt-ihx"/>
-        <Option name="Motorola S19"
+        <Option name="Output Motorola S19"
                 option="--out-fmt-s19"/>
-        <Option name="ELF (HC08, S08 and STM8 only)"
+        <Option name="Output ELF (Currently only supported for the HC08 processors)"
                 option="--out-fmt-elf"/>
     </Category>
 

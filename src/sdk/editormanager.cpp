@@ -39,7 +39,6 @@
 
 #include <wx/bmpbuttn.h>
 #include <wx/progdlg.h>
-#include <wx/tokenzr.h>
 
 #include "cbauibook.h"
 #include "editorcolourset.h"
@@ -1018,10 +1017,8 @@ bool EditorManager::IsHeaderSource(const wxFileName& candidateFile, const wxFile
         // If looking for a header we have a source OR
         // If looking for a source we have a header
         FileType ftTested = FileTypeOf(candidateFile.GetFullName());
-        if (    ((ftActive == ftHeader)         && (ftTested == ftSource))
-             || ((ftActive == ftSource)         && (ftTested == ftHeader))
-             || ((ftActive == ftHeader)         && (ftTested == ftTemplateSource))
-             || ((ftActive == ftTemplateSource) && (ftTested == ftHeader)) )
+        if (    ((ftActive == ftHeader) && (ftTested == ftSource))
+             || ((ftActive == ftSource) && (ftTested == ftHeader)) )
         {
             // Handle the case where two files (in different directories) have the same name:
             // Example: A project file with three files dir1/file.h dir1/file.cpp dir2/file.h
@@ -1078,103 +1075,53 @@ wxFileName EditorManager::FindHeaderSource(const wxArrayString& candidateFilesAr
     return candidateFile;
 }
 
-struct OpenContainingFolderData
-{
-    wxString command;
-    bool supportSelect;
-
-    OpenContainingFolderData() : supportSelect(false) {}
-    OpenContainingFolderData(const wxString &command, bool select) : command(command), supportSelect(select) {}
-};
-
-#if !defined(__WXMSW__) && !defined(__WXMAC__)
-/// Try to detect if the file browser used by the user is nautilus (either selected by xdg-open or manually specified).
-/// Newer versions of nautilus (3.0.2) support selecting files, so we modify the returned command to pass the --select
-/// flag.
-static OpenContainingFolderData detectNautilus(const wxString &command, ConfigManager* appConfig)
-{
-    wxString fileManager;
-
-    // If the user hasn't changed the command, try to detect nautilus using xdg-mime.
-    if (command == cbDEFAULT_OPEN_FOLDER_CMD)
-    {
-        const wxString shell = appConfig->Read(_T("/console_shell"), DEFAULT_CONSOLE_SHELL);
-        const wxString cmdGetManager = shell + wxT(" 'xdg-mime query default inode/directory'");
-        wxArrayString output, errors;
-        wxExecute(cmdGetManager, output, errors, wxEXEC_SYNC);
-        if (output.empty())
-            return OpenContainingFolderData(command, false);
-        fileManager = output[0];
-    }
-    else
-        fileManager = command;
-
-    Manager::Get()->GetLogManager()->DebugLog(F(wxT("File manager is: '%s'"), fileManager.wx_str()));
-    if (fileManager.find(wxT("nautilus")) == wxString::npos)
-        return OpenContainingFolderData(command, false);
-    // If the file manager ends with desktop then this is produced by xdg-mime.
-    // This means that we could use the system nautilus (not entirely correct).
-    if (fileManager.EndsWith(wxT(".desktop")))
-        fileManager = wxT("nautilus");
-
-    wxArrayString output, errors;
-    wxExecute(fileManager + wxT(" --version"), output, errors, wxEXEC_SYNC);
-    if (output.empty())
-        return OpenContainingFolderData(command, false);
-    // It is assumed that the output looks like GNOME nautilus 3.20.4
-    const wxString prefix(wxT("GNOME nautilus "));
-
-    const wxString firstLine = output[0].Trim(true).Trim(false);
-    Manager::Get()->GetLogManager()->DebugLog(F(wxT("Nautilus version is: '%s'"), firstLine.wx_str()));
-
-    if (firstLine.StartsWith(prefix))
-    {
-        wxArrayString versionTokens = wxStringTokenize(firstLine.substr(prefix.length()), wxT("."));
-        int fullVersion = 0;
-        int multiplier = 1;
-        for (int ii = versionTokens.GetCount() - 1; ii >= 0; --ii)
-        {
-            long number;
-            versionTokens[ii].ToLong(&number);
-            fullVersion += number * multiplier;
-            multiplier *= 100;
-        }
-        if (fullVersion >= 30002)
-            return OpenContainingFolderData(fileManager + wxT(" --select"), true);
-    }
-    return OpenContainingFolderData(command, false);
-}
-#endif // !__WXMSW__ && !__WXMAC__
-
 bool EditorManager::OpenContainingFolder()
 {
     cbEditor* ed = GetBuiltinEditor(GetActiveEditor());
     if (!ed)
         return false;
 
-    ConfigManager* cfg = Manager::Get()->GetConfigManager(_T("app"));
-    const wxString &command = cfg->Read(_T("open_containing_folder"), cbDEFAULT_OPEN_FOLDER_CMD);
-#if defined __WXMSW__ || defined __WXMAC__
-    OpenContainingFolderData cmdData(command, true);
+    ConfigManager* cfg = Manager::Get()->GetConfigManager(_T("editor"));
+#if defined __WXMSW__
+    const wxString defCmds = _T("explorer.exe /select,");
+#elif defined __WXMAC__
+    const wxString defCmds = _T("open -R");
 #else
-    OpenContainingFolderData cmdData=detectNautilus(command, cfg);
+    const wxString defCmds = _T("xdg-open");
+
+    if (!cfg->ReadBool(_T("scanned_open_folder_mime"), false))
+    {
+        cfg->Write(_T("scanned_open_folder_mime"), true);
+        wxString cmd =   Manager::Get()->GetConfigManager(_T("app"))->Read(_T("/console_shell"), DEFAULT_CONSOLE_SHELL)
+                       + _T(" 'cat /usr/share/applications/`xdg-mime query default inode/directory` | grep Exec'");
+        wxArrayString output, errors;
+        wxExecute(cmd, output, errors, wxEXEC_SYNC);
+        if (!output.IsEmpty())
+        {
+            cmd = output[0].AfterFirst('=').BeforeFirst('%').Trim(true).Trim(false);
+            if (!cmd.IsEmpty() && cmd != defCmds)
+                cfg->Write(_T("open_containing_folder"), cmd);
+        }
+    }
 #endif
 
+    wxString cmds = cfg->Read(_T("open_containing_folder"), defCmds) + _T(" ");
     const wxString& fullPath = ed->GetFilename();
-    cmdData.command << wxT(" ");
-    if (!cmdData.supportSelect)
+#if defined __WXMSW__ || defined __WXMAC__
+    cmds << fullPath;   // Open folder with the file selected
+#else
+    if (cmds.StartsWith(defCmds))
     {
-        // Cannot select the file with with most editors, so just extract the folder name
+        // Cannot select the file with "xdg-open", so just extract the folder name
         wxString splitPath;
         wxFileName::SplitPath(fullPath, &splitPath, nullptr, nullptr);
-        cmdData.command << splitPath;
+        cmds << splitPath;
     }
     else
-        cmdData.command << fullPath;
+        cmds << fullPath; // Open folder with the file selected
+#endif
 
-    wxExecute(cmdData.command);
-    Manager::Get()->GetLogManager()->DebugLog(F(wxT("Executing command to open folder: '%s'"),
-                                                cmdData.command.wx_str()));
+    wxExecute(cmds);
     return true;
 }
 
@@ -1189,7 +1136,7 @@ bool EditorManager::SwapActiveHeaderSource()
         return false;
 
     FileType ft = FileTypeOf(ed->GetFilename());
-    if (ft != ftHeader && ft != ftSource && ft != ftTemplateSource)
+    if (ft != ftHeader && ft != ftSource)
         return false;
 
     cbProject* project = nullptr;
@@ -1373,7 +1320,7 @@ bool EditorManager::SwapActiveHeaderSource()
         // Create a suggestion for the new file name:
         if      (ft == ftHeader)
             theFile.SetExt(FileFilters::CPP_EXT);
-        else if (ft == ftSource || ft == ftTemplateSource)
+        else if (ft == ftSource)
             theFile.SetExt(FileFilters::H_EXT);
         // else? Well, if the filename is not changed we could possibly
         // overwrite an existing file with our suggestion.
@@ -1615,9 +1562,9 @@ void EditorManager::OnPageContextMenu(wxAuiNotebookEvent& event)
     {
         wxMenu* splitMenu = new wxMenu;
         if (ed->GetSplitType() != cbEditor::stHorizontal)
-            splitMenu->Append(idNBTabSplitHorz, _("Horizontally (top-bottom)"));
+            splitMenu->Append(idNBTabSplitHorz, _("Horizontally"));
         if (ed->GetSplitType() != cbEditor::stVertical)
-            splitMenu->Append(idNBTabSplitVert, _("Vertically (left-right)"));
+            splitMenu->Append(idNBTabSplitVert, _("Vertically"));
         if (ed->GetSplitType() != cbEditor::stNoSplit)
         {
             splitMenu->AppendSeparator();
@@ -1894,7 +1841,7 @@ void EditorManager::CollectDefines(CodeBlocksEvent& event)
             defines.Add(wxT("__WXOSX_MAC__"));
             defines.Add(wxT("__APPLE__"));
         }
-        else if (platform::Linux)
+        else if (platform::linux)
         {
             defines.Add(wxT("LINUX"));
             defines.Add(wxT("linux"));
@@ -1929,7 +1876,7 @@ void EditorManager::CollectDefines(CodeBlocksEvent& event)
             defines.Add(wxT("__SUNOS__"));
             defines.Add(wxT("__SOLARIS__"));
         }
-        if (platform::Unix)
+        if (platform::unix)
         {
             defines.Add(wxT("unix"));
             defines.Add(wxT("__unix"));

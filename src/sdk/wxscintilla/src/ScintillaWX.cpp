@@ -295,7 +295,7 @@ static int wxCountLines(const char* text, int scintillaMode)
 
 /* C::B begin */
 // Constant ids for the timers used by every editor.
-const long int timerIDs[ScintillaWX::timersCount] = { wxNewId(), wxNewId(), wxNewId(), wxNewId() };
+const int timerIDs[ScintillaWX::timersCount] = { wxNewId(), wxNewId(), wxNewId(), wxNewId() };
 /* C::B end */
 
 //----------------------------------------------------------------------
@@ -623,6 +623,7 @@ void ScintillaWX::Paste() {
 /* C::B begin */
     wxString textString;
 
+    bool haveTextString = false;
     bool isRectangularClipboard = false;
 
     wxTheClipboard->UsePrimarySelection(false);
@@ -640,6 +641,7 @@ void ScintillaWX::Paste() {
             char* buffer = new char[len];
             memcpy (buffer, rectBuf+1, len);
             textString = sci2wx(buffer, len);
+            haveTextString = true;
             delete [] buffer;
         } else {
             bool gotData = wxTheClipboard->GetData(data);
@@ -647,6 +649,7 @@ void ScintillaWX::Paste() {
             if (gotData) {
                 textString = wxTextBuffer::Translate(data.GetText(),
                                                      wxConvertEOLMode(pdoc->eolMode));
+                haveTextString = true;
             }
         }
     }
@@ -1211,7 +1214,7 @@ int  ScintillaWX::DoKeyDown(const wxKeyEvent& evt, bool* consumed)
 {
     int key = evt.GetKeyCode();
 /* C::B begin */
-#if wxCHECK_VERSION(3, 0, 0)
+#if wxCHECK_VERSION(2, 9, 0)
     if (key == WXK_NONE) {
         // This is a Unicode character not representable in Latin-1 or some key
         // without key code at all (e.g. dead key or VK_PROCESSKEY under MSW).
@@ -1241,8 +1244,16 @@ int  ScintillaWX::DoKeyDown(const wxKeyEvent& evt, bool* consumed)
     case WXK_NUMPAD_HOME:       key = SCK_HOME;     break;
     case WXK_END:               // fall through
     case WXK_NUMPAD_END:        key = SCK_END;      break;
+#if !wxCHECK_VERSION(2, 8, 0)
+    case WXK_PRIOR:             // fall through
+    case WXK_NUMPAD_PRIOR:      // fall through
+#endif
     case WXK_PAGEUP:            // fall through
     case WXK_NUMPAD_PAGEUP:     key = SCK_PRIOR;    break;
+#if !wxCHECK_VERSION(2, 8, 0)
+    case WXK_NEXT:              // fall through
+    case WXK_NUMPAD_NEXT:       // fall through
+#endif
     case WXK_PAGEDOWN:          // fall through
     case WXK_NUMPAD_PAGEDOWN:   key = SCK_NEXT;     break;
     case WXK_NUMPAD_DELETE:     // fall through
@@ -1297,13 +1308,8 @@ void ScintillaWX::DoCommand(int ID) {
 
 
 void ScintillaWX::DoContextMenu(Point pt) {
-    if (displayPopupMenu) {
-        // To prevent generating EVT_MOUSE_CAPTURE_LOST.
-        if ( HaveMouseCapture() ) {
-            SetMouseCapture(false);
-        }
+    if (displayPopupMenu)
         ContextMenu(pt);
-    }
 }
 
 void ScintillaWX::DoOnListBox() {

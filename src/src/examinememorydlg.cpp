@@ -39,14 +39,6 @@ ExamineMemoryDlg::ExamineMemoryDlg(wxWindow* parent) :
     wxFont font(8, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
     m_pText->SetFont(font);
 
-    ConfigManager *c = Manager::Get()->GetConfigManager(wxT("debugger_common"));
-    int bytes = c->ReadInt(wxT("/common/examine_memory/size_to_show"), 32);
-    wxString strBytes;
-    strBytes << bytes;
-    wxComboBox *combo = XRCCTRL(*this, "cmbBytes", wxComboBox);
-    if (!combo->SetStringSelection(strBytes))
-        combo->SetSelection(1); // Default is 32 bytes
-
     Clear();
 }
 
@@ -136,12 +128,6 @@ void ExamineMemoryDlg::AddHexByte(const wxString& addr, const wxString& hexbyte)
 void ExamineMemoryDlg::OnGo(cb_unused wxCommandEvent& event)
 {
     cbDebuggerPlugin *plugin = Manager::Get()->GetDebuggerManager()->GetActiveDebugger();
-
-    // Save the value of the bytes combo box in the config,
-    // so it is the same next time the dialog is used.
-    ConfigManager *c = Manager::Get()->GetConfigManager(wxT("debugger_common"));
-    c->Write(wxT("/common/examine_memory/size_to_show"), GetBytes());
-
     if (plugin)
         plugin->RequestUpdate(cbDebuggerPlugin::ExamineMemory);
 }
@@ -149,14 +135,4 @@ void ExamineMemoryDlg::OnGo(cb_unused wxCommandEvent& event)
 void ExamineMemoryDlg::EnableWindow(bool enable)
 {
     Enable(enable);
-}
-
-void ExamineMemoryDlg::SetBaseAddress(const wxString &addr)
-{
-    XRCCTRL(*this, "txtAddress", wxTextCtrl)->SetValue(addr);
-
-    cbDebuggerPlugin *plugin = Manager::Get()->GetDebuggerManager()->GetActiveDebugger();
-    if (plugin)
-        plugin->RequestUpdate(cbDebuggerPlugin::ExamineMemory);
-
 }

@@ -27,11 +27,11 @@
 #include "../properties/wxsbitmapiconeditordlg.h"
 
 //(*InternalHeaders(wxsToolBarEditor)
-#include <wx/artprov.h>
-#include <wx/bitmap.h>
-#include <wx/intl.h>
-#include <wx/image.h>
 #include <wx/string.h>
+#include <wx/intl.h>
+#include <wx/bitmap.h>
+#include <wx/image.h>
+#include <wx/artprov.h>
 //*)
 
 //(*IdInit(wxsToolBarEditor)
@@ -68,22 +68,22 @@ wxsToolBarEditor::wxsToolBarEditor(wxWindow* parent,wxsToolBar* ToolBar):
     wxWindowID id = wxID_ANY;
     //(*Initialize(wxsToolBarEditor)
     wxStaticBoxSizer* StaticBoxSizer2;
-    wxButton* Button4;
-    wxStaticText* StaticText2;
-    wxButton* Button1;
-    wxStaticText* StaticText6;
-    wxStaticText* StaticText1;
-    wxBoxSizer* BoxSizer2;
-    wxStaticText* StaticText3;
-    wxButton* Button2;
-    wxButton* Button3;
     wxGridSizer* GridSizer1;
-    wxStaticText* StaticText5;
-    wxBoxSizer* BoxSizer1;
-    wxStaticBoxSizer* StaticBoxSizer1;
     wxFlexGridSizer* FlexGridSizer1;
     wxBoxSizer* BoxSizer3;
+    wxButton* Button4;
+    wxButton* Button1;
+    wxButton* Button2;
+    wxButton* Button3;
+    wxBoxSizer* BoxSizer2;
+    wxStaticText* StaticText1;
+    wxStaticText* StaticText3;
     wxStaticText* StaticText4;
+    wxBoxSizer* BoxSizer1;
+    wxStaticText* StaticText5;
+    wxStaticText* StaticText2;
+    wxStaticText* StaticText6;
+    wxStaticBoxSizer* StaticBoxSizer1;
 
     Create(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _T("id"));
     BoxSizer1 = new wxBoxSizer(wxHORIZONTAL);
@@ -156,18 +156,18 @@ wxsToolBarEditor::wxsToolBarEditor(wxWindow* parent,wxsToolBar* ToolBar):
     BoxSizer1->Fit(this);
     BoxSizer1->SetSizeHints(this);
 
-    Connect(ID_LISTBOX1,wxEVT_COMMAND_LISTBOX_SELECTED,wxCommandEventHandler(wxsToolBarEditor::Onm_ContentSelect));
-    Connect(ID_RADIOBUTTON1,wxEVT_COMMAND_RADIOBUTTON_SELECTED,wxCommandEventHandler(wxsToolBarEditor::OnTypeChanged));
-    Connect(ID_RADIOBUTTON2,wxEVT_COMMAND_RADIOBUTTON_SELECTED,wxCommandEventHandler(wxsToolBarEditor::OnTypeChanged));
-    Connect(ID_RADIOBUTTON3,wxEVT_COMMAND_RADIOBUTTON_SELECTED,wxCommandEventHandler(wxsToolBarEditor::OnTypeChanged));
-    Connect(ID_RADIOBUTTON4,wxEVT_COMMAND_RADIOBUTTON_SELECTED,wxCommandEventHandler(wxsToolBarEditor::OnTypeChanged));
-    Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,wxCommandEventHandler(wxsToolBarEditor::Onm_LabelText));
-    Connect(ID_BITMAPBUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,wxCommandEventHandler(wxsToolBarEditor::OnBitmapClick));
-    Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,wxCommandEventHandler(wxsToolBarEditor::OnBitmap2Click));
-    Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,wxCommandEventHandler(wxsToolBarEditor::OnUpClick));
-    Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,wxCommandEventHandler(wxsToolBarEditor::OnDownClick));
-    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,wxCommandEventHandler(wxsToolBarEditor::OnNewClick));
-    Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,wxCommandEventHandler(wxsToolBarEditor::OnDelClick));
+    Connect(ID_LISTBOX1,wxEVT_COMMAND_LISTBOX_SELECTED,(wxObjectEventFunction)&wxsToolBarEditor::Onm_ContentSelect);
+    Connect(ID_RADIOBUTTON1,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&wxsToolBarEditor::OnTypeChanged);
+    Connect(ID_RADIOBUTTON2,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&wxsToolBarEditor::OnTypeChanged);
+    Connect(ID_RADIOBUTTON3,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&wxsToolBarEditor::OnTypeChanged);
+    Connect(ID_RADIOBUTTON4,wxEVT_COMMAND_RADIOBUTTON_SELECTED,(wxObjectEventFunction)&wxsToolBarEditor::OnTypeChanged);
+    Connect(ID_TEXTCTRL1,wxEVT_COMMAND_TEXT_UPDATED,(wxObjectEventFunction)&wxsToolBarEditor::Onm_LabelText);
+    Connect(ID_BITMAPBUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&wxsToolBarEditor::OnBitmapClick);
+    Connect(ID_BITMAPBUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&wxsToolBarEditor::OnBitmap2Click);
+    Connect(ID_BUTTON3,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&wxsToolBarEditor::OnUpClick);
+    Connect(ID_BUTTON4,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&wxsToolBarEditor::OnDownClick);
+    Connect(ID_BUTTON1,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&wxsToolBarEditor::OnNewClick);
+    Connect(ID_BUTTON2,wxEVT_COMMAND_BUTTON_CLICKED,(wxObjectEventFunction)&wxsToolBarEditor::OnDelClick);
     //*)
 
     for ( int i=0; i<m_ToolBar->GetChildCount(); i++ )
@@ -205,7 +205,6 @@ wxsToolBarEditor::wxsToolBarEditor(wxWindow* parent,wxsToolBar* ToolBar):
                     New->m_Id = _T("");
                     break;
 
-                case wxsToolBarItem::Normal: // fall-though
                 default:
                     New->m_Type = Normal;
                     break;
@@ -244,7 +243,7 @@ wxsToolBarEditor::~wxsToolBarEditor()
     //*)
 }
 
-void wxsToolBarEditor::OnTypeChanged(cb_unused wxCommandEvent& event)
+void wxsToolBarEditor::OnTypeChanged(wxCommandEvent& event)
 {
     // Saving data
     ToolBarItem* Selected = m_Selected;
@@ -296,9 +295,6 @@ void wxsToolBarEditor::ApplyChanges()
                 case Separator: New->m_Type = wxsToolBarItem::Separator; break;
                 case Radio:     New->m_Type = wxsToolBarItem::Radio; break;
                 case Check:     New->m_Type = wxsToolBarItem::Check; break;
-
-                case Normal:  // fall-through
-                case Control: // fall-through
                 default:        New->m_Type = wxsToolBarItem::Normal; break;
             }
 
@@ -352,7 +348,7 @@ wxString wxsToolBarEditor::GetItemLabel(ToolBarItem* Item)
 }
 
 
-void wxsToolBarEditor::Onm_ContentSelect(cb_unused wxCommandEvent& event)
+void wxsToolBarEditor::Onm_ContentSelect(wxCommandEvent& event)
 {
     if ( m_BlockSelect ) return;
     int Selection = m_Content->GetSelection();
@@ -367,7 +363,7 @@ void wxsToolBarEditor::Onm_ContentSelect(cb_unused wxCommandEvent& event)
 }
 
 
-void wxsToolBarEditor::Onm_LabelText(cb_unused wxCommandEvent& event)
+void wxsToolBarEditor::Onm_LabelText(wxCommandEvent& event)
 {
     if ( m_BlockTextChange ) return;
     m_BlockSelect = true;
@@ -479,7 +475,7 @@ void wxsToolBarEditor::SelectItem(ToolBarItem* Item)
     m_BlockTextChange = false;
 }
 
-void wxsToolBarEditor::OnUpClick(cb_unused wxCommandEvent& event)
+void wxsToolBarEditor::OnUpClick(wxCommandEvent& event)
 {
     if ( !m_Selected ) return;
     SelectItem(m_Selected);
@@ -492,7 +488,7 @@ void wxsToolBarEditor::OnUpClick(cb_unused wxCommandEvent& event)
     m_Content->Insert(GetItemLabel(Copy),SelIndex,Copy);
 }
 
-void wxsToolBarEditor::OnDownClick(cb_unused wxCommandEvent& event)
+void wxsToolBarEditor::OnDownClick(wxCommandEvent& event)
 {
     if ( !m_Selected ) return;
     SelectItem(m_Selected);
@@ -505,7 +501,7 @@ void wxsToolBarEditor::OnDownClick(cb_unused wxCommandEvent& event)
     m_Content->Insert(GetItemLabel(Copy),SelIndex,Copy);
 }
 
-void wxsToolBarEditor::OnNewClick(cb_unused wxCommandEvent& event)
+void wxsToolBarEditor::OnNewClick(wxCommandEvent& event)
 {
     SelectItem(m_Selected);
     ToolBarItem* New = new ToolBarItem();
@@ -523,7 +519,7 @@ void wxsToolBarEditor::OnNewClick(cb_unused wxCommandEvent& event)
     SelectItem(New);
 }
 
-void wxsToolBarEditor::OnDelClick(cb_unused wxCommandEvent& event)
+void wxsToolBarEditor::OnDelClick(wxCommandEvent& event)
 {
     int Selection = m_Content->GetSelection();
     if ( Selection == wxNOT_FOUND ) return;
@@ -546,7 +542,7 @@ void wxsToolBarEditor::OnDelClick(cb_unused wxCommandEvent& event)
     }
 }
 
-void wxsToolBarEditor::OnBitmapClick(cb_unused wxCommandEvent& event)
+void wxsToolBarEditor::OnBitmapClick(wxCommandEvent& event)
 {
     if ( !m_Selected ) return;
     ToolBarItem* Selected = m_Selected;
@@ -558,7 +554,7 @@ void wxsToolBarEditor::OnBitmapClick(cb_unused wxCommandEvent& event)
 }
 
 
-void wxsToolBarEditor::OnBitmap2Click(cb_unused wxCommandEvent& event)
+void wxsToolBarEditor::OnBitmap2Click(wxCommandEvent& event)
 {
     if ( !m_Selected ) return;
     ToolBarItem* Selected = m_Selected;

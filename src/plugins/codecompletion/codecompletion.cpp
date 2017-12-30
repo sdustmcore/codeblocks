@@ -47,6 +47,7 @@
 #include <cbstyledtextctrl.h>
 #include <editor_hooks.h>
 #include <filegroupsandmasks.h>
+#include <incrementalselectlistdlg.h>
 #include <multiselectdlg.h>
 
 #include "codecompletion.h"
@@ -60,7 +61,6 @@
 #include "parser/parser.h"
 #include "parser/tokenizer.h"
 #include "doxygen_parser.h" // for DocumentationPopup and DoxygenParser
-#include "gotofunctiondlg.h"
 
 #define CC_CODECOMPLETION_DEBUG_OUTPUT 0
 
@@ -89,7 +89,6 @@
     #define TRACE2(format, args...)
 #endif
 
-/// Scopes choice name for global functions in CC's toolbar.
 static wxString g_GlobalScope(_T("<global>"));
 
 // this auto-registers the plugin
@@ -946,6 +945,7 @@ std::vector<CodeCompletion::CCToken> CodeCompletion::GetAutocompList(bool isAuto
 
 void CodeCompletion::DoCodeComplete(int caretPos, cbEditor* ed, std::vector<CCToken>& tokens, bool preprocessorOnly)
 {
+    FileType fTp = FileTypeOf(ed->GetShortName());
     const bool caseSens = m_NativeParser.GetParser().Options().caseSensitive;
     cbStyledTextCtrl* stc = ed->GetControl();
 
@@ -1026,8 +1026,7 @@ void CodeCompletion::DoCodeComplete(int caretPos, cbEditor* ed, std::vector<CCTo
                 {
                     wxString lastSearch = m_NativeParser.LastAIGlobalSearch().Lower();
                     int iidx = ilist->GetImageCount();
-                    FileType fTp = FileTypeOf(ed->GetShortName());
-                    bool isC = (fTp == ftHeader || fTp == ftSource|| fTp == ftTemplateSource);
+                    bool isC = (fTp == ftHeader || fTp == ftSource);
                     // theme keywords
                     HighlightLanguage lang = ed->GetLanguage();
                     if (lang == HL_NONE)
@@ -1093,7 +1092,6 @@ void CodeCompletion::DoCodeCompletePreprocessor(int tknStart, int tknEnd, cbEdit
         const FileType fTp = FileTypeOf(ed->GetShortName());
         if (   fTp != ftSource
             && fTp != ftHeader
-            && fTp != ftTemplateSource
             && fTp != ftResource )
         {
             return; // not C/C++
@@ -1136,7 +1134,7 @@ void CodeCompletion::DoCodeCompleteIncludes(cbEditor* ed, int& tknStart, int tkn
     const wxString curPath(wxFileName(curFile).GetPath());
 
     FileType ft = FileTypeOf(ed->GetShortName());
-    if ( ft != ftHeader && ft != ftSource && ft != ftTemplateSource) // only parse source/header files
+    if ( ft != ftHeader && ft != ftSource) // only parse source/header files
         return;
 
     cbStyledTextCtrl* stc = ed->GetControl();
@@ -1725,30 +1723,20 @@ void CodeCompletion::RereadOptions()
 
 void CodeCompletion::UpdateToolBar()
 {
-    ConfigManager* cfg = Manager::Get()->GetConfigManager(_T("code_completion"));
-    const bool showScope = cfg->ReadBool(_T("/scope_filter"), true);
-    const int scopeLength = cfg->ReadInt(_T("/toolbar_scope_length"), 280);
-    const int functionLength = cfg->ReadInt(_T("/toolbar_function_length"), 660);
+    bool showScope = Manager::Get()->GetConfigManager(_T("code_completion"))->ReadBool(_T("/scope_filter"), true);
 
     if (showScope && !m_Scope)
     {
-        // Show the scope choice
-        m_Scope = new wxChoice(m_ToolBar, XRCID("chcCodeCompletionScope"), wxPoint(0, 0), wxSize(scopeLength, -1), 0, 0);
+        m_Scope = new wxChoice(m_ToolBar, wxNewId(), wxPoint(0, 0), wxSize(280, -1), 0, 0);
         m_ToolBar->InsertControl(0, m_Scope);
     }
     else if (!showScope && m_Scope)
     {
-        // Hide the scope choice
         m_ToolBar->DeleteTool(m_Scope->GetId());
-        m_Scope = nullptr;
+        m_Scope = NULL;
     }
-    else if (m_Scope)
-    {
-        // Just apply new size to scope choice
-        m_Scope->SetSize(wxSize(scopeLength, -1));
-    }
-
-    m_Function->SetSize(wxSize(functionLength, -1));
+    else
+        return;
 
     m_ToolBar->Realize();
     m_ToolBar->SetInitialSize();
@@ -1828,61 +1816,46 @@ void CodeCompletion::OnGotoFunction(cb_unused wxCommandEvent& event)
 
     m_NativeParser.GetParser().ParseBufferForFunctions(ed->GetControl()->GetText());
 
+    wxArrayString tokens;
+    SearchTree<Token*> tmpsearch;
 
     TokenTree* tree = m_NativeParser.GetParser().GetTempTokenTree();
 
     CC_LOCKER_TRACK_TT_MTX_LOCK(s_TokenTreeMutex)
 
     if (tree->empty())
-    {
         cbMessageBox(_("No functions parsed in this file..."));
-        CC_LOCKER_TRACK_TT_MTX_UNLOCK(s_TokenTreeMutex)
-    }
     else
     {
-        GotoFunctionDlg::Iterator iterator;
-
         for (size_t i = 0; i < tree->size(); i++)
         {
             Token* token = tree->at(i);
             if (token && token->m_TokenKind & tkAnyFunction)
             {
-                GotoFunctionDlg::FunctionToken ft;
-                // We need to clone the internal data of the strings to make them thread safe.
-                ft.displayName = wxString(token->DisplayName().c_str());
-                ft.name = wxString(token->m_Name.c_str());
-                ft.line = token->m_Line;
-                ft.implLine = token->m_ImplLine;
-                if (!token->m_FullType.empty())
-                    ft.paramsAndreturnType = wxString((token->m_Args + wxT(" -> ") + token->m_FullType).c_str());
-                else
-                    ft.paramsAndreturnType = wxString(token->m_Args.c_str());
-                ft.funcName = wxString((token->GetNamespace() + token->m_Name).c_str());
+                tokens.Add(token->DisplayName());
+                tmpsearch.AddItem(token->DisplayName(), token);
+            }
+        }
 
-                iterator.AddToken(ft);
+        IncrementalSelectIteratorStringArray iterator(tokens);
+        IncrementalSelectListDlg dlg(Manager::Get()->GetAppWindow(), iterator,
+                                     _("Select function..."), _("Please select function to go to:"));
+        PlaceWindow(&dlg);
+        if (dlg.ShowModal() == wxID_OK)
+        {
+            wxString sel = dlg.GetStringSelection();
+            const Token* token = tmpsearch.GetItem(sel);
+            if (ed && token)
+            {
+                TRACE(F(_T("OnGotoFunction() : Token '%s' found at line %u."), token->m_Name.wx_str(), token->m_Line));
+                ed->GotoTokenPosition(token->m_Line - 1, token->m_Name);
             }
         }
 
         tree->clear();
-
-        CC_LOCKER_TRACK_TT_MTX_UNLOCK(s_TokenTreeMutex)
-
-        iterator.Sort();
-        GotoFunctionDlg dlg(Manager::Get()->GetAppWindow(), &iterator);
-        PlaceWindow(&dlg);
-        if (dlg.ShowModal() == wxID_OK)
-        {
-            int selection = dlg.GetSelection();
-            if (selection != wxNOT_FOUND) {
-                const GotoFunctionDlg::FunctionToken *ft = iterator.GetToken(selection);
-                if (ed && ft)
-                {
-                    TRACE(F(_T("OnGotoFunction() : Token '%s' found at line %u."), ft->name.wx_str(), ft->line));
-                    ed->GotoTokenPosition(ft->implLine - 1, ft->name);
-                }
-            }
-        }
     }
+
+    CC_LOCKER_TRACK_TT_MTX_UNLOCK(s_TokenTreeMutex)
 }
 
 void CodeCompletion::OnGotoPrevFunction(cb_unused wxCommandEvent& event)
@@ -2086,8 +2059,7 @@ void CodeCompletion::OnGotoDeclaration(wxCommandEvent& event)
 
     if (selections.GetCount() > 1)
     {
-        int sel = cbGetSingleChoiceIndex(_("Please make a selection:"), _("Multiple matches"), selections,
-                                         Manager::Get()->GetAppWindow(), wxSize(400, 400));
+        int sel = wxGetSingleChoiceIndex(_("Please make a selection:"), _("Multiple matches"), selections);
         if (sel == -1)
             return;
 
@@ -2626,7 +2598,7 @@ int CodeCompletion::DoClassMethodDeclImpl()
         return -3;
 
     FileType ft = FileTypeOf(ed->GetShortName());
-    if ( ft != ftHeader && ft != ftSource && ft != ftTemplateSource) // only parse source/header files
+    if ( ft != ftHeader && ft != ftSource) // only parse source/header files
         return -4;
 
     if (!m_NativeParser.GetParser().Done())
@@ -2686,7 +2658,7 @@ int CodeCompletion::DoAllMethodsImpl()
         return -3;
 
     FileType ft = FileTypeOf(ed->GetShortName());
-    if ( ft != ftHeader && ft != ftSource && ft != ftTemplateSource) // only parse source/header files
+    if ( ft != ftHeader && ft != ftSource) // only parse source/header files
         return -4;
 
     wxArrayString paths = m_NativeParser.GetAllPathsByFilename(ed->GetFilename());
@@ -2782,17 +2754,14 @@ int CodeCompletion::DoAllMethodsImpl()
             if (addDoxgenComment)
                 str << _T("/** @brief ") << token->m_Name << _T("\n  *\n  * @todo: document this function\n  */\n");
             wxString type = token->m_FullType;
-            if (!type.IsEmpty())
+            // "int *" or "int &" ->  "int*" or "int&"
+            if ((type.Last() == _T('&') || type.Last() == _T('*')) && type[type.Len() - 2] == _T(' '))
             {
-                // "int *" or "int &" ->  "int*" or "int&"
-                if (   (type.Last() == _T('&') || type.Last() == _T('*'))
-                    && type[type.Len() - 2] == _T(' '))
-                {
-                    type[type.Len() - 2] = type.Last();
-                    type.RemoveLast();
-                }
-                str << type << _T(" ");
+                type[type.Len() - 2] = type.Last();
+                type.RemoveLast();
             }
+            if (!type.IsEmpty())
+                str << type << _T(" ");
             if (token->m_ParentIndex != -1)
             {
                 const Token* parent = tree->at(token->m_ParentIndex);

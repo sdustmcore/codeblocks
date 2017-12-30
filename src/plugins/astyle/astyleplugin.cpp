@@ -42,6 +42,7 @@ using std::string;
 
 namespace
 {
+    const int idCodeFormatterFile = wxNewId();
     const int idCodeFormatterActiveFile = wxNewId();
     const int idCodeFormatterProject = wxNewId();
 }
@@ -62,8 +63,8 @@ AStylePlugin::AStylePlugin()
 {
     //ctor
 
-    if (!Manager::LoadResource(_T("Astyle.zip")))
-        NotifyMissingFile(_T("Astyle.zip"));
+    if (!Manager::LoadResource(_T("astyle.zip")))
+        NotifyMissingFile(_T("astyle.zip"));
 }
 
 AStylePlugin::~AStylePlugin()
@@ -148,7 +149,7 @@ void AStylePlugin::OnFormatProject( wxCommandEvent& /*event*/ )
                     wxString filename = pf->file.GetFullPath();
 
                     FileType fileType = FileTypeOf( filename );
-                    if ( fileType == ftSource || fileType == ftHeader || fileType == ftTemplateSource )
+                    if ( fileType == ftSource || fileType == ftHeader )
                     {
                         FormatFile( filename );
                         if ( false == progressDlg.Update( i++, wxString(_("Formatting ")) + pf->relativeFilename ) )

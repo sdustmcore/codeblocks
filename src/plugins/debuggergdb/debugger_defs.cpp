@@ -54,14 +54,12 @@ void DbgCmd_UpdateWatchesTree::Action()
 class DebuggerInfoWindow : public wxScrollingDialog
 {
     public:
-        DebuggerInfoWindow(wxWindow *parent, const wxString& title, const wxString& content)
-            : wxScrollingDialog(parent, -1, title, wxDefaultPosition, wxDefaultSize,
-                                wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMAXIMIZE_BOX | wxMINIMIZE_BOX)
+        DebuggerInfoWindow(wxWindow *parent, const wxChar *title, const wxString& content)
+            : wxScrollingDialog(parent, -1, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMAXIMIZE_BOX | wxMINIMIZE_BOX)
         {
             wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
             wxFont font(8, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
-            m_pText = new wxTextCtrl(this, -1, content, wxDefaultPosition, wxDefaultSize,
-                                     wxTE_READONLY | wxTE_MULTILINE | wxTE_RICH2 | wxHSCROLL);
+            m_pText = new wxTextCtrl(this, -1, content, wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_MULTILINE | wxTE_RICH2 | wxHSCROLL);
             m_pText->SetFont(font);
 
             sizer->Add(m_pText, 1, wxGROW);
@@ -234,17 +232,6 @@ wxString const & GDBWatch::GetDebugString() const
 {
     return m_debug_value;
 }
-
-wxString GDBWatch::MakeSymbolToAddress() const
-{
-    return wxT("&") + m_symbol;
-}
-
-bool GDBWatch::IsPointerType() const
-{
-    return ::IsPointerType(m_type);
-}
-
 void GDBWatch::SetDebugValue(wxString const &value)
 {
     m_debug_value = value;
